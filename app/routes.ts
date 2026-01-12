@@ -12,7 +12,6 @@ export default [
 
   // API Routes
   route("/api/auth/*", "routes/api.auth.$.tsx"), // Required by Better Auth
-  route("/api/users/bulk-create", "routes/api.users.bulk-create.tsx"), // TODO: Refactor to use action
 
   // Public invitation acceptance
   route(

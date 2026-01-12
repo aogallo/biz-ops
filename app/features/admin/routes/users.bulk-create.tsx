@@ -1,6 +1,8 @@
+import { hashPassword } from "better-auth/crypto";
+import { eq } from "drizzle-orm";
 import { Download, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useState } from "react";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -32,10 +34,20 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import auth from "~/server/auth-server";
 import { getUserOrganizations } from "~/server/auth/organization.server";
-import { getRolesByOrganization } from "~/server/auth/roles.server";
+import { getRoleByName, getRolesByOrganization } from "~/server/auth/roles.server";
 import { requireAuth } from "~/server/auth/session.server";
-import { isSuperAdmin } from "~/server/permissions";
+import { db } from "~/server/db";
+import {
+  accountModel,
+  invitationModel,
+  memberModel,
+  organizationModel,
+  roleModel,
+  userModel,
+} from "~/server/db/schemas/auth";
+import { isOrgAdmin, isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/users.bulk-create";
 
 interface Role {
@@ -64,9 +76,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     getUserOrganizations(session.user.id),
   ]);
 
-  // Default to first org if non selected
+  // Default to first org if none selected
   const selectedOrgId = organizationId || organizations[0]?.organization.id;
-  const roles = getRolesByOrganization(selectedOrgId);
+  const roles = await getRolesByOrganization(selectedOrgId);
 
   return {
     isSuperAdmin: isSuperAdminUser,
@@ -81,15 +93,236 @@ export async function action({ request }: Route.ActionArgs) {
   const session = await requireAuth(request);
   const formData = await request.formData();
 
-  console.log(formData);
-  return {};
+  const organizationId = formData.get("organizationId") as string;
+  const roleId = formData.get("roleId") as string;
+  const sendInvitations = formData.get("sendInvitations") === "true";
+  const usersJson = formData.get("users") as string;
+
+  // Validate required fields
+  if (!organizationId) {
+    return { error: "Organization is required" };
+  }
+
+  if (!usersJson) {
+    return { error: "Users data is required" };
+  }
+
+  let users: Array<{
+    name: string;
+    email: string;
+    password: string;
+    image?: string;
+  }>;
+
+  try {
+    users = JSON.parse(usersJson);
+  } catch {
+    return { error: "Invalid users data" };
+  }
+
+  if (!Array.isArray(users) || users.length === 0) {
+    return { error: "Please add at least one user" };
+  }
+
+  if (users.length > 100) {
+    return { error: "Cannot create more than 100 users at once" };
+  }
+
+  // Check permissions
+  const isSuperAdminUser = await isSuperAdmin(session.user.id);
+  const isOrgAdminUser = await isOrgAdmin(db, session.user.id, organizationId);
+
+  if (!isSuperAdminUser && !isOrgAdminUser) {
+    return {
+      error: "You don't have permission to create users for this organization",
+    };
+  }
+
+  // Get target organization
+  const [targetOrg] = await db
+    .select()
+    .from(organizationModel)
+    .where(eq(organizationModel.id, organizationId))
+    .limit(1);
+
+  if (!targetOrg) {
+    return { error: "Organization not found" };
+  }
+
+  const result = {
+    created: 0,
+    failed: 0,
+    errors: [] as Array<{ email: string; error: string }>,
+  };
+
+  // Process each user
+  for (const userData of users) {
+    try {
+      // Validate user data
+      if (!userData.name || !userData.email) {
+        result.failed++;
+        result.errors.push({
+          email: userData.email || "unknown",
+          error: "Name and email are required",
+        });
+        continue;
+      }
+
+      if (!userData.password) {
+        result.failed++;
+        result.errors.push({
+          email: userData.email,
+          error: "Password is required",
+        });
+        continue;
+      }
+
+      if (userData.password.length < 8) {
+        result.failed++;
+        result.errors.push({
+          email: userData.email,
+          error: "Password must be at least 8 characters",
+        });
+        continue;
+      }
+
+      if (userData.password.length > 128) {
+        result.failed++;
+        result.errors.push({
+          email: userData.email,
+          error: "Password must not exceed 128 characters",
+        });
+        continue;
+      }
+
+      // Check if user already exists
+      const [existingUser] = await db
+        .select()
+        .from(userModel)
+        .where(eq(userModel.email, userData.email))
+        .limit(1);
+
+      if (existingUser) {
+        result.failed++;
+        result.errors.push({
+          email: userData.email,
+          error: "User with this email already exists",
+        });
+        continue;
+      }
+
+      // Create user
+      const userId = crypto.randomUUID();
+      const hashedPassword = await hashPassword(userData.password);
+
+      await db.insert(userModel).values({
+        id: userId,
+        name: userData.name,
+        email: userData.email,
+        emailVerified: false,
+        image: userData.image || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Create account
+      await db.insert(accountModel).values({
+        id: crypto.randomUUID(),
+        accountId: userId,
+        providerId: "credential",
+        userId: userId,
+        password: hashedPassword,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Determine role
+      let finalRoleId: string | null = roleId || null;
+      if (!finalRoleId) {
+        const memberRole = await getRoleByName(organizationId, "member");
+        finalRoleId = memberRole?.id || null;
+      }
+
+      // Create membership
+      await db.insert(memberModel).values({
+        id: crypto.randomUUID(),
+        organizationId: organizationId,
+        userId: userId,
+        role: "member",
+        roleId: finalRoleId || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Send invitation via Better Auth if requested
+      if (sendInvitations) {
+        try {
+          // Get role name for the invitation
+          let roleName = "member";
+          if (finalRoleId) {
+            const [roleRecord] = await db
+              .select()
+              .from(roleModel)
+              .where(eq(roleModel.id, finalRoleId))
+              .limit(1);
+            if (roleRecord) {
+              roleName = roleRecord.name;
+            }
+          }
+
+          // Create invitation via Better Auth (automatically sends email)
+          const invitationResponse = await auth.api.createInvitation({
+            headers: request.headers,
+            body: {
+              organizationId: organizationId,
+              email: userData.email,
+              role: roleName as "member" | "admin" | "owner",
+            },
+          });
+
+          const invitationData = invitationResponse as any as { id: string };
+
+          // Update invitation with roleId
+          if (finalRoleId && invitationData.id) {
+            await db
+              .update(invitationModel)
+              .set({
+                roleId: finalRoleId,
+                inviterId: session.user.id,
+              })
+              .where(eq(invitationModel.id, invitationData.id));
+          }
+        } catch (emailError) {
+          console.error(
+            `Failed to send invitation to ${userData.email}:`,
+            emailError
+          );
+          // Don't fail the creation if email fails
+        }
+      }
+
+      result.created++;
+    } catch (error: any) {
+      console.error(`Error creating user ${userData.email}:`, error);
+      result.failed++;
+      result.errors.push({
+        email: userData.email,
+        error: error.message || "Failed to create user",
+      });
+    }
+  }
+
+  // Return results without redirect to show the summary
+  return { result };
 }
 
 export default function BulkCreateUsersPage({
   loaderData,
 }: Route.ComponentProps) {
-  const navigate = useNavigate();
-  const { isSuperAdmin, organizations } = loaderData;
+  const { isSuperAdmin, organizations, roles, selectedOrgId } = loaderData;
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
   // Check if user has organizations
   if (organizations.length === 0) {
@@ -105,15 +338,12 @@ export default function BulkCreateUsersPage({
           </CardHeader>
           <CardContent>
             <div className="flex gap-3">
-              <Button onClick={() => navigate("/admin/users")}>
-                Back to Users
+              <Button asChild>
+                <a href="/admin/users">Back to Users</a>
               </Button>
               {isSuperAdmin && (
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/admin/organizations/create")}
-                >
-                  Create Organization
+                <Button variant="outline" asChild>
+                  <a href="/admin/organizations/create">Create Organization</a>
                 </Button>
               )}
             </div>
@@ -123,14 +353,7 @@ export default function BulkCreateUsersPage({
     );
   }
 
-  // Form state
-  const [organizationId, setOrganizationId] = useState<string>(
-    organizations[0].organization.id,
-  );
-  const [roleId, setRoleId] = useState<string>("");
-  const [sendInvitations, setSendInvitations] = useState(true);
-
-  // User rows
+  // User rows (controlled state for dynamic table)
   const [userRows, setUserRows] = useState<UserRow[]>([
     { id: crypto.randomUUID(), name: "", email: "", password: "", image: "" },
     { id: crypto.randomUUID(), name: "", email: "", password: "", image: "" },
@@ -139,49 +362,9 @@ export default function BulkCreateUsersPage({
     { id: crypto.randomUUID(), name: "", email: "", password: "", image: "" },
   ]);
 
-  // UI state
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{
-    created: number;
-    failed: number;
-    errors: Array<{ email: string; error: string }>;
-  } | null>(null);
-
-  // Fetch roles when organization changes
-  useEffect(() => {
-    if (!organizationId) return;
-
-    const fetchRoles = async () => {
-      setLoadingRoles(true);
-      try {
-        const params = new URLSearchParams({ organizationId });
-        const response = await fetch(`/api/roles/list?${params}`);
-        const data = (await response.json()) as {
-          success?: boolean;
-          roles?: Role[];
-          error?: string;
-        };
-
-        if (data.success && data.roles) {
-          setRoles(data.roles);
-          // Auto-select "member" role if available
-          const memberRole = data.roles.find((r) => r.name === "member");
-          if (memberRole) {
-            setRoleId(memberRole.id);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
-
-    fetchRoles();
-  }, [organizationId]);
+  // Auto-select member role by default
+  const memberRole = roles.find((r) => r.name === "member");
+  const defaultRoleId = memberRole?.id || "";
 
   const addRow = () => {
     setUserRows([
@@ -191,10 +374,7 @@ export default function BulkCreateUsersPage({
   };
 
   const removeRow = (id: string) => {
-    if (userRows.length <= 1) {
-      setError("You must have at least one user row");
-      return;
-    }
+    if (userRows.length <= 1) return;
     setUserRows(userRows.filter((row) => row.id !== id));
   };
 
@@ -204,125 +384,12 @@ export default function BulkCreateUsersPage({
     );
   };
 
-  const validateRows = (): boolean => {
-    // Filter out empty rows (rows where all fields are empty)
-    const nonEmptyRows = userRows.filter(
-      (row) =>
-        row.name.trim() ||
-        row.email.trim() ||
-        row.password.trim() ||
-        row.image.trim(),
-    );
-
-    if (nonEmptyRows.length === 0) {
-      setError("Please add at least one user");
-      return false;
-    }
-
-    // Validate each non-empty row
-    for (const row of nonEmptyRows) {
-      if (!row.name.trim()) {
-        setError(
-          `Name is required for user with email: ${row.email || "(empty)"}`,
-        );
-        return false;
-      }
-      if (!row.email.trim()) {
-        setError(`Email is required for user: ${row.name}`);
-        return false;
-      }
-      if (!row.password.trim()) {
-        setError(`Password is required for user: ${row.email}`);
-        return false;
-      }
-      if (row.password.length < 8) {
-        setError(
-          `Password must be at least 8 characters for user: ${row.email}`,
-        );
-        return false;
-      }
-      if (row.password.length > 128) {
-        setError(
-          `Password must not exceed 128 characters for user: ${row.email}`,
-        );
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setResult(null);
-
-    if (!validateRows()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // Filter out empty rows
-    const validUsers = userRows
-      .filter(
-        (row) => row.name.trim() && row.email.trim() && row.password.trim(),
-      )
-      .map((row) => ({
-        name: row.name.trim(),
-        email: row.email.trim(),
-        password: row.password,
-        image: row.image.trim() || undefined,
-        roleId: roleId || undefined,
-      }));
-
-    try {
-      const response = await fetch("/api/users/bulk-create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          organizationId,
-          users: validUsers,
-          sendInvitations,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        success?: boolean;
-        created?: number;
-        failed?: number;
-        errors?: Array<{ email: string; error: string }>;
-        error?: string;
-      };
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create users");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Show results
-      setResult({
-        created: data.created || 0,
-        failed: data.failed || 0,
-        errors: data.errors || [],
-      });
-
-      setIsSubmitting(false);
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      setIsSubmitting(false);
-    }
-  };
-
   const downloadFailedUsers = () => {
-    if (!result || result.errors.length === 0) return;
+    if (!actionData?.result || actionData.result.errors.length === 0) return;
 
     const csv = [
       "email,error",
-      ...result.errors.map((e) => `${e.email},${e.error}`),
+      ...actionData.result.errors.map((e) => `${e.email},${e.error}`),
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -333,7 +400,9 @@ export default function BulkCreateUsersPage({
     URL.revokeObjectURL(url);
   };
 
-  if (result) {
+  // Show results if action completed successfully
+  if (actionData?.result) {
+    const { result } = actionData;
     return (
       <div className="container mx-auto py-6 max-w-4xl">
         <Card>
@@ -401,11 +470,11 @@ export default function BulkCreateUsersPage({
               )}
 
               <div className="flex gap-3">
-                <Button onClick={() => navigate("/admin/users")}>
-                  Go to User List
+                <Button asChild>
+                  <a href="/admin/users">Go to User List</a>
                 </Button>
-                <Button variant="outline" onClick={() => setResult(null)}>
-                  Create More Users
+                <Button variant="outline" asChild>
+                  <a href="/admin/users/bulk-create">Create More Users</a>
                 </Button>
               </div>
             </div>
@@ -432,36 +501,58 @@ export default function BulkCreateUsersPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
+          {actionData?.error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
-              {error}
+              {actionData.error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <Form
+            method="post"
+            onSubmit={(e) => {
+              // Filter out empty rows and serialize users data
+              const validUsers = userRows
+                .filter(
+                  (row) =>
+                    row.name.trim() ||
+                    row.email.trim() ||
+                    row.password.trim() ||
+                    row.image.trim()
+                )
+                .map((row) => ({
+                  name: row.name.trim(),
+                  email: row.email.trim(),
+                  password: row.password,
+                  image: row.image.trim() || undefined,
+                }));
+
+              // Add the serialized users data to the form
+              const form = e.currentTarget;
+              const hiddenInput = form.querySelector(
+                'input[name="users"]'
+              ) as HTMLInputElement;
+              if (hiddenInput) {
+                hiddenInput.value = JSON.stringify(validUsers);
+              }
+            }}
+          >
             <FieldGroup>
+              <input
+                type="hidden"
+                name="organizationId"
+                value={selectedOrgId}
+              />
+              <input type="hidden" name="roleId" value={defaultRoleId} />
+              <input type="hidden" name="sendInvitations" value="true" />
+              <input type="hidden" name="users" value="" />
+
               <div className="grid grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel htmlFor="organization">Organization *</FieldLabel>
-                  <Select
-                    value={organizationId}
-                    onValueChange={setOrganizationId}
-                    disabled={!isSuperAdmin || isSubmitting}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select organization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {organizations.map((org) => (
-                        <SelectItem
-                          key={org.organization.id}
-                          value={org.organization.id}
-                        >
-                          {org.organization.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FieldLabel>Organization *</FieldLabel>
+                  <div className="p-2 border rounded-md bg-muted">
+                    {organizations.find((o) => o.organization.id === selectedOrgId)
+                      ?.organization.name}
+                  </div>
                   {!isSuperAdmin && (
                     <FieldDescription>
                       You can only create users in your own organization
@@ -470,29 +561,10 @@ export default function BulkCreateUsersPage({
                 </Field>
 
                 <Field>
-                  <FieldLabel htmlFor="role">Role (applies to all)</FieldLabel>
-                  <Select
-                    value={roleId}
-                    onValueChange={setRoleId}
-                    disabled={loadingRoles || isSubmitting}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          loadingRoles
-                            ? "Loading roles..."
-                            : "Select role (defaults to member)"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.id}>
-                          {role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FieldLabel>Role (applies to all)</FieldLabel>
+                  <div className="p-2 border rounded-md bg-muted">
+                    {memberRole?.name || "member"}
+                  </div>
                   <FieldDescription>
                     All users will be assigned this role
                   </FieldDescription>
@@ -501,20 +573,9 @@ export default function BulkCreateUsersPage({
 
               <Field>
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="sendInvitations"
-                    checked={sendInvitations}
-                    onCheckedChange={(checked) =>
-                      setSendInvitations(checked === true)
-                    }
-                    disabled={isSubmitting}
-                  />
-                  <label
-                    htmlFor="sendInvitations"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Send invitation emails to all users
-                  </label>
+                  <div className="p-2 text-sm">
+                    Invitation emails will be sent to all users
+                  </div>
                 </div>
               </Field>
 
@@ -621,17 +682,12 @@ export default function BulkCreateUsersPage({
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Creating Users..." : "Create All Users"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/admin/users")}
-                  disabled={isSubmitting}
-                >
-                  Cancel
+                <Button type="button" variant="outline" asChild>
+                  <a href="/admin/users">Cancel</a>
                 </Button>
               </div>
             </FieldGroup>
-          </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

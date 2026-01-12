@@ -23,7 +23,8 @@ export default [
   layout("./layout/AppLayout.tsx", [
     ...prefix("organization", [
       index("./features/organization/routes/index.tsx"),
-      route("/new", "./features/organization/routes/CreateOrganization.tsx"),
+      route("/new", "./features/organization/routes/create.tsx"),
+      route("/:slug", "./features/organization/routes/show.tsx"),
     ]),
     ...prefix("invitations", [
       index("./features/invitation/routes/index.tsx"),

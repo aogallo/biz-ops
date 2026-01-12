@@ -1,7 +1,7 @@
 import { Form, useActionData, useNavigation } from "react-router";
 import { requireAuth } from "~/server/auth/session.server";
+import type { Route } from "../../admin/routes/+types/organizations.create";
 import { createOrganization } from "../server/actions/create.action";
-import type { Route } from "./+types/CreateOrganization";
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);

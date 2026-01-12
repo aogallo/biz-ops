@@ -59,7 +59,7 @@ export default function Organization({ loaderData }: Route.ComponentProps) {
                   {membership.role}
                 </span>
                 <Link
-                  to={`/org/${organization.slug}`}
+                  to={`/organization/${organization.slug}`}
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Open →

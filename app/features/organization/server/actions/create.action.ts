@@ -24,9 +24,10 @@ export async function createOrganization(input: FormData) {
     };
   }
 
-  const result = await repo.create(data);
+  const createdOrganization = await repo.create(data);
+
   return {
     success: true,
-    data: result,
+    data: createdOrganization,
   };
 }

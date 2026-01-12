@@ -5,7 +5,11 @@ import type { OrganizationCreate } from "../schemas";
 
 export class OrganizationRepository {
   async create(data: OrganizationCreate) {
-    return await db.insert(organizationModel).values(data).returning();
+    const response = await db
+      .insert(organizationModel)
+      .values(data)
+      .returning();
+    return response[0];
   }
 
   async getAll() {

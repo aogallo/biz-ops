@@ -167,3 +167,560 @@ Follow the feature-based structure in `app/features/`:
 - **Edge runtime**: Code runs on Cloudflare Workers, not Node.js (avoid Node.js-only APIs)
 - **Environment variables**: Production secrets are in `wrangler.jsonc` (should be moved to Cloudflare dashboard)
 - **Database schema**: The canonical schema is `app/server/db/schema.ts`, not the root `auth-schema.ts`
+
+
+# React Router v7 Framework Guidelines
+
+This project uses React Router v7 with loaders and actions for data fetching and mutations. This is a **server-first framework** - loaders and actions run on the server, enabling SSR, progressive enhancement, and better performance.
+
+## Core Principles
+
+### 1. Server-Side Data Fetching (Loaders)
+- **ALWAYS** use `loader` functions for data fetching, **NEVER** create separate API endpoints
+- Loaders run on the server during SSR and on subsequent navigations
+- Multiple data sources can be fetched in parallel using `Promise.all()`
+- Return data directly from loaders - React Router handles serialization
+
+### 2. URL as Source of Truth
+- Use `searchParams` for filtering, pagination, and UI state that should be shareable
+- Changing search params automatically triggers loader re-runs
+- Browser back/forward works automatically
+- Deep linking works out of the box
+
+### 3. Progressive Enhancement
+- Forms work without JavaScript using `<Form>` component
+- Actions run on the server whether JS is enabled or not
+- Provides excellent accessibility and SEO
+
+## Data Fetching Patterns
+
+### Basic Loader
+```typescript
+import type { Route } from "./+types/users";
+import { requireAuth } from "~/server/auth/session.server";
+import { db } from "~/server/db";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await requireAuth(request);
+
+  const users = await db.select().from(user).where(eq(user.orgId, session.orgId));
+
+  return { users };
+}
+
+export default function UsersPage({ loaderData }: Route.ComponentProps) {
+  const { users } = loaderData;
+  return <div>{users.map(u => <div key={u.id}>{u.name}</div>)}</div>;
+}
+```
+
+### Loader with SearchParams (Filtering)
+```typescript
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await requireAuth(request);
+  const url = new URL(request.url);
+  const organizationId = url.searchParams.get("organizationId");
+
+  // Fetch data based on URL parameter
+  const users = await db.getUsersByOrganization(organizationId);
+
+  return { users, selectedOrgId: organizationId };
+}
+
+export default function UsersPage({ loaderData }: Route.ComponentProps) {
+  const { users, selectedOrgId } = loaderData;
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  return (
+    <Select
+      value={selectedOrgId || ""}
+      onValueChange={(id) => setSearchParams({ organizationId: id })}
+    >
+      {/* Changing this updates URL and triggers loader automatically */}
+    </Select>
+  );
+}
+```
+
+### Parallel Data Fetching
+```typescript
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await requireAuth(request);
+  const url = new URL(request.url);
+  const orgId = url.searchParams.get("organizationId");
+
+  // Fetch multiple data sources in parallel
+  const [isSuperAdmin, organizations, users] = await Promise.all([
+    checkSuperAdmin(session.user.id),
+    getUserOrganizations(session.user.id),
+    orgId ? getUsersByOrg(orgId) : Promise.resolve([])
+  ]);
+
+  return {
+    isSuperAdmin,
+    organizations,
+    users,
+    selectedOrgId: orgId || organizations[0]?.id
+  };
+}
+```
+
+## Data Mutation Patterns
+
+### Basic Action with Form
+```typescript
+import { Form, redirect, useActionData, useNavigation } from "react-router";
+
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request);
+  const formData = await request.formData();
+
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+
+  // Validate
+  if (!name || !email) {
+    return { error: "Name and email are required" };
+  }
+
+  try {
+    await db.insert(user).values({ name, email });
+    return redirect("/users");
+  } catch (error) {
+    return { error: "Failed to create user" };
+  }
+}
+
+export default function CreateUser() {
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  return (
+    <Form method="post">
+      {actionData?.error && <div className="error">{actionData.error}</div>}
+
+      <input name="name" required />
+      <input name="email" type="email" required />
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Creating..." : "Create User"}
+      </button>
+    </Form>
+  );
+}
+```
+
+### Action with Complex Validation
+```typescript
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request);
+  const formData = await request.formData();
+
+  const organizationId = formData.get("organizationId") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  // Field validation
+  if (!email || !password) {
+    return { error: "Email and password are required" };
+  }
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters" };
+  }
+
+  // Permission checks
+  const hasPermission = await checkPermission(session.user.id, organizationId);
+  if (!hasPermission) {
+    return { error: "You don't have permission to create users" };
+  }
+
+  // Duplicate checks
+  const existing = await db.query.user.findFirst({ where: eq(user.email, email) });
+  if (existing) {
+    return { error: "A user with this email already exists" };
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      const userId = crypto.randomUUID();
+      await tx.insert(user).values({ id: userId, email });
+      await tx.insert(member).values({ userId, organizationId });
+    });
+
+    return redirect("/users");
+  } catch (error) {
+    return { error: "Failed to create user" };
+  }
+}
+```
+
+### Action with Result Display (No Redirect)
+```typescript
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const users = JSON.parse(formData.get("users") as string);
+
+  const result = { created: 0, failed: 0, errors: [] };
+
+  for (const userData of users) {
+    try {
+      await createUser(userData);
+      result.created++;
+    } catch (error) {
+      result.failed++;
+      result.errors.push({ email: userData.email, error: error.message });
+    }
+  }
+
+  // Don't redirect if there are errors - show results
+  return { result };
+}
+
+export default function BulkCreate() {
+  const actionData = useActionData<typeof action>();
+
+  return (
+    <Form method="post">
+      {actionData?.result && (
+        <div>
+          <p>Created: {actionData.result.created}</p>
+          <p>Failed: {actionData.result.failed}</p>
+          {actionData.result.errors.map(e => <div key={e.email}>{e.error}</div>)}
+        </div>
+      )}
+
+      {/* Form fields */}
+    </Form>
+  );
+}
+```
+
+## Form Handling Best Practices
+
+### Using React Router Form Component
+```typescript
+import { Form } from "react-router";
+
+// ✅ CORRECT - Uses React Router Form
+<Form method="post">
+  <input name="email" type="email" required />
+  <button type="submit">Submit</button>
+</Form>
+
+// ❌ WRONG - Regular HTML form or manual fetch
+<form onSubmit={handleSubmit}>...</form>
+```
+
+### Uncontrolled Inputs (Preferred for Forms)
+```typescript
+// ✅ CORRECT - Let React Router handle form data
+<Form method="post">
+  <input name="email" type="email" required />
+  <input name="password" type="password" required />
+</Form>
+
+// ❌ AVOID - Unnecessary controlled inputs for form submission
+const [email, setEmail] = useState("");
+<Form method="post">
+  <input value={email} onChange={(e) => setEmail(e.target.value)} />
+</Form>
+```
+
+**Note**: Use controlled inputs only when you need:
+- Real-time validation
+- Character counting
+- Auto-formatting (e.g., phone numbers)
+- Dependent field updates (e.g., slug generation from name)
+
+### Hidden Inputs for Context
+```typescript
+export default function CreateUser({ loaderData }: Route.ComponentProps) {
+  const { selectedOrganizationId } = loaderData;
+
+  return (
+    <Form method="post">
+      {/* Pass context via hidden input */}
+      <input type="hidden" name="organizationId" value={selectedOrganizationId} />
+
+      <input name="name" required />
+      <button type="submit">Create</button>
+    </Form>
+  );
+}
+```
+
+### Loading States with useNavigation
+```typescript
+import { useNavigation } from "react-router";
+
+export default function CreateUser() {
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+  const isLoading = navigation.state === "loading";
+
+  return (
+    <Form method="post">
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Creating..." : "Create User"}
+      </button>
+    </Form>
+  );
+}
+```
+
+### Error Handling with useActionData
+```typescript
+export default function CreateUser() {
+  const actionData = useActionData<typeof action>();
+
+  return (
+    <Form method="post">
+      {actionData?.error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{actionData.error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Form fields */}
+    </Form>
+  );
+}
+```
+
+## Advanced Patterns
+
+### useFetcher for Non-Navigation Actions
+```typescript
+import { useFetcher } from "react-router";
+
+export default function DeleteButton({ userId }: { userId: string }) {
+  const fetcher = useFetcher();
+
+  return (
+    <fetcher.Form method="post" action={`/users/${userId}/delete`}>
+      <button type="submit" disabled={fetcher.state !== "idle"}>
+        {fetcher.state === "submitting" ? "Deleting..." : "Delete"}
+      </button>
+    </fetcher.Form>
+  );
+}
+```
+
+### Optimistic UI Updates
+```typescript
+export default function TodoItem({ todo }: { todo: Todo }) {
+  const fetcher = useFetcher();
+
+  // Optimistically show updated state
+  const isCompleted = fetcher.formData
+    ? fetcher.formData.get("completed") === "true"
+    : todo.completed;
+
+  return (
+    <fetcher.Form method="post" action={`/todos/${todo.id}`}>
+      <input type="hidden" name="completed" value={String(!isCompleted)} />
+      <button type="submit">
+        {isCompleted ? "✓" : "○"}
+      </button>
+    </fetcher.Form>
+  );
+}
+```
+
+## Anti-Patterns to Avoid
+
+### ❌ Don't Create REST API Endpoints
+```typescript
+// ❌ WRONG - Separate API endpoint
+route("/api/users/list", "routes/api.users.list.tsx"),
+
+// Component makes fetch call
+useEffect(() => {
+  fetch("/api/users/list").then(r => r.json()).then(setUsers);
+}, []);
+```
+
+```typescript
+// ✅ CORRECT - Loader in route
+export async function loader() {
+  const users = await db.query.user.findMany();
+  return { users };
+}
+```
+
+### ❌ Don't Use useEffect for Data Fetching
+```typescript
+// ❌ WRONG
+const [users, setUsers] = useState([]);
+useEffect(() => {
+  fetch("/api/users").then(r => r.json()).then(setUsers);
+}, []);
+```
+
+```typescript
+// ✅ CORRECT
+export async function loader() {
+  const users = await db.query.user.findMany();
+  return { users };
+}
+```
+
+### ❌ Don't Use Component State for URL-Shareable Data
+```typescript
+// ❌ WRONG - Filter state not in URL
+const [selectedOrg, setSelectedOrg] = useState("");
+```
+
+```typescript
+// ✅ CORRECT - Filter in URL searchParams
+const [searchParams, setSearchParams] = useSearchParams();
+const selectedOrg = searchParams.get("organizationId");
+```
+
+### ❌ Don't Use Controlled Forms Unnecessarily
+```typescript
+// ❌ WRONG - Unnecessary state management
+const [name, setName] = useState("");
+const [email, setEmail] = useState("");
+
+<Form method="post">
+  <input value={name} onChange={(e) => setName(e.target.value)} />
+  <input value={email} onChange={(e) => setEmail(e.target.value)} />
+</Form>
+```
+
+```typescript
+// ✅ CORRECT - Let React Router handle it
+<Form method="post">
+  <input name="name" required />
+  <input name="email" type="email" required />
+</Form>
+```
+
+## Type Safety
+
+React Router v7 generates route types automatically:
+
+```typescript
+import type { Route } from "./+types/users";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  // Full type inference
+  return { users: [] };
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  // Full type inference
+  const formData = await request.formData();
+  return { error: "Something went wrong" };
+}
+
+export default function UsersPage({ loaderData }: Route.ComponentProps) {
+  // loaderData is fully typed based on loader return type
+  const { users } = loaderData;
+}
+```
+
+## Common Patterns in This Codebase
+
+### Authentication in Loaders
+```typescript
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await requireAuth(request); // Throws redirect if not authenticated
+  return { user: session.user };
+}
+```
+
+### Permission Checks in Actions
+```typescript
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request);
+
+  const isSuperAdmin = await isSuperAdmin(db, session.user.id);
+  if (!isSuperAdmin) {
+    return { error: "Permission denied" };
+  }
+
+  // Proceed with mutation
+}
+```
+
+### Multi-Org Filtering Pattern
+```typescript
+export async function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const orgId = url.searchParams.get("organizationId");
+
+  const [orgs, data] = await Promise.all([
+    getUserOrganizations(session.user.id),
+    orgId ? getDataForOrg(orgId) : Promise.resolve([])
+  ]);
+
+  const selectedOrgId = orgId || orgs[0]?.organization.id;
+
+  return { orgs, data, selectedOrgId };
+}
+```
+
+## Testing Loaders and Actions
+
+```typescript
+import { loader, action } from "./users";
+
+describe("users loader", () => {
+  it("fetches users for organization", async () => {
+    const request = new Request("http://localhost/users?organizationId=123");
+    const result = await loader({ request, params: {}, context: {} });
+
+    expect(result.users).toHaveLength(5);
+  });
+});
+
+describe("users action", () => {
+  it("creates user and redirects", async () => {
+    const formData = new FormData();
+    formData.set("name", "John");
+    formData.set("email", "john@example.com");
+
+    const request = new Request("http://localhost/users", {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await action({ request, params: {}, context: {} });
+
+    expect(result).toBeInstanceOf(Response);
+    expect(result.status).toBe(302);
+  });
+});
+```
+
+## Performance Considerations
+
+1. **Parallel Fetching**: Use `Promise.all()` in loaders
+2. **Caching**: React Router caches loader data automatically
+3. **Pagination**: Add `limit` and `offset` to searchParams
+4. **Optimistic UI**: Use `useFetcher` with optimistic updates
+5. **Database Indexes**: Ensure proper indexes on filtered columns
+
+## Migration from API Endpoints
+
+When refactoring from REST API endpoints:
+
+1. **Move data fetching logic** from `api.*.tsx` into route loaders
+2. **Move mutation logic** from API endpoints into route actions
+3. **Replace `useEffect` + `fetch`** with loader data
+4. **Replace manual fetch on submit** with `<Form>` component
+5. **Use `useSearchParams`** instead of component state for filters
+6. **Delete old API route files** after migration
+7. **Update `routes.ts`** to remove API endpoint definitions
+
+This refactoring improves:
+- Performance (server-side data fetching, no waterfalls)
+- SEO (all data rendered server-side)
+- UX (progressive enhancement, works without JS)
+- DX (simpler code, better type safety)
+- Maintainability (consistent patterns throughout)

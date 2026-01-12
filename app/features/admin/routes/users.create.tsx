@@ -1,11 +1,16 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useState } from "react";
+import { Form, Link, redirect, useActionData, useNavigation, useSearchParams } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
 import type { Route } from "./+types/users.create";
 import { requireAuth } from "~/server/auth/session.server";
 import { getUserOrganizations } from "~/server/auth/organization.server";
-import { isSuperAdmin } from "~/server/permissions";
+import { isSuperAdmin, isOrgAdmin } from "~/server/permissions";
 import { db } from "~/server/db";
+import { user, account, member, role, invitation, organization } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { hashPassword } from "better-auth/crypto";
+import { getRolesByOrganization, getRoleByName } from "~/server/auth/roles.server";
+import auth from "~/server/auth-server";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -39,26 +44,199 @@ interface Role {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
+  const url = new URL(request.url);
+  const organizationId = url.searchParams.get("organizationId");
 
-  // Check if user is super admin
-  const isSuperAdminUser = await isSuperAdmin(db, session.user.id);
+  // Fetch data in parallel
+  const [isSuperAdminUser, organizations] = await Promise.all([
+    isSuperAdmin(db, session.user.id),
+    getUserOrganizations(session.user.id),
+  ]);
 
-  // Get user's organizations
-  const organizations = await getUserOrganizations(session.user.id);
+  // Default to first org if none selected
+  const selectedOrgId = organizationId || organizations[0]?.organization.id;
 
-  console.log("Loader: isSuperAdmin =", isSuperAdminUser);
-  console.log("Loader: organizations count =", organizations.length);
+  // Fetch roles for selected organization
+  let roles: any[] = [];
+  if (selectedOrgId) {
+    roles = await getRolesByOrganization(selectedOrgId);
+  }
 
   return {
     isSuperAdmin: isSuperAdminUser,
     organizations,
+    roles,
+    selectedOrganizationId: selectedOrgId,
     user: session.user,
   };
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request);
+  const formData = await request.formData();
+
+  const organizationId = formData.get("organizationId") as string;
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const image = formData.get("image") as string;
+  const roleId = formData.get("roleId") as string;
+  const sendInvitation = formData.get("sendInvitation") === "on";
+
+  // Validate required fields
+  if (!name || !email || !organizationId || !password) {
+    return { error: "Name, email, organization, and password are required" };
+  }
+
+  // Validate password length
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters long" };
+  }
+
+  if (password.length > 128) {
+    return { error: "Password must not exceed 128 characters" };
+  }
+
+  try {
+    // Check permissions
+    const isSuperAdminUser = await isSuperAdmin(db, session.user.id);
+    const isOrgAdminUser = await isOrgAdmin(db, session.user.id, organizationId);
+
+    if (!isSuperAdminUser && !isOrgAdminUser) {
+      return {
+        error: "You don't have permission to create users for this organization",
+      };
+    }
+
+    // Check if user already exists
+    const [existingUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+
+    if (existingUser) {
+      return { error: "A user with this email already exists" };
+    }
+
+    // Get target organization
+    const [targetOrg] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+      .limit(1);
+
+    if (!targetOrg) {
+      return { error: "Organization not found" };
+    }
+
+    // Create user
+    const userId = crypto.randomUUID();
+    const hashedPassword = await hashPassword(password);
+
+    const [newUser] = await db
+      .insert(user)
+      .values({
+        id: userId,
+        name,
+        email,
+        image: image || null,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    // Create account with password
+    await db.insert(account).values({
+      id: crypto.randomUUID(),
+      accountId: userId,
+      providerId: "credential",
+      userId: userId,
+      password: hashedPassword,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Determine role for the user
+    let finalRoleId = roleId;
+    if (!finalRoleId) {
+      // Default to member role
+      const memberRole = await getRoleByName(organizationId, "member");
+      finalRoleId = memberRole?.id || "";
+    }
+
+    // Create membership
+    await db.insert(member).values({
+      id: crypto.randomUUID(),
+      organizationId,
+      userId: userId,
+      role: "member",
+      roleId: finalRoleId || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Send invitation email via Better Auth if requested
+    if (sendInvitation) {
+      try {
+        // Get role name for the invitation
+        let roleName = "member";
+        if (finalRoleId) {
+          const [roleRecord] = await db
+            .select()
+            .from(role)
+            .where(eq(role.id, finalRoleId))
+            .limit(1);
+          if (roleRecord) {
+            roleName = roleRecord.name;
+          }
+        }
+
+        // Create invitation via Better Auth
+        const invitationResponse = await auth.api.createInvitation({
+          headers: request.headers,
+          body: {
+            organizationId: organizationId,
+            email: email,
+            role: roleName as "member" | "admin" | "owner",
+          },
+        });
+
+        const invitationData = invitationResponse as any as { id: string };
+        const invitationId = invitationData.id;
+
+        // Update invitation with roleId
+        if (finalRoleId && invitationId) {
+          await db
+            .update(invitation)
+            .set({
+              roleId: finalRoleId,
+              inviterId: session.user.id,
+            })
+            .where(eq(invitation.id, invitationId));
+        }
+      } catch (emailError) {
+        console.error("Failed to send invitation email:", emailError);
+        // Don't fail the user creation if email fails
+      }
+    }
+
+    return redirect("/admin/users");
+  } catch (error: any) {
+    console.error("Error creating user:", error);
+    return { error: "Failed to create user" };
+  }
+}
+
 export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
-  const navigate = useNavigate();
-  const { isSuperAdmin, organizations } = loaderData;
+  const { isSuperAdmin, organizations, roles, selectedOrganizationId } = loaderData;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check if user has organizations
   if (organizations.length === 0) {
@@ -73,13 +251,13 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
           </CardHeader>
           <CardContent>
             <div className="flex gap-3">
-              <Button onClick={() => navigate("/admin/users")}>
-                Back to Users
-              </Button>
+              <Link to="/admin/users">
+                <Button>Back to Users</Button>
+              </Link>
               {isSuperAdmin && (
-                <Button variant="outline" onClick={() => navigate("/admin/organizations/create")}>
-                  Create Organization
-                </Button>
+                <Link to="/admin/organizations/create">
+                  <Button variant="outline">Create Organization</Button>
+                </Link>
               )}
             </div>
           </CardContent>
@@ -88,105 +266,9 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
     );
   }
 
-  // Form state
-  const [organizationId, setOrganizationId] = useState<string>(
-    organizations[0].organization.id
-  );
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [image, setImage] = useState("");
-  const [roleId, setRoleId] = useState<string>("");
-  const [sendInvitation, setSendInvitation] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-
-  // UI state
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Fetch roles when organization changes
-  useEffect(() => {
-    if (!organizationId) return;
-
-    const fetchRoles = async () => {
-      setLoadingRoles(true);
-      try {
-        const params = new URLSearchParams({ organizationId });
-        const response = await fetch(`/api/roles/list?${params}`);
-        const data = await response.json() as { success?: boolean; roles?: Role[]; error?: string };
-
-        if (data.success && data.roles) {
-          setRoles(data.roles);
-          // Auto-select "member" role if available
-          const memberRole = data.roles.find((r) => r.name === "member");
-          if (memberRole) {
-            setRoleId(memberRole.id);
-          }
-        } else {
-          console.error("Failed to fetch roles:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
-
-    fetchRoles();
-  }, [organizationId]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    // Validation
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (password.length > 128) {
-      setError("Password must not exceed 128 characters");
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/users/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          organizationId,
-          name,
-          email,
-          password,
-          image: image || undefined,
-          roleId: roleId || undefined,
-          sendInvitation,
-        }),
-      });
-
-      const data = await response.json() as { success?: boolean; error?: string; message?: string };
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create user");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Success! Redirect to user list
-      navigate("/admin/users");
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      setIsSubmitting(false);
-    }
-  };
+  // Get default member role if available
+  const memberRole = roles.find((r) => r.name === "member");
+  const defaultRoleId = memberRole?.id || "";
 
   return (
     <div className="container mx-auto py-6 max-w-2xl">
@@ -205,19 +287,21 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
+          {actionData?.error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
-              {error}
+              {actionData.error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <Form method="post">
+            <input type="hidden" name="organizationId" value={selectedOrganizationId || ""} />
+
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="organization">Organization *</FieldLabel>
                 <Select
-                  value={organizationId}
-                  onValueChange={setOrganizationId}
+                  value={selectedOrganizationId || ""}
+                  onValueChange={(id) => setSearchParams({ organizationId: id })}
                   disabled={!isSuperAdmin || isSubmitting}
                 >
                   <SelectTrigger>
@@ -245,11 +329,10 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
                 <FieldLabel htmlFor="name">Name *</FieldLabel>
                 <Input
                   id="name"
+                  name="name"
                   type="text"
                   placeholder="John Doe"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
                 />
               </Field>
@@ -258,11 +341,10 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
                 <FieldLabel htmlFor="email">Email *</FieldLabel>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="john@example.com"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
                 />
               </Field>
@@ -272,11 +354,10 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter password"
                     required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isSubmitting}
                     minLength={8}
                     maxLength={128}
@@ -302,12 +383,12 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
               <Field>
                 <FieldLabel htmlFor="role">Role</FieldLabel>
                 <Select
-                  value={roleId}
-                  onValueChange={setRoleId}
-                  disabled={loadingRoles || isSubmitting}
+                  name="roleId"
+                  defaultValue={defaultRoleId}
+                  disabled={isSubmitting}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={loadingRoles ? "Loading roles..." : "Select role (defaults to member)"} />
+                    <SelectValue placeholder="Select role (defaults to member)" />
                   </SelectTrigger>
                   <SelectContent>
                     {roles.map((role) => (
@@ -333,10 +414,9 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
                 <FieldLabel htmlFor="image">Profile Image URL</FieldLabel>
                 <Input
                   id="image"
+                  name="image"
                   type="url"
                   placeholder="https://example.com/avatar.jpg"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
                   disabled={isSubmitting}
                 />
                 <FieldDescription>
@@ -348,10 +428,8 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="sendInvitation"
-                    checked={sendInvitation}
-                    onCheckedChange={(checked) =>
-                      setSendInvitation(checked === true)
-                    }
+                    name="sendInvitation"
+                    defaultChecked={true}
                     disabled={isSubmitting}
                   />
                   <label
@@ -370,17 +448,18 @@ export default function CreateUserPage({ loaderData }: Route.ComponentProps) {
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Creating..." : "Create User"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/admin/users")}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
+                <Link to="/admin/users">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                </Link>
               </div>
             </FieldGroup>
-          </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

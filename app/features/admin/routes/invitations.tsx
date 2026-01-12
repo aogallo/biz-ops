@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import type { Route } from "./+types/invitations";
 import { requireAuth } from "~/server/auth/session.server";
 import { getUserOrganizations } from "~/server/auth/organization.server";
 import { isSuperAdmin } from "~/server/permissions";
+import { db } from "~/server/db";
+import { invitation, organization, user } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -29,28 +32,53 @@ import {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
+  const url = new URL(request.url);
+  const organizationId = url.searchParams.get("organizationId");
 
-  // Check if user is super admin
-  const { db: dbInstance } = await import("~/server/db");
-  const isSuperAdminUser = await isSuperAdmin(dbInstance, session.user.id);
+  // Fetch all needed data in parallel
+  const [isSuperAdminUser, organizations] = await Promise.all([
+    isSuperAdmin(db, session.user.id),
+    getUserOrganizations(session.user.id),
+  ]);
 
-  // Get user's organizations
-  const organizations = await getUserOrganizations(session.user.id);
+  // Default to first org if none selected
+  const selectedOrgId = organizationId || organizations[0]?.organization.id;
+
+  // Fetch invitations for selected organization
+  let invitations: any[] = [];
+  if (selectedOrgId) {
+    invitations = await db
+      .select({
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        status: invitation.status,
+        expiresAt: invitation.expiresAt,
+        createdAt: invitation.createdAt,
+        organizationId: organization.id,
+        organizationName: organization.name,
+        inviterName: user.name,
+        inviterEmail: user.email,
+      })
+      .from(invitation)
+      .innerJoin(organization, eq(organization.id, invitation.organizationId))
+      .innerJoin(user, eq(user.id, invitation.inviterId))
+      .where(eq(organization.id, selectedOrgId))
+      .orderBy(invitation.createdAt);
+  }
 
   return {
     isSuperAdmin: isSuperAdminUser,
     organizations,
+    invitations,
+    selectedOrganizationId: selectedOrgId,
     user: session.user,
   };
 }
 
 export default function InvitationsPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations } = loaderData;
-  const [selectedOrgId, setSelectedOrgId] = useState<string>(
-    organizations.length > 0 ? organizations[0].organization.id : ""
-  );
-  const [invitations, setInvitations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { isSuperAdmin, organizations, invitations, selectedOrganizationId } = loaderData;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Show message if no organizations
   if (organizations.length === 0) {
@@ -65,32 +93,6 @@ export default function InvitationsPage({ loaderData }: Route.ComponentProps) {
       </div>
     );
   }
-
-  // Fetch invitations when organization changes
-  useEffect(() => {
-    if (!selectedOrgId) return;
-
-    const fetchInvitations = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ organizationId: selectedOrgId });
-        const response = await fetch(`/api/invitations/list?${params}`);
-        const data = await response.json() as { success?: boolean; invitations?: any[]; error?: string };
-
-        if (data.success && data.invitations) {
-          setInvitations(data.invitations);
-        } else {
-          console.error("Failed to fetch invitations:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching invitations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInvitations();
-  }, [selectedOrgId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -131,7 +133,10 @@ export default function InvitationsPage({ loaderData }: Route.ComponentProps) {
                 View and track user invitations
               </CardDescription>
             </div>
-            <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+            <Select
+              value={selectedOrganizationId || ""}
+              onValueChange={(id) => setSearchParams({ organizationId: id })}
+            >
               <SelectTrigger className="w-[300px]">
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
@@ -149,11 +154,7 @@ export default function InvitationsPage({ loaderData }: Route.ComponentProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Loading invitations...
-            </div>
-          ) : invitations.length === 0 ? (
+          {invitations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No invitations found in this organization
             </div>

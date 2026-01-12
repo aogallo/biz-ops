@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import type { Route } from "./+types/users";
 import { requireAuth } from "~/server/auth/session.server";
 import { getUserOrganizations } from "~/server/auth/organization.server";
 import { isSuperAdmin } from "~/server/permissions";
 import { db } from "~/server/db";
+import { user, member, organization, role } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -31,36 +32,52 @@ import {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
+  const url = new URL(request.url);
+  const organizationId = url.searchParams.get("organizationId");
 
-  // Check if user is super admin
-  const isSuperAdminUser = await isSuperAdmin(db, session.user.id);
+  // Fetch all needed data in parallel
+  const [isSuperAdminUser, organizations] = await Promise.all([
+    isSuperAdmin(db, session.user.id),
+    getUserOrganizations(session.user.id),
+  ]);
 
-  // Get user's organizations
-  const organizations = await getUserOrganizations(session.user.id);
+  // Default to first org if none selected
+  const selectedOrgId = organizationId || organizations[0]?.organization.id;
 
-  console.log("Loader: getUserOrganizations returned", organizations.length, "organizations");
-  console.log("Organizations:", organizations.map(o => o.organization.name));
+  // Fetch users for selected organization
+  let users: any[] = [];
+  if (selectedOrgId) {
+    users = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        organizationName: organization.name,
+        memberRole: member.role,
+        roleName: role.name,
+      })
+      .from(user)
+      .innerJoin(member, eq(member.userId, user.id))
+      .innerJoin(organization, eq(organization.id, member.organizationId))
+      .leftJoin(role, eq(role.id, member.roleId))
+      .where(eq(organization.id, selectedOrgId))
+      .orderBy(user.createdAt);
+  }
 
   return {
     isSuperAdmin: isSuperAdminUser,
     organizations,
+    users,
+    selectedOrganizationId: selectedOrgId,
     user: session.user,
   };
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations } = loaderData;
-
-  console.log("Component: Received organizations:", organizations);
-  console.log("Component: Organizations length:", organizations?.length);
-  console.log("Component: Organizations type:", typeof organizations);
-  console.log("Component: Is array?", Array.isArray(organizations));
-
-  const [selectedOrgId, setSelectedOrgId] = useState<string>(
-    organizations.length > 0 ? organizations[0].organization.id : ""
-  );
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { isSuperAdmin, organizations, users, selectedOrganizationId } = loaderData;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Show message if no organizations
   if (organizations.length === 0) {
@@ -80,32 +97,6 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
       </div>
     );
   }
-
-  // Fetch users when organization changes
-  useEffect(() => {
-    if (!selectedOrgId) return;
-
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ organizationId: selectedOrgId });
-        const response = await fetch(`/api/users/list?${params}`);
-        const data = await response.json() as { success?: boolean; users?: any[]; error?: string };
-
-        if (data.success && data.users) {
-          setUsers(data.users);
-        } else {
-          console.error("Failed to fetch users:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [selectedOrgId]);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -137,7 +128,10 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                 View and manage user accounts
               </CardDescription>
             </div>
-            <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+            <Select
+              value={selectedOrganizationId || ""}
+              onValueChange={(id) => setSearchParams({ organizationId: id })}
+            >
               <SelectTrigger className="w-[300px]">
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
@@ -155,11 +149,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Loading users...
-            </div>
-          ) : users.length === 0 ? (
+          {users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No users found in this organization
             </div>

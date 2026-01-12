@@ -11,13 +11,8 @@ export default [
   route("/logout", "routes/logout.tsx"),
 
   // API Routes
-  route("/api/auth/*", "routes/api.auth.$.tsx"),
-  route("/api/organizations/create", "routes/api.organizations.create.tsx"),
-  route("/api/users/create", "routes/api.users.create.tsx"),
-  route("/api/users/bulk-create", "routes/api.users.bulk-create.tsx"),
-  route("/api/users/list", "routes/api.users.list.tsx"),
-  route("/api/invitations/list", "routes/api.invitations.list.tsx"),
-  route("/api/roles/list", "routes/api.roles.list.tsx"),
+  route("/api/auth/*", "routes/api.auth.$.tsx"), // Required by Better Auth
+  route("/api/users/bulk-create", "routes/api.users.bulk-create.tsx"), // TODO: Refactor to use action
 
   // Public invitation acceptance
   route("/invitation/accept/:token", "./features/invitation/routes/accept.$token.tsx"),

@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/organizations.create";
 import { requireAuth } from "~/server/auth/session.server";
 import { requireOrganizationAdmin } from "~/server/auth/organization.server";
+import { db } from "~/server/db";
+import { organization } from "~/server/db/schema";
+import { createSystemRoles } from "~/server/auth/roles.server";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -28,15 +31,60 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { user: session.user };
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request);
+  await requireOrganizationAdmin(session);
+
+  const formData = await request.formData();
+  const name = formData.get("name") as string;
+  const slug = formData.get("slug") as string;
+  const logo = formData.get("logo") as string;
+
+  // Validate required fields
+  if (!name || !slug) {
+    return { error: "Name and slug are required" };
+  }
+
+  try {
+    // Create organization
+    const orgId = crypto.randomUUID();
+    const [newOrg] = await db
+      .insert(organization)
+      .values({
+        id: orgId,
+        name,
+        slug,
+        logo: logo || null,
+        isAdmin: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    // Create default roles for the organization
+    await createSystemRoles(orgId);
+
+    return redirect("/admin/organizations");
+  } catch (error: any) {
+    // Handle duplicate slug error
+    if (error.code === "23505") {
+      return { error: "An organization with this slug already exists" };
+    }
+
+    console.error("Error creating organization:", error);
+    return { error: "Failed to create organization" };
+  }
+}
+
 export default function CreateOrganizationPage({
   loaderData,
 }: Route.ComponentProps) {
-  const navigate = useNavigate();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [logo, setLogo] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Auto-generate slug from name
   const handleNameChange = (value: string) => {
@@ -47,40 +95,6 @@ export default function CreateOrganizationPage({
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "");
     setSlug(generatedSlug);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/organizations/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          slug,
-          logo: logo || undefined,
-        }),
-      });
-
-      const data = await response.json() as { success?: boolean; error?: string };
-
-      if (!response.ok) {
-        setError(data.error || "Failed to create organization");
-        setIsLoading(false);
-        return;
-      }
-
-      // Success! Redirect to organizations list or admin dashboard
-      navigate("/admin/organizations");
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -100,24 +114,25 @@ export default function CreateOrganizationPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
+          {actionData?.error && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
-              {error}
+              {actionData.error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <Form method="post">
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="name">Organization Name *</FieldLabel>
                 <Input
                   id="name"
+                  name="name"
                   type="text"
                   placeholder="Acme Corporation"
                   required
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
                 <FieldDescription>
                   The display name for the organization
@@ -128,12 +143,13 @@ export default function CreateOrganizationPage({
                 <FieldLabel htmlFor="slug">URL Slug *</FieldLabel>
                 <Input
                   id="slug"
+                  name="slug"
                   type="text"
                   placeholder="acme-corporation"
                   required
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
                 <FieldDescription>
                   A unique identifier for the organization (auto-generated from
@@ -145,11 +161,10 @@ export default function CreateOrganizationPage({
                 <FieldLabel htmlFor="logo">Logo URL</FieldLabel>
                 <Input
                   id="logo"
+                  name="logo"
                   type="url"
                   placeholder="https://example.com/logo.png"
-                  value={logo}
-                  onChange={(e) => setLogo(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 />
                 <FieldDescription>
                   Optional URL for the organization's logo
@@ -157,20 +172,21 @@ export default function CreateOrganizationPage({
               </Field>
 
               <div className="flex gap-3">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Creating..." : "Create Organization"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Organization"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/admin/organizations")}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
+                <Link to="/admin/organizations">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                </Link>
               </div>
             </FieldGroup>
-          </form>
+          </Form>
         </CardContent>
       </Card>
 

@@ -10,10 +10,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  console.log("data...", data);
-
   const response = await createOrganization(data);
-  console.log("response...", JSON.stringify(response, null, 4));
   return response;
 }
 
@@ -24,7 +21,7 @@ export default function CreateOrganization() {
   return (
     <div className="self-stretch p-6">
       <div className="mx-auto max-w-2xl">
-        <h1 className="mb-6 text-2xl font-bold">Create New Organization</h1>
+        <h1 className="text-2xl font-bold">Create New Organization</h1>
 
         <Form method="post" className="space-y-6">
           {actionData?.message && (

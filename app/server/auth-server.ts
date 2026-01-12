@@ -1,0 +1,82 @@
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { organization } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
+import { db } from "../server/db";
+import { getInitialOrganization } from "./auth/organization.server";
+import { invitation, role, schema } from "./db/schema";
+import { sendInvitationEmail } from "./email/invitation.server";
+
+const auth = betterAuth({
+  basePath: "/api/auth",
+  emailAndPassword: { enabled: true },
+  database: drizzleAdapter(db, {
+    provider: "pg", // Use 'pg' for both node-postgres and neon-http (both PostgreSQL-compatible)
+    schema,
+  }),
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const { organization } = await getInitialOrganization(session.userId);
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: organization.id,
+            },
+          };
+        },
+      },
+    },
+  },
+  advanced: {
+    database: {
+      generateId: () => {
+        return crypto.randomUUID();
+      },
+    },
+  },
+  plugins: [
+    organization({
+      async sendInvitationEmail(data) {
+        try {
+          // Query custom role table to get user-facing role name
+          let roleName = data.role; // Default to Better Auth role
+
+          // Look up invitation to get roleId
+          const [invitationRecord] = await db
+            .select()
+            .from(invitation)
+            .where(eq(invitation.id, data.id))
+            .limit(1);
+
+          if (invitationRecord?.roleId) {
+            const [roleRecord] = await db
+              .select()
+              .from(role)
+              .where(eq(role.id, invitationRecord.roleId))
+              .limit(1);
+
+            if (roleRecord) {
+              roleName = roleRecord.name;
+            }
+          }
+
+          // Call existing email service with mapped parameters
+          await sendInvitationEmail({
+            to: data.email,
+            inviterName: data.inviter.user.name || "A team member",
+            organizationName: data.organization.name,
+            invitationToken: data.id,
+            roleName,
+          });
+        } catch (error) {
+          console.error("Failed to send invitation email:", error);
+          // Don't throw - email failures shouldn't block invitation creation
+        }
+      },
+    }),
+  ],
+});
+
+export default auth;

@@ -1,0 +1,33 @@
+# Cloudflare Workers local development secrets
+# Copy this file to .dev.vars and fill in your actual values
+# .dev.vars is gitignored and should never be committed
+
+# ==========================================
+# IMPORTANT: npm run dev MUST use Neon
+# ==========================================
+# Cloudflare Workers dev mode always uses the HTTP-compatible driver.
+# Local PostgreSQL (port 5432/5433) does NOT work with Cloudflare Workers.
+# You MUST use your Neon database connection string here.
+#
+# Get your connection string from: https://console.neon.tech
+# Navigate to: Your Project → Connection Details → Connection string
+
+DATABASE_URL=postgresql://neondb_owner:your-password@your-host.aws.neon.tech/neondb?sslmode=require
+BETTER_AUTH_SECRET=generate-with-openssl-rand-base64-32
+BETTER_AUTH_URL=http://localhost:5173
+
+# Email service (optional - for production email sending)
+# Sign up at resend.com to get an API key
+# RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
+
+# ==========================================
+# NOTE: Local PostgreSQL for Database Operations
+# ==========================================
+# While npm run dev uses Neon, database operations use local PostgreSQL:
+#   - npm run db:migrate   → Uses local PostgreSQL (from .env)
+#   - npm run db:seed      → Uses local PostgreSQL (from .env)
+#   - npm run db:studio    → Uses local PostgreSQL (from .env)
+#
+# This hybrid approach gives you:
+#   ✅ Fast migrations and seeding (local)
+#   ✅ Production-like runtime environment (Neon)

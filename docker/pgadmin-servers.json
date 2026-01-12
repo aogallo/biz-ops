@@ -1,0 +1,15 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "ERP Local Development",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "bizops_dev",
+      "Username": "postgres",
+      "Password": "postgres",
+      "SSLMode": "prefer",
+      "PassFile": "/tmp/pgpassfile"
+    }
+  }
+}

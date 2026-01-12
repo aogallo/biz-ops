@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "rm -rf node_modules/.vite node_modules/.cache build",
+    "clean": "rm -rf node_modules/.vite node_modules/.cache build ./react-router",
     "build": "react-router build",
     "cf-typegen": "wrangler types",
     "deploy": "npm run build && wrangler deploy",

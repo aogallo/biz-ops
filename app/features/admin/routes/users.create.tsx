@@ -1,4 +1,7 @@
 import { hashPassword } from "better-auth/crypto";
+import { eq } from "drizzle-orm";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import {
   Form,
   Link,
@@ -6,46 +9,46 @@ import {
   useActionData,
   useNavigation,
   useSearchParams,
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import { Form, Link, redirect, useActionData, useNavigation, useSearchParams } from "react-router";
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import {
-    Card,
-    Card
-  user,
-  account,
-  member,
-  role,
-  invitation,
-  organization,
-    CardDescription,
-    CardHeader,
-    Card
-  getRolesByOrganization,
-  getRoleByName,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
-    Field,
-    FieldDescription,
-    FieldGroup,
-    FieldLabel,
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "~/components/ui/select";
 import auth from "~/server/auth-server";
 import { getUserOrganizations } from "~/server/auth/organization.server";
-import { getRoleByName, getRolesByOrganization } from "~/server/auth/roles.server";
+import {
+  getRoleByName,
+  getRolesByOrganization,
+} from "~/server/auth/roles.server";
 import { requireAuth } from "~/server/auth/session.server";
 import { db } from "~/server/db";
-import { account, invitation, member, organization, role, user } from "~/server/db/schema";
+import {
+  account,
+  invitation,
+  member,
+  organization,
+  role,
+  user,
+} from "~/server/db/schema";
 import { isOrgAdmin, isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/users.create";
 

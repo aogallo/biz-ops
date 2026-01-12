@@ -81,12 +81,8 @@ export async function action({ request }: Route.ActionArgs) {
   const session = await requireAuth(request);
   const formData = await request.formData();
 
-  if (!formData.has("data")) {
-    return { error: "Bad request" };
-  }
-
-  // Parse JSON Data from hidden input
-  const data = JSON.parse(formData.get("data"));
+  console.log(formData);
+  return {};
 }
 
 export default function BulkCreateUsersPage({

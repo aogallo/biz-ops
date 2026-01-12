@@ -1,0 +1,15 @@
+import { pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { organizationModel } from "./auth";
+import { timestamps } from "./common";
+
+// Business Partners (Vendors & Clients)
+export const businessPartnerModel = pgTable("business_partner", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizationModel.id),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'client', 'vendor', 'both'
+  email: text("email"),
+  ...timestamps,
+});

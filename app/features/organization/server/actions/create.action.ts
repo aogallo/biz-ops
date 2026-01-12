@@ -1,18 +1,32 @@
-import {
-  organizationCreateSchema,
-  type OrganizationCreate,
-} from "../../schemas";
+import { organizationCreateSchema } from "../../schemas";
 import { OrganizationRepository } from "../repository";
 
-export async function create(input: OrganizationCreate) {
+export async function createOrganization(input: FormData) {
+  const inputValues = Object.fromEntries(input);
   const repo = new OrganizationRepository();
-  const data = organizationCreateSchema.parse(input);
+  const { data, error, success } =
+    organizationCreateSchema.safeParse(inputValues);
 
-  const db_org = await repo.getById(input.id);
-
-  if (db_org) {
-    throw new Response("The organization already exists.", { status: 400 });
+  if (!success) {
+    return {
+      success: false,
+      message: "There are errors",
+      errors: error.flatten().fieldErrors,
+    };
   }
 
-  return await repo.create(data);
+  const organizationBySlug = await repo.getBySlug(data.slug);
+
+  if (organizationBySlug) {
+    return {
+      success: false,
+      message: "The organization already exists.",
+    };
+  }
+
+  const result = await repo.create(data);
+  return {
+    success: true,
+    data: result,
+  };
 }

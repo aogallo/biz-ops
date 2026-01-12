@@ -1,8 +1,7 @@
-import { Form, redirect, useActionData } from "react-router";
-import type { Route } from "./+types/CreateOrganization";
+import { Form, useActionData } from "react-router";
 import { requireAuth } from "~/server/auth/session.server";
-import { db } from "~/server/db";
-import { organization, member } from "~/server/db/schema";
+import { createOrganization } from "../server/actions/create.action";
+import type { Route } from "./+types/CreateOrganization";
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -10,54 +9,15 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await requireAuth(request);
-  const formData = await request.formData();
-
-  const name = formData.get("name") as string;
-  const slug = formData.get("slug") as string;
-
-  // Validate inputs
-  if (!name || !slug) {
-    return { error: "Name and slug are required" };
-  }
-
-  // Validate slug format (alphanumeric and hyphens only)
-  if (!/^[a-z0-9-]+$/.test(slug)) {
-    return { error: "Slug can only contain lowercase letters, numbers, and hyphens" };
-  }
-
-  try {
-    // Create organization
-    const [newOrg] = await db
-      .insert(organization)
-      .values({
-        id: crypto.randomUUID(),
-        name,
-        slug,
-        createdAt: new Date(),
-      })
-      .returning();
-
-    // Make creator the owner
-    // TODO: Update to use roleId after implementing role system
-    await db.insert(member).values({
-      id: crypto.randomUUID(),
-      organizationId: newOrg.id,
-      userId: session.user.id,
-      role: "owner", // For Better Auth compatibility
-      legacyRole: "owner", // Temporary: will be migrated to roleId
-      createdAt: new Date(),
-    });
-
-    return redirect("/organization");
-  } catch (error) {
-    console.error("Error creating organization:", error);
-    return { error: "Failed to create organization. The slug might already be taken." };
-  }
+  const data = await request.formData();
+  console.log("data...", data);
+  const response = await createOrganization(data);
+  console.log("response...", JSON.stringify(response, null, 4));
+  return response;
 }
 
 export default function CreateOrganization() {
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<typeof createOrganization>();
 
   return (
     <div className="self-stretch p-6">
@@ -65,17 +25,14 @@ export default function CreateOrganization() {
         <h1 className="mb-6 text-2xl font-bold">Create New Organization</h1>
 
         <Form method="post" className="space-y-6">
-          {actionData?.error && (
+          {actionData?.message && (
             <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-              {actionData.error}
+              {actionData.message}
             </div>
           )}
 
           <div>
-            <label
-              htmlFor="name"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="name" className="mb-2 block text-sm font-medium">
               Organization Name
             </label>
             <input
@@ -92,10 +49,7 @@ export default function CreateOrganization() {
           </div>
 
           <div>
-            <label
-              htmlFor="slug"
-              className="mb-2 block text-sm font-medium"
-            >
+            <label htmlFor="slug" className="mb-2 block text-sm font-medium">
               URL Slug
             </label>
             <input

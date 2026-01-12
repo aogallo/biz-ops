@@ -4,7 +4,7 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
-import { invitation, role, schema } from "./db/schema";
+import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
 
 const auth = betterAuth({
@@ -12,7 +12,7 @@ const auth = betterAuth({
   emailAndPassword: { enabled: true },
   database: drizzleAdapter(db, {
     provider: "pg", // Use 'pg' for both node-postgres and neon-http (both PostgreSQL-compatible)
-    schema,
+    // schema,
   }),
   databaseHooks: {
     session: {
@@ -29,13 +29,6 @@ const auth = betterAuth({
       },
     },
   },
-  advanced: {
-    database: {
-      generateId: () => {
-        return crypto.randomUUID();
-      },
-    },
-  },
   plugins: [
     organization({
       async sendInvitationEmail(data) {
@@ -46,15 +39,15 @@ const auth = betterAuth({
           // Look up invitation to get roleId
           const [invitationRecord] = await db
             .select()
-            .from(invitation)
-            .where(eq(invitation.id, data.id))
+            .from(invitationModel)
+            .where(eq(invitationModel.id, data.id))
             .limit(1);
 
           if (invitationRecord?.roleId) {
             const [roleRecord] = await db
               .select()
-              .from(role)
-              .where(eq(role.id, invitationRecord.roleId))
+              .from(roleModel)
+              .where(eq(roleModel.id, invitationRecord.roleId))
               .limit(1);
 
             if (roleRecord) {

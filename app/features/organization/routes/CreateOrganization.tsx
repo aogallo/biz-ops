@@ -1,4 +1,4 @@
-import { Form, useActionData } from "react-router";
+import { Form, useActionData, useNavigation } from "react-router";
 import { requireAuth } from "~/server/auth/session.server";
 import { createOrganization } from "../server/actions/create.action";
 import type { Route } from "./+types/CreateOrganization";
@@ -11,6 +11,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const data = await request.formData();
   console.log("data...", data);
+
   const response = await createOrganization(data);
   console.log("response...", JSON.stringify(response, null, 4));
   return response;
@@ -18,6 +19,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function CreateOrganization() {
   const actionData = useActionData<typeof createOrganization>();
+  const navigation = useNavigation();
 
   return (
     <div className="self-stretch p-6">
@@ -71,7 +73,7 @@ export default function CreateOrganization() {
               type="submit"
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              Create Organization
+              {navigation.state === "submitting" ? "Creating...." : "Create"}
             </button>
             <a
               href="/organization"

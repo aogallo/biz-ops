@@ -1,11 +1,6 @@
-import { useState, useEffect } from "react";
+import { Download, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Plus, Trash2, Download } from "lucide-react";
-import type { Route } from "./+types/users.bulk-create";
-import { requireAuth } from "~/server/auth/session.server";
-import { getUserOrganizations } from "~/server/auth/organization.server";
-import { isSuperAdmin } from "~/server/permissions";
-import { db } from "~/server/db";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -14,11 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Field,
+  FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldDescription,
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import {
@@ -36,7 +32,10 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Checkbox } from "~/components/ui/checkbox";
+import { getUserOrganizations } from "~/server/auth/organization.server";
+import { requireAuth } from "~/server/auth/session.server";
+import { isSuperAdmin } from "~/server/permissions";
+import type { Route } from "./+types/users.bulk-create";
 
 interface Role {
   id: string;
@@ -55,18 +54,17 @@ interface UserRow {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
+  const url = new URL(request.url);
 
-  // Check if user is super admin
-  const isSuperAdminUser = await isSuperAdmin(db, session.user.id);
+  const organizationId = url.searchParams.get("organizationId");
 
-  // Get user's organizations
-  const organizations = await getUserOrganizations(session.user.id);
+  const [isSuperAdminUser, organizations] = await Promise.all([
+    isSuperAdmin(session.user.id),
+    getUserOrganizations(session.user.id),
+  ]);
 
-  return {
-    isSuperAdmin: isSuperAdminUser,
-    organizations,
-    user: session.user,
-  };
+  // Default to first org if non selected
+  const selectedOrgId = organizationId || organizations[0]?.organization.id;
 }
 
 export default function BulkCreateUsersPage({
@@ -83,7 +81,8 @@ export default function BulkCreateUsersPage({
           <CardHeader>
             <CardTitle>No Organizations Available</CardTitle>
             <CardDescription>
-              You need to be a member of at least one organization to create users.
+              You need to be a member of at least one organization to create
+              users.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -92,7 +91,10 @@ export default function BulkCreateUsersPage({
                 Back to Users
               </Button>
               {isSuperAdmin && (
-                <Button variant="outline" onClick={() => navigate("/admin/organizations/create")}>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/admin/organizations/create")}
+                >
                   Create Organization
                 </Button>
               )}
@@ -105,7 +107,7 @@ export default function BulkCreateUsersPage({
 
   // Form state
   const [organizationId, setOrganizationId] = useState<string>(
-    organizations[0].organization.id
+    organizations[0].organization.id,
   );
   const [roleId, setRoleId] = useState<string>("");
   const [sendInvitations, setSendInvitations] = useState(true);
@@ -139,7 +141,11 @@ export default function BulkCreateUsersPage({
       try {
         const params = new URLSearchParams({ organizationId });
         const response = await fetch(`/api/roles/list?${params}`);
-        const data = await response.json() as { success?: boolean; roles?: Role[]; error?: string };
+        const data = (await response.json()) as {
+          success?: boolean;
+          roles?: Role[];
+          error?: string;
+        };
 
         if (data.success && data.roles) {
           setRoles(data.roles);
@@ -176,7 +182,7 @@ export default function BulkCreateUsersPage({
 
   const updateRow = (id: string, field: keyof UserRow, value: string) => {
     setUserRows(
-      userRows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+      userRows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
   };
 
@@ -184,7 +190,10 @@ export default function BulkCreateUsersPage({
     // Filter out empty rows (rows where all fields are empty)
     const nonEmptyRows = userRows.filter(
       (row) =>
-        row.name.trim() || row.email.trim() || row.password.trim() || row.image.trim()
+        row.name.trim() ||
+        row.email.trim() ||
+        row.password.trim() ||
+        row.image.trim(),
     );
 
     if (nonEmptyRows.length === 0) {
@@ -195,7 +204,9 @@ export default function BulkCreateUsersPage({
     // Validate each non-empty row
     for (const row of nonEmptyRows) {
       if (!row.name.trim()) {
-        setError(`Name is required for user with email: ${row.email || "(empty)"}`);
+        setError(
+          `Name is required for user with email: ${row.email || "(empty)"}`,
+        );
         return false;
       }
       if (!row.email.trim()) {
@@ -208,13 +219,13 @@ export default function BulkCreateUsersPage({
       }
       if (row.password.length < 8) {
         setError(
-          `Password must be at least 8 characters for user: ${row.email}`
+          `Password must be at least 8 characters for user: ${row.email}`,
         );
         return false;
       }
       if (row.password.length > 128) {
         setError(
-          `Password must not exceed 128 characters for user: ${row.email}`
+          `Password must not exceed 128 characters for user: ${row.email}`,
         );
         return false;
       }
@@ -236,7 +247,9 @@ export default function BulkCreateUsersPage({
 
     // Filter out empty rows
     const validUsers = userRows
-      .filter((row) => row.name.trim() && row.email.trim() && row.password.trim())
+      .filter(
+        (row) => row.name.trim() && row.email.trim() && row.password.trim(),
+      )
       .map((row) => ({
         name: row.name.trim(),
         email: row.email.trim(),
@@ -258,7 +271,7 @@ export default function BulkCreateUsersPage({
         }),
       });
 
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         success?: boolean;
         created?: number;
         failed?: number;
@@ -289,9 +302,10 @@ export default function BulkCreateUsersPage({
   const downloadFailedUsers = () => {
     if (!result || result.errors.length === 0) return;
 
-    const csv = ["email,error", ...result.errors.map((e) => `${e.email},${e.error}`)].join(
-      "\n"
-    );
+    const csv = [
+      "email,error",
+      ...result.errors.map((e) => `${e.email},${e.error}`),
+    ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -580,8 +594,8 @@ export default function BulkCreateUsersPage({
                 </div>
 
                 <FieldDescription className="mt-2">
-                  Passwords must be 8-128 characters. Empty rows will be ignored.
-                  Maximum 100 users per batch.
+                  Passwords must be 8-128 characters. Empty rows will be
+                  ignored. Maximum 100 users per batch.
                 </FieldDescription>
               </div>
 

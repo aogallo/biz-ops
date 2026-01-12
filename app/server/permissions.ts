@@ -1,4 +1,5 @@
-import { eq, and } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { db } from "./db";
 import { member, organization, role } from "./db/schema";
 
 export const SUPER_ADMIN_ROLE = "super-admin";
@@ -8,10 +9,7 @@ export const MEMBER_ROLE = "member";
 /**
  * Check if a user is a super admin (member of an admin organization with super-admin role)
  */
-export async function isSuperAdmin(
-  db: any,
-  userId: string
-): Promise<boolean> {
+export async function isSuperAdmin(userId: string): Promise<boolean> {
   const result = await db
     .select({
       isSuperAdmin: organization.isAdmin,
@@ -23,8 +21,8 @@ export async function isSuperAdmin(
       and(
         eq(member.userId, userId),
         eq(organization.isAdmin, true),
-        eq(role.name, SUPER_ADMIN_ROLE)
-      )
+        eq(role.name, SUPER_ADMIN_ROLE),
+      ),
     )
     .limit(1);
 
@@ -36,7 +34,7 @@ export async function isSuperAdmin(
  */
 export async function isAdminOrgMember(
   db: any,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const result = await db
     .select({
@@ -56,7 +54,7 @@ export async function isAdminOrgMember(
 export async function isOrgAdmin(
   db: any,
   userId: string,
-  organizationId: string
+  organizationId: string,
 ): Promise<boolean> {
   const result = await db
     .select({
@@ -64,10 +62,7 @@ export async function isOrgAdmin(
     })
     .from(member)
     .where(
-      and(
-        eq(member.userId, userId),
-        eq(member.organizationId, organizationId)
-      )
+      and(eq(member.userId, userId), eq(member.organizationId, organizationId)),
     )
     .limit(1);
 
@@ -80,10 +75,7 @@ export async function isOrgAdmin(
 /**
  * Get all organizations where the user is a member
  */
-export async function getUserOrganizations(
-  db: any,
-  userId: string
-) {
+export async function getUserOrganizations(db: any, userId: string) {
   return await db
     .select({
       id: organization.id,
@@ -107,7 +99,7 @@ export async function hasPermission(
   db: any,
   userId: string,
   resource: string,
-  action: string
+  action: string,
 ): Promise<boolean> {
   // Super admins have all permissions
   if (await isSuperAdmin(db, userId)) {

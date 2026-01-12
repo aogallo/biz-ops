@@ -1,34 +1,34 @@
-import { Link, useSearchParams } from "react-router";
-import type { Route } from "./+types/users";
-import { requireAuth } from "~/server/auth/session.server";
-import { getUserOrganizations } from "~/server/auth/organization.server";
-import { isSuperAdmin } from "~/server/permissions";
-import { db } from "~/server/db";
-import { user, member, organization, role } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { Link, useSearchParams } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "~/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "~/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "~/components/ui/table";
+import { getUserOrganizations } from "~/server/auth/organization.server";
+import { requireAuth } from "~/server/auth/session.server";
+import { db } from "~/server/db";
+import { member, organization, role, user } from "~/server/db/schema";
+import { isSuperAdmin } from "~/server/permissions";
+import type { Route } from "./+types/users";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -37,7 +37,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Fetch all needed data in parallel
   const [isSuperAdminUser, organizations] = await Promise.all([
-    isSuperAdmin(db, session.user.id),
+    isSuperAdmin(session.user.id),
     getUserOrganizations(session.user.id),
   ]);
 
@@ -76,7 +76,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations, users, selectedOrganizationId } = loaderData;
+  const { isSuperAdmin, organizations, users, selectedOrganizationId } =
+    loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Show message if no organizations
@@ -124,9 +125,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Users</CardTitle>
-              <CardDescription>
-                View and manage user accounts
-              </CardDescription>
+              <CardDescription>View and manage user accounts</CardDescription>
             </div>
             <Select
               value={selectedOrganizationId || ""}

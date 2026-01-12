@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { getUserOrganizations } from "~/server/auth/organization.server";
+import { getRolesByOrganization } from "~/server/auth/roles.server";
 import { requireAuth } from "~/server/auth/session.server";
 import { isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/users.bulk-create";
@@ -65,6 +66,27 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Default to first org if non selected
   const selectedOrgId = organizationId || organizations[0]?.organization.id;
+  const roles = getRolesByOrganization(selectedOrgId);
+
+  return {
+    isSuperAdmin: isSuperAdminUser,
+    organizations,
+    roles,
+    selectedOrgId,
+    user: session.user,
+  };
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request);
+  const formData = await request.formData();
+
+  if (!formData.has("data")) {
+    return { error: "Bad request" };
+  }
+
+  // Parse JSON Data from hidden input
+  const data = JSON.parse(formData.get("data"));
 }
 
 export default function BulkCreateUsersPage({

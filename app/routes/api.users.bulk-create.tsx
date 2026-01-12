@@ -1,13 +1,20 @@
-import type { ActionFunctionArgs } from "react-router";
-import { json } from "~/lib/response";
 import { hashPassword } from "better-auth/crypto";
 import { eq } from "drizzle-orm";
-import { requireAuth } from "~/server/auth/session.server";
-import { isSuperAdmin, isOrgAdmin } from "~/server/permissions";
-import { db } from "~/server/db";
-import { user, account, member, invitation, organization, role } from "~/server/db/schema";
-import { getRoleByName } from "~/server/auth/roles.server";
+import type { ActionFunctionArgs } from "react-router";
+import { json } from "~/lib/response";
 import auth from "~/server/auth-server";
+import { getRoleByName } from "~/server/auth/roles.server";
+import { requireAuth } from "~/server/auth/session.server";
+import { db } from "~/server/db";
+import {
+  accountModel,
+  invitationModel,
+  memberModel,
+  organizationModel,
+  roleModel,
+  userModel,
+} from "~/server/db/schemas/auth";
+import { isOrgAdmin, isSuperAdmin } from "~/server/permissions";
 
 interface BulkUserData {
   name: string;
@@ -50,53 +57,50 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!body.organizationId || !body.users || !Array.isArray(body.users)) {
     return json(
       { error: "organizationId and users array are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (body.users.length === 0) {
-    return json(
-      { error: "Users array cannot be empty" },
-      { status: 400 }
-    );
+    return json({ error: "Users array cannot be empty" }, { status: 400 });
   }
 
   if (body.users.length > 100) {
     return json(
       { error: "Cannot create more than 100 users at once" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
     // Check permissions
     const { db: dbInstance } = await import("~/server/db");
-    const isSuperAdminUser = await isSuperAdmin(dbInstance, session.user.id);
+    const isSuperAdminUser = await isSuperAdmin(session.user.id);
     const isOrgAdminUser = await isOrgAdmin(
       dbInstance,
       session.user.id,
-      body.organizationId
+      body.organizationId,
     );
 
     if (!isSuperAdminUser && !isOrgAdminUser) {
       return json(
-        { error: "You don't have permission to create users for this organization" },
-        { status: 403 }
+        {
+          error:
+            "You don't have permission to create users for this organization",
+        },
+        { status: 403 },
       );
     }
 
     // Get target organization
     const [targetOrg] = await db
       .select()
-      .from(organization)
-      .where(eq(organization.id, body.organizationId))
+      .from(organizationModel)
+      .where(eq(organizationModel.id, body.organizationId))
       .limit(1);
 
     if (!targetOrg) {
-      return json(
-        { error: "Organization not found" },
-        { status: 404 }
-      );
+      return json({ error: "Organization not found" }, { status: 404 });
     }
 
     const result: BulkCreateResult = {
@@ -125,8 +129,8 @@ export async function action({ request }: ActionFunctionArgs) {
         // Check if user already exists
         const [existingUser] = await db
           .select()
-          .from(user)
-          .where(eq(user.email, userData.email))
+          .from(userModel)
+          .where(eq(userModel.email, userData.email))
           .limit(1);
 
         if (existingUser) {
@@ -144,7 +148,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const hashedPassword = await hashPassword(temporaryPassword);
 
         const [newUser] = await db
-          .insert(user)
+          .insert(userModel)
           .values({
             id: userId,
             name: userData.name,
@@ -156,7 +160,7 @@ export async function action({ request }: ActionFunctionArgs) {
           .returning();
 
         // Create account
-        await db.insert(account).values({
+        await db.insert(accountModel).values({
           id: crypto.randomUUID(),
           accountId: userId,
           providerId: "credential",
@@ -174,7 +178,7 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         // Create membership
-        await db.insert(member).values({
+        await db.insert(memberModel).values({
           id: crypto.randomUUID(),
           organizationId: body.organizationId,
           userId: userId,
@@ -192,8 +196,8 @@ export async function action({ request }: ActionFunctionArgs) {
             if (roleId) {
               const [roleRecord] = await db
                 .select()
-                .from(role)
-                .where(eq(role.id, roleId))
+                .from(roleModel)
+                .where(eq(roleModel.id, roleId))
                 .limit(1);
               if (roleRecord) {
                 roleName = roleRecord.name;
@@ -210,20 +214,23 @@ export async function action({ request }: ActionFunctionArgs) {
               },
             });
 
-            const invitationData = (invitationResponse as any) as { id: string };
+            const invitationData = invitationResponse as any as { id: string };
 
             // Update invitation with roleId
             if (roleId && invitationData.id) {
               await db
-                .update(invitation)
+                .update(invitationModel)
                 .set({
                   roleId,
                   inviterId: session.user.id,
                 })
-                .where(eq(invitation.id, invitationData.id));
+                .where(eq(invitationModel.id, invitationData.id));
             }
           } catch (emailError) {
-            console.error(`Failed to send invitation to ${userData.email}:`, emailError);
+            console.error(
+              `Failed to send invitation to ${userData.email}:`,
+              emailError,
+            );
             // Don't fail the creation if email fails
           }
         }
@@ -252,7 +259,7 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error("Error in bulk user creation:", error);
     return json(
       { error: "Failed to process bulk user creation" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

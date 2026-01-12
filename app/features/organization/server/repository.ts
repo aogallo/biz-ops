@@ -1,22 +1,22 @@
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { organization } from "~/server/db/schema";
+import { organizationModel } from "~/server/db/schemas/auth";
 import type { OrganizationCreate } from "../schemas";
 
 export class OrganizationRepository {
   async create(data: OrganizationCreate) {
-    return await db.insert(organization).values(data).returning();
+    return await db.insert(organizationModel).values(data).returning();
   }
 
   async getAll() {
-    return await db.select().from(organization);
+    return await db.select().from(organizationModel);
   }
 
   async getById(id: string) {
     const data = await db
       .select()
-      .from(organization)
-      .where(eq(organization.id, id));
+      .from(organizationModel)
+      .where(eq(organizationModel.id, id));
 
     if (data.length === 0) return null;
 
@@ -25,7 +25,7 @@ export class OrganizationRepository {
 
   async delete(id: string) {
     try {
-      await db.delete(organization).where(eq(organization.id, id));
+      await db.delete(organizationModel).where(eq(organizationModel.id, id));
       return true;
     } catch {
       return false;
@@ -35,8 +35,8 @@ export class OrganizationRepository {
   async getBySlug(slug: string) {
     const data = await db
       .select()
-      .from(organization)
-      .where(eq(organization.slug, slug));
+      .from(organizationModel)
+      .where(eq(organizationModel.slug, slug));
 
     if (data.length === 0) return null;
 

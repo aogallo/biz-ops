@@ -17,12 +17,12 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     <AuthProvider value={{ session: loaderData.session }}>
       <SidebarProvider>
         <AppSidebar />
-        <main className="flex-1">
+        <div className="flex-1">
           <SiteHeader />
-          <div className="self-stretch p-6 gap-1 px-4 mt-1 lg:gap-2 lg:px-6">
+          <main className="self-stretch p-6 gap-1 px-4 mt-1 lg:gap-2 lg:px-6 container mx-auto py-6">
             <Outlet />
-          </div>
-        </main>
+          </main>
+        </div>
       </SidebarProvider>
     </AuthProvider>
   );

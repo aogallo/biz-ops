@@ -25,7 +25,11 @@ import {
 import { getUserOrganizations } from "~/server/auth/organization.server";
 import { requireAuth } from "~/server/auth/session.server";
 import { db } from "~/server/db";
-import { invitation, organization, user } from "~/server/db/schema";
+import {
+  invitationModel,
+  organizationModel,
+  userModel,
+} from "~/server/db/schemas/auth";
 import { isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/invitations";
 
@@ -48,22 +52,25 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (selectedOrgId) {
     invitations = await db
       .select({
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        status: invitation.status,
-        expiresAt: invitation.expiresAt,
-        createdAt: invitation.createdAt,
-        organizationId: organization.id,
-        organizationName: organization.name,
-        inviterName: user.name,
-        inviterEmail: user.email,
+        id: invitationModel.id,
+        email: invitationModel.email,
+        role: invitationModel.role,
+        status: invitationModel.status,
+        expiresAt: invitationModel.expiresAt,
+        createdAt: invitationModel.createdAt,
+        organizationId: organizationModel.id,
+        organizationName: organizationModel.name,
+        inviterName: userModel.name,
+        inviterEmail: userModel.email,
       })
-      .from(invitation)
-      .innerJoin(organization, eq(organization.id, invitation.organizationId))
-      .innerJoin(user, eq(user.id, invitation.inviterId))
-      .where(eq(organization.id, selectedOrgId))
-      .orderBy(invitation.createdAt);
+      .from(invitationModel)
+      .innerJoin(
+        organizationModel,
+        eq(organizationModel.id, invitationModel.organizationId),
+      )
+      .innerJoin(userModel, eq(userModel.id, invitationModel.inviterId))
+      .where(eq(organizationModel.id, selectedOrgId))
+      .orderBy(invitationModel.createdAt);
   }
 
   return {
@@ -136,7 +143,7 @@ export default function InvitationsPage({ loaderData }: Route.ComponentProps) {
               value={selectedOrganizationId || ""}
               onValueChange={(id) => setSearchParams({ organizationId: id })}
             >
-              <SelectTrigger className="w-[300px]">
+              <SelectTrigger className="w-75">
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>

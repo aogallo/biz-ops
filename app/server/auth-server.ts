@@ -4,16 +4,28 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
+import { schema } from "./db/schemas";
 import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
+
+// Generate RFC 4122-compliant UUIDs for Better Auth records
+// This ensures compatibility with PostgreSQL's UUID type
+function generateId(): string {
+  return crypto.randomUUID();
+}
 
 const auth = betterAuth({
   basePath: "/api/auth",
   emailAndPassword: { enabled: true },
   database: drizzleAdapter(db, {
     provider: "pg", // Use 'pg' for both node-postgres and neon-http (both PostgreSQL-compatible)
-    // schema,
+    schema,
   }),
+  advanced: {
+    database: {
+      generateId, // Use crypto.randomUUID() for all Better Auth records
+    },
+  },
   databaseHooks: {
     session: {
       create: {

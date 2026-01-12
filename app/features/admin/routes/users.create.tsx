@@ -42,13 +42,13 @@ import {
 import { requireAuth } from "~/server/auth/session.server";
 import { db } from "~/server/db";
 import {
-  account,
-  invitation,
-  member,
-  organization,
-  role,
-  user,
-} from "~/server/db/schema";
+  accountModel,
+  invitationModel,
+  memberModel,
+  organizationModel,
+  roleModel,
+  userModel,
+} from "~/server/db/schemas/auth";
 import { isOrgAdmin, isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/users.create";
 
@@ -133,8 +133,8 @@ export async function action({ request }: Route.ActionArgs) {
     // Check if user already exists
     const [existingUser] = await db
       .select()
-      .from(user)
-      .where(eq(user.email, email))
+      .from(userModel)
+      .where(eq(userModel.email, email))
       .limit(1);
 
     if (existingUser) {
@@ -144,8 +144,8 @@ export async function action({ request }: Route.ActionArgs) {
     // Get target organization
     const [targetOrg] = await db
       .select()
-      .from(organization)
-      .where(eq(organization.id, organizationId))
+      .from(organizationModel)
+      .where(eq(organizationModel.id, organizationId))
       .limit(1);
 
     if (!targetOrg) {
@@ -157,7 +157,7 @@ export async function action({ request }: Route.ActionArgs) {
     const hashedPassword = await hashPassword(password);
 
     const [newUser] = await db
-      .insert(user)
+      .insert(userModel)
       .values({
         id: userId,
         name,
@@ -170,7 +170,7 @@ export async function action({ request }: Route.ActionArgs) {
       .returning();
 
     // Create account with password
-    await db.insert(account).values({
+    await db.insert(accountModel).values({
       id: crypto.randomUUID(),
       accountId: userId,
       providerId: "credential",
@@ -189,7 +189,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     // Create membership
-    await db.insert(member).values({
+    await db.insert(memberModel).values({
       id: crypto.randomUUID(),
       organizationId,
       userId: userId,
@@ -207,8 +207,8 @@ export async function action({ request }: Route.ActionArgs) {
         if (finalRoleId) {
           const [roleRecord] = await db
             .select()
-            .from(role)
-            .where(eq(role.id, finalRoleId))
+            .from(roleModel)
+            .where(eq(roleModel.id, finalRoleId))
             .limit(1);
           if (roleRecord) {
             roleName = roleRecord.name;
@@ -231,12 +231,12 @@ export async function action({ request }: Route.ActionArgs) {
         // Update invitation with roleId
         if (finalRoleId && invitationId) {
           await db
-            .update(invitation)
+            .update(invitationModel)
             .set({
               roleId: finalRoleId,
               inviterId: session.user.id,
             })
-            .where(eq(invitation.id, invitationId));
+            .where(eq(invitationModel.id, invitationId));
         }
       } catch (emailError) {
         console.error("Failed to send invitation email:", emailError);

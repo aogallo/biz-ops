@@ -2,31 +2,36 @@ import { eq } from "drizzle-orm";
 import { Link, useSearchParams } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "~/components/ui/card";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "~/components/ui/select";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "~/components/ui/table";
 import { getUserOrganizations } from "~/server/auth/organization.server";
 import { requireAuth } from "~/server/auth/session.server";
 import { db } from "~/server/db";
-import { member, organization, role, user } from "~/server/db/schema";
+import {
+  memberModel,
+  organizationModel,
+  roleModel,
+  userModel,
+} from "~/server/db/schemas/auth";
 import { isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/users";
 
@@ -49,21 +54,24 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (selectedOrgId) {
     users = await db
       .select({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt,
-        organizationName: organization.name,
-        memberRole: member.role,
-        roleName: role.name,
+        id: userModel.id,
+        name: userModel.name,
+        email: userModel.email,
+        emailVerified: userModel.emailVerified,
+        createdAt: userModel.createdAt,
+        organizationName: organizationModel.name,
+        memberRole: memberModel.role,
+        roleName: roleModel.name,
       })
-      .from(user)
-      .innerJoin(member, eq(member.userId, user.id))
-      .innerJoin(organization, eq(organization.id, member.organizationId))
-      .leftJoin(role, eq(role.id, member.roleId))
-      .where(eq(organization.id, selectedOrgId))
-      .orderBy(user.createdAt);
+      .from(userModel)
+      .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
+      .innerJoin(
+        organizationModel,
+        eq(organizationModel.id, memberModel.organizationId),
+      )
+      .leftJoin(roleModel, eq(roleModel.id, memberModel.roleId))
+      .where(eq(organizationModel.id, selectedOrgId))
+      .orderBy(userModel.createdAt);
   }
 
   return {
@@ -131,7 +139,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               value={selectedOrganizationId || ""}
               onValueChange={(id) => setSearchParams({ organizationId: id })}
             >
-              <SelectTrigger className="w-[300px]">
+              <SelectTrigger className="w-75">
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>

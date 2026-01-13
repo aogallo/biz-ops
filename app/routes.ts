@@ -26,6 +26,18 @@ export default [
       route("/new", "./features/organization/routes/create.tsx"),
       route("/:slug", "./features/organization/routes/show.tsx"),
     ]),
+    ...prefix("products", [
+      index("./features/products/routes/index.tsx"),
+      route("/new", "./features/products/routes/create.tsx"),
+      route("/:sku", "./features/products/routes/show.tsx"),
+      route("/:sku/edit", "./features/products/routes/edit.tsx"),
+    ]),
+    ...prefix("business-partners", [
+      index("./features/business-partners/routes/index.tsx"),
+      route("/new", "./features/business-partners/routes/create.tsx"),
+      route("/:id", "./features/business-partners/routes/show.tsx"),
+      route("/:id/edit", "./features/business-partners/routes/edit.tsx"),
+    ]),
     ...prefix("invitations", [
       index("./features/invitation/routes/index.tsx"),
       route("/new", "./features/invitation/routes/new.tsx"),

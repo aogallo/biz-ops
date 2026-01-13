@@ -1,7 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import { db } from "~/server/db";
-import { member, permission, role, rolePermission } from "~/server/db/schema";
+import {
+  memberModel,
+  permissionModel,
+  roleModel,
+  rolePermissionModel,
+} from "../db/schemas/auth";
 
 /**
  * Check if user has specific permission in organization
@@ -26,16 +31,22 @@ export async function hasPermission(
   // Query: member → role → rolePermission → permission
   const result = await db
     .select()
-    .from(member)
-    .innerJoin(role, eq(member.roleId, role.id))
-    .innerJoin(rolePermission, eq(role.id, rolePermission.roleId))
-    .innerJoin(permission, eq(rolePermission.permissionId, permission.id))
+    .from(memberModel)
+    .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(
+      rolePermissionModel,
+      eq(roleModel.id, rolePermissionModel.roleId),
+    )
+    .innerJoin(
+      permissionModel,
+      eq(rolePermissionModel.permissionId, permissionModel.id),
+    )
     .where(
       and(
-        eq(member.userId, userId),
-        eq(member.organizationId, organizationId),
-        eq(permission.resource, resource),
-        eq(permission.action, action),
+        eq(memberModel.userId, userId),
+        eq(memberModel.organizationId, organizationId),
+        eq(permissionModel.resource, resource),
+        eq(permissionModel.action, action),
       ),
     )
     .limit(1);
@@ -55,15 +66,24 @@ export async function getUserPermissions(
 ): Promise<string[]> {
   const results = await db
     .select({
-      resource: permission.resource,
-      action: permission.action,
+      resource: permissionModel.resource,
+      action: permissionModel.action,
     })
-    .from(member)
-    .innerJoin(role, eq(member.roleId, role.id))
-    .innerJoin(rolePermission, eq(role.id, rolePermission.roleId))
-    .innerJoin(permission, eq(rolePermission.permissionId, permission.id))
+    .from(memberModel)
+    .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(
+      rolePermissionModel,
+      eq(roleModel.id, rolePermissionModel.roleId),
+    )
+    .innerJoin(
+      permissionModel,
+      eq(rolePermissionModel.permissionId, permissionModel.id),
+    )
     .where(
-      and(eq(member.userId, userId), eq(member.organizationId, organizationId)),
+      and(
+        eq(memberModel.userId, userId),
+        eq(memberModel.organizationId, organizationId),
+      ),
     );
 
   return results.map((r) => `${r.resource}:${r.action}`);

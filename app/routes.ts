@@ -12,16 +12,19 @@ export default [
 
   // API Routes
   route("/api/auth/*", "routes/api.auth.$.tsx"), // Required by Better Auth
-  route("/api/users/bulk-create", "routes/api.users.bulk-create.tsx"), // TODO: Refactor to use action
 
   // Public invitation acceptance
-  route("/invitation/accept/:token", "./features/invitation/routes/accept.$token.tsx"),
+  route(
+    "/invitation/accept/:token",
+    "./features/invitation/routes/accept.$token.tsx",
+  ),
 
   // App routes with sidebar layout
   layout("./layout/AppLayout.tsx", [
     ...prefix("organization", [
       index("./features/organization/routes/index.tsx"),
-      route("/new", "./features/organization/routes/CreateOrganization.tsx"),
+      route("/new", "./features/organization/routes/create.tsx"),
+      route("/:slug", "./features/organization/routes/show.tsx"),
     ]),
     ...prefix("invitations", [
       index("./features/invitation/routes/index.tsx"),
@@ -30,9 +33,15 @@ export default [
     ...prefix("admin", [
       route("/users", "./features/admin/routes/users.tsx"),
       route("/users/create", "./features/admin/routes/users.create.tsx"),
-      route("/users/bulk-create", "./features/admin/routes/users.bulk-create.tsx"),
+      route(
+        "/users/bulk-create",
+        "./features/admin/routes/users.bulk-create.tsx",
+      ),
       route("/invitations", "./features/admin/routes/invitations.tsx"),
-      route("/organizations/create", "./features/admin/routes/organizations.create.tsx"),
+      route(
+        "/organizations/create",
+        "./features/admin/routes/organizations.create.tsx",
+      ),
     ]),
   ]),
 ] satisfies RouteConfig;

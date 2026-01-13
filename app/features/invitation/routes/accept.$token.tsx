@@ -3,10 +3,10 @@ import { Form, redirect } from "react-router";
 import auth from "~/server/auth-server";
 import { db } from "~/server/db";
 import {
-  invitation,
-  member,
-  user as userTable,
-} from "~/server/db/schema";
+  invitationModel,
+  memberModel,
+  userModel,
+} from "~/server/db/schemas/auth";
 import type { Route } from "./+types/accept.$token";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -15,8 +15,8 @@ export async function loader({ params }: Route.LoaderArgs) {
   // Get invitation
   const [inv] = await db
     .select()
-    .from(invitation)
-    .where(eq(invitation.id, token))
+    .from(invitationModel)
+    .where(eq(invitationModel.id, token))
     .limit(1);
 
   if (!inv) {
@@ -62,8 +62,8 @@ export async function action({ params, request }: Route.ActionArgs) {
     // Get invitation
     const [inv] = await db
       .select()
-      .from(invitation)
-      .where(eq(invitation.id, token))
+      .from(invitationModel)
+      .where(eq(invitationModel.id, token))
       .limit(1);
 
     if (!inv || inv.status !== "pending") {
@@ -77,8 +77,8 @@ export async function action({ params, request }: Route.ActionArgs) {
     // Check if user already exists
     const [existingUser] = await db
       .select()
-      .from(userTable)
-      .where(eq(userTable.email, inv.email))
+      .from(userModel)
+      .where(eq(userModel.email, inv.email))
       .limit(1);
 
     if (existingUser) {
@@ -129,7 +129,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     const userId = userData.user.id;
 
     // Create member with assigned role
-    await db.insert(member).values({
+    await db.insert(memberModel).values({
       id: crypto.randomUUID(),
       organizationId: inv.organizationId,
       userId,
@@ -141,9 +141,9 @@ export async function action({ params, request }: Route.ActionArgs) {
 
     // Mark invitation as accepted
     await db
-      .update(invitation)
+      .update(invitationModel)
       .set({ status: "accepted", updatedAt: new Date() })
-      .where(eq(invitation.id, token));
+      .where(eq(invitationModel.id, token));
 
     // Redirect to organization (user is now logged in via session)
     return redirect("/organization");

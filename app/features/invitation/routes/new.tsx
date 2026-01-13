@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { redirect, useNavigate } from "react-router";
+import auth from "~/server/auth-server";
 import {
   requireOrganization,
   requireOrganizationAdmin,
@@ -8,12 +9,11 @@ import { requirePermission } from "~/server/auth/permissions.server";
 import { requireAuth } from "~/server/auth/session.server";
 import { db } from "~/server/db";
 import {
-  invitation,
-  permission,
-  role,
-  rolePermission,
-} from "~/server/db/schema";
-import auth from "~/server/auth-server";
+  invitationModel,
+  permissionModel,
+  roleModel,
+  rolePermissionModel,
+} from "~/server/db/schemas/auth";
 import { InvitationWizard } from "../components/InvitationWizard";
 import type { PermissionData, RoleData } from "../types";
 import type { Route } from "./+types/new";
@@ -28,11 +28,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Get all roles for this organization
   const roles = await db
     .select()
-    .from(role)
-    .where(eq(role.organizationId, organization.id));
+    .from(roleModel)
+    .where(eq(roleModel.organizationId, organization.id));
 
   // Get all permissions
-  const permissions = await db.select().from(permission);
+  const permissions = await db.select().from(permissionModel);
 
   return { organization, roles, permissions };
 }
@@ -54,7 +54,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (data.createNewRole) {
       const newRoleId = crypto.randomUUID();
 
-      await db.insert(role).values({
+      await db.insert(roleModel).values({
         id: newRoleId,
         organizationId: organization.id,
         name: data.newRoleName,
@@ -68,7 +68,7 @@ export async function action({ request }: Route.ActionArgs) {
 
       // Assign permissions to new role
       if (data.selectedPermissions && data.selectedPermissions.length > 0) {
-        await db.insert(rolePermission).values(
+        await db.insert(rolePermissionModel).values(
           data.selectedPermissions.map((permId: string) => ({
             id: crypto.randomUUID(),
             roleId: newRoleId,
@@ -88,11 +88,11 @@ export async function action({ request }: Route.ActionArgs) {
         // Check if permission exists
         const [existingPerm] = await db
           .select()
-          .from(permission)
+          .from(permissionModel)
           .where(
             and(
-              eq(permission.resource, cp.resource),
-              eq(permission.action, cp.action),
+              eq(permissionModel.resource, cp.resource),
+              eq(permissionModel.action, cp.action),
             ),
           )
           .limit(1);
@@ -102,7 +102,7 @@ export async function action({ request }: Route.ActionArgs) {
         } else {
           // Create new permission
           const permId = crypto.randomUUID();
-          await db.insert(permission).values({
+          await db.insert(permissionModel).values({
             id: permId,
             resource: cp.resource,
             action: cp.action,
@@ -119,8 +119,8 @@ export async function action({ request }: Route.ActionArgs) {
     // 3. Get role name for invitation
     const [selectedRole] = await db
       .select()
-      .from(role)
-      .where(eq(role.id, roleId))
+      .from(roleModel)
+      .where(eq(roleModel.id, roleId))
       .limit(1);
 
     // 4. Create invitation via Better Auth
@@ -136,19 +136,19 @@ export async function action({ request }: Route.ActionArgs) {
     });
 
     // Extract invitation ID from response
-    const invitationData = (invitationResponse as any) as { id: string };
+    const invitationData = invitationResponse as any as { id: string };
     const invitationId = invitationData.id;
 
     // 5. Update invitation with custom fields (roleId and customPermissions)
     await db
-      .update(invitation)
+      .update(invitationModel)
       .set({
         roleId,
         customPermissions:
           customPermIds.length > 0 ? JSON.stringify(customPermIds) : null,
         inviterId: session.user.id,
       })
-      .where(eq(invitation.id, invitationId));
+      .where(eq(invitationModel.id, invitationId));
 
     return redirect("/invitations");
   } catch (error) {

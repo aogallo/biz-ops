@@ -15,42 +15,63 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { useToastFromLoader, type ToastData } from "~/hooks/useToastFromLoader";
 import { requireAuth } from "~/server/auth/session.server";
-import type { Route } from "./+types/index";
-import { businessPartnersRepository } from "../server/repository";
+import { getFlash } from "~/server/flash.server";
 import type { PartnerType } from "../schemas";
+import { businessPartnersRepository } from "../server/repository";
+import type { Route } from "./+types/index";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
   const url = new URL(request.url);
   const typeFilter = url.searchParams.get("type") as PartnerType | null;
 
+  // Get flash message and headers to clear it
+  const { flash, headers } = getFlash(request);
+
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) {
-    return {
-      partners: [],
-      noOrganization: true,
-      selectedType: typeFilter,
-    };
+    return Response.json(
+      {
+        partners: [],
+        noOrganization: true,
+        selectedType: typeFilter,
+        toast: flash,
+      },
+      { headers }
+    );
   }
 
   const partners = await businessPartnersRepository.getAllByOrganization(
     organizationId,
-    typeFilter || undefined
+    typeFilter || undefined,
   );
 
-  return {
-    partners,
-    noOrganization: false,
-    selectedType: typeFilter,
-  };
+  return Response.json(
+    {
+      partners,
+      noOrganization: false,
+      selectedType: typeFilter,
+      toast: flash,
+    },
+    { headers }
+  );
 }
 
 export default function BusinessPartnersIndex({
   loaderData,
 }: Route.ComponentProps) {
-  const { partners, noOrganization, selectedType } = loaderData;
+  const {
+    partners,
+    noOrganization,
+    selectedType,
+    toast: toastData,
+  } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show toast if present in loader data
+  useToastFromLoader(toastData);
 
   if (noOrganization) {
     return (
@@ -151,7 +172,7 @@ export default function BusinessPartnersIndex({
                   <TableCell>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeBadgeColor(
-                        partner.type
+                        partner.type,
                       )}`}
                     >
                       {partner.type === "both"

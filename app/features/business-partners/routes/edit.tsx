@@ -8,9 +8,11 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { requireAuth } from "~/server/auth/session.server";
+import { redirectWithFlash } from "~/server/flash.server";
 import type { Route } from "./+types/edit";
 import { businessPartnersRepository } from "../server/repository";
 import { updateBusinessPartner } from "../server/actions/update.action";
+import { BUSINESS_PARTNER_MESSAGES } from "../messages";
 import { useState } from "react";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -19,7 +21,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) {
-    throw new Response("No active organization", { status: 400 });
+    return redirectWithFlash("/business-partners", {
+      type: "error",
+      message: BUSINESS_PARTNER_MESSAGES.noOrganization,
+    });
   }
 
   const partner = await businessPartnersRepository.getByIdForOrganization(
@@ -28,7 +33,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   );
 
   if (!partner) {
-    throw new Response("Business partner not found", { status: 404 });
+    return redirectWithFlash("/business-partners", {
+      type: "error",
+      message: BUSINESS_PARTNER_MESSAGES.notFound,
+    });
   }
 
   return { partner };

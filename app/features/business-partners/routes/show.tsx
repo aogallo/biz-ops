@@ -1,4 +1,4 @@
-import { Link, redirect, useSubmit } from "react-router";
+import { Link, useSubmit } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -8,9 +8,11 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { requireAuth } from "~/server/auth/session.server";
-import type { Route } from "./+types/show";
-import { businessPartnersRepository } from "../server/repository";
+import { redirectWithFlash } from "~/server/flash.server";
+import { BUSINESS_PARTNER_MESSAGES } from "../messages";
 import { deleteBusinessPartner } from "../server/actions/delete.action";
+import { businessPartnersRepository } from "../server/repository";
+import type { Route } from "./+types/show";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -18,16 +20,22 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) {
-    throw new Response("No active organization", { status: 400 });
+    return redirectWithFlash("/business-partners", {
+      type: "error",
+      message: BUSINESS_PARTNER_MESSAGES.noOrganization,
+    });
   }
 
   const partner = await businessPartnersRepository.getByIdForOrganization(
     organizationId,
-    id
+    id,
   );
 
   if (!partner) {
-    throw new Response("Business partner not found", { status: 404 });
+    return redirectWithFlash("/business-partners", {
+      type: "error",
+      message: BUSINESS_PARTNER_MESSAGES.notFound,
+    });
   }
 
   return { partner };
@@ -38,7 +46,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   const result = await deleteBusinessPartner(request, id);
 
   if (result.success) {
-    return redirect("/business-partners");
+    return redirectWithFlash("/business-partners", {
+      type: "success",
+      message: BUSINESS_PARTNER_MESSAGES.deleted,
+    });
   }
 
   return result;
@@ -53,7 +64,7 @@ export default function ShowBusinessPartner({
   const handleDelete = () => {
     if (
       confirm(
-        `Are you sure you want to delete "${partner.name}"? This action cannot be undone.`
+        `Are you sure you want to delete "${partner.name}"? This action cannot be undone.`,
       )
     ) {
       submit({}, { method: "post" });

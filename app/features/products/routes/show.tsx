@@ -8,9 +8,11 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { requireAuth } from "~/server/auth/session.server";
+import { redirectWithFlash } from "~/server/flash.server";
 import type { Route } from "./+types/show";
 import { productsRepository } from "../server/repository";
 import { deleteProduct } from "../server/actions/delete.action";
+import { PRODUCT_MESSAGES } from "../messages";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -18,13 +20,19 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) {
-    throw new Response("No active organization", { status: 400 });
+    return redirectWithFlash("/products", {
+      type: "error",
+      message: PRODUCT_MESSAGES.noOrganization,
+    });
   }
 
   const product = await productsRepository.getBySku(organizationId, sku);
 
   if (!product) {
-    throw new Response("Product not found", { status: 404 });
+    return redirectWithFlash("/products", {
+      type: "error",
+      message: PRODUCT_MESSAGES.notFound,
+    });
   }
 
   return { product };
@@ -48,7 +56,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   const result = await deleteProduct(request, product.id);
 
   if (result.success) {
-    return redirect("/products");
+    return redirectWithFlash("/products", {
+      type: "success",
+      message: PRODUCT_MESSAGES.deleted,
+    });
   }
 
   return result;

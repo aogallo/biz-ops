@@ -1,9 +1,11 @@
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import { requireAuth } from "~/server/auth/session.server";
+import { redirectWithFlash } from "~/server/flash.server";
 import type { Route } from "./+types/edit";
 import { productsRepository } from "../server/repository";
 import { updateProduct } from "../server/actions/update.action";
+import { PRODUCT_MESSAGES } from "../messages";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -11,13 +13,19 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) {
-    throw new Response("No active organization", { status: 400 });
+    return redirectWithFlash("/products", {
+      type: "error",
+      message: PRODUCT_MESSAGES.noOrganization,
+    });
   }
 
   const product = await productsRepository.getBySku(organizationId, sku);
 
   if (!product) {
-    throw new Response("Product not found", { status: 404 });
+    return redirectWithFlash("/products", {
+      type: "error",
+      message: PRODUCT_MESSAGES.notFound,
+    });
   }
 
   return { product };

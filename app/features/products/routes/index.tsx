@@ -9,30 +9,46 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { requireAuth } from "~/server/auth/session.server";
+import { getFlash } from "~/server/flash.server";
 import type { Route } from "./+types/index";
 import { productsRepository } from "../server/repository";
+import { useToastFromLoader, type ToastData } from "~/hooks/useToastFromLoader";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
 
+  // Get flash message and headers to clear it
+  const { flash, headers } = getFlash(request);
+
   const organizationId = session.session.activeOrganizationId;
   if (!organizationId) {
-    return {
-      products: [],
-      noOrganization: true,
-    };
+    return Response.json(
+      {
+        products: [],
+        noOrganization: true,
+        toast: flash,
+      },
+      { headers }
+    );
   }
 
   const products = await productsRepository.getAllByOrganization(organizationId);
 
-  return {
-    products,
-    noOrganization: false,
-  };
+  return Response.json(
+    {
+      products,
+      noOrganization: false,
+      toast: flash,
+    },
+    { headers }
+  );
 }
 
 export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
-  const { products, noOrganization } = loaderData;
+  const { products, noOrganization, toast } = loaderData;
+
+  // Show toast if present in loader data
+  useToastFromLoader(toast);
 
   if (noOrganization) {
     return (

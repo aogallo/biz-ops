@@ -1,5 +1,6 @@
 import { Form, useActionData, useNavigation } from "react-router";
 import { requireAuth } from "~/server/auth/session.server";
+import { redirectWithFlash } from "~/server/flash.server";
 import type { Route } from "../../admin/routes/+types/organizations.create";
 import { createOrganization } from "../server/actions/create.action";
 
@@ -10,7 +11,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  const response = await createOrganization(data);
+  const response = await createOrganization(request, data);
+  if (response.success) {
+    return redirectWithFlash("/organization", {
+      type: "success",
+      message: "Organization created successfully",
+    });
+  }
   return response;
 }
 

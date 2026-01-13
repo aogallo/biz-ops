@@ -36,7 +36,28 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
  */
 export async function createSystemRoles(organizationId: string) {
   // Get all permissions
-  const permissions = await db.select().from(permissionModel);
+  const permissions = [
+    {
+      resource: "organization",
+      action: "update",
+      description: "Update Organization",
+    },
+    {
+      resource: "organization",
+      action: "delete",
+      description: "Delete Organization",
+    },
+    {
+      resource: "organization",
+      action: "view",
+      description: "View Organization",
+    },
+  ];
+
+  const existingPermissions = await db
+    .insert(permissionModel)
+    .values(permissions)
+    .returning();
 
   // Owner role - all permissions
   const ownerId = crypto.randomUUID();
@@ -52,7 +73,7 @@ export async function createSystemRoles(organizationId: string) {
 
   // Assign all permissions to owner
   await db.insert(rolePermissionModel).values(
-    permissions.map((p) => ({
+    existingPermissions.map((p) => ({
       id: crypto.randomUUID(),
       roleId: ownerId,
       permissionId: p.id,
@@ -64,8 +85,8 @@ export async function createSystemRoles(organizationId: string) {
 
   // Admin role - most permissions except settings:manage
   const adminId = crypto.randomUUID();
-  const adminPermissions = permissions.filter(
-    (p) => !(p.resource === "settings" && p.action === "manage"),
+  const adminPermissions = existingPermissions.filter(
+    (p) => !(p.resource === "organization" && p.action === "delete"),
   );
 
   await db.insert(roleModel).values({
@@ -91,7 +112,7 @@ export async function createSystemRoles(organizationId: string) {
 
   // Member role - read-only permissions
   const memberId = crypto.randomUUID();
-  const memberPermissions = permissions.filter(
+  const memberPermissions = existingPermissions.filter(
     (p) => p.action === "read" || p.action === "view",
   );
 

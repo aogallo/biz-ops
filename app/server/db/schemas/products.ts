@@ -23,11 +23,8 @@ export const productModel = pgTable(
     stock: integer("stock").default(0),
     ...timestamps,
   },
-  (table) => ({
+  (table) => [
     // Composite unique constraint: SKU must be unique per organization
-    skuOrgUnique: uniqueIndex("product_sku_org_idx").on(
-      table.organizationId,
-      table.sku
-    ),
-  })
+    uniqueIndex("product_sku_org_idx").on(table.organizationId, table.sku),
+  ],
 );

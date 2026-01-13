@@ -3,7 +3,7 @@ import { db } from "~/server/db";
 import { organizationModel } from "~/server/db/schemas/auth";
 import type { OrganizationCreate } from "../schemas";
 
-export class OrganizationRepository {
+class OrganizationRepository {
   async create(data: OrganizationCreate) {
     const response = await db
       .insert(organizationModel)
@@ -47,3 +47,5 @@ export class OrganizationRepository {
     return data[0];
   }
 }
+
+export const organizationRepository = new OrganizationRepository();

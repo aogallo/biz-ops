@@ -15,11 +15,11 @@ export const businessPartnerModel = pgTable(
     email: text("email"),
     ...timestamps,
   },
-  (table) => ({
+  (table) => [
     // Email must be unique per organization (if provided)
-    emailOrgUnique: uniqueIndex("business_partner_email_org_idx").on(
+    uniqueIndex("business_partner_email_org_idx").on(
       table.organizationId,
-      table.email
+      table.email,
     ),
-  })
+  ],
 );

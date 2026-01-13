@@ -1,21 +1,44 @@
-import { Link, useNavigation } from "react-router";
+import { Link, useSubmit } from "react-router";
 import { Button } from "~/components/ui/button";
-import { OrganizationRepository } from "../server/repository";
+import { redirectWithFlash } from "~/server/flash.server";
+import { deleteOrganization } from "../server/actions/delete.action";
+import { organizationRepository } from "../server/repository";
 import type { Route } from "./+types/show";
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const repo = new OrganizationRepository();
   const { slug } = params;
 
-  const organization = await repo.getBySlug(slug);
+  const organization = await organizationRepository.getBySlug(slug);
 
   return { organization };
 }
 
+export async function action({ request, params }: Route.ActionArgs) {
+  const { slug } = params;
+  const result = await deleteOrganization(request, slug);
+  if (result.success) {
+    return redirectWithFlash("/organization", {
+      type: "success",
+      message: "delete",
+    });
+  }
+  return result;
+}
+
 export default function Show({ loaderData }: Route.ComponentProps) {
   const { organization } = loaderData;
-  const navigation = useNavigation();
   const metadata = organization?.metadata ?? {};
+  const submit = useSubmit();
+
+  const handleDelete = () => {
+    if (
+      confirm(
+        `Are you sure you want to delete "${organization?.name}"? This action cannot be undone.`,
+      )
+    ) {
+      submit({}, { method: "post" });
+    }
+  };
 
   return (
     <div className="">
@@ -27,8 +50,8 @@ export default function Show({ loaderData }: Route.ComponentProps) {
           </p>
         </div>
         <div>
-          <Button>
-            {navigation.state === "submitting" ? "Saving..." : "Save"}
+          <Button variant="destructive" onClick={handleDelete}>
+            Delete
           </Button>
           <Link to="/organization">
             <Button variant="ghost">Cancel</Button>

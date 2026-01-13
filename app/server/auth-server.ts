@@ -4,6 +4,7 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
+import { createSystemRoles } from "./auth/roles.server";
 import { schema } from "./db/schemas";
 import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
@@ -79,6 +80,16 @@ const auth = betterAuth({
           console.error("Failed to send invitation email:", error);
           // Don't throw - email failures shouldn't block invitation creation
         }
+      },
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization, member, user }) => {
+          // Run custom logic after organization is created
+          // e.g., create default resources, send notifications
+          console.log("organization...", organization);
+          console.log("member...", member);
+          console.log("user...", user);
+          await createSystemRoles(organization.id);
+        },
       },
     }),
   ],

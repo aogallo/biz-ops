@@ -36,28 +36,10 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
  */
 export async function createSystemRoles(organizationId: string) {
   // Get all permissions
-  const permissions = [
-    {
-      resource: "organization",
-      action: "update",
-      description: "Update Organization",
-    },
-    {
-      resource: "organization",
-      action: "delete",
-      description: "Delete Organization",
-    },
-    {
-      resource: "organization",
-      action: "view",
-      description: "View Organization",
-    },
-  ];
-
   const existingPermissions = await db
-    .insert(permissionModel)
-    .values(permissions)
-    .returning();
+    .select()
+    .from(permissionModel)
+    .where(eq(permissionModel.resource, "organization"));
 
   // Owner role - all permissions
   const ownerId = crypto.randomUUID();
@@ -303,4 +285,27 @@ export async function deleteRole(roleId: string): Promise<boolean> {
   await db.delete(roleModel).where(eq(roleModel.id, roleId));
 
   return true;
+}
+
+/**
+ * Delete system roles and permissions for an organization
+ * Should be called when an organization is deleted
+ * Delete owner, admin, and member roles with appropriate permissions
+ * @param organizationId - Organization ID
+ * @returns boolean success
+ */
+export async function deleteSystemRoles(organizationId: string) {
+  try {
+    console.log(`Deleting system roles for organization ${organizationId}`);
+    const existingRoles = await db
+      .select()
+      .from(roleModel)
+      .where(eq(roleModel.organizationId, organizationId));
+
+    existingRoles.forEach(async (role) => {
+      await db.delete(roleModel).where(eq(roleModel.id, role.id));
+    });
+  } catch (error) {
+    console.error("Failed to delete system roles", error);
+  }
 }

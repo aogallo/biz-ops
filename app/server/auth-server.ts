@@ -4,7 +4,7 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
-import { createSystemRoles } from "./auth/roles.server";
+import { createSystemRoles, deleteSystemRoles } from "./auth/roles.server";
 import { schema } from "./db/schemas";
 import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
@@ -89,6 +89,13 @@ const auth = betterAuth({
           console.log("member...", member);
           console.log("user...", user);
           await createSystemRoles(organization.id);
+        },
+        beforeDeleteOrganization: async ({ organization }) => {
+          // a callback to run after deleting org
+
+          console.log("Deleting organization roles...", organization);
+          // Clean up related resources, notify users, etc.
+          await deleteSystemRoles(organization.id);
         },
       },
     }),

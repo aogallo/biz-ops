@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
+  memberModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
@@ -35,6 +36,7 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
  * @returns Object with role IDs
  */
 export async function createSystemRoles(organizationId: string) {
+  console.log(`Creating system roles for organization ${organizationId}`);
   // Get all permissions
   const existingPermissions = await db
     .select()
@@ -307,5 +309,27 @@ export async function deleteSystemRoles(organizationId: string) {
     });
   } catch (error) {
     console.error("Failed to delete system roles", error);
+  }
+}
+
+/**
+ * Assign specific role for an member
+ * @param roleId - Role ID
+ * @param userId - User ID
+ * @returns boolean success
+ */
+export async function assignRole(roleId: string, memberId: string) {
+  try {
+    console.log(`Assigning role ${roleId} to member ${memberId}`);
+    await db
+      .update(memberModel)
+      .set({ roleId: roleId })
+      .where(eq(memberModel.id, memberId));
+
+    console.log(`✅ Assigned role ${roleId} to member ${memberId}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to assign role ${roleId} to member ${memberId}`, error);
+    return false;
   }
 }

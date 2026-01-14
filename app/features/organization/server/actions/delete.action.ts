@@ -21,7 +21,8 @@ export async function deleteOrganization(request: Request, slug: string) {
       headers: request.headers,
     });
 
-    console.log("data...", data);
+    console.log("Organization deleted:", data?.id);
+
     return {
       success: true,
       message: "Organization deleted successfully",

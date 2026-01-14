@@ -4,7 +4,11 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
-import { createSystemRoles, deleteSystemRoles } from "./auth/roles.server";
+import {
+  assignRole,
+  createSystemRoles,
+  deleteSystemRoles,
+} from "./auth/roles.server";
 import { schema } from "./db/schemas";
 import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
@@ -82,13 +86,12 @@ const auth = betterAuth({
         }
       },
       organizationHooks: {
-        afterCreateOrganization: async ({ organization, member, user }) => {
+        afterCreateOrganization: async ({ organization, member }) => {
           // Run custom logic after organization is created
           // e.g., create default resources, send notifications
-          console.log("organization...", organization);
-          console.log("member...", member);
-          console.log("user...", user);
-          await createSystemRoles(organization.id);
+
+          const { ownerId } = await createSystemRoles(organization.id);
+          await assignRole(ownerId, member.id);
         },
         beforeDeleteOrganization: async ({ organization }) => {
           // a callback to run after deleting org

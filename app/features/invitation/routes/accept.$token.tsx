@@ -7,6 +7,7 @@ import {
   memberModel,
   userModel,
 } from "~/server/db/schemas/auth";
+import { acceptInvitationSchema } from "../../users/schemas";
 import type { Route } from "./+types/accept.$token";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -41,22 +42,25 @@ export async function action({ params, request }: Route.ActionArgs) {
   const token = params.token;
   const formData = await request.formData();
 
-  const name = formData.get("name") as string;
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
+  // Validate input
+  const result = acceptInvitationSchema.safeParse({
+    name: formData.get("name"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
 
-  // Validation
-  if (!name || !password || !confirmPassword) {
-    return { error: "All fields are required" };
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors;
+    return {
+      error:
+        errors.name?.[0] ||
+        errors.password?.[0] ||
+        errors.confirmPassword?.[0] ||
+        "Validation failed",
+    };
   }
 
-  if (password !== confirmPassword) {
-    return { error: "Passwords do not match" };
-  }
-
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters" };
-  }
+  const { name, password } = result.data;
 
   try {
     // Get invitation
@@ -89,52 +93,41 @@ export async function action({ params, request }: Route.ActionArgs) {
       };
     }
 
-    // Sign up new user with Better Auth
-    // Create a signup request to Better Auth's handler
-    const signUpRequest = new Request(
-      `${request.url.split("/")[0]}//${request.headers.get("host")}/api/auth/sign-up/email`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...Object.fromEntries(request.headers.entries()),
-        },
-        body: JSON.stringify({
-          name,
-          email: inv.email,
-          password,
-        }),
+    // Sign up new user with Better Auth using asResponse to get Response object
+    const signUpResponse = await auth.api.signUpEmail({
+      body: {
+        name,
+        email: inv.email,
+        password,
       },
-    );
-
-    const signUpResponse = await auth.handler(signUpRequest);
+      asResponse: true,
+    });
 
     // Check if signup was successful
     if (!signUpResponse.ok) {
-      const errorText = await signUpResponse.text();
-      let errorMessage = "Failed to create account";
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        // If parsing fails, use default message
-      }
-      return { error: errorMessage };
+      const errorData = await signUpResponse.json().catch(() => ({}));
+      return { error: (errorData as any)?.message || "Failed to create user account" };
     }
 
-    const userData = (await signUpResponse.json()) as {
-      user: { id: string; email: string; name: string };
-      session: { id: string; userId: string };
-    };
-    const userId = userData.user.id;
+    // Get the newly created user
+    const [newUser] = await db
+      .select()
+      .from(userModel)
+      .where(eq(userModel.email, inv.email))
+      .limit(1);
 
-    // Create member with assigned role
+    if (!newUser) {
+      return { error: "Failed to create user account" };
+    }
+
+    // Manually create member record (since acceptInvitation requires auth)
+    const memberId = crypto.randomUUID();
     await db.insert(memberModel).values({
-      id: crypto.randomUUID(),
+      id: memberId,
       organizationId: inv.organizationId,
-      userId,
+      userId: newUser.id,
+      role: inv.role,
       roleId: inv.roleId,
-      role: inv.role, // Use role from invitation
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -142,11 +135,19 @@ export async function action({ params, request }: Route.ActionArgs) {
     // Mark invitation as accepted
     await db
       .update(invitationModel)
-      .set({ status: "accepted", updatedAt: new Date() })
+      .set({
+        status: "accepted",
+        updatedAt: new Date(),
+      })
       .where(eq(invitationModel.id, token));
 
-    // Redirect to organization (user is now logged in via session)
-    return redirect("/organization");
+    // Extract session cookies from Better Auth response
+    const setCookie = signUpResponse.headers.get("set-cookie");
+
+    // Redirect to organization with session cookies
+    return redirect("/organization", {
+      headers: setCookie ? { "set-cookie": setCookie } : {},
+    });
   } catch (error) {
     console.error("Error accepting invitation:", error);
     return { error: "Failed to accept invitation. Please try again." };

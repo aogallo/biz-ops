@@ -306,6 +306,10 @@ export async function getInitialOrganization(userId: string) {
     .where(eq(memberModel.userId, userId))
     .limit(1);
 
+  if (memberships.length === 0) {
+    return {};
+  }
+
   // Transform the result to match expected structure
   return {
     organization: memberships[0].organization,

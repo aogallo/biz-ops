@@ -42,13 +42,17 @@ export default [
       index("./features/invitation/routes/index.tsx"),
       route("/new", "./features/invitation/routes/new.tsx"),
     ]),
+    ...prefix("users", [
+      index("./features/users/routes/index.tsx"),
+      route("/invite", "./features/users/routes/invite.tsx"),
+    ]),
+    ...prefix("roles", [
+      index("./features/roles/routes/index.tsx"),
+      route("/new", "./features/roles/routes/create.tsx"),
+      route("/:id", "./features/roles/routes/show.tsx"),
+      route("/:id/edit", "./features/roles/routes/edit.tsx"),
+    ]),
     ...prefix("admin", [
-      route("/users", "./features/admin/routes/users.tsx"),
-      route("/users/create", "./features/admin/routes/users.create.tsx"),
-      route(
-        "/users/bulk-create",
-        "./features/admin/routes/users.bulk-create.tsx",
-      ),
       route("/invitations", "./features/admin/routes/invitations.tsx"),
       route(
         "/organizations/create",

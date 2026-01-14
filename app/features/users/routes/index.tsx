@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { Link, useSearchParams } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -25,15 +24,9 @@ import {
 } from "~/components/ui/table";
 import { getUserOrganizations } from "~/server/auth/organization.server";
 import { requireAuth } from "~/server/auth/session.server";
-import { db } from "~/server/db";
-import {
-  memberModel,
-  organizationModel,
-  roleModel,
-  userModel,
-} from "~/server/db/schemas/auth";
 import { isSuperAdmin } from "~/server/permissions";
-import type { Route } from "./+types/users";
+import { usersRepository } from "../server/repository";
+import type { Route } from "./+types/index";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -49,42 +42,28 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Default to first org if none selected
   const selectedOrgId = organizationId || organizations[0]?.organization.id;
 
-  // Fetch users for selected organization
+  // Fetch users and invitations for selected organization
   let users: any[] = [];
+  let invitations: any[] = [];
   if (selectedOrgId) {
-    users = await db
-      .select({
-        id: userModel.id,
-        name: userModel.name,
-        email: userModel.email,
-        emailVerified: userModel.emailVerified,
-        createdAt: userModel.createdAt,
-        organizationName: organizationModel.name,
-        memberRole: memberModel.role,
-        roleName: roleModel.name,
-      })
-      .from(userModel)
-      .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
-      .innerJoin(
-        organizationModel,
-        eq(organizationModel.id, memberModel.organizationId),
-      )
-      .leftJoin(roleModel, eq(roleModel.id, memberModel.roleId))
-      .where(eq(organizationModel.id, selectedOrgId))
-      .orderBy(userModel.createdAt);
+    [users, invitations] = await Promise.all([
+      usersRepository.getAllByOrganization(selectedOrgId),
+      usersRepository.getPendingInvitations(selectedOrgId),
+    ]);
   }
 
   return {
     isSuperAdmin: isSuperAdminUser,
     organizations,
     users,
+    invitations,
     selectedOrganizationId: selectedOrgId,
     user: session.user,
   };
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations, users, selectedOrganizationId } =
+  const { isSuperAdmin, organizations, users, invitations, selectedOrganizationId } =
     loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -95,7 +74,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold mb-4">No Organizations Found</h2>
           <p className="text-muted-foreground mb-6">
-            You need to be a member of at least one organization to view users.
+            You need to be a member of at least one organization to manage users.
           </p>
           {isSuperAdmin && (
             <Link to="/admin/organizations/create">
@@ -118,21 +97,17 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               : "Manage users in your organization"}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link to="/admin/users/create">
-            <Button>Create User</Button>
-          </Link>
-          <Link to="/admin/users/bulk-create">
-            <Button variant="outline">Bulk Create</Button>
-          </Link>
-        </div>
+        <Link to="/users/invite">
+          <Button>Invite User</Button>
+        </Link>
       </div>
 
+      {/* Active Users Section */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Users</CardTitle>
+              <CardTitle>Active Users</CardTitle>
               <CardDescription>View and manage user accounts</CardDescription>
             </div>
             <Select
@@ -168,7 +143,6 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Verified</TableHead>
-                  <TableHead>Organization</TableHead>
                   <TableHead>Created</TableHead>
                 </TableRow>
               </TableHeader>
@@ -189,7 +163,6 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                         <span className="text-amber-600">Pending</span>
                       )}
                     </TableCell>
-                    <TableCell>{user.organizationName}</TableCell>
                     <TableCell>
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
@@ -200,6 +173,50 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Pending Invitations Section */}
+      {invitations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Invitations</CardTitle>
+            <CardDescription>
+              Users who have been invited but haven't accepted yet
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Invited By</TableHead>
+                  <TableHead>Sent</TableHead>
+                  <TableHead>Expires</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invitations.map((inv) => (
+                  <TableRow key={inv.id}>
+                    <TableCell className="font-medium">{inv.email}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+                        {inv.roleName || inv.role}
+                      </span>
+                    </TableCell>
+                    <TableCell>{inv.inviterName || "Unknown"}</TableCell>
+                    <TableCell>
+                      {new Date(inv.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(inv.expiresAt).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -28,6 +28,45 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
 
   return { superId };
 }
+
+/**
+ * Create system permissions for a new organization
+ * Creates update, delete, and view permissions for an organization
+ * @returns Array Object with permissions
+ */
+export async function createSystemOrganizationPermissions() {
+  const existingPermissions = await db
+    .select()
+    .from(permissionModel)
+    .where(eq(permissionModel.resource, "organization"));
+
+  if (existingPermissions.length > 0) {
+    return existingPermissions;
+  }
+
+  console.log("Seeding organization permissions...");
+  const permissions = [
+    {
+      resource: "organization",
+      action: "update",
+      description: "Update Organization",
+      isSystem: true,
+    },
+    {
+      resource: "organization",
+      action: "delete",
+      description: "Delete Organization",
+      isSystem: true,
+    },
+    {
+      resource: "organization",
+      action: "view",
+      description: "View Organization",
+      isSystem: true,
+    },
+  ];
+  return await db.insert(permissionModel).values(permissions).returning();
+}
 /**
  * Create system roles for a new organization
  * Should be called when an organization is created
@@ -38,10 +77,9 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
 export async function createSystemRoles(organizationId: string) {
   console.log(`Creating system roles for organization ${organizationId}`);
   // Get all permissions
-  const existingPermissions = await db
-    .select()
-    .from(permissionModel)
-    .where(eq(permissionModel.resource, "organization"));
+  const existingPermissions = await createSystemOrganizationPermissions();
+
+  console.log("Existing permissions:", existingPermissions);
 
   // Owner role - all permissions
   const ownerId = crypto.randomUUID();
@@ -329,7 +367,10 @@ export async function assignRole(roleId: string, memberId: string) {
     console.log(`✅ Assigned role ${roleId} to member ${memberId}`);
     return true;
   } catch (error) {
-    console.error(`Failed to assign role ${roleId} to member ${memberId}`, error);
+    console.error(
+      `Failed to assign role ${roleId} to member ${memberId}`,
+      error,
+    );
     return false;
   }
 }

@@ -13,7 +13,8 @@ import {
 } from "./ui/sidebar";
 
 export const navigationItems = [
-  { name: "Users", path: "/admin/users", icon: Users },
+  { name: "Users", path: "/users", icon: Users },
+  { name: "Roles", path: "/roles", icon: Users },
   { name: "Organization", path: "/organization", icon: Building2 },
   { name: "Business Partners", path: "/business-partners", icon: Users },
   { name: "Products", path: "/products", icon: Package },

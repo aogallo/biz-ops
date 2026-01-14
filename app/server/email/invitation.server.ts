@@ -42,7 +42,7 @@ export async function sendInvitationEmail(params: InvitationEmailParams) {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { data, error } = await resend.emails.send({
+    const { data } = await resend.emails.send({
       from: process.env.EMAIL_FROM || "noreply@yourdomain.com",
       to,
       subject: `You've been invited to join ${organizationName}`,
@@ -53,11 +53,6 @@ export async function sendInvitationEmail(params: InvitationEmailParams) {
         inviteLink: invitationUrl,
       }),
     });
-
-    if (error?.statusCode !== 200) {
-      console.error("❌ Failed to send invitation email:", error);
-      return;
-    }
 
     console.log(`✅ Invitation email sent to ${to} invitation id: ${data?.id}`);
   } catch (error) {

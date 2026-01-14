@@ -40,25 +40,29 @@ export async function createSystemOrganizationPermissions() {
     .from(permissionModel)
     .where(eq(permissionModel.resource, "organization"));
 
-  if (existingPermissions) {
+  if (existingPermissions.length > 0) {
     return existingPermissions;
   }
+
   console.log("Seeding organization permissions...");
   const permissions = [
     {
       resource: "organization",
       action: "update",
       description: "Update Organization",
+      isSystem: true,
     },
     {
       resource: "organization",
       action: "delete",
       description: "Delete Organization",
+      isSystem: true,
     },
     {
       resource: "organization",
       action: "view",
       description: "View Organization",
+      isSystem: true,
     },
   ];
   return await db.insert(permissionModel).values(permissions).returning();
@@ -74,6 +78,8 @@ export async function createSystemRoles(organizationId: string) {
   console.log(`Creating system roles for organization ${organizationId}`);
   // Get all permissions
   const existingPermissions = await createSystemOrganizationPermissions();
+
+  console.log("Existing permissions:", existingPermissions);
 
   // Owner role - all permissions
   const ownerId = crypto.randomUUID();

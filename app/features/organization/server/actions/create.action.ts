@@ -1,9 +1,9 @@
+import auth from "~/server/auth-server";
 import { organizationCreateSchema } from "../../schemas";
-import { OrganizationRepository } from "../repository";
+import { organizationRepository } from "../repository";
 
-export async function createOrganization(input: FormData) {
+export async function createOrganization(request: Request, input: FormData) {
   const inputValues = Object.fromEntries(input);
-  const repo = new OrganizationRepository();
   const { data, error, success } =
     organizationCreateSchema.safeParse(inputValues);
 
@@ -15,7 +15,7 @@ export async function createOrganization(input: FormData) {
     };
   }
 
-  const organizationBySlug = await repo.getBySlug(data.slug);
+  const organizationBySlug = await organizationRepository.getBySlug(data.slug);
 
   if (organizationBySlug) {
     return {
@@ -24,7 +24,16 @@ export async function createOrganization(input: FormData) {
     };
   }
 
-  const createdOrganization = await repo.create(data);
+  const createdOrganization = await auth.api.createOrganization({
+    body: {
+      name: data.name, //required
+      slug: data.slug, // required
+      logo: data.logo || "",
+      metadata: {},
+      keepCurrentActiveOrganization: false,
+    },
+    headers: request.headers,
+  });
 
   return {
     success: true,

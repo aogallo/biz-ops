@@ -4,6 +4,11 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
+import {
+  assignRole,
+  createSystemRoles,
+  deleteSystemRoles,
+} from "./auth/roles.server";
 import { schema } from "./db/schemas";
 import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
@@ -79,6 +84,22 @@ const auth = betterAuth({
           console.error("Failed to send invitation email:", error);
           // Don't throw - email failures shouldn't block invitation creation
         }
+      },
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization, member }) => {
+          // Run custom logic after organization is created
+          // e.g., create default resources, send notifications
+
+          const { ownerId } = await createSystemRoles(organization.id);
+          await assignRole(ownerId, member.id);
+        },
+        beforeDeleteOrganization: async ({ organization }) => {
+          // a callback to run after deleting org
+
+          console.log("Deleting organization roles...", organization);
+          // Clean up related resources, notify users, etc.
+          await deleteSystemRoles(organization.id);
+        },
       },
     }),
   ],

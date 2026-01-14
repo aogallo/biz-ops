@@ -170,24 +170,38 @@ export async function getUserOrganizations(userId: string) {
 
   if (isSuperAdmin) {
     // Super admin: return ALL organizations
-    const allOrgs = await db.select().from(organizationModel);
+    const allOrgs = await db
+      .select({
+        organizationId: organizationModel.id,
+        organizationName: organizationModel.name,
+        slug: organizationModel.slug,
+        logo: organizationModel.logo,
+        createdAt: organizationModel.createdAt,
+        roleName: roleModel.name,
+      })
+      .from(organizationModel)
+      .innerJoin(
+        memberModel,
+        eq(memberModel.organizationId, organizationModel.id),
+      )
+      .innerJoin(roleModel, eq(roleModel.id, memberModel.roleId));
 
     // Return in same format but without membership data for non-member orgs
-    return allOrgs.map((org) => ({
+    return allOrgs.map((data) => ({
       membership: {
         id: "",
-        organizationId: org.id,
+        organizationId: data.organizationId,
         userId: userId,
-        role: "super-admin",
+        role: data.roleName,
         roleId: null,
-        createdAt: org.createdAt,
+        createdAt: data.createdAt,
       },
       organization: {
-        id: org.id,
-        name: org.name,
-        slug: org.slug,
-        logo: org.logo,
-        createdAt: org.createdAt,
+        id: data.organizationId,
+        name: data.organizationName,
+        slug: data.slug,
+        logo: data.logo,
+        createdAt: data.createdAt,
       },
     }));
   }

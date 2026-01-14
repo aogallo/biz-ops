@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
+  memberModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
@@ -35,8 +36,12 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
  * @returns Object with role IDs
  */
 export async function createSystemRoles(organizationId: string) {
+  console.log(`Creating system roles for organization ${organizationId}`);
   // Get all permissions
-  const permissions = await db.select().from(permissionModel);
+  const existingPermissions = await db
+    .select()
+    .from(permissionModel)
+    .where(eq(permissionModel.resource, "organization"));
 
   // Owner role - all permissions
   const ownerId = crypto.randomUUID();
@@ -52,7 +57,7 @@ export async function createSystemRoles(organizationId: string) {
 
   // Assign all permissions to owner
   await db.insert(rolePermissionModel).values(
-    permissions.map((p) => ({
+    existingPermissions.map((p) => ({
       id: crypto.randomUUID(),
       roleId: ownerId,
       permissionId: p.id,
@@ -64,8 +69,8 @@ export async function createSystemRoles(organizationId: string) {
 
   // Admin role - most permissions except settings:manage
   const adminId = crypto.randomUUID();
-  const adminPermissions = permissions.filter(
-    (p) => !(p.resource === "settings" && p.action === "manage"),
+  const adminPermissions = existingPermissions.filter(
+    (p) => !(p.resource === "organization" && p.action === "delete"),
   );
 
   await db.insert(roleModel).values({
@@ -91,7 +96,7 @@ export async function createSystemRoles(organizationId: string) {
 
   // Member role - read-only permissions
   const memberId = crypto.randomUUID();
-  const memberPermissions = permissions.filter(
+  const memberPermissions = existingPermissions.filter(
     (p) => p.action === "read" || p.action === "view",
   );
 
@@ -282,4 +287,49 @@ export async function deleteRole(roleId: string): Promise<boolean> {
   await db.delete(roleModel).where(eq(roleModel.id, roleId));
 
   return true;
+}
+
+/**
+ * Delete system roles and permissions for an organization
+ * Should be called when an organization is deleted
+ * Delete owner, admin, and member roles with appropriate permissions
+ * @param organizationId - Organization ID
+ * @returns boolean success
+ */
+export async function deleteSystemRoles(organizationId: string) {
+  try {
+    console.log(`Deleting system roles for organization ${organizationId}`);
+    const existingRoles = await db
+      .select()
+      .from(roleModel)
+      .where(eq(roleModel.organizationId, organizationId));
+
+    existingRoles.forEach(async (role) => {
+      await db.delete(roleModel).where(eq(roleModel.id, role.id));
+    });
+  } catch (error) {
+    console.error("Failed to delete system roles", error);
+  }
+}
+
+/**
+ * Assign specific role for an member
+ * @param roleId - Role ID
+ * @param userId - User ID
+ * @returns boolean success
+ */
+export async function assignRole(roleId: string, memberId: string) {
+  try {
+    console.log(`Assigning role ${roleId} to member ${memberId}`);
+    await db
+      .update(memberModel)
+      .set({ roleId: roleId })
+      .where(eq(memberModel.id, memberId));
+
+    console.log(`✅ Assigned role ${roleId} to member ${memberId}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to assign role ${roleId} to member ${memberId}`, error);
+    return false;
+  }
 }

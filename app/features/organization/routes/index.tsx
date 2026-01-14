@@ -8,11 +8,17 @@ import { requireAuth } from "~/server/auth/session.server";
 import type { Route } from "./+types/index";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request);
-  await requireOrganizationAdmin(session);
-  const organizations = await getUserOrganizations(session.user.id);
+  try {
+    console.log("Loading organizations for user...");
+    const session = await requireAuth(request);
+    await requireOrganizationAdmin(session);
+    const organizations = await getUserOrganizations(session.user.id);
 
-  return { organizations };
+    return { organizations };
+  } catch (error) {
+    console.error("Error loading organizations:", error);
+    return { organizations: [] };
+  }
 }
 
 export default function Organization({ loaderData }: Route.ComponentProps) {

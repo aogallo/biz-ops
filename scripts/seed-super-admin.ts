@@ -2,8 +2,14 @@ import { hashPassword } from "better-auth/crypto";
 import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { createSystemRolesForAdminOrg } from "../app/server/auth/roles.server";
+
 import { db } from "../app/server/db";
-import * as schema from "../app/server/db/schema";
+import {
+  accountModel,
+  memberModel,
+  organizationModel,
+  userModel,
+} from "../app/server/db/schemas/auth";
 
 // Environment validation
 const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL;
@@ -24,23 +30,23 @@ async function main() {
     // Check if user already exists
     const [existingUser] = await db
       .select()
-      .from(schema.user)
-      .where(eq(schema.user.email, SUPER_ADMIN_EMAIL))
+      .from(userModel)
+      .where(eq(userModel.email, SUPER_ADMIN_EMAIL))
       .limit(1);
 
     let userId: string;
-    let user: typeof schema.user.$inferSelect;
+    let userDB: typeof userModel.$inferSelect;
 
     if (existingUser) {
       console.log(`⏭️  Super admin user already exists: ${SUPER_ADMIN_EMAIL}`);
       userId = existingUser.id;
-      user = existingUser;
+      userDB = existingUser;
 
       // Check if user has an organization
       const existingMember = await db
         .select()
-        .from(schema.member)
-        .where(eq(schema.member.userId, userId))
+        .from(memberModel)
+        .where(eq(memberModel.userId, userId))
         .limit(1);
 
       if (existingMember.length > 0) {
@@ -53,8 +59,8 @@ async function main() {
     } else {
       // Create new user
       userId = crypto.randomUUID();
-      [user] = await db
-        .insert(schema.user)
+      [userDB] = await db
+        .insert(userModel)
         .values({
           id: userId,
           name: SUPER_ADMIN_NAME,
@@ -65,11 +71,11 @@ async function main() {
         })
         .returning();
 
-      console.log(`✅ Created user: ${user.email}`);
+      console.log(`✅ Created user: ${userDB.email}`);
 
       // Create account with hashed password
       const hashedPassword = await hashPassword(SUPER_ADMIN_PASSWORD);
-      await db.insert(schema.account).values({
+      await db.insert(accountModel).values({
         id: crypto.randomUUID(),
         accountId: userId,
         providerId: "credential",
@@ -85,7 +91,7 @@ async function main() {
     // Create super admin organization
     const orgId = crypto.randomUUID();
     const [org] = await db
-      .insert(schema.organization)
+      .insert(organizationModel)
       .values({
         id: orgId,
         name: "Super Admin Organization",
@@ -103,7 +109,7 @@ async function main() {
     console.log(`✅ Created system roles (super-admin)`);
 
     // 5. Assign user as owner
-    await db.insert(schema.member).values({
+    await db.insert(memberModel).values({
       id: crypto.randomUUID(),
       organizationId: orgId,
       userId: userId,
@@ -113,7 +119,7 @@ async function main() {
       updatedAt: new Date(),
     });
 
-    console.log(`✅ Assigned ${user.email} as owner and super-admin`);
+    console.log(`✅ Assigned ${userDB.email} as owner and super-admin`);
 
     console.log("\n✨ Super admin created successfully!");
     console.log("\nCredentials:");

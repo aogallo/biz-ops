@@ -4,8 +4,20 @@ import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization.server";
-import { invitation, role, schema } from "./db/schema";
+import {
+  assignRole,
+  createSystemRoles,
+  deleteSystemRoles,
+} from "./auth/roles.server";
+import { schema } from "./db/schemas";
+import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
+
+// Generate RFC 4122-compliant UUIDs for Better Auth records
+// This ensures compatibility with PostgreSQL's UUID type
+function generateId(): string {
+  return crypto.randomUUID();
+}
 
 const auth = betterAuth({
   basePath: "/api/auth",
@@ -14,6 +26,11 @@ const auth = betterAuth({
     provider: "pg", // Use 'pg' for both node-postgres and neon-http (both PostgreSQL-compatible)
     schema,
   }),
+  advanced: {
+    database: {
+      generateId, // Use crypto.randomUUID() for all Better Auth records
+    },
+  },
   databaseHooks: {
     session: {
       create: {
@@ -29,13 +46,6 @@ const auth = betterAuth({
       },
     },
   },
-  advanced: {
-    database: {
-      generateId: () => {
-        return crypto.randomUUID();
-      },
-    },
-  },
   plugins: [
     organization({
       async sendInvitationEmail(data) {
@@ -46,15 +56,15 @@ const auth = betterAuth({
           // Look up invitation to get roleId
           const [invitationRecord] = await db
             .select()
-            .from(invitation)
-            .where(eq(invitation.id, data.id))
+            .from(invitationModel)
+            .where(eq(invitationModel.id, data.id))
             .limit(1);
 
           if (invitationRecord?.roleId) {
             const [roleRecord] = await db
               .select()
-              .from(role)
-              .where(eq(role.id, invitationRecord.roleId))
+              .from(roleModel)
+              .where(eq(roleModel.id, invitationRecord.roleId))
               .limit(1);
 
             if (roleRecord) {
@@ -74,6 +84,22 @@ const auth = betterAuth({
           console.error("Failed to send invitation email:", error);
           // Don't throw - email failures shouldn't block invitation creation
         }
+      },
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization, member }) => {
+          // Run custom logic after organization is created
+          // e.g., create default resources, send notifications
+
+          const { ownerId } = await createSystemRoles(organization.id);
+          await assignRole(ownerId, member.id);
+        },
+        beforeDeleteOrganization: async ({ organization }) => {
+          // a callback to run after deleting org
+
+          console.log("Deleting organization roles...", organization);
+          // Clean up related resources, notify users, etc.
+          await deleteSystemRoles(organization.id);
+        },
       },
     }),
   ],

@@ -1,6 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { permission, role, rolePermission } from "~/server/db/schema";
+import {
+  memberModel,
+  permissionModel,
+  roleModel,
+  rolePermissionModel,
+} from "../db/schemas/auth";
 
 /**
  * Create system role for the organization admin
@@ -11,7 +16,7 @@ import { permission, role, rolePermission } from "~/server/db/schema";
  */
 export async function createSystemRolesForAdminOrg(organizationId: string) {
   const superId = crypto.randomUUID();
-  await db.insert(role).values({
+  await db.insert(roleModel).values({
     id: superId,
     organizationId,
     name: "super-admin",
@@ -31,12 +36,16 @@ export async function createSystemRolesForAdminOrg(organizationId: string) {
  * @returns Object with role IDs
  */
 export async function createSystemRoles(organizationId: string) {
+  console.log(`Creating system roles for organization ${organizationId}`);
   // Get all permissions
-  const permissions = await db.select().from(permission);
+  const existingPermissions = await db
+    .select()
+    .from(permissionModel)
+    .where(eq(permissionModel.resource, "organization"));
 
   // Owner role - all permissions
   const ownerId = crypto.randomUUID();
-  await db.insert(role).values({
+  await db.insert(roleModel).values({
     id: ownerId,
     organizationId,
     name: "owner",
@@ -47,8 +56,8 @@ export async function createSystemRoles(organizationId: string) {
   });
 
   // Assign all permissions to owner
-  await db.insert(rolePermission).values(
-    permissions.map((p) => ({
+  await db.insert(rolePermissionModel).values(
+    existingPermissions.map((p) => ({
       id: crypto.randomUUID(),
       roleId: ownerId,
       permissionId: p.id,
@@ -60,11 +69,11 @@ export async function createSystemRoles(organizationId: string) {
 
   // Admin role - most permissions except settings:manage
   const adminId = crypto.randomUUID();
-  const adminPermissions = permissions.filter(
-    (p) => !(p.resource === "settings" && p.action === "manage"),
+  const adminPermissions = existingPermissions.filter(
+    (p) => !(p.resource === "organization" && p.action === "delete"),
   );
 
-  await db.insert(role).values({
+  await db.insert(roleModel).values({
     id: adminId,
     organizationId,
     name: "admin",
@@ -74,7 +83,7 @@ export async function createSystemRoles(organizationId: string) {
     updatedAt: new Date(),
   });
 
-  await db.insert(rolePermission).values(
+  await db.insert(rolePermissionModel).values(
     adminPermissions.map((p) => ({
       id: crypto.randomUUID(),
       roleId: adminId,
@@ -87,11 +96,11 @@ export async function createSystemRoles(organizationId: string) {
 
   // Member role - read-only permissions
   const memberId = crypto.randomUUID();
-  const memberPermissions = permissions.filter(
+  const memberPermissions = existingPermissions.filter(
     (p) => p.action === "read" || p.action === "view",
   );
 
-  await db.insert(role).values({
+  await db.insert(roleModel).values({
     id: memberId,
     organizationId,
     name: "member",
@@ -101,7 +110,7 @@ export async function createSystemRoles(organizationId: string) {
     updatedAt: new Date(),
   });
 
-  await db.insert(rolePermission).values(
+  await db.insert(rolePermissionModel).values(
     memberPermissions.map((p) => ({
       id: crypto.randomUUID(),
       roleId: memberId,
@@ -137,7 +146,7 @@ export async function createCustomRole(
 
   // Create role
   const [newRole] = await db
-    .insert(role)
+    .insert(roleModel)
     .values({
       id: roleId,
       organizationId,
@@ -151,7 +160,7 @@ export async function createCustomRole(
 
   // Assign permissions
   if (permissionIds.length > 0) {
-    await db.insert(rolePermission).values(
+    await db.insert(rolePermissionModel).values(
       permissionIds.map((permId) => ({
         id: crypto.randomUUID(),
         roleId,
@@ -174,8 +183,8 @@ export async function createCustomRole(
 export async function getRolesByOrganization(organizationId: string) {
   return await db
     .select()
-    .from(role)
-    .where(eq(role.organizationId, organizationId));
+    .from(roleModel)
+    .where(eq(roleModel.organizationId, organizationId));
 }
 
 /**
@@ -186,14 +195,17 @@ export async function getRolesByOrganization(organizationId: string) {
 export async function getRolePermissions(roleId: string) {
   const results = await db
     .select({
-      id: permission.id,
-      resource: permission.resource,
-      action: permission.action,
-      description: permission.description,
+      id: permissionModel.id,
+      resource: permissionModel.resource,
+      action: permissionModel.action,
+      description: permissionModel.description,
     })
-    .from(rolePermission)
-    .innerJoin(permission, eq(rolePermission.permissionId, permission.id))
-    .where(eq(rolePermission.roleId, roleId));
+    .from(rolePermissionModel)
+    .innerJoin(
+      permissionModel,
+      eq(rolePermissionModel.permissionId, permissionModel.id),
+    )
+    .where(eq(rolePermissionModel.roleId, roleId));
 
   return results;
 }
@@ -208,9 +220,12 @@ export async function getRolePermissions(roleId: string) {
 export async function getRoleByName(organizationId: string, roleName: string) {
   const [result] = await db
     .select()
-    .from(role)
+    .from(roleModel)
     .where(
-      and(eq(role.organizationId, organizationId), eq(role.name, roleName)),
+      and(
+        eq(roleModel.organizationId, organizationId),
+        eq(roleModel.name, roleName),
+      ),
     )
     .limit(1);
 
@@ -228,11 +243,13 @@ export async function updateRolePermissions(
   permissionIds: string[],
 ) {
   // Delete existing permissions
-  await db.delete(rolePermission).where(eq(rolePermission.roleId, roleId));
+  await db
+    .delete(rolePermissionModel)
+    .where(eq(rolePermissionModel.roleId, roleId));
 
   // Insert new permissions
   if (permissionIds.length > 0) {
-    await db.insert(rolePermission).values(
+    await db.insert(rolePermissionModel).values(
       permissionIds.map((permId) => ({
         id: crypto.randomUUID(),
         roleId,
@@ -254,8 +271,8 @@ export async function deleteRole(roleId: string): Promise<boolean> {
   // Check if it's a system role
   const [roleToDelete] = await db
     .select()
-    .from(role)
-    .where(eq(role.id, roleId))
+    .from(roleModel)
+    .where(eq(roleModel.id, roleId))
     .limit(1);
 
   if (!roleToDelete) {
@@ -267,7 +284,52 @@ export async function deleteRole(roleId: string): Promise<boolean> {
   }
 
   // Delete role (cascade will handle rolePermission)
-  await db.delete(role).where(eq(role.id, roleId));
+  await db.delete(roleModel).where(eq(roleModel.id, roleId));
 
   return true;
+}
+
+/**
+ * Delete system roles and permissions for an organization
+ * Should be called when an organization is deleted
+ * Delete owner, admin, and member roles with appropriate permissions
+ * @param organizationId - Organization ID
+ * @returns boolean success
+ */
+export async function deleteSystemRoles(organizationId: string) {
+  try {
+    console.log(`Deleting system roles for organization ${organizationId}`);
+    const existingRoles = await db
+      .select()
+      .from(roleModel)
+      .where(eq(roleModel.organizationId, organizationId));
+
+    existingRoles.forEach(async (role) => {
+      await db.delete(roleModel).where(eq(roleModel.id, role.id));
+    });
+  } catch (error) {
+    console.error("Failed to delete system roles", error);
+  }
+}
+
+/**
+ * Assign specific role for an member
+ * @param roleId - Role ID
+ * @param userId - User ID
+ * @returns boolean success
+ */
+export async function assignRole(roleId: string, memberId: string) {
+  try {
+    console.log(`Assigning role ${roleId} to member ${memberId}`);
+    await db
+      .update(memberModel)
+      .set({ roleId: roleId })
+      .where(eq(memberModel.id, memberId));
+
+    console.log(`✅ Assigned role ${roleId} to member ${memberId}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to assign role ${roleId} to member ${memberId}`, error);
+    return false;
+  }
 }

@@ -1,5 +1,11 @@
-import { eq } from "drizzle-orm";
 import { Link, useSearchParams } from "react-router";
+import type { Route } from "./+types/users";
+import { requireAuth } from "~/server/auth/session.server";
+import { getUserOrganizations } from "~/server/auth/organization.server";
+import { isSuperAdmin } from "~/server/permissions";
+import { db } from "~/server/db";
+import { user, member, organization, role } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -9,13 +15,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -23,17 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { getUserOrganizations } from "~/server/auth/organization.server";
-import { requireAuth } from "~/server/auth/session.server";
-import { db } from "~/server/db";
 import {
-  memberModel,
-  organizationModel,
-  roleModel,
-  userModel,
-} from "~/server/db/schemas/auth";
-import { isSuperAdmin } from "~/server/permissions";
-import type { Route } from "./+types/users";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -42,7 +37,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Fetch all needed data in parallel
   const [isSuperAdminUser, organizations] = await Promise.all([
-    isSuperAdmin(session.user.id),
+    isSuperAdmin(db, session.user.id),
     getUserOrganizations(session.user.id),
   ]);
 
@@ -54,24 +49,21 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (selectedOrgId) {
     users = await db
       .select({
-        id: userModel.id,
-        name: userModel.name,
-        email: userModel.email,
-        emailVerified: userModel.emailVerified,
-        createdAt: userModel.createdAt,
-        organizationName: organizationModel.name,
-        memberRole: memberModel.role,
-        roleName: roleModel.name,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        organizationName: organization.name,
+        memberRole: member.role,
+        roleName: role.name,
       })
-      .from(userModel)
-      .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
-      .innerJoin(
-        organizationModel,
-        eq(organizationModel.id, memberModel.organizationId),
-      )
-      .leftJoin(roleModel, eq(roleModel.id, memberModel.roleId))
-      .where(eq(organizationModel.id, selectedOrgId))
-      .orderBy(userModel.createdAt);
+      .from(user)
+      .innerJoin(member, eq(member.userId, user.id))
+      .innerJoin(organization, eq(organization.id, member.organizationId))
+      .leftJoin(role, eq(role.id, member.roleId))
+      .where(eq(organization.id, selectedOrgId))
+      .orderBy(user.createdAt);
   }
 
   return {
@@ -84,8 +76,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations, users, selectedOrganizationId } =
-    loaderData;
+  const { isSuperAdmin, organizations, users, selectedOrganizationId } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Show message if no organizations
@@ -108,7 +99,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
@@ -133,13 +124,15 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Users</CardTitle>
-              <CardDescription>View and manage user accounts</CardDescription>
+              <CardDescription>
+                View and manage user accounts
+              </CardDescription>
             </div>
             <Select
               value={selectedOrganizationId || ""}
               onValueChange={(id) => setSearchParams({ organizationId: id })}
             >
-              <SelectTrigger className="w-75">
+              <SelectTrigger className="w-[300px]">
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>

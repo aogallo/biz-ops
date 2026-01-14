@@ -26,15 +26,15 @@ export async function sendInvitationEmail(params: InvitationEmailParams) {
   const invitationUrl = `${baseUrl}/invitation/accept/${invitationToken}`;
 
   // Development mode: Log to console
-  // if (process.env.NODE_ENV === "development" || !process.env.RESEND_API_KEY) {
-  //   console.log("\n📧 [DEV MODE] Invitation Email\n");
-  //   console.log(`To: ${to}`);
-  //   console.log(`From: ${inviterName} at ${organizationName}`);
-  //   console.log(`Role: ${roleName || "Member"}`);
-  //   console.log(`\nInvitation URL:\n${invitationUrl}\n`);
-  //   console.log("Copy the URL above to accept the invitation\n");
-  //   return;
-  // }
+  if (process.env.NODE_ENV === "development" || !process.env.RESEND_API_KEY) {
+    console.log("\n📧 [DEV MODE] Invitation Email\n");
+    console.log(`To: ${to}`);
+    console.log(`From: ${inviterName} at ${organizationName}`);
+    console.log(`Role: ${roleName || "Member"}`);
+    console.log(`\nInvitation URL:\n${invitationUrl}\n`);
+    console.log("Copy the URL above to accept the invitation\n");
+    return;
+  }
 
   // Production mode: Send via Resend
   try {

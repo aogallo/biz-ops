@@ -1,6 +1,5 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "./db";
-import { memberModel, organizationModel, roleModel } from "./db/schemas/auth";
+import { eq, and } from "drizzle-orm";
+import { member, organization, role } from "./db/schema";
 
 export const SUPER_ADMIN_ROLE = "super-admin";
 export const ADMIN_ROLE = "admin";
@@ -9,23 +8,23 @@ export const MEMBER_ROLE = "member";
 /**
  * Check if a user is a super admin (member of an admin organization with super-admin role)
  */
-export async function isSuperAdmin(userId: string): Promise<boolean> {
+export async function isSuperAdmin(
+  db: any,
+  userId: string
+): Promise<boolean> {
   const result = await db
     .select({
-      isSuperAdmin: organizationModel.isAdmin,
+      isSuperAdmin: organization.isAdmin,
     })
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
-    )
-    .leftJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .from(member)
+    .innerJoin(organization, eq(member.organizationId, organization.id))
+    .leftJoin(role, eq(member.roleId, role.id))
     .where(
       and(
-        eq(memberModel.userId, userId),
-        eq(organizationModel.isAdmin, true),
-        eq(roleModel.name, SUPER_ADMIN_ROLE),
-      ),
+        eq(member.userId, userId),
+        eq(organization.isAdmin, true),
+        eq(role.name, SUPER_ADMIN_ROLE)
+      )
     )
     .limit(1);
 
@@ -37,20 +36,15 @@ export async function isSuperAdmin(userId: string): Promise<boolean> {
  */
 export async function isAdminOrgMember(
   db: any,
-  userId: string,
+  userId: string
 ): Promise<boolean> {
   const result = await db
     .select({
-      isAdmin: organizationModel.isAdmin,
+      isAdmin: organization.isAdmin,
     })
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
-    )
-    .where(
-      and(eq(memberModel.userId, userId), eq(organizationModel.isAdmin, true)),
-    )
+    .from(member)
+    .innerJoin(organization, eq(member.organizationId, organization.id))
+    .where(and(eq(member.userId, userId), eq(organization.isAdmin, true)))
     .limit(1);
 
   return result.length > 0;
@@ -62,18 +56,18 @@ export async function isAdminOrgMember(
 export async function isOrgAdmin(
   db: any,
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): Promise<boolean> {
   const result = await db
     .select({
-      role: memberModel.role,
+      role: member.role,
     })
-    .from(memberModel)
+    .from(member)
     .where(
       and(
-        eq(memberModel.userId, userId),
-        eq(memberModel.organizationId, organizationId),
-      ),
+        eq(member.userId, userId),
+        eq(member.organizationId, organizationId)
+      )
     )
     .limit(1);
 
@@ -86,23 +80,23 @@ export async function isOrgAdmin(
 /**
  * Get all organizations where the user is a member
  */
-export async function getUserOrganizations(userId: string) {
+export async function getUserOrganizations(
+  db: any,
+  userId: string
+) {
   return await db
     .select({
-      id: organizationModel.id,
-      name: organizationModel.name,
-      slug: organizationModel.slug,
-      logo: organizationModel.logo,
-      isAdmin: organizationModel.isAdmin,
-      role: memberModel.role,
-      createdAt: organizationModel.createdAt,
+      id: organization.id,
+      name: organization.name,
+      slug: organization.slug,
+      logo: organization.logo,
+      isAdmin: organization.isAdmin,
+      role: member.role,
+      createdAt: organization.createdAt,
     })
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
-    )
-    .where(eq(memberModel.userId, userId));
+    .from(member)
+    .innerJoin(organization, eq(member.organizationId, organization.id))
+    .where(eq(member.userId, userId));
 }
 
 /**
@@ -110,12 +104,13 @@ export async function getUserOrganizations(userId: string) {
  * Super admins bypass all permission checks
  */
 export async function hasPermission(
+  db: any,
   userId: string,
   resource: string,
-  action: string,
+  action: string
 ): Promise<boolean> {
   // Super admins have all permissions
-  if (await isSuperAdmin(userId)) {
+  if (await isSuperAdmin(db, userId)) {
     return true;
   }
 

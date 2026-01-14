@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import auth from "~/server/auth-server";
 import { db } from "~/server/db";
-import { memberModel, organizationModel, roleModel } from "../db/schemas/auth";
+import { member, organization, role } from "~/server/db/schema";
 import type { SessionData } from "./session.server";
 
 export interface OrganizationMember {
@@ -29,13 +29,10 @@ export interface Organization {
 export async function requireOrganizationAdmin(session: SessionData) {
   const [membership] = await db
     .select()
-    .from(memberModel)
-    .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .from(member)
+    .innerJoin(role, eq(member.roleId, role.id))
     .where(
-      and(
-        eq(memberModel.userId, session.user.id),
-        eq(roleModel.name, "super-admin"),
-      ),
+      and(eq(member.userId, session.user.id), eq(role.name, "super-admin")),
     )
     .limit(1);
 
@@ -50,8 +47,8 @@ export async function requireOrganizationAdmin(session: SessionData) {
   // Get organization
   const [org] = await db
     .select()
-    .from(organizationModel)
-    .where(eq(organizationModel.id, membership.member.organizationId))
+    .from(organization)
+    .where(eq(organization.id, membership.member.organizationId))
     .limit(1);
 
   if (!org) {
@@ -84,11 +81,11 @@ export async function requireOrganization(
   // Get membership
   const [membership] = await db
     .select()
-    .from(memberModel)
+    .from(member)
     .where(
       and(
-        eq(memberModel.userId, session.user.id),
-        eq(memberModel.organizationId, session.session.activeOrganizationId),
+        eq(member.userId, session.user.id),
+        eq(member.organizationId, session.session.activeOrganizationId),
       ),
     )
     .limit(1);
@@ -104,8 +101,8 @@ export async function requireOrganization(
   // Get organization
   const [org] = await db
     .select()
-    .from(organizationModel)
-    .where(eq(organizationModel.id, session.session.activeOrganizationId))
+    .from(organization)
+    .where(eq(organization.id, session.session.activeOrganizationId))
     .limit(1);
 
   if (!org) {
@@ -149,19 +146,16 @@ export async function getUserOrganizations(userId: string) {
   // Check if user is super admin (member of admin org with super_admin role)
   const superAdminCheck = await db
     .select({
-      isSuperAdmin: organizationModel.isAdmin,
+      isSuperAdmin: organization.isAdmin,
     })
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
-    )
-    .leftJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .from(member)
+    .innerJoin(organization, eq(member.organizationId, organization.id))
+    .leftJoin(role, eq(member.roleId, role.id))
     .where(
       and(
-        eq(memberModel.userId, userId),
-        eq(organizationModel.isAdmin, true),
-        eq(roleModel.name, "super-admin"),
+        eq(member.userId, userId),
+        eq(organization.isAdmin, true),
+        eq(role.name, "super-admin"),
       ),
     )
     .limit(1);
@@ -170,38 +164,24 @@ export async function getUserOrganizations(userId: string) {
 
   if (isSuperAdmin) {
     // Super admin: return ALL organizations
-    const allOrgs = await db
-      .select({
-        organizationId: organizationModel.id,
-        organizationName: organizationModel.name,
-        slug: organizationModel.slug,
-        logo: organizationModel.logo,
-        createdAt: organizationModel.createdAt,
-        roleName: roleModel.name,
-      })
-      .from(organizationModel)
-      .innerJoin(
-        memberModel,
-        eq(memberModel.organizationId, organizationModel.id),
-      )
-      .innerJoin(roleModel, eq(roleModel.id, memberModel.roleId));
+    const allOrgs = await db.select().from(organization);
 
     // Return in same format but without membership data for non-member orgs
-    return allOrgs.map((data) => ({
+    return allOrgs.map((org) => ({
       membership: {
         id: "",
-        organizationId: data.organizationId,
+        organizationId: org.id,
         userId: userId,
-        role: data.roleName,
+        role: "super-admin",
         roleId: null,
-        createdAt: data.createdAt,
+        createdAt: org.createdAt,
       },
       organization: {
-        id: data.organizationId,
-        name: data.organizationName,
-        slug: data.slug,
-        logo: data.logo,
-        createdAt: data.createdAt,
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        logo: org.logo,
+        createdAt: org.createdAt,
       },
     }));
   }
@@ -209,12 +189,9 @@ export async function getUserOrganizations(userId: string) {
   // Regular user: return only organizations they're members of
   const memberships = await db
     .select()
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(organizationModel.id, memberModel.organizationId),
-    )
-    .where(eq(memberModel.userId, userId));
+    .from(member)
+    .innerJoin(organization, eq(organization.id, member.organizationId))
+    .where(eq(member.userId, userId));
 
   // Transform the result to match expected structure
   return memberships.map((row) => ({
@@ -257,9 +234,9 @@ export async function setActiveOrganization(
   // If no organization ID provided, get the first one
   if (!targetOrgId) {
     const memberships = await db
-      .select({ organizationId: memberModel.organizationId })
-      .from(memberModel)
-      .where(eq(memberModel.userId, session.user.id))
+      .select({ organizationId: member.organizationId })
+      .from(member)
+      .where(eq(member.userId, session.user.id))
       .limit(1);
 
     if (memberships.length === 0) {
@@ -298,12 +275,9 @@ export async function getInitialOrganization(userId: string) {
   // Regular user: return only organizations they're members of
   const memberships = await db
     .select()
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(organizationModel.id, memberModel.organizationId),
-    )
-    .where(eq(memberModel.userId, userId))
+    .from(member)
+    .innerJoin(organization, eq(organization.id, member.organizationId))
+    .where(eq(member.userId, userId))
     .limit(1);
 
   // Transform the result to match expected structure

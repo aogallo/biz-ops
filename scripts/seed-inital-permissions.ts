@@ -1,7 +1,7 @@
-import "dotenv/config";
-import { and, eq } from "drizzle-orm";
 import { db } from "../app/server/db";
-import { permissionModel } from "../app/server/db/schemas/auth";
+import * as schema from "../app/server/db/schema";
+import { and, eq } from "drizzle-orm";
+import "dotenv/config";
 
 const SYSTEM_PERMISSIONS = [
   // Product permissions
@@ -61,23 +61,23 @@ async function main() {
       // Check if permission already exists
       const [existing] = await db
         .select()
-        .from(permissionModel)
+        .from(schema.permission)
         .where(
           and(
-            eq(permissionModel.resource, perm.resource),
-            eq(permissionModel.action, perm.action),
-          ),
+            eq(schema.permission.resource, perm.resource),
+            eq(schema.permission.action, perm.action)
+          )
         )
         .limit(1);
 
       if (existing) {
         console.log(
-          `  ⏭️  Skipping ${perm.resource}:${perm.action} (already exists)`,
+          `  ⏭️  Skipping ${perm.resource}:${perm.action} (already exists)`
         );
         continue;
       }
 
-      await db.insert(permissionModel).values({
+      await db.insert(schema.permission).values({
         id: permissionId,
         resource: perm.resource,
         action: perm.action,

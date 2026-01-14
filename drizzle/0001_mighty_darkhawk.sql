@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ADD COLUMN "is_admin" boolean DEFAULT false NOT NULL;

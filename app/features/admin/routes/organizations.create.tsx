@@ -1,11 +1,11 @@
 import { useState } from "react";
-import {
-  Form,
-  Link,
-  redirect,
-  useActionData,
-  useNavigation,
-} from "react-router";
+import { Form, Link, redirect, useActionData, useNavigation } from "react-router";
+import type { Route } from "./+types/organizations.create";
+import { requireAuth } from "~/server/auth/session.server";
+import { requireOrganizationAdmin } from "~/server/auth/organization.server";
+import { db } from "~/server/db";
+import { organization } from "~/server/db/schema";
+import { createSystemRoles } from "~/server/auth/roles.server";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -16,17 +16,11 @@ import {
 } from "~/components/ui/card";
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldDescription,
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
-import { requireOrganizationAdmin } from "~/server/auth/organization.server";
-import { createSystemRoles } from "~/server/auth/roles.server";
-import { requireAuth } from "~/server/auth/session.server";
-import { db } from "~/server/db";
-import { organizationModel } from "~/server/db/schemas/auth";
-import type { Route } from "./+types/organizations.create";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
@@ -55,7 +49,7 @@ export async function action({ request }: Route.ActionArgs) {
     // Create organization
     const orgId = crypto.randomUUID();
     const [newOrg] = await db
-      .insert(organizationModel)
+      .insert(organization)
       .values({
         id: orgId,
         name,

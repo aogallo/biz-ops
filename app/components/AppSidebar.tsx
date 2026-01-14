@@ -1,4 +1,16 @@
-import { Building2, LogOut, Mail, Package, Users } from "lucide-react";
+import {
+  BarChart3,
+  Building2,
+  Home,
+  Layers,
+  LogOut,
+  Mail,
+  Package,
+  ScrollText,
+  Settings,
+  User,
+  Users,
+} from "lucide-react";
 import { Form, Link } from "react-router";
 import { useAuth, useOptionalOrganization } from "~/contexts/AuthContext";
 import {
@@ -13,11 +25,18 @@ import {
 } from "./ui/sidebar";
 
 export const navigationItems = [
+  { name: "Dashboard", path: "/dashboard", icon: Home },
   { name: "Users", path: "/admin/users", icon: Users },
   { name: "Organization", path: "/organization", icon: Building2 },
-  { name: "Business Partners", path: "/business-partners", icon: Users },
+  { name: "Profile", path: "/profile", icon: User },
+  { name: "Analytics", path: "/analytics", icon: BarChart3 },
   { name: "Products", path: "/products", icon: Package },
+  { name: "Customers", path: "/customers", icon: Users },
+  { name: "Companies", path: "/companies", icon: Building2 },
+  { name: "Invoices", path: "/invoices", icon: ScrollText },
   { name: "Invitations", path: "/invitations", icon: Mail },
+  { name: "Reports", path: "/reports", icon: Layers },
+  { name: "Settings", path: "/settings", icon: Settings },
 ];
 
 const AppSidebar = () => {

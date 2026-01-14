@@ -1,5 +1,4 @@
 import { Link } from "react-router";
-import { Button } from "~/components/ui/button";
 import {
   getUserOrganizations,
   requireOrganizationAdmin,
@@ -19,11 +18,14 @@ export default function Organization({ loaderData }: Route.ComponentProps) {
   const { organizations } = loaderData;
 
   return (
-    <div className="">
+    <div className="self-stretch p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Organizations</h1>
-        <Link to="/organization/new">
-          <Button>Create Organization</Button>
+        <Link
+          to="/organization/new"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Create Organization
         </Link>
       </div>
 
@@ -57,7 +59,7 @@ export default function Organization({ loaderData }: Route.ComponentProps) {
                   {membership.role}
                 </span>
                 <Link
-                  to={`/organization/${organization.slug}`}
+                  to={`/org/${organization.slug}`}
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Open →

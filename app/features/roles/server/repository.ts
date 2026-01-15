@@ -149,7 +149,7 @@ export class RolesRepository {
     permissionIds: string[],
     organizationId: string
   ) {
-    // Delete existing permissions
+    // Delete existing permissions for this role
     await db
       .delete(rolePermissionModel)
       .where(eq(rolePermissionModel.roleId, roleId));

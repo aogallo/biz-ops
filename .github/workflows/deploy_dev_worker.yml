@@ -18,14 +18,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config wrangler.jsonc --name erp
-          secrets: |
-            BETTER_AUTH_SECRET
-            BETTER_AUTH_URL
-            DATABASE_URL
           preCommands: |
             npm ci
-            npm run build
-        env:
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            npm run buid

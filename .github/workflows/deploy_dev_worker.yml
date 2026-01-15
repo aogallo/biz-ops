@@ -17,9 +17,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "3"
-          name: erp
-          command: deploy --config wrangler.jsonc
+          wranglerVersion: "latest"
+          command: deploy --config wrangler.jsonc --name erp
           secrets: |
             BETTER_AUTH_SECRET
             BETTER_AUTH_URL

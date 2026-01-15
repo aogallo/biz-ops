@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { useCanPerformAction } from "~/hooks/usePermissions";
 import { requireAuth } from "~/server/auth/session.server";
 import { getFlash } from "~/server/flash.server";
 import type { Route } from "./+types/index";
@@ -46,6 +47,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
   const { products, noOrganization, toast } = loaderData;
+  const canCreateProduct = useCanPerformAction("products.create");
 
   // Show toast if present in loader data
   useToastFromLoader(toast);
@@ -74,9 +76,11 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
             Manage your product catalog and inventory
           </p>
         </div>
-        <Link to="/products/new">
-          <Button>Add Product</Button>
-        </Link>
+        {canCreateProduct && (
+          <Link to="/products/new">
+            <Button>Add Product</Button>
+          </Link>
+        )}
       </div>
 
       {products.length === 0 ? (
@@ -84,9 +88,11 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
           <p className="mb-4 text-muted-foreground">
             No products found. Create your first product to get started.
           </p>
-          <Link to="/products/new">
-            <Button>Create Product</Button>
-          </Link>
+          {canCreateProduct && (
+            <Link to="/products/new">
+              <Button>Create Product</Button>
+            </Link>
+          )}
         </div>
       ) : (
         <div className="rounded-lg border">

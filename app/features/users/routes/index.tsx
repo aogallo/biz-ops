@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router";
+import { Form, Link, useSearchParams } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -22,16 +22,26 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { useCanPerformAction } from "~/hooks/usePermissions";
 import { getUserOrganizations } from "~/server/auth/organization.server";
 import { requireAuth } from "~/server/auth/session.server";
+import { db } from "~/server/db";
+import { roleModel } from "~/server/db/schemas/auth";
+import { eq } from "drizzle-orm";
 import { isSuperAdmin } from "~/server/permissions";
 import { usersRepository } from "../server/repository";
+import { getFlash, redirectWithFlash } from "~/server/flash.server";
+import { updateMemberRole } from "../server/actions/update-role.action";
+import { useToastFromLoader } from "~/hooks/useToastFromLoader";
 import type { Route } from "./+types/index";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request);
   const url = new URL(request.url);
   const organizationId = url.searchParams.get("organizationId");
+
+  // Get flash message
+  const { flash, headers } = getFlash(request);
 
   // Fetch all needed data in parallel
   const [isSuperAdminUser, organizations] = await Promise.all([
@@ -42,30 +52,61 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Default to first org if none selected
   const selectedOrgId = organizationId || organizations[0]?.organization.id;
 
-  // Fetch users and invitations for selected organization
+  // Fetch users, invitations, and available roles for selected organization
   let users: any[] = [];
   let invitations: any[] = [];
+  let availableRoles: any[] = [];
   if (selectedOrgId) {
-    [users, invitations] = await Promise.all([
+    [users, invitations, availableRoles] = await Promise.all([
       usersRepository.getAllByOrganization(selectedOrgId),
       usersRepository.getPendingInvitations(selectedOrgId),
+      db.select().from(roleModel).where(eq(roleModel.organizationId, selectedOrgId)),
     ]);
   }
 
-  return {
-    isSuperAdmin: isSuperAdminUser,
-    organizations,
-    users,
-    invitations,
-    selectedOrganizationId: selectedOrgId,
-    user: session.user,
-  };
+  return Response.json(
+    {
+      isSuperAdmin: isSuperAdminUser,
+      organizations,
+      users,
+      invitations,
+      availableRoles,
+      selectedOrganizationId: selectedOrgId,
+      user: session.user,
+      toast: flash,
+    },
+    { headers }
+  );
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const memberId = formData.get("memberId") as string;
+  const roleId = formData.get("roleId") as string;
+
+  const result = await updateMemberRole(request, memberId, roleId);
+
+  if (result.success) {
+    return redirectWithFlash(request.url, {
+      type: "success",
+      message: result.message,
+    });
+  }
+
+  return redirectWithFlash(request.url, {
+    type: "error",
+    message: result.message,
+  });
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations, users, invitations, selectedOrganizationId } =
+  const { isSuperAdmin, organizations, users, invitations, availableRoles, selectedOrganizationId, toast } =
     loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
+  const canInviteUser = useCanPerformAction("users.invite");
+  const canUpdateUser = useCanPerformAction("users.invite"); // Using user:create as proxy for user:update
+
+  useToastFromLoader(toast);
 
   // Show message if no organizations
   if (organizations.length === 0) {
@@ -97,9 +138,11 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               : "Manage users in your organization"}
           </p>
         </div>
-        <Link to="/users/invite">
-          <Button>Invite User</Button>
-        </Link>
+        {canInviteUser && (
+          <Link to="/users/invite">
+            <Button>Invite User</Button>
+          </Link>
+        )}
       </div>
 
       {/* Active Users Section */}
@@ -152,9 +195,27 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                        {user.roleName || user.memberRole}
-                      </span>
+                      {canUpdateUser ? (
+                        <Form method="post" className="inline-block">
+                          <input type="hidden" name="memberId" value={user.memberId} />
+                          <select
+                            name="roleId"
+                            value={user.roleId || ""}
+                            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                            className="rounded-md border px-2 py-1 text-xs"
+                          >
+                            {availableRoles.map((role) => (
+                              <option key={role.id} value={role.id}>
+                                {role.name}
+                              </option>
+                            ))}
+                          </select>
+                        </Form>
+                      ) : (
+                        <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                          {user.roleName || user.memberRole}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {user.emailVerified ? (

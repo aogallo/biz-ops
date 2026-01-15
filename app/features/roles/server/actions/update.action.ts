@@ -18,19 +18,19 @@ export async function updateRole(request: Request, roleId: string) {
     };
   }
 
-  // Check if system role
-  if (role.isSystem) {
+  // Check permissions first
+  const isSuperAdminUser = await isSuperAdmin(session.user.id);
+  const isOrgAdminUser = await isOrgAdmin(db, session.user.id, role.organizationId);
+
+  if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
       success: false,
       message: ROLE_MESSAGES.systemRoleProtected,
     };
   }
 
-  // Check permissions
-  const isSuperAdminUser = await isSuperAdmin(session.user.id);
-  const isOrgAdminUser = await isOrgAdmin(db, session.user.id, role.organizationId);
-
-  if (!isSuperAdminUser && !isOrgAdminUser) {
+  // Block non-super-admins from editing system roles
+  if (role.isSystem && !isSuperAdminUser) {
     return {
       success: false,
       message: ROLE_MESSAGES.systemRoleProtected,

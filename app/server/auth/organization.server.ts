@@ -178,6 +178,7 @@ export async function getUserOrganizations(userId: string) {
         logo: organizationModel.logo,
         createdAt: organizationModel.createdAt,
         roleName: roleModel.name,
+        isAdmin: organizationModel.isAdmin,
       })
       .from(organizationModel)
       .innerJoin(
@@ -202,6 +203,7 @@ export async function getUserOrganizations(userId: string) {
         slug: data.slug,
         logo: data.logo,
         createdAt: data.createdAt,
+        isAdmin: data.isAdmin,
       },
     }));
   }
@@ -232,6 +234,7 @@ export async function getUserOrganizations(userId: string) {
       slug: row.organization.slug,
       logo: row.organization.logo,
       createdAt: row.organization.createdAt,
+      isAdmin: row.organization.isAdmin,
     },
   }));
 }

@@ -8,6 +8,7 @@ import {
 } from "~/components/ui/collapsible";
 import { requireAuth } from "~/server/auth/session.server";
 import { redirectWithFlash } from "~/server/flash.server";
+import { isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/edit";
 import { updateRole } from "../server/actions/update.action";
 import { rolesRepository } from "../server/repository";
@@ -15,7 +16,7 @@ import { ROLE_MESSAGES } from "../messages";
 import { ChevronDown } from "lucide-react";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAuth(request);
+  const session = await requireAuth(request);
 
   const roleId = params.id;
   const role = await rolesRepository.getById(roleId);
@@ -27,8 +28,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     });
   }
 
-  // Block editing system roles
-  if (role.isSystem) {
+  // Block editing system roles for non-super-admins
+  const isSuperAdminUser = await isSuperAdmin(session.user.id);
+  if (role.isSystem && !isSuperAdminUser) {
     return redirectWithFlash("/roles", {
       type: "error",
       message: ROLE_MESSAGES.systemRoleProtected,

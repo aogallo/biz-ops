@@ -1,6 +1,12 @@
-import { Form, Link, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
-import { Button } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
+import { eq, sql } from "drizzle-orm";
+import { Edit, Trash2 } from "lucide-react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "react-router";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,19 +18,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { useCanPerformAction } from "~/hooks/usePermissions";
 import { requireAuth } from "~/server/auth/session.server";
-import { redirectWithFlash } from "~/server/flash.server";
-import type { Route } from "./+types/show";
-import { deleteRole } from "../server/actions/delete.action";
-import { rolesRepository } from "../server/repository";
-import { ROLE_MESSAGES } from "../messages";
 import { db } from "~/server/db";
 import { memberModel } from "~/server/db/schemas/auth";
-import { eq, sql } from "drizzle-orm";
-import { Trash2, Edit } from "lucide-react";
+import { redirectWithFlash } from "~/server/flash.server";
+import { ROLE_MESSAGES } from "../messages";
+import { deleteRole } from "../server/actions/delete.action";
+import { rolesRepository } from "../server/repository";
+import { isSuperAdmin } from "~/server/permissions";
+import type { Route } from "./+types/show";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAuth(request);
+  const session = await requireAuth(request);
 
   const roleId = params.id;
   const role = await rolesRepository.getById(roleId);
@@ -36,28 +44,33 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     });
   }
 
-  const [permissions, memberCount] = await Promise.all([
+  const [permissions, memberCount, isSuperAdminUser] = await Promise.all([
     rolesRepository.getRolePermissions(roleId),
     db
       .select({ count: sql<number>`count(*)` })
       .from(memberModel)
       .where(eq(memberModel.roleId, roleId))
       .then((r) => Number(r[0].count)),
+    isSuperAdmin(session.user.id),
   ]);
 
   // Group permissions by resource
-  const permissionsByResource = permissions.reduce((acc, perm) => {
-    if (!acc[perm.resource]) {
-      acc[perm.resource] = [];
-    }
-    acc[perm.resource].push(perm);
-    return acc;
-  }, {} as Record<string, typeof permissions>);
+  const permissionsByResource = permissions.reduce(
+    (acc, perm) => {
+      if (!acc[perm.resource]) {
+        acc[perm.resource] = [];
+      }
+      acc[perm.resource].push(perm);
+      return acc;
+    },
+    {} as Record<string, typeof permissions>,
+  );
 
   return {
     role,
     permissionsByResource,
     memberCount,
+    isSuperAdmin: isSuperAdminUser,
   };
 }
 
@@ -76,12 +89,18 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function ShowRole() {
-  const { role, permissionsByResource, memberCount } = useLoaderData<typeof loader>();
+  const { role, permissionsByResource, memberCount, isSuperAdmin } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isDeleting = navigation.state === "submitting";
 
-  const canDelete = !role.isSystem && memberCount === 0;
+  const canEditRole = useCanPerformAction("roles.edit");
+  const canDeleteRole = useCanPerformAction("roles.delete");
+
+  // Super admin can edit system roles, but cannot delete them
+  const canEdit = canEditRole && (isSuperAdmin || !role.isSystem);
+  const canDelete = !role.isSystem && memberCount === 0 && canDeleteRole;
 
   return (
     <div className="mx-auto max-w-4xl p-6">
@@ -97,50 +116,55 @@ export default function ShowRole() {
             {role.description || "No description"}
           </p>
         </div>
-        {!role.isSystem && (
+        {(canEdit || canDelete) && (
           <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <Link to={`/roles/${role.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  disabled={!canDelete}
-                  title={
-                    !canDelete && memberCount > 0
-                      ? `Cannot delete: ${memberCount} member(s) assigned`
-                      : undefined
-                  }
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Role?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete the role "{role.name}". This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <Form method="post">
-                    <AlertDialogAction
-                      type="submit"
-                      disabled={isDeleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {isDeleting ? "Deleting..." : "Delete"}
-                    </AlertDialogAction>
-                  </Form>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {canEdit && (
+              <Button asChild variant="outline">
+                <Link to={`/roles/${role.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+            )}
+            {canDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    disabled={!canDelete}
+                    title={
+                      !canDelete && memberCount > 0
+                        ? `Cannot delete: ${memberCount} member(s) assigned`
+                        : undefined
+                    }
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Role?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the role "{role.name}". This
+                      action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <Form method="post">
+                      <AlertDialogAction
+                        type="submit"
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </AlertDialogAction>
+                    </Form>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         )}
       </div>
@@ -155,7 +179,9 @@ export default function ShowRole() {
       <div className="mb-6 rounded-lg border p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-medium text-muted-foreground">Members with this role</h2>
+            <h2 className="text-sm font-medium text-muted-foreground">
+              Members with this role
+            </h2>
             <p className="text-2xl font-bold">{memberCount}</p>
           </div>
           {memberCount > 0 && !role.isSystem && (

@@ -127,6 +127,17 @@ export class UsersRepository {
       .where(eq(invitationModel.id, invitationId));
     return true;
   }
+
+  /**
+   * Update member role in an organization
+   */
+  async updateMemberRole(memberId: string, roleId: string) {
+    await db
+      .update(memberModel)
+      .set({ roleId, updatedAt: new Date() })
+      .where(eq(memberModel.id, memberId));
+    return true;
+  }
 }
 
 export const usersRepository = new UsersRepository();

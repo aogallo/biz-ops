@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { useCanPerformAction } from "~/hooks/usePermissions";
 import { useToastFromLoader, type ToastData } from "~/hooks/useToastFromLoader";
 import { requireAuth } from "~/server/auth/session.server";
 import { getFlash } from "~/server/flash.server";
@@ -69,6 +70,7 @@ export default function BusinessPartnersIndex({
     toast: toastData,
   } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
+  const canCreatePartner = useCanPerformAction("business-partners.create");
 
   // Show toast if present in loader data
   useToastFromLoader(toastData);
@@ -110,9 +112,11 @@ export default function BusinessPartnersIndex({
             Manage your clients and vendors
           </p>
         </div>
-        <Link to="/business-partners/new">
-          <Button>Add Partner</Button>
-        </Link>
+        {canCreatePartner && (
+          <Link to="/business-partners/new">
+            <Button>Add Partner</Button>
+          </Link>
+        )}
       </div>
 
       <div className="mb-4 flex items-center gap-4">
@@ -149,9 +153,11 @@ export default function BusinessPartnersIndex({
               ? `No ${selectedType} partners found.`
               : "No business partners found. Add your first partner to get started."}
           </p>
-          <Link to="/business-partners/new">
-            <Button>Add Partner</Button>
-          </Link>
+          {canCreatePartner && (
+            <Link to="/business-partners/new">
+              <Button>Add Partner</Button>
+            </Link>
+          )}
         </div>
       ) : (
         <div className="rounded-lg border">

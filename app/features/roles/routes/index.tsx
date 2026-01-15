@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
+import { useCanPerformAction } from "~/hooks/usePermissions";
 import { requireAuth } from "~/server/auth/session.server";
 import { getFlash } from "~/server/flash.server";
 import type { Route } from "./+types/index";
@@ -46,6 +47,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function RolesIndex({ loaderData }: Route.ComponentProps) {
   const { roles, noOrganization, toast } = loaderData;
+  const canCreateRole = useCanPerformAction("roles.create");
+  const canEditRole = useCanPerformAction("roles.edit");
 
   useToastFromLoader(toast);
 
@@ -76,9 +79,11 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
             Manage roles and their associated permissions
           </p>
         </div>
-        <Link to="/roles/new">
-          <Button>Create Role</Button>
-        </Link>
+        {canCreateRole && (
+          <Link to="/roles/new">
+            <Button>Create Role</Button>
+          </Link>
+        )}
       </div>
 
       {/* System Roles Section */}
@@ -137,9 +142,11 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
             <p className="mb-4 text-muted-foreground">
               No custom roles found. Create your first role to get started.
             </p>
-            <Link to="/roles/new">
-              <Button>Create Role</Button>
-            </Link>
+            {canCreateRole && (
+              <Link to="/roles/new">
+                <Button>Create Role</Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="rounded-lg border">
@@ -163,12 +170,14 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
                       <Badge>Custom</Badge>
                     </TableCell>
                     <TableCell className="flex gap-2">
-                      <Link
-                        to={`/roles/${role.id}/edit`}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        Edit
-                      </Link>
+                      {canEditRole && (
+                        <Link
+                          to={`/roles/${role.id}/edit`}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          Edit
+                        </Link>
+                      )}
                       <Link
                         to={`/roles/${role.id}`}
                         className="text-sm font-medium text-primary hover:underline"

@@ -1,9 +1,9 @@
 import { createContext, useContext } from "react";
-import type { SessionData } from "~/server/auth/session.server";
 import type {
   Organization,
   OrganizationMember,
 } from "~/server/auth/organization.server";
+import type { SessionData } from "~/server/auth/session.server";
 
 interface AuthContextType {
   session: SessionData;
@@ -11,6 +11,16 @@ interface AuthContextType {
     data: Organization;
     membership: OrganizationMember;
   };
+  permissions: {
+    list: string[];
+    isSuperAdmin: boolean;
+  };
+  availableOrganizations?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    isAdmin?: boolean;
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

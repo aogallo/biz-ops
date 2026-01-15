@@ -21,6 +21,7 @@ export default [
 
   // App routes with sidebar layout
   layout("./layout/AppLayout.tsx", [
+    route("/switch-organization", "./routes/switch-organization.tsx"),
     ...prefix("organization", [
       index("./features/organization/routes/index.tsx"),
       route("/new", "./features/organization/routes/create.tsx"),

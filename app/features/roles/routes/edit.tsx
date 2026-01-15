@@ -1,21 +1,18 @@
 import { Form, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
 import { requireAuth } from "~/server/auth/session.server";
 import { redirectWithFlash } from "~/server/flash.server";
+import { isSuperAdmin } from "~/server/permissions";
 import type { Route } from "./+types/edit";
 import { updateRole } from "../server/actions/update.action";
 import { rolesRepository } from "../server/repository";
 import { ROLE_MESSAGES } from "../messages";
 import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAuth(request);
+  const session = await requireAuth(request);
 
   const roleId = params.id;
   const role = await rolesRepository.getById(roleId);
@@ -27,8 +24,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     });
   }
 
-  // Block editing system roles
-  if (role.isSystem) {
+  // Block editing system roles for non-super-admins
+  const isSuperAdminUser = await isSuperAdmin(session.user.id);
+  if (role.isSystem && !isSuperAdminUser) {
     return redirectWithFlash("/roles", {
       type: "error",
       message: ROLE_MESSAGES.systemRoleProtected,
@@ -70,6 +68,59 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   return response;
+}
+
+function PermissionSection({
+  resource,
+  perms,
+  currentPermissionIds,
+}: {
+  resource: string;
+  perms: Array<{ id: string; action: string; description: string | null }>;
+  currentPermissionIds: string[];
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border-b last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+      >
+        <span className="capitalize">
+          {resource} ({perms.length})
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      <div className={`space-y-2 px-3 py-2 ${isOpen ? "" : "hidden"}`}>
+        {perms.map((perm) => (
+          <div key={perm.id} className="flex items-start space-x-3">
+            <Checkbox
+              id={perm.id}
+              name="permissionIds"
+              value={perm.id}
+              defaultChecked={currentPermissionIds.includes(perm.id)}
+              className="mt-1"
+            />
+            <label
+              htmlFor={perm.id}
+              className="flex-1 cursor-pointer text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              <span className="font-medium">{perm.action}</span>
+              {perm.description && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {perm.description}
+                </p>
+              )}
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function EditRole() {
@@ -145,40 +196,14 @@ export default function EditRole() {
               {actionData.errors.permissionIds[0]}
             </p>
           )}
-          <div className="space-y-2 rounded-lg border p-4">
+          <div className="rounded-lg border">
             {Object.entries(permissionsByResource).map(([resource, perms]) => (
-              <Collapsible key={resource} defaultOpen={false}>
-                <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-accent">
-                  <span className="capitalize">
-                    {resource} ({perms.length})
-                  </span>
-                  <ChevronDown className="h-4 w-4 transition-transform duration-200 ui-open:rotate-180" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 px-3 py-2">
-                  {perms.map((perm) => (
-                    <div key={perm.id} className="flex items-start space-x-3">
-                      <Checkbox
-                        id={perm.id}
-                        name="permissionIds"
-                        value={perm.id}
-                        defaultChecked={currentPermissionIds.includes(perm.id)}
-                        className="mt-1"
-                      />
-                      <label
-                        htmlFor={perm.id}
-                        className="flex-1 cursor-pointer text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        <span className="font-medium">{perm.action}</span>
-                        {perm.description && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {perm.description}
-                          </p>
-                        )}
-                      </label>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+              <PermissionSection
+                key={resource}
+                resource={resource}
+                perms={perms}
+                currentPermissionIds={currentPermissionIds}
+              />
             ))}
           </div>
         </div>

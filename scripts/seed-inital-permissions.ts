@@ -49,6 +49,64 @@ const SYSTEM_PERMISSIONS = [
   { resource: "report", action: "view", description: "View reports" },
   { resource: "report", action: "create", description: "Create reports" },
   { resource: "report", action: "export", description: "Export reports" },
+
+  // Role permissions (for RBAC menu)
+  { resource: "role", action: "create", description: "Create roles" },
+  { resource: "role", action: "read", description: "View roles" },
+  { resource: "role", action: "update", description: "Edit roles" },
+  { resource: "role", action: "delete", description: "Delete roles" },
+
+  // Organization permissions (for Organization menu)
+  { resource: "organization", action: "read", description: "View organization" },
+  {
+    resource: "organization",
+    action: "update",
+    description: "Edit organization settings",
+  },
+  {
+    resource: "organization",
+    action: "delete",
+    description: "Delete organization",
+  },
+
+  // Business Partner permissions (for Business Partners menu)
+  {
+    resource: "business-partner",
+    action: "create",
+    description: "Create business partners",
+  },
+  {
+    resource: "business-partner",
+    action: "read",
+    description: "View business partners",
+  },
+  {
+    resource: "business-partner",
+    action: "update",
+    description: "Edit business partners",
+  },
+  {
+    resource: "business-partner",
+    action: "delete",
+    description: "Delete business partners",
+  },
+
+  // Invitation permissions (for Invitations menu)
+  {
+    resource: "invitation",
+    action: "create",
+    description: "Send invitations",
+  },
+  {
+    resource: "invitation",
+    action: "read",
+    description: "View invitations",
+  },
+  {
+    resource: "invitation",
+    action: "cancel",
+    description: "Cancel invitations",
+  },
 ];
 
 async function main() {

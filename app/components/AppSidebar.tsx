@@ -1,6 +1,7 @@
 import { Building2, LogOut, Mail, Package, Users } from "lucide-react";
 import { Form, Link } from "react-router";
 import { useAuth, useOptionalOrganization } from "~/contexts/AuthContext";
+import { useFilteredNavigation } from "~/hooks/usePermissions";
 import {
   Sidebar,
   SidebarContent,
@@ -22,37 +23,69 @@ export const navigationItems = [
 ];
 
 const AppSidebar = () => {
-  const { session } = useAuth();
+  const { session, permissions, availableOrganizations } = useAuth();
   const organization = useOptionalOrganization();
+
+  console.log("=== AppSidebar Debug ===");
+  console.log("Permissions from context:", permissions);
+  console.log("All navigation items:", navigationItems);
+
+  // Filter navigation items based on user permissions
+  const visibleMenus = useFilteredNavigation(navigationItems);
+
+  console.log("Visible menus after filtering:", visibleMenus);
+
+  const isSuperAdmin = permissions.isSuperAdmin;
+  const activeOrgId = session.session.activeOrganizationId;
 
   return (
     <Sidebar>
       <SidebarHeader>
         <SidebarMenu className="items-center">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/organization">
-                {organization ? (
-                  <div className="flex flex-col items-start">
-                    <span className="font-semibold">
-                      {organization.data.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {organization.membership.role}
-                    </span>
-                  </div>
-                ) : (
-                  <span>ERP System</span>
-                )}
-              </Link>
-            </SidebarMenuButton>
+            {isSuperAdmin && availableOrganizations && availableOrganizations.length > 0 ? (
+              // Super admin organization switcher
+              <Form method="post" action="/switch-organization">
+                <select
+                  name="organizationId"
+                  value={activeOrgId || ""}
+                  onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                  className="w-full rounded-md border px-3 py-2 text-sm"
+                >
+                  <option value="">Select Organization</option>
+                  {availableOrganizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name} {org.isAdmin ? "(Admin)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </Form>
+            ) : (
+              // Regular user organization display
+              <SidebarMenuButton asChild>
+                <Link to="/organization">
+                  {organization ? (
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold">
+                        {organization.data.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {organization.membership.role}
+                      </span>
+                    </div>
+                  ) : (
+                    <span>ERP System</span>
+                  )}
+                </Link>
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup />
         <SidebarMenu>
-          {navigationItems.map((menu) => (
+          {visibleMenus.map((menu) => (
             <SidebarMenuItem key={menu.name}>
               <SidebarMenuButton asChild>
                 <Link to={menu.path}>

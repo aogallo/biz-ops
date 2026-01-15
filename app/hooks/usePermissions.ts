@@ -76,10 +76,6 @@ export function useFilteredNavigation(
 ) {
   const { permissions } = useAuth();
 
-  console.log("=== useFilteredNavigation Debug ===");
-  console.log("Is Super Admin:", permissions.isSuperAdmin);
-  console.log("Permissions list:", permissions.list);
-
   // Super admin sees everything
   if (permissions.isSuperAdmin) {
     console.log("Super admin - showing all menus");

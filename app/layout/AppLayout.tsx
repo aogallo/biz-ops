@@ -22,12 +22,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     isSuperAdmin(userId),
   ]);
 
-  console.log("=== AppLayout Loader Debug ===");
-  console.log("User ID:", userId);
-  console.log("Organization ID:", organizationId);
-  console.log("Permissions:", permissions);
-  console.log("Is Super Admin:", isSuperAdminUser);
-
   // Fetch all organizations for super admin, or just user's organizations
   let organizations: any[] = [];
   if (isSuperAdminUser) {

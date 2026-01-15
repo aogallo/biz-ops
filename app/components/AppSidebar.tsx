@@ -26,14 +26,8 @@ const AppSidebar = () => {
   const { session, permissions, availableOrganizations } = useAuth();
   const organization = useOptionalOrganization();
 
-  console.log("=== AppSidebar Debug ===");
-  console.log("Permissions from context:", permissions);
-  console.log("All navigation items:", navigationItems);
-
   // Filter navigation items based on user permissions
   const visibleMenus = useFilteredNavigation(navigationItems);
-
-  console.log("Visible menus after filtering:", visibleMenus);
 
   const isSuperAdmin = permissions.isSuperAdmin;
   const activeOrgId = session.session.activeOrganizationId;
@@ -43,7 +37,9 @@ const AppSidebar = () => {
       <SidebarHeader>
         <SidebarMenu className="items-center">
           <SidebarMenuItem>
-            {isSuperAdmin && availableOrganizations && availableOrganizations.length > 0 ? (
+            {isSuperAdmin &&
+            availableOrganizations &&
+            availableOrganizations.length > 0 ? (
               // Super admin organization switcher
               <Form method="post" action="/switch-organization">
                 <select
@@ -114,7 +110,7 @@ const AppSidebar = () => {
               <Form method="post" action="/logout">
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                  className="cursor-pointer flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out

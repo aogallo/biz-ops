@@ -55,7 +55,7 @@ export async function updateProduct(request: Request, productId: string) {
   const skuExists = await productsRepository.existsBySku(
     organizationId,
     result.data.sku,
-    productId
+    productId,
   );
 
   if (skuExists) {

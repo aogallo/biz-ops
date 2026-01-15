@@ -48,7 +48,7 @@ export async function inviteUser(request: Request) {
     // Check if already a member
     const existingMember = await usersRepository.getMemberByUserId(
       existingUser.id,
-      organizationId
+      organizationId,
     );
     if (existingMember) {
       return {

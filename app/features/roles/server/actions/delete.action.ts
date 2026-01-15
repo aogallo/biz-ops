@@ -18,7 +18,11 @@ export async function deleteRole(request: Request, roleId: string) {
 
   // Check permissions
   const isSuperAdminUser = await isSuperAdmin(session.user.id);
-  const isOrgAdminUser = await isOrgAdmin(db, session.user.id, role.organizationId);
+  const isOrgAdminUser = await isOrgAdmin(
+    db,
+    session.user.id,
+    role.organizationId,
+  );
 
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {

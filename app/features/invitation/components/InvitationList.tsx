@@ -35,8 +35,8 @@ export function InvitationList({ invitations }: InvitationListProps) {
                 status === "accepted"
                   ? "bg-green-100 text-green-800"
                   : status === "expired"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-yellow-100 text-yellow-800"
               }`}
             >
               {status}
@@ -92,7 +92,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
         },
       },
     ],
-    []
+    [],
   );
 
   if (invitations.length === 0) {

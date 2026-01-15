@@ -106,7 +106,9 @@ export async function action({ params, request }: Route.ActionArgs) {
     // Check if signup was successful
     if (!signUpResponse.ok) {
       const errorData = await signUpResponse.json().catch(() => ({}));
-      return { error: (errorData as any)?.message || "Failed to create user account" };
+      return {
+        error: (errorData as any)?.message || "Failed to create user account",
+      };
     }
 
     // Get the newly created user

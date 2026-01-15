@@ -38,7 +38,7 @@ export async function createProduct(request: Request) {
   // Check SKU uniqueness within organization
   const existingProduct = await productsRepository.getBySku(
     organizationId,
-    result.data.sku
+    result.data.sku,
   );
 
   if (existingProduct) {

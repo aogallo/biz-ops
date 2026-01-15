@@ -43,7 +43,7 @@ export class RolesRepository {
           organizationId: data.organizationId,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }))
+        })),
       );
     }
 
@@ -83,8 +83,8 @@ export class RolesRepository {
       .where(
         and(
           eq(roleModel.organizationId, organizationId),
-          eq(roleModel.name, roleName)
-        )
+          eq(roleModel.name, roleName),
+        ),
       )
       .limit(1);
     return result || null;
@@ -104,7 +104,7 @@ export class RolesRepository {
       .from(rolePermissionModel)
       .innerJoin(
         permissionModel,
-        eq(rolePermissionModel.permissionId, permissionModel.id)
+        eq(rolePermissionModel.permissionId, permissionModel.id),
       )
       .where(eq(rolePermissionModel.roleId, roleId));
 
@@ -130,7 +130,8 @@ export class RolesRepository {
     };
 
     if (data.name) updateData.name = data.name;
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
 
     const [role] = await db
       .update(roleModel)
@@ -147,7 +148,7 @@ export class RolesRepository {
   async assignPermissions(
     roleId: string,
     permissionIds: string[],
-    organizationId: string
+    organizationId: string,
   ) {
     // Delete existing permissions for this role
     await db
@@ -164,7 +165,7 @@ export class RolesRepository {
           organizationId,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }))
+        })),
       );
     }
   }
@@ -180,20 +181,16 @@ export class RolesRepository {
   /**
    * Check if role name exists (for uniqueness validation)
    */
-  async existsByName(
-    organizationId: string,
-    name: string,
-    excludeId?: string
-  ) {
+  async existsByName(organizationId: string, name: string, excludeId?: string) {
     const conditions = excludeId
       ? and(
           eq(roleModel.organizationId, organizationId),
           eq(roleModel.name, name),
-          sql`${roleModel.id} != ${excludeId}`
+          sql`${roleModel.id} != ${excludeId}`,
         )
       : and(
           eq(roleModel.organizationId, organizationId),
-          eq(roleModel.name, name)
+          eq(roleModel.name, name),
         );
 
     const [role] = await db

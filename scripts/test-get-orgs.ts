@@ -25,14 +25,18 @@ async function testGetOrganizations() {
     .from(member);
   console.log(`   Found ${allMembers.length} members:`);
   allMembers.forEach((m) => {
-    console.log(`   - User: ${m.userId}, Org: ${m.orgId}, Role: ${m.role}, RoleId: ${m.roleId}`);
+    console.log(
+      `   - User: ${m.userId}, Org: ${m.orgId}, Role: ${m.role}, RoleId: ${m.roleId}`,
+    );
   });
 
   console.log("\n3. All roles:");
   const allRoles = await db.select().from(role);
   console.log(`   Found ${allRoles.length} roles:`);
   allRoles.forEach((r) => {
-    console.log(`   - ${r.name} (Org: ${r.organizationId}) [isSystem: ${r.isSystem}]`);
+    console.log(
+      `   - ${r.name} (Org: ${r.organizationId}) [isSystem: ${r.isSystem}]`,
+    );
   });
 
   console.log("\n4. Checking super admin status for first user:");
@@ -51,10 +55,7 @@ async function testGetOrganizations() {
       .innerJoin(organization, eq(member.organizationId, organization.id))
       .leftJoin(role, eq(member.roleId, role.id))
       .where(
-        and(
-          eq(member.userId, firstUserId),
-          eq(organization.isAdmin, true)
-        )
+        and(eq(member.userId, firstUserId), eq(organization.isAdmin, true)),
       );
 
     console.log(`   Super admin check results:`, superAdminCheck);
@@ -73,11 +74,14 @@ async function testGetOrganizations() {
         and(
           eq(member.userId, firstUserId),
           eq(organization.isAdmin, true),
-          eq(role.name, "super-admin")
-        )
+          eq(role.name, "super-admin"),
+        ),
       );
 
-    console.log(`   Super admin check with role name:`, superAdminCheckWithRole);
+    console.log(
+      `   Super admin check with role name:`,
+      superAdminCheckWithRole,
+    );
   }
 
   console.log("\n=== Test Complete ===");

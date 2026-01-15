@@ -60,7 +60,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     [users, invitations, availableRoles] = await Promise.all([
       usersRepository.getAllByOrganization(selectedOrgId),
       usersRepository.getPendingInvitations(selectedOrgId),
-      db.select().from(roleModel).where(eq(roleModel.organizationId, selectedOrgId)),
+      db
+        .select()
+        .from(roleModel)
+        .where(eq(roleModel.organizationId, selectedOrgId)),
     ]);
   }
 
@@ -75,7 +78,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       user: session.user,
       toast: flash,
     },
-    { headers }
+    { headers },
   );
 }
 
@@ -100,8 +103,15 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  const { isSuperAdmin, organizations, users, invitations, availableRoles, selectedOrganizationId, toast } =
-    loaderData;
+  const {
+    isSuperAdmin,
+    organizations,
+    users,
+    invitations,
+    availableRoles,
+    selectedOrganizationId,
+    toast,
+  } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
   const canInviteUser = useCanPerformAction("users.invite");
   const canUpdateUser = useCanPerformAction("users.invite"); // Using user:create as proxy for user:update
@@ -115,7 +125,8 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold mb-4">No Organizations Found</h2>
           <p className="text-muted-foreground mb-6">
-            You need to be a member of at least one organization to manage users.
+            You need to be a member of at least one organization to manage
+            users.
           </p>
           {isSuperAdmin && (
             <Link to="/admin/organizations/create">
@@ -197,11 +208,17 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                     <TableCell>
                       {canUpdateUser ? (
                         <Form method="post" className="inline-block">
-                          <input type="hidden" name="memberId" value={user.memberId} />
+                          <input
+                            type="hidden"
+                            name="memberId"
+                            value={user.memberId}
+                          />
                           <select
                             name="roleId"
                             value={user.roleId || ""}
-                            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                            onChange={(e) =>
+                              e.currentTarget.form?.requestSubmit()
+                            }
                             className="rounded-md border px-2 py-1 text-xs"
                           >
                             {availableRoles.map((role) => (

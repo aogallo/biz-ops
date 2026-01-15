@@ -29,11 +29,12 @@ export async function loader({ request }: Route.LoaderArgs) {
         noOrganization: true,
         toast: flash,
       },
-      { headers }
+      { headers },
     );
   }
 
-  const products = await productsRepository.getAllByOrganization(organizationId);
+  const products =
+    await productsRepository.getAllByOrganization(organizationId);
 
   return Response.json(
     {
@@ -41,7 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       noOrganization: false,
       toast: flash,
     },
-    { headers }
+    { headers },
   );
 }
 
@@ -123,8 +124,8 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
                         (product.stock ?? 0) === 0
                           ? "text-destructive"
                           : (product.stock ?? 0) < 10
-                          ? "text-amber-600"
-                          : "text-green-600"
+                            ? "text-amber-600"
+                            : "text-green-600"
                       }
                     >
                       {product.stock ?? 0}

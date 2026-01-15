@@ -3,7 +3,7 @@ import { businessPartnersRepository } from "../repository";
 
 export async function deleteBusinessPartner(
   request: Request,
-  partnerId: string
+  partnerId: string,
 ) {
   // Authenticate user
   const session = await requireAuth(request);

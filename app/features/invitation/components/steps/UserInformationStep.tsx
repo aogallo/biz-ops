@@ -4,7 +4,7 @@ interface UserInformationStepProps {
   state: WizardState;
   updateField: <K extends keyof WizardState>(
     field: K,
-    value: WizardState[K]
+    value: WizardState[K],
   ) => void;
   nextStep: () => void;
 }

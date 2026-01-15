@@ -42,7 +42,7 @@ export async function requireAuth(request: Request): Promise<SessionData> {
  * Use this for optional auth routes
  */
 export async function getOptionalAuth(
-  request: Request
+  request: Request,
 ): Promise<SessionData | null> {
   try {
     const session = await auth.api.getSession({

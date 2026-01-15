@@ -7,7 +7,7 @@ import { usersRepository } from "../repository";
 export async function deleteUser(
   request: Request,
   memberId: string,
-  organizationId: string
+  organizationId: string,
 ) {
   const session = await requireAuth(request);
 
@@ -31,8 +31,7 @@ export async function deleteUser(
     console.error("Error removing user from organization:", error);
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to remove user",
+      message: error instanceof Error ? error.message : "Failed to remove user",
     };
   }
 }

@@ -4,7 +4,7 @@ import { businessPartnersRepository } from "../repository";
 
 export async function updateBusinessPartner(
   request: Request,
-  partnerId: string
+  partnerId: string,
 ) {
   // Authenticate user
   const session = await requireAuth(request);
@@ -58,7 +58,7 @@ export async function updateBusinessPartner(
     const emailExists = await businessPartnersRepository.existsByEmail(
       organizationId,
       result.data.email,
-      partnerId
+      partnerId,
     );
 
     if (emailExists) {
@@ -73,7 +73,7 @@ export async function updateBusinessPartner(
   try {
     const partner = await businessPartnersRepository.update(
       partnerId,
-      result.data
+      result.data,
     );
     if (!partner) {
       return {

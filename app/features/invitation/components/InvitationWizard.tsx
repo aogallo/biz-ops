@@ -70,8 +70,8 @@ export function InvitationWizard({
                   state.currentStep === step
                     ? "border-primary bg-primary text-primary-foreground"
                     : state.currentStep > step
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-muted-foreground/30 text-muted-foreground"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-muted-foreground/30 text-muted-foreground"
                 }`}
               >
                 {state.currentStep > step ? (

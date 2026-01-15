@@ -20,4 +20,4 @@ jobs:
           command: deploy --config wrangler.jsonc --name erp
           preCommands: |
             npm ci
-            npm run buid
+            npm run build

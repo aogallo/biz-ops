@@ -5,7 +5,7 @@ interface RoleAssignmentStepProps {
   roles: RoleData[];
   updateField: <K extends keyof WizardState>(
     field: K,
-    value: WizardState[K]
+    value: WizardState[K],
   ) => void;
   nextStep: () => void;
   previousStep: () => void;
@@ -23,9 +23,7 @@ export function RoleAssignmentStep({
       <div>
         <h2 className="text-xl font-semibold">Role Assignment</h2>
         <p className="text-sm text-muted-foreground">
-          Assign or create role
-
- for this user
+          Assign or create role for this user
         </p>
       </div>
 
@@ -91,7 +89,10 @@ export function RoleAssignmentStep({
         {state.createNewRole && (
           <div className="ml-7 mt-4 space-y-4">
             <div>
-              <label htmlFor="roleName" className="mb-2 block text-sm font-medium">
+              <label
+                htmlFor="roleName"
+                className="mb-2 block text-sm font-medium"
+              >
                 Role Name
               </label>
               <input

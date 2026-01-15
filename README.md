@@ -2,7 +2,6 @@
 
 A modern, production-ready template for building full-stack React applications using React Router.
 
-
 ## 🚀 Features
 
 - ⚡ **Vite** - Lightning fast build tool with HMR
@@ -18,9 +17,7 @@ A modern, production-ready template for building full-stack React applications u
 
 ## 📦 Tech Stack
 
-
 ## 🏗️ Project Structure
-
 
 ## 🚦 Getting Started
 
@@ -71,12 +68,12 @@ The project uses a single path alias for cleaner imports:
 
 ```tsx
 // Instead of relative imports
-import { Button } from '../../../components/ui/button'
-import { useTheme } from '../../components/theme-provider'
+import { Button } from "../../../components/ui/button";
+import { useTheme } from "../../components/theme-provider";
 
 // Use path alias
-import { Button } from '@/components/ui/button'
-import { useTheme } from '@/components/theme-provider'
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme-provider";
 ```
 
 ### Configuration Files
@@ -135,28 +132,28 @@ The theme system is powered by a custom `ThemeProvider` that:
 
 ```tsx
 // src/AllProviders.tsx
-import { ThemeProvider } from '@/components/theme-provider'
-;<ThemeProvider defaultTheme='system' storageKey='vite-ui-theme'>
+import { ThemeProvider } from "@/components/theme-provider";
+<ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
   {children}
-</ThemeProvider>
+</ThemeProvider>;
 ```
 
 ### Using the Theme Hook
 
 ```tsx
-import { useTheme } from '@/components/theme-provider'
+import { useTheme } from "@/components/theme-provider";
 
 function MyComponent() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <div>
       <p>Current theme: {theme}</p>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('system')}>System</button>
+      <button onClick={() => setTheme("dark")}>Dark Mode</button>
+      <button onClick={() => setTheme("light")}>Light Mode</button>
+      <button onClick={() => setTheme("system")}>System</button>
     </div>
-  )
+  );
 }
 ```
 
@@ -165,16 +162,15 @@ function MyComponent() {
 The `ModeToggle` component provides a dropdown menu for theme switching:
 
 ```tsx
-import { ModeToggle } from '@/components/mode-toggle'
+import { ModeToggle } from "@/components/mode-toggle";
 
 // Use anywhere in your app
-;<ModeToggle />
+<ModeToggle />;
 ```
 
 ### Tailwind CSS v4 Theme Configuration
 
 Theme colors and variables are defined in `src/index.css` using CSS custom properties with OKLCH color space for better color consistency.
-
 
 ## 🧭 React Router v7
 
@@ -182,9 +178,7 @@ The app uses React Router v7 with the Data Router API for modern routing pattern
 
 ### Current Routes
 
-
 ### Adding New Routes
-
 
 ### Layout Component
 
@@ -220,7 +214,6 @@ Pre-commit hooks are set up with Husky to:
 Configuration is managed through `package.json` (lint-staged) and `.husky/` directory.
 
 ## 📄 Pages Overview
-
 
 ## 🛠️ Development Workflow
 
@@ -300,6 +293,3 @@ This project is licensed under the MIT License.
 ## 🤝 Contributing
 
 Contributions are welcome! Please ensure all tests pass and code quality checks are satisfied before submitting a pull request.
-
-
-

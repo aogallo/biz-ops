@@ -1,4 +1,10 @@
-import { Form, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
+import {
+  Form,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { requireAuth } from "~/server/auth/session.server";
@@ -39,13 +45,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   ]);
 
   // Group permissions by resource
-  const permissionsByResource = permissions.reduce((acc, perm) => {
-    if (!acc[perm.resource]) {
-      acc[perm.resource] = [];
-    }
-    acc[perm.resource].push(perm);
-    return acc;
-  }, {} as Record<string, typeof permissions>);
+  const permissionsByResource = permissions.reduce(
+    (acc, perm) => {
+      if (!acc[perm.resource]) {
+        acc[perm.resource] = [];
+      }
+      acc[perm.resource].push(perm);
+      return acc;
+    },
+    {} as Record<string, typeof permissions>,
+  );
 
   const currentPermissionIds = currentPermissions.map((p) => p.id);
 
@@ -168,7 +177,10 @@ export default function EditRole() {
         </div>
 
         <div>
-          <label htmlFor="description" className="mb-2 block text-sm font-medium">
+          <label
+            htmlFor="description"
+            className="mb-2 block text-sm font-medium"
+          >
             Description *
           </label>
           <textarea

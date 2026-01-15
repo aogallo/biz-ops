@@ -38,7 +38,7 @@ export async function createBusinessPartner(request: Request) {
   if (result.data.email) {
     const emailExists = await businessPartnersRepository.existsByEmail(
       organizationId,
-      result.data.email
+      result.data.email,
     );
 
     if (emailExists) {

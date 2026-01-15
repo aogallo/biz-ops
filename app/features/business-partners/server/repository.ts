@@ -30,8 +30,8 @@ export class BusinessPartnersRepository {
           eq(businessPartnerModel.organizationId, organizationId),
           or(
             eq(businessPartnerModel.type, type),
-            eq(businessPartnerModel.type, "both")
-          )
+            eq(businessPartnerModel.type, "both"),
+          ),
         )
       : eq(businessPartnerModel.organizationId, organizationId);
 
@@ -65,8 +65,8 @@ export class BusinessPartnersRepository {
       .where(
         and(
           eq(businessPartnerModel.organizationId, organizationId),
-          eq(businessPartnerModel.id, id)
-        )
+          eq(businessPartnerModel.id, id),
+        ),
       )
       .limit(1);
 
@@ -126,7 +126,7 @@ export class BusinessPartnersRepository {
   async existsByEmail(
     organizationId: string,
     email: string,
-    excludeId?: string
+    excludeId?: string,
   ) {
     if (!email) return false;
 
@@ -134,11 +134,11 @@ export class BusinessPartnersRepository {
       ? and(
           eq(businessPartnerModel.organizationId, organizationId),
           eq(businessPartnerModel.email, email),
-          ne(businessPartnerModel.id, excludeId)
+          ne(businessPartnerModel.id, excludeId),
         )
       : and(
           eq(businessPartnerModel.organizationId, organizationId),
-          eq(businessPartnerModel.email, email)
+          eq(businessPartnerModel.email, email),
         );
 
     const [partner] = await db

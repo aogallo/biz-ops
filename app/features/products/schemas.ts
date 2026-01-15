@@ -7,7 +7,10 @@ export const insertProductSchema = createInsertSchema(productModel, {
   // Enhance with custom validation
   price: z
     .string()
-    .regex(/^\d+(\.\d{1,2})?$/, "Price must be a valid decimal with up to 2 decimal places"),
+    .regex(
+      /^\d+(\.\d{1,2})?$/,
+      "Price must be a valid decimal with up to 2 decimal places",
+    ),
   sku: z
     .string()
     .min(1, "SKU is required")

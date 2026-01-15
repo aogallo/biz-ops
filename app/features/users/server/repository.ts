@@ -61,8 +61,8 @@ export class UsersRepository {
       .where(
         and(
           eq(invitationModel.organizationId, organizationId),
-          eq(invitationModel.status, "pending")
-        )
+          eq(invitationModel.status, "pending"),
+        ),
       )
       .orderBy(invitationModel.createdAt);
   }
@@ -101,8 +101,8 @@ export class UsersRepository {
       .where(
         and(
           eq(memberModel.userId, userId),
-          eq(memberModel.organizationId, organizationId)
-        )
+          eq(memberModel.organizationId, organizationId),
+        ),
       )
       .limit(1);
     return member || null;

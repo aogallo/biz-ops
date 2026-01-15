@@ -19,7 +19,7 @@ export function useInvitationWizard() {
 
   const updateField = <K extends keyof WizardState>(
     field: K,
-    value: WizardState[K]
+    value: WizardState[K],
   ) => {
     setState((prev) => ({ ...prev, [field]: value, errors: {} }));
   };
@@ -103,7 +103,7 @@ export function useInvitationWizard() {
 
   const selectAllPermissionsForResource = (
     permissionIds: string[],
-    selected: boolean
+    selected: boolean,
   ) => {
     setState((prev) => {
       if (selected) {
@@ -121,7 +121,7 @@ export function useInvitationWizard() {
         return {
           ...prev,
           selectedPermissions: prev.selectedPermissions.filter(
-            (id) => !permissionIds.includes(id)
+            (id) => !permissionIds.includes(id),
           ),
         };
       }

@@ -1,6 +1,7 @@
 # User Creation Forms - Implementation Summary
 
 ## Overview
+
 This document describes the user creation forms that were added to complete the admin system. These forms provide the UI for creating users with all the fields specified in the Better Auth sign-up documentation.
 
 ## What Was Added
@@ -10,18 +11,22 @@ This document describes the user creation forms that were added to complete the 
 **File**: `app/features/admin/routes/users.create.tsx`
 
 #### All Required Fields from Better Auth
+
 Based on the Better Auth sign-up specification, the form includes:
 
 **Required Fields:**
+
 - ✅ **name** (string) - The name of the user
 - ✅ **email** (string) - The email address of the user
 - ✅ **password** (string) - Password (8-128 characters)
 
 **Optional Fields:**
+
 - ✅ **image** (string) - Optional profile image URL
 - ✅ **callbackURL** (Not implemented as not needed for invitation flow)
 
 **Additional System Fields:**
+
 - ✅ **organizationId** (string) - Which organization to add user to
 - ✅ **roleId** (string) - Which role to assign (optional, defaults to "member")
 - ✅ **sendInvitation** (boolean) - Whether to send invitation email
@@ -108,7 +113,7 @@ Based on the Better Auth sign-up specification, the form includes:
 3. **Send Invitations Checkbox** - Applies to ALL users
 4. **User Table**
    - Editable table with rows for entering multiple users
-   - Columns: Name*, Email*, Password*, Image (optional), Actions
+   - Columns: Name*, Email*, Password\*, Image (optional), Actions
    - Start with 5 empty rows
    - "Add Row" button to add more rows
    - "Remove" button on each row (trash icon)
@@ -146,23 +151,28 @@ Based on the Better Auth sign-up specification, the form includes:
 After submission, shows detailed results:
 
 **Success Card** (Green):
+
 - Large number showing count of successfully created users
 - Label: "Users created successfully"
 
 **Failure Card** (Red):
+
 - Large number showing count of failed users
 - Label: "Users failed"
 
 **Failed Users Table** (if any failures):
+
 - Columns: Email, Error
 - Shows specific error for each failed user
 - Download CSV button to export failures for correction
 
 **Actions**:
+
 - "Go to User List" - Navigate to `/admin/users`
 - "Create More Users" - Reset form to create additional users
 
 #### CSV Download Format
+
 ```csv
 email,error
 john@example.com,User with this email already exists
@@ -178,6 +188,7 @@ jane@example.com,Password must be at least 8 characters
 **Purpose**: Populates role dropdown in user creation forms
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -225,18 +236,21 @@ route("/api/roles/list", "routes/api.roles.list.tsx"),
 ## Components Added
 
 Added from shadcn/ui:
+
 - `Checkbox` - For send invitation toggles
 - `Textarea` - Already existed
 
 ## Integration with Existing APIs
 
 Both forms use the existing backend APIs:
+
 - **`POST /api/users/create`** - Single user creation
 - **`POST /api/users/bulk-create`** - Bulk user creation
 
 The forms send the same data structure that the APIs expect:
 
 **Single User**:
+
 ```json
 {
   "organizationId": "uuid",
@@ -250,6 +264,7 @@ The forms send the same data structure that the APIs expect:
 ```
 
 **Bulk Users**:
+
 ```json
 {
   "organizationId": "uuid",
@@ -275,30 +290,36 @@ The forms send the same data structure that the APIs expect:
 ## Security Features
 
 ✅ **Permission Checking**:
+
 - Both forms check user permissions on load
 - Super admins can create users for any organization
 - Org admins can only create users for their own organization
 
 ✅ **Organization Restriction**:
+
 - Non-super admins see only their organization in dropdown
 - Organization selector is disabled for non-super admins
 
 ✅ **Role Restriction**:
+
 - Only roles from the selected organization are shown
 - Roles are fetched dynamically when organization changes
 
 ✅ **Password Validation**:
+
 - Client-side: HTML5 minLength/maxLength
 - Client-side: JavaScript validation before submission
 - Server-side: Better Auth enforces 8-128 character requirement
 
 ✅ **Email Validation**:
+
 - Client-side: HTML5 email type validation
 - Server-side: Email format validation
 
 ## User Experience Features
 
 ### Single User Form
+
 - ✅ Password show/hide toggle for easy verification
 - ✅ Real-time role loading when organization changes
 - ✅ Clear validation error messages
@@ -307,6 +328,7 @@ The forms send the same data structure that the APIs expect:
 - ✅ Cancel button to abandon creation
 
 ### Bulk User Form
+
 - ✅ Easy add/remove rows
 - ✅ Empty rows automatically ignored
 - ✅ Detailed results page with success/failure breakdown
@@ -366,18 +388,22 @@ npm run dev
 ### 3. Test Validations
 
 **Password too short**:
+
 - Enter password with < 8 characters
 - Should show error on form
 
 **Duplicate email**:
+
 - Try creating user with existing email
 - Should show error from API
 
 **Missing required fields**:
+
 - Leave name or email blank
 - Form won't submit (HTML5 validation)
 
 **Bulk empty rows**:
+
 - Submit with all rows empty
 - Should show error: "Please add at least one user"
 
@@ -407,12 +433,14 @@ npm run dev
 ## Summary
 
 ✅ All Better Auth sign-up fields implemented:
+
 - name (required)
 - email (required)
 - password (required, 8-128 chars)
 - image (optional)
 
 ✅ Additional features implemented:
+
 - Organization selector
 - Role selector with dynamic loading
 - Password show/hide toggle
@@ -422,6 +450,7 @@ npm run dev
 - CSV download for failed bulk entries
 
 ✅ Security:
+
 - Permission-based access control
 - Organization isolation for non-super admins
 - Password validation (8-128 chars)
@@ -434,6 +463,7 @@ npm run dev
 ## Next Steps
 
 1. **Test the forms**:
+
    ```bash
    npm run dev
    # Visit http://localhost:5173

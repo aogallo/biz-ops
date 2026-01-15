@@ -13,6 +13,7 @@ This guide explains how to set up and work with the ERP application locally.
    - Node.js 18+ installed
 
 2. **Clone and install:**
+
    ```bash
    git clone <repository-url>
    cd erp
@@ -20,6 +21,7 @@ This guide explains how to set up and work with the ERP application locally.
    ```
 
 3. **Environment setup:**
+
    ```bash
    # Copy environment templates
    cp .env.docker .env
@@ -29,6 +31,7 @@ This guide explains how to set up and work with the ERP application locally.
    ```
 
 4. **Start PostgreSQL:**
+
    ```bash
    npm run docker:up
    ```
@@ -36,12 +39,14 @@ This guide explains how to set up and work with the ERP application locally.
    This starts PostgreSQL on port 5433 and pgAdmin on port 5050.
 
 5. **Run migrations and seed data:**
+
    ```bash
    npm run db:migrate
    npm run db:seed
    ```
 
 6. **Start development server:**
+
    ```bash
    npm run dev
    ```
@@ -58,11 +63,13 @@ This guide explains how to set up and work with the ERP application locally.
 **If you already have PostgreSQL installed locally:**
 
 1. **Create database:**
+
    ```bash
    createdb bizops_dev
    ```
 
 2. **Environment setup:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your PostgreSQL credentials
@@ -72,6 +79,7 @@ This guide explains how to set up and work with the ERP application locally.
    ```
 
 3. **Run migrations and seed:**
+
    ```bash
    npm run db:migrate
    npm run db:seed
@@ -100,6 +108,7 @@ The project uses different environment files for different purposes:
 ```
 
 **Why two database configurations?**
+
 - `.env` uses local PostgreSQL for fast migrations and seeds
 - `.dev.vars` uses Neon HTTP for testing production-like environment
 - This mimics the production setup (Cloudflare Workers + Neon)
@@ -153,12 +162,14 @@ npm run deploy           # Build and deploy to Cloudflare Workers
 ### Making Schema Changes
 
 1. **Edit the schema:**
+
    ```bash
    # Edit app/server/db/schema.ts
    # Add/modify tables, columns, indexes, etc.
    ```
 
 2. **Generate migration:**
+
    ```bash
    npm run db:generate
    ```
@@ -166,11 +177,13 @@ npm run deploy           # Build and deploy to Cloudflare Workers
    This creates a new migration file in `drizzle/` directory.
 
 3. **Apply to local database:**
+
    ```bash
    npm run db:migrate
    ```
 
 4. **Test locally:**
+
    ```bash
    npm run dev
    # Test your changes
@@ -184,6 +197,7 @@ npm run deploy           # Build and deploy to Cloudflare Workers
 ### Daily Development
 
 1. **Pull latest changes:**
+
    ```bash
    git pull
    npm install              # Install any new dependencies
@@ -191,11 +205,13 @@ npm run deploy           # Build and deploy to Cloudflare Workers
    ```
 
 2. **Make your changes and test:**
+
    ```bash
    npm run dev
    ```
 
 3. **Before committing:**
+
    ```bash
    npm run typecheck        # Ensure no TypeScript errors
    git status               # Review your changes
@@ -230,6 +246,7 @@ npm run dev              # Continue development
 ### Inspecting the Database
 
 **Drizzle Studio (Visual UI):**
+
 ```bash
 npm run db:studio        # Opens at http://localhost:4983
 ```
@@ -237,6 +254,7 @@ npm run db:studio        # Opens at http://localhost:4983
 Browse tables, view data, run queries visually.
 
 **pgAdmin (Docker only):**
+
 - URL: `http://localhost:5050`
 - Login: admin@local.dev / admin
 - Server already configured (ERP Local Development)
@@ -252,6 +270,7 @@ npm run db:seed:neon
 ```
 
 The seed scripts create:
+
 - A test organization
 - Sample data for development
 
@@ -260,6 +279,7 @@ Edit `scripts/seed-local.ts` or `scripts/seed.ts` to customize seed data.
 ### Resetting the Database
 
 **Local PostgreSQL (Docker):**
+
 ```bash
 npm run docker:reset     # Deletes everything and starts fresh
 npm run db:migrate       # Reapply migrations
@@ -268,6 +288,7 @@ npm run db:seed          # Reseed data
 
 **Neon Database:**
 Be careful! This affects shared database.
+
 ```bash
 # Manual process:
 # 1. Use Neon dashboard to reset
@@ -282,6 +303,7 @@ Be careful! This affects shared database.
 **Symptoms:** Submitting the login form freezes, no response.
 
 **Solutions:**
+
 1. Check `.dev.vars` has valid Neon connection string
 2. Restart dev server: `Ctrl+C` then `npm run dev`
 3. Check console logs for database connection errors
@@ -291,21 +313,24 @@ Be careful! This affects shared database.
 **Cause:** `.dev.vars` DATABASE_URL is incorrect or Neon is unreachable.
 
 **Fix:**
+
 1. Verify `.dev.vars` has correct Neon connection string
 2. Test connection: Visit Neon dashboard, check database status
 3. Ensure `USE_LOCAL_DB=false` in `.dev.vars`
 
-### "Database connection error" (npm run db:*)
+### "Database connection error" (npm run db:\*)
 
 **Cause:** `.env` DATABASE_URL is incorrect or PostgreSQL not running.
 
 **Fix for Docker users:**
+
 ```bash
 npm run docker:up        # Start PostgreSQL
 npm run db:migrate       # Try again
 ```
 
 **Fix for local PostgreSQL users:**
+
 ```bash
 # Check if PostgreSQL is running
 psql --version
@@ -328,6 +353,7 @@ psql $DATABASE_URL -c "SELECT 1"
 ### "Permission denied" on npm scripts
 
 **On Unix/Linux/macOS, you might need:**
+
 ```bash
 chmod +x scripts/*.ts
 ```
@@ -335,6 +361,7 @@ chmod +x scripts/*.ts
 ### "Port already in use"
 
 **PostgreSQL (5433):**
+
 ```bash
 # Find what's using the port
 lsof -i :5433
@@ -346,6 +373,7 @@ npm run docker:down
 ```
 
 **Dev server (5173):**
+
 ```bash
 # Find and kill process
 lsof -i :5173
@@ -382,6 +410,7 @@ The app automatically detects the environment and uses the correct driver.
 ### Better Auth Adapter
 
 The Better Auth adapter automatically matches the database driver:
+
 - Local PostgreSQL: Uses `pg` provider
 - Neon: Uses `neon-http` provider
 
@@ -392,6 +421,7 @@ This is handled automatically in `app/server/auth-server.ts`.
 ### First-Time Setup
 
 1. **Set Cloudflare secrets:**
+
    ```bash
    wrangler secret put DATABASE_URL
    # Paste your Neon production connection string
@@ -404,6 +434,7 @@ This is handled automatically in `app/server/auth-server.ts`.
    ```
 
 2. **Run migrations on production Neon:**
+
    ```bash
    # Use Neon dashboard or CLI to run migrations
    npm run db:migrate:neon
@@ -421,6 +452,7 @@ npm run deploy
 ```
 
 If you have database migrations, run them on Neon first:
+
 ```bash
 npm run db:migrate:neon
 npm run deploy

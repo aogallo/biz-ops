@@ -29,7 +29,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         noOrganization: true,
         toast: flash,
       },
-      { headers }
+      { headers },
     );
   }
 
@@ -41,7 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       noOrganization: false,
       toast: flash,
     },
-    { headers }
+    { headers },
   );
 }
 

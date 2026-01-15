@@ -9,10 +9,7 @@ export const insertRoleSchema = createInsertSchema(roleModel, {
     .string()
     .min(3, "Role name must be at least 3 characters")
     .max(50, "Role name must not exceed 50 characters")
-    .regex(
-      /^[a-z-]+$/,
-      "Role name must be lowercase letters and hyphens only"
-    ),
+    .regex(/^[a-z-]+$/, "Role name must be lowercase letters and hyphens only"),
   description: z
     .string()
     .min(1, "Description is required")

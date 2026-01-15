@@ -14,13 +14,16 @@ export const insertBusinessPartnerSchema = createInsertSchema(
     type: z.enum(["client", "vendor", "both"], {
       message: "Type must be 'client', 'vendor', or 'both'",
     }),
-    email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  }
+    email: z
+      .string()
+      .email("Invalid email address")
+      .optional()
+      .or(z.literal("")),
+  },
 );
 
-export const selectBusinessPartnerSchema = createSelectSchema(
-  businessPartnerModel
-);
+export const selectBusinessPartnerSchema =
+  createSelectSchema(businessPartnerModel);
 
 // Create schema (omit id, timestamps)
 export const createBusinessPartnerSchema = insertBusinessPartnerSchema.omit({

@@ -29,7 +29,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const partner = await businessPartnersRepository.getByIdForOrganization(
     organizationId,
-    id
+    id,
   );
 
   if (!partner) {

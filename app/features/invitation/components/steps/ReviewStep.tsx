@@ -21,17 +21,20 @@ export function ReviewStep({
 }: ReviewStepProps) {
   const selectedRole = roles.find((r) => r.id === state.roleId);
   const selectedPerms = permissions.filter((p) =>
-    state.selectedPermissions.includes(p.id)
+    state.selectedPermissions.includes(p.id),
   );
 
   // Group selected permissions by resource
-  const groupedPerms = selectedPerms.reduce((acc, perm) => {
-    if (!acc[perm.resource]) {
-      acc[perm.resource] = [];
-    }
-    acc[perm.resource].push(perm.action);
-    return acc;
-  }, {} as Record<string, string[]>);
+  const groupedPerms = selectedPerms.reduce(
+    (acc, perm) => {
+      if (!acc[perm.resource]) {
+        acc[perm.resource] = [];
+      }
+      acc[perm.resource].push(perm.action);
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
 
   return (
     <div className="space-y-6">
@@ -179,8 +182,8 @@ export function ReviewStep({
       {/* Note */}
       <div className="rounded-lg bg-blue-50 p-4 text-sm">
         <p>
-          An invitation email will be sent to{" "}
-          <strong>{state.email}</strong> after you click "Send Invitation".
+          An invitation email will be sent to <strong>{state.email}</strong>{" "}
+          after you click "Send Invitation".
         </p>
       </div>
 

@@ -72,7 +72,7 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
   const handleDelete = () => {
     if (
       confirm(
-        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`
+        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
       )
     ) {
       submit({}, { method: "post" });
@@ -105,7 +105,9 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
-            <CardDescription>Product identification and pricing</CardDescription>
+            <CardDescription>
+              Product identification and pricing
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -147,8 +149,8 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
                     (product.stock ?? 0) === 0
                       ? "text-destructive"
                       : (product.stock ?? 0) < 10
-                      ? "text-amber-600"
-                      : "text-green-600"
+                        ? "text-amber-600"
+                        : "text-green-600"
                   }
                 >
                   {product.stock ?? 0}
@@ -158,8 +160,8 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
                 {(product.stock ?? 0) === 0
                   ? "Out of stock"
                   : (product.stock ?? 0) < 10
-                  ? "Low stock"
-                  : "In stock"}
+                    ? "Low stock"
+                    : "In stock"}
               </p>
             </div>
           </CardContent>

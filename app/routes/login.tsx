@@ -64,7 +64,9 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Sign in failed
     const errorData = await response.json().catch(() => ({}));
-    return { error: (errorData as any)?.message || "Invalid email or password" };
+    return {
+      error: (errorData as any)?.message || "Invalid email or password",
+    };
   } catch (error) {
     console.error("Login error:", error);
     return { error: "Invalid email or password" };

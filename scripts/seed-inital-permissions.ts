@@ -57,7 +57,11 @@ const SYSTEM_PERMISSIONS = [
   { resource: "role", action: "delete", description: "Delete roles" },
 
   // Organization permissions (for Organization menu)
-  { resource: "organization", action: "read", description: "View organization" },
+  {
+    resource: "organization",
+    action: "read",
+    description: "View organization",
+  },
   {
     resource: "organization",
     action: "update",

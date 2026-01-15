@@ -37,10 +37,7 @@ function serializeFlash(flash: FlashMessage): string {
 /**
  * Create a redirect response with flash message
  */
-export function redirectWithFlash(
-  url: string,
-  flash: FlashMessage,
-): Response {
+export function redirectWithFlash(url: string, flash: FlashMessage): Response {
   return redirect(url, {
     headers: {
       "Set-Cookie": serializeFlash(flash),

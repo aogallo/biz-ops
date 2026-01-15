@@ -1,5 +1,9 @@
 import { useState, useMemo } from "react";
-import type { WizardState, PermissionData, CustomPermission } from "../../types";
+import type {
+  WizardState,
+  PermissionData,
+  CustomPermission,
+} from "../../types";
 
 interface PermissionsStepProps {
   state: WizardState;
@@ -7,7 +11,7 @@ interface PermissionsStepProps {
   togglePermission: (permissionId: string) => void;
   selectAllPermissionsForResource: (
     permissionIds: string[],
-    selected: boolean
+    selected: boolean,
   ) => void;
   addCustomPermission: (permission: CustomPermission) => void;
   removeCustomPermission: (index: number) => void;
@@ -30,13 +34,16 @@ export function PermissionsStep({
 
   // Group permissions by resource
   const groupedPermissions = useMemo(() => {
-    return permissions.reduce((acc, perm) => {
-      if (!acc[perm.resource]) {
-        acc[perm.resource] = [];
-      }
-      acc[perm.resource].push(perm);
-      return acc;
-    }, {} as Record<string, PermissionData[]>);
+    return permissions.reduce(
+      (acc, perm) => {
+        if (!acc[perm.resource]) {
+          acc[perm.resource] = [];
+        }
+        acc[perm.resource].push(perm);
+        return acc;
+      },
+      {} as Record<string, PermissionData[]>,
+    );
   }, [permissions]);
 
   const handleAddCustomPermission = () => {
@@ -77,7 +84,7 @@ export function PermissionsStep({
                   onClick={() =>
                     selectAllPermissionsForResource(
                       perms.map((p) => p.id),
-                      !allSelected
+                      !allSelected,
                     )
                   }
                   className="text-sm text-primary hover:underline"

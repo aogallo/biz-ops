@@ -20,7 +20,11 @@ export async function updateRole(request: Request, roleId: string) {
 
   // Check permissions first
   const isSuperAdminUser = await isSuperAdmin(session.user.id);
-  const isOrgAdminUser = await isOrgAdmin(db, session.user.id, role.organizationId);
+  const isOrgAdminUser = await isOrgAdmin(
+    db,
+    session.user.id,
+    role.organizationId,
+  );
 
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
@@ -62,7 +66,7 @@ export async function updateRole(request: Request, roleId: string) {
     const exists = await rolesRepository.existsByName(
       role.organizationId,
       name,
-      roleId
+      roleId,
     );
     if (exists) {
       return {
@@ -80,7 +84,7 @@ export async function updateRole(request: Request, roleId: string) {
     await rolesRepository.assignPermissions(
       roleId,
       result.data.permissionIds,
-      role.organizationId
+      role.organizationId,
     );
 
     return {

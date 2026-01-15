@@ -132,11 +132,13 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
               placeholder="99.99"
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
-            {actionData && "errors" in actionData && actionData.errors?.price && (
-              <p className="mt-1 text-xs text-destructive">
-                {actionData.errors.price}
-              </p>
-            )}
+            {actionData &&
+              "errors" in actionData &&
+              actionData.errors?.price && (
+                <p className="mt-1 text-xs text-destructive">
+                  {actionData.errors.price}
+                </p>
+              )}
           </div>
 
           <div>
@@ -152,11 +154,13 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
               placeholder="0"
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
-            {actionData && "errors" in actionData && actionData.errors?.stock && (
-              <p className="mt-1 text-xs text-destructive">
-                {actionData.errors.stock}
-              </p>
-            )}
+            {actionData &&
+              "errors" in actionData &&
+              actionData.errors?.stock && (
+                <p className="mt-1 text-xs text-destructive">
+                  {actionData.errors.stock}
+                </p>
+              )}
           </div>
         </div>
 

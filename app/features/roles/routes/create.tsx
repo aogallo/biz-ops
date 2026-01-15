@@ -1,4 +1,10 @@
-import { Form, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
+import {
+  Form,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { requireAuth } from "~/server/auth/session.server";
@@ -24,13 +30,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   const permissions = await rolesRepository.getAllPermissions();
 
   // Group permissions by resource
-  const permissionsByResource = permissions.reduce((acc, perm) => {
-    if (!acc[perm.resource]) {
-      acc[perm.resource] = [];
-    }
-    acc[perm.resource].push(perm);
-    return acc;
-  }, {} as Record<string, typeof permissions>);
+  const permissionsByResource = permissions.reduce(
+    (acc, perm) => {
+      if (!acc[perm.resource]) {
+        acc[perm.resource] = [];
+      }
+      acc[perm.resource].push(perm);
+      return acc;
+    },
+    {} as Record<string, typeof permissions>,
+  );
 
   return {
     permissionsByResource,
@@ -144,7 +153,10 @@ export default function CreateRole() {
         </div>
 
         <div>
-          <label htmlFor="description" className="mb-2 block text-sm font-medium">
+          <label
+            htmlFor="description"
+            className="mb-2 block text-sm font-medium"
+          >
             Description *
           </label>
           <textarea
@@ -173,7 +185,11 @@ export default function CreateRole() {
           )}
           <div className="rounded-lg border">
             {Object.entries(permissionsByResource).map(([resource, perms]) => (
-              <PermissionSection key={resource} resource={resource} perms={perms} />
+              <PermissionSection
+                key={resource}
+                resource={resource}
+                perms={perms}
+              />
             ))}
           </div>
         </div>

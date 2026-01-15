@@ -33,8 +33,8 @@ export class ProductsRepository {
       .where(
         and(
           eq(productModel.organizationId, organizationId),
-          eq(productModel.sku, sku)
-        )
+          eq(productModel.sku, sku),
+        ),
       )
       .limit(1);
 
@@ -82,20 +82,16 @@ export class ProductsRepository {
   /**
    * Check if SKU exists in organization (for uniqueness validation)
    */
-  async existsBySku(
-    organizationId: string,
-    sku: string,
-    excludeId?: string
-  ) {
+  async existsBySku(organizationId: string, sku: string, excludeId?: string) {
     const conditions = excludeId
       ? and(
           eq(productModel.organizationId, organizationId),
           eq(productModel.sku, sku),
-          ne(productModel.id, excludeId) // For update operations
+          ne(productModel.id, excludeId), // For update operations
         )
       : and(
           eq(productModel.organizationId, organizationId),
-          eq(productModel.sku, sku)
+          eq(productModel.sku, sku),
         );
 
     const [product] = await db

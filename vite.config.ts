@@ -17,5 +17,6 @@ export default defineConfig({
   },
   ssr: {
     noExternal: ["lucide-react", "better-auth", "better-auth/adapters/drizzle"],
+    external: ["virtual:react-router/server-build"],
   },
 });

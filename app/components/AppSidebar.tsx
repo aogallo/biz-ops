@@ -1,7 +1,23 @@
-import { Building2, LogOut, Mail, Package, Users } from "lucide-react";
-import { Form, Link } from "react-router";
-import { useAuth, useOptionalOrganization } from "~/contexts/AuthContext";
-import { useFilteredNavigation } from "~/hooks/usePermissions";
+import {
+  Banknote,
+  Building2,
+  Calendar1,
+  CalendarDays,
+  Drumstick,
+  FolderTreeIcon,
+  LogOut,
+  Mail,
+  NewspaperIcon,
+  Package,
+  PackageCheck,
+  Shapes,
+  Truck,
+  Users,
+} from 'lucide-react'
+import { Form, Link } from 'react-router'
+import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
+import { useFilteredNavigation } from '~/hooks/usePermissions'
+import { cn } from '~/lib/utils'
 import {
   Sidebar,
   SidebarContent,
@@ -11,47 +27,81 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "./ui/sidebar";
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+} from './ui/sidebar'
 
 export const navigationItems = [
-  { name: "Users", path: "/users", icon: Users },
-  { name: "Roles", path: "/roles", icon: Users },
-  { name: "Organization", path: "/organization", icon: Building2 },
-  { name: "Business Partners", path: "/business-partners", icon: Users },
-  { name: "Products", path: "/products", icon: Package },
-  { name: "Invitations", path: "/invitations", icon: Mail },
-];
+  {
+    section: 'Admin',
+    icon: Drumstick,
+    color: 'text-gray-500',
+    items: [
+      { name: 'Organization', path: '/organization', icon: Building2 },
+      { name: 'Users', path: '/users', icon: Users },
+      { name: 'Roles', path: '/roles', icon: Users },
+      { name: 'Business Partners', path: '/business-partners', icon: Users },
+      { name: 'Invitations', path: '/invitations', icon: Mail },
+    ],
+  },
+  {
+    section: 'Inventory',
+    icon: Package,
+    color: 'text-amber-500',
+    items: [
+      { name: 'Products', path: '/products', icon: Shapes },
+      { name: 'Stock', path: '/stock', icon: PackageCheck },
+      { name: 'Suppliers', path: '/suppliers', icon: Truck },
+    ],
+  },
+  {
+    section: 'Accounting',
+    icon: Building2,
+    color: 'text-emeral-500',
+    items: [
+      { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
+      { name: 'Expenses', path: '/expenses', icon: Banknote },
+      { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
+    ],
+  },
+  {
+    section: 'Appointments',
+    icon: CalendarDays,
+    color: 'text-blue-500',
+    items: [{ name: 'Calendar', path: '/calendar', icon: Calendar1 }],
+  },
+]
 
 const AppSidebar = () => {
-  const { session, permissions, availableOrganizations } = useAuth();
-  const organization = useOptionalOrganization();
+  const { session, permissions, availableOrganizations } = useAuth()
+  const organization = useOptionalOrganization()
 
   // Filter navigation items based on user permissions
-  const visibleMenus = useFilteredNavigation(navigationItems);
+  const visibleMenus = useFilteredNavigation(navigationItems)
 
-  const isSuperAdmin = permissions.isSuperAdmin;
-  const activeOrgId = session.session.activeOrganizationId;
+  const isSuperAdmin = permissions.isSuperAdmin
+  const activeOrgId = session.session.activeOrganizationId
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <SidebarMenu className="items-center">
+        <SidebarMenu className='items-center'>
           <SidebarMenuItem>
             {isSuperAdmin &&
             availableOrganizations &&
             availableOrganizations.length > 0 ? (
               // Super admin organization switcher
-              <Form method="post" action="/switch-organization">
+              <Form method='post' action='/switch-organization'>
                 <select
-                  name="organizationId"
-                  value={activeOrgId || ""}
+                  name='organizationId'
+                  value={activeOrgId || ''}
                   onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                  className="w-full rounded-md border px-3 py-2 text-sm"
+                  className='w-full rounded-md border px-3 py-2 text-sm'
                 >
-                  <option value="">Select Organization</option>
+                  <option value=''>Select Organization</option>
                   {availableOrganizations.map((org) => (
                     <option key={org.id} value={org.id}>
-                      {org.name} {org.isAdmin ? "(Admin)" : ""}
+                      {org.name} {org.isAdmin ? '(Admin)' : ''}
                     </option>
                   ))}
                 </select>
@@ -59,13 +109,13 @@ const AppSidebar = () => {
             ) : (
               // Regular user organization display
               <SidebarMenuButton asChild>
-                <Link to="/organization">
+                <Link to='/organization'>
                   {organization ? (
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold">
+                    <div className='flex flex-col items-start'>
+                      <span className='font-semibold'>
                         {organization.data.name}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className='text-muted-foreground text-xs'>
                         {organization.membership.role}
                       </span>
                     </div>
@@ -81,14 +131,28 @@ const AppSidebar = () => {
       <SidebarContent>
         <SidebarGroup />
         <SidebarMenu>
-          {visibleMenus.map((menu) => (
-            <SidebarMenuItem key={menu.name}>
+          {visibleMenus.map((section) => (
+            <SidebarMenuItem key={section.section}>
               <SidebarMenuButton asChild>
-                <Link to={menu.path}>
-                  <menu.icon />
-                  <span>{menu.name}</span>
-                </Link>
+                {/* <Link to={section.}> */}
+                <SidebarMenuItem>
+                  <section.icon className={cn(section.color)} />
+                  <span>{section.section}</span>
+                </SidebarMenuItem>
+                {/* </Link> */}
               </SidebarMenuButton>
+              <SidebarMenuSub>
+                {section.items.map((item) => (
+                  <SidebarMenuSubItem key={item.name}>
+                    <SidebarMenuButton asChild>
+                      <Link to={item.path}>
+                        <item.icon />
+                        <span> {item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -98,21 +162,21 @@ const AppSidebar = () => {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex flex-col gap-2 px-2 py-3">
-              <p className="text-sm font-medium text-foreground">
+            <div className='flex flex-col gap-2 px-2 py-3'>
+              <p className='text-foreground text-sm font-medium'>
                 {session.user.name || session.user.email}
               </p>
               {session.user.name && (
-                <p className="text-xs text-muted-foreground">
+                <p className='text-muted-foreground text-xs'>
                   {session.user.email}
                 </p>
               )}
-              <Form method="post" action="/logout">
+              <Form method='post' action='/logout'>
                 <button
-                  type="submit"
-                  className="cursor-pointer flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                  type='submit'
+                  className='text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors'
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className='h-4 w-4' />
                   Sign Out
                 </button>
               </Form>
@@ -121,7 +185,7 @@ const AppSidebar = () => {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
-};
+  )
+}
 
-export default AppSidebar;
+export default AppSidebar

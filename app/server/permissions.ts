@@ -1,10 +1,10 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "./db";
-import { memberModel, organizationModel, roleModel } from "./db/schemas/auth";
+import { and, eq } from 'drizzle-orm'
+import { db } from './db'
+import { memberModel, organizationModel, roleModel } from './db/schemas/auth'
 
-export const SUPER_ADMIN_ROLE = "super-admin";
-export const ADMIN_ROLE = "admin";
-export const MEMBER_ROLE = "member";
+export const SUPER_ADMIN_ROLE = 'super-admin'
+export const ADMIN_ROLE = 'admin'
+export const MEMBER_ROLE = 'member'
 
 /**
  * Check if a user is a super admin (member of an admin organization with super-admin role)
@@ -17,28 +17,25 @@ export async function isSuperAdmin(userId: string): Promise<boolean> {
     .from(memberModel)
     .innerJoin(
       organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
+      eq(memberModel.organizationId, organizationModel.id)
     )
     .leftJoin(roleModel, eq(memberModel.roleId, roleModel.id))
     .where(
       and(
         eq(memberModel.userId, userId),
         eq(organizationModel.isAdmin, true),
-        eq(roleModel.name, SUPER_ADMIN_ROLE),
-      ),
+        eq(roleModel.name, SUPER_ADMIN_ROLE)
+      )
     )
-    .limit(1);
+    .limit(1)
 
-  return result.length > 0;
+  return result.length > 0
 }
 
 /**
  * Check if a user is a member of an admin organization
  */
-export async function isAdminOrgMember(
-  db: any,
-  userId: string,
-): Promise<boolean> {
+export async function isAdminOrgMember(userId: string): Promise<boolean> {
   const result = await db
     .select({
       isAdmin: organizationModel.isAdmin,
@@ -46,23 +43,22 @@ export async function isAdminOrgMember(
     .from(memberModel)
     .innerJoin(
       organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
+      eq(memberModel.organizationId, organizationModel.id)
     )
     .where(
-      and(eq(memberModel.userId, userId), eq(organizationModel.isAdmin, true)),
+      and(eq(memberModel.userId, userId), eq(organizationModel.isAdmin, true))
     )
-    .limit(1);
+    .limit(1)
 
-  return result.length > 0;
+  return result.length > 0
 }
 
 /**
  * Check if a user has admin role in a specific organization
  */
 export async function isOrgAdmin(
-  db: any,
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): Promise<boolean> {
   const result = await db
     .select({
@@ -72,15 +68,15 @@ export async function isOrgAdmin(
     .where(
       and(
         eq(memberModel.userId, userId),
-        eq(memberModel.organizationId, organizationId),
-      ),
+        eq(memberModel.organizationId, organizationId)
+      )
     )
-    .limit(1);
+    .limit(1)
 
-  if (result.length === 0) return false;
+  if (result.length === 0) return false
 
   // Check both legacy role and Better Auth compatibility role
-  return result[0].role === "admin" || result[0].role === "owner";
+  return result[0].role === 'admin' || result[0].role === 'owner'
 }
 
 /**
@@ -100,9 +96,9 @@ export async function getUserOrganizations(userId: string) {
     .from(memberModel)
     .innerJoin(
       organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
+      eq(memberModel.organizationId, organizationModel.id)
     )
-    .where(eq(memberModel.userId, userId));
+    .where(eq(memberModel.userId, userId))
 }
 
 /**
@@ -110,16 +106,16 @@ export async function getUserOrganizations(userId: string) {
  * Super admins bypass all permission checks
  */
 export async function hasPermission(
-  userId: string,
-  resource: string,
-  action: string,
+  userId: string
+  // resource: string,
+  // action: string
 ): Promise<boolean> {
   // Super admins have all permissions
   if (await isSuperAdmin(userId)) {
-    return true;
+    return true
   }
 
   // TODO: Implement granular permission checking via rolePermission table
   // For now, return false (will be implemented in next phase)
-  return false;
+  return false
 }

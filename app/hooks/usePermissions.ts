@@ -1,22 +1,22 @@
-import { useAuth } from "~/contexts/AuthContext";
+import { useAuth } from '~/contexts/AuthContext'
 import {
   ACTION_PERMISSIONS,
   MENU_PERMISSIONS,
   type ActionKey,
   type MenuPath,
-} from "~/lib/permissions";
+} from '~/lib/permissions'
 
 /**
  * Check if user has a specific permission
  * Super admins always return true
  */
 export function useHasPermission(permission: string): boolean {
-  const { permissions } = useAuth();
+  const { permissions } = useAuth()
 
   // Super admin bypass
-  if (permissions.isSuperAdmin) return true;
+  if (permissions.isSuperAdmin) return true
 
-  return permissions.list.includes(permission);
+  return permissions.list.includes(permission)
 }
 
 /**
@@ -24,12 +24,12 @@ export function useHasPermission(permission: string): boolean {
  * Super admins always return true
  */
 export function useHasAnyPermission(requiredPermissions: string[]): boolean {
-  const { permissions } = useAuth();
+  const { permissions } = useAuth()
 
   // Super admin bypass
-  if (permissions.isSuperAdmin) return true;
+  if (permissions.isSuperAdmin) return true
 
-  return requiredPermissions.some((perm) => permissions.list.includes(perm));
+  return requiredPermissions.some((perm) => permissions.list.includes(perm))
 }
 
 /**
@@ -37,12 +37,12 @@ export function useHasAnyPermission(requiredPermissions: string[]): boolean {
  * Super admins always return true
  */
 export function useHasAllPermissions(requiredPermissions: string[]): boolean {
-  const { permissions } = useAuth();
+  const { permissions } = useAuth()
 
   // Super admin bypass
-  if (permissions.isSuperAdmin) return true;
+  if (permissions.isSuperAdmin) return true
 
-  return requiredPermissions.every((perm) => permissions.list.includes(perm));
+  return requiredPermissions.every((perm) => permissions.list.includes(perm))
 }
 
 /**
@@ -51,8 +51,8 @@ export function useHasAllPermissions(requiredPermissions: string[]): boolean {
  * @returns true if user has required permission, false otherwise
  */
 export function useCanViewMenu(menuPath: MenuPath): boolean {
-  const requiredPermissions = MENU_PERMISSIONS[menuPath];
-  return useHasAnyPermission([...requiredPermissions]);
+  const requiredPermissions = MENU_PERMISSIONS[menuPath]
+  return useHasAnyPermission([...requiredPermissions])
 }
 
 /**
@@ -61,8 +61,8 @@ export function useCanViewMenu(menuPath: MenuPath): boolean {
  * @returns true if user has required permission, false otherwise
  */
 export function useCanPerformAction(action: ActionKey): boolean {
-  const requiredPermissions = ACTION_PERMISSIONS[action];
-  return useHasAnyPermission([...requiredPermissions]);
+  const requiredPermissions = ACTION_PERMISSIONS[action]
+  return useHasAnyPermission([...requiredPermissions])
 }
 
 /**
@@ -72,33 +72,37 @@ export function useCanPerformAction(action: ActionKey): boolean {
  * @returns Filtered array of navigation items user can access
  */
 export function useFilteredNavigation(
-  allMenus: Array<{ path: string; name: string; icon: any }>,
+  allMenus: Array<{
+    section: string
+    icon: React.ElementType
+    color: string
+    items: Array<{ path: string; name: string; icon: React.ElementType }>
+  }>
 ) {
-  const { permissions } = useAuth();
+  const { permissions } = useAuth()
 
   // Super admin sees everything
   if (permissions.isSuperAdmin) {
-    console.log("Super admin - showing all menus");
-    return allMenus;
+    return allMenus
   }
 
   // Filter menus by permission
-  const filtered = allMenus.filter((menu) => {
-    const menuPath = menu.path as MenuPath;
-    const requiredPermissions = MENU_PERMISSIONS[menuPath];
-    const hasAccess =
-      requiredPermissions?.some((perm) => {
-        const includes = permissions.list.includes(perm);
-        console.log(
-          `Menu: ${menu.name}, Path: ${menuPath}, Required: ${requiredPermissions.join(",")}, Checking "${perm}": ${includes}`,
-        );
-        return includes;
-      }) ?? false;
+  const filtered = allMenus.filter((section) => {
+    const filteredItems = section.items.filter((item) => {
+      const requiredPermissions = MENU_PERMISSIONS[item.path as MenuPath] || []
+      const hasPermission = requiredPermissions.some((perm) =>
+        permissions.list.includes(perm)
+      )
+      return hasPermission
+    })
 
-    console.log(`${menu.name}: ${hasAccess ? "VISIBLE" : "HIDDEN"}`);
-    return hasAccess;
-  });
+    // Keep section only if it has visible items
+    if (filteredItems.length > 0) {
+      section.items = filteredItems
+      return true
+    }
+    return false
+  })
 
-  console.log("Total visible menus:", filtered.length);
-  return filtered;
+  return filtered
 }

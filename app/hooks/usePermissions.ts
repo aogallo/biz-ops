@@ -74,9 +74,9 @@ export function useCanPerformAction(action: ActionKey): boolean {
 export function useFilteredNavigation(
   allMenus: Array<{
     section: string
-    icon: any
+    icon: React.ElementType
     color: string
-    items: Array<{ path: string; name: string; icon: any }>
+    items: Array<{ path: string; name: string; icon: React.ElementType }>
   }>
 ) {
   const { permissions } = useAuth()

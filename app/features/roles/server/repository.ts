@@ -1,12 +1,12 @@
-import { and, eq, sql } from "drizzle-orm";
-import { db } from "~/server/db";
+import { and, eq, sql } from 'drizzle-orm'
+import { db } from '~/server/db'
 import {
   memberModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
-} from "~/server/db/schemas/auth";
-import type { CreateRoleInput } from "../schemas";
+} from '~/server/db/schemas/auth'
+import type { CreateRoleInput } from '../schemas'
 
 /**
  * Roles Repository - Full CRUD operations for custom roles
@@ -17,7 +17,7 @@ export class RolesRepository {
    * Create a new custom role with permissions
    */
   async create(data: CreateRoleInput) {
-    const roleId = crypto.randomUUID();
+    const roleId = crypto.randomUUID()
 
     // Create role
     const [newRole] = await db
@@ -31,7 +31,7 @@ export class RolesRepository {
         createdAt: new Date(),
         updatedAt: new Date(),
       })
-      .returning();
+      .returning()
 
     // Assign permissions
     if (data.permissionIds.length > 0) {
@@ -43,11 +43,11 @@ export class RolesRepository {
           organizationId: data.organizationId,
           createdAt: new Date(),
           updatedAt: new Date(),
-        })),
-      );
+        }))
+      )
     }
 
-    return newRole;
+    return newRole
   }
 
   /**
@@ -58,8 +58,8 @@ export class RolesRepository {
       .select()
       .from(roleModel)
       .where(eq(roleModel.id, id))
-      .limit(1);
-    return role || null;
+      .limit(1)
+    return role || null
   }
 
   /**
@@ -70,7 +70,7 @@ export class RolesRepository {
       .select()
       .from(roleModel)
       .where(eq(roleModel.organizationId, organizationId))
-      .orderBy(roleModel.name);
+      .orderBy(roleModel.name)
   }
 
   /**
@@ -83,11 +83,11 @@ export class RolesRepository {
       .where(
         and(
           eq(roleModel.organizationId, organizationId),
-          eq(roleModel.name, roleName),
-        ),
+          eq(roleModel.name, roleName)
+        )
       )
-      .limit(1);
-    return result || null;
+      .limit(1)
+    return result || null
   }
 
   /**
@@ -104,11 +104,11 @@ export class RolesRepository {
       .from(rolePermissionModel)
       .innerJoin(
         permissionModel,
-        eq(rolePermissionModel.permissionId, permissionModel.id),
+        eq(rolePermissionModel.permissionId, permissionModel.id)
       )
-      .where(eq(rolePermissionModel.roleId, roleId));
+      .where(eq(rolePermissionModel.roleId, roleId))
 
-    return results;
+    return results
   }
 
   /**
@@ -118,28 +118,28 @@ export class RolesRepository {
     return await db
       .select()
       .from(permissionModel)
-      .orderBy(permissionModel.resource, permissionModel.action);
+      .orderBy(permissionModel.resource, permissionModel.action)
   }
 
   /**
    * Update role
    */
   async update(id: string, data: Partial<CreateRoleInput>) {
-    const updateData: any = {
+    const updateData: Record<string, string | Date> = {
       updatedAt: new Date(),
-    };
+    }
 
-    if (data.name) updateData.name = data.name;
+    if (data.name) updateData.name = data.name
     if (data.description !== undefined)
-      updateData.description = data.description;
+      updateData.description = data.description
 
     const [role] = await db
       .update(roleModel)
       .set(updateData)
       .where(eq(roleModel.id, id))
-      .returning();
+      .returning()
 
-    return role || null;
+    return role || null
   }
 
   /**
@@ -148,12 +148,12 @@ export class RolesRepository {
   async assignPermissions(
     roleId: string,
     permissionIds: string[],
-    organizationId: string,
+    organizationId: string
   ) {
     // Delete existing permissions for this role
     await db
       .delete(rolePermissionModel)
-      .where(eq(rolePermissionModel.roleId, roleId));
+      .where(eq(rolePermissionModel.roleId, roleId))
 
     // Insert new permissions
     if (permissionIds.length > 0) {
@@ -165,8 +165,8 @@ export class RolesRepository {
           organizationId,
           createdAt: new Date(),
           updatedAt: new Date(),
-        })),
-      );
+        }))
+      )
     }
   }
 
@@ -174,8 +174,8 @@ export class RolesRepository {
    * Delete role (cascade will handle rolePermission)
    */
   async delete(id: string) {
-    await db.delete(roleModel).where(eq(roleModel.id, id));
-    return true;
+    await db.delete(roleModel).where(eq(roleModel.id, id))
+    return true
   }
 
   /**
@@ -186,20 +186,20 @@ export class RolesRepository {
       ? and(
           eq(roleModel.organizationId, organizationId),
           eq(roleModel.name, name),
-          sql`${roleModel.id} != ${excludeId}`,
+          sql`${roleModel.id} != ${excludeId}`
         )
       : and(
           eq(roleModel.organizationId, organizationId),
-          eq(roleModel.name, name),
-        );
+          eq(roleModel.name, name)
+        )
 
     const [role] = await db
       .select({ id: roleModel.id })
       .from(roleModel)
       .where(conditions)
-      .limit(1);
+      .limit(1)
 
-    return !!role;
+    return !!role
   }
 
   /**
@@ -210,9 +210,9 @@ export class RolesRepository {
       .select({ isSystem: roleModel.isSystem })
       .from(roleModel)
       .where(eq(roleModel.id, roleId))
-      .limit(1);
+      .limit(1)
 
-    return role?.isSystem || false;
+    return role?.isSystem || false
   }
 
   /**
@@ -220,30 +220,30 @@ export class RolesRepository {
    */
   async canDeleteRole(roleId: string) {
     // Check if it's a system role
-    const isSystem = await this.isSystemRole(roleId);
+    const isSystem = await this.isSystemRole(roleId)
     if (isSystem) {
       return {
         canDelete: false,
-        reason: "System roles cannot be deleted",
-      };
+        reason: 'System roles cannot be deleted',
+      }
     }
 
     // Check if members are assigned
     const [result] = await db
       .select({ count: sql<number>`count(*)` })
       .from(memberModel)
-      .where(eq(memberModel.roleId, roleId));
+      .where(eq(memberModel.roleId, roleId))
 
-    const memberCount = Number(result.count);
+    const memberCount = Number(result.count)
     if (memberCount > 0) {
       return {
         canDelete: false,
         reason: `Cannot delete role. ${memberCount} member(s) are still assigned to this role.`,
-      };
+      }
     }
 
-    return { canDelete: true };
+    return { canDelete: true }
   }
 }
 
-export const rolesRepository = new RolesRepository();
+export const rolesRepository = new RolesRepository()

@@ -1,12 +1,11 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "~/server/db";
+import { and, eq } from 'drizzle-orm'
+import { db } from '~/server/db'
 import {
   invitationModel,
   memberModel,
-  organizationModel,
   roleModel,
   userModel,
-} from "~/server/db/schemas/auth";
+} from '~/server/db/schemas/auth'
 
 /**
  * Users Repository - Query-only operations
@@ -36,7 +35,7 @@ export class UsersRepository {
       .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
       .leftJoin(roleModel, eq(roleModel.id, memberModel.roleId))
       .where(eq(memberModel.organizationId, organizationId))
-      .orderBy(userModel.createdAt);
+      .orderBy(userModel.createdAt)
   }
 
   /**
@@ -61,10 +60,10 @@ export class UsersRepository {
       .where(
         and(
           eq(invitationModel.organizationId, organizationId),
-          eq(invitationModel.status, "pending"),
-        ),
+          eq(invitationModel.status, 'pending')
+        )
       )
-      .orderBy(invitationModel.createdAt);
+      .orderBy(invitationModel.createdAt)
   }
 
   /**
@@ -75,8 +74,8 @@ export class UsersRepository {
       .select()
       .from(userModel)
       .where(eq(userModel.email, email))
-      .limit(1);
-    return user || null;
+      .limit(1)
+    return user || null
   }
 
   /**
@@ -87,8 +86,8 @@ export class UsersRepository {
       .select()
       .from(userModel)
       .where(eq(userModel.id, userId))
-      .limit(1);
-    return user || null;
+      .limit(1)
+    return user || null
   }
 
   /**
@@ -101,11 +100,11 @@ export class UsersRepository {
       .where(
         and(
           eq(memberModel.userId, userId),
-          eq(memberModel.organizationId, organizationId),
-        ),
+          eq(memberModel.organizationId, organizationId)
+        )
       )
-      .limit(1);
-    return member || null;
+      .limit(1)
+    return member || null
   }
 
   /**
@@ -113,8 +112,8 @@ export class UsersRepository {
    * Note: This does NOT delete the user account (Better Auth manages that)
    */
   async removeMember(memberId: string) {
-    await db.delete(memberModel).where(eq(memberModel.id, memberId));
-    return true;
+    await db.delete(memberModel).where(eq(memberModel.id, memberId))
+    return true
   }
 
   /**
@@ -123,9 +122,9 @@ export class UsersRepository {
   async cancelInvitation(invitationId: string) {
     await db
       .update(invitationModel)
-      .set({ status: "cancelled", updatedAt: new Date() })
-      .where(eq(invitationModel.id, invitationId));
-    return true;
+      .set({ status: 'cancelled', updatedAt: new Date() })
+      .where(eq(invitationModel.id, invitationId))
+    return true
   }
 
   /**
@@ -135,9 +134,9 @@ export class UsersRepository {
     await db
       .update(memberModel)
       .set({ roleId, updatedAt: new Date() })
-      .where(eq(memberModel.id, memberId));
-    return true;
+      .where(eq(memberModel.id, memberId))
+    return true
   }
 }
 
-export const usersRepository = new UsersRepository();
+export const usersRepository = new UsersRepository()

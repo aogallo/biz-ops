@@ -1,19 +1,20 @@
-import { Form, Link, useSearchParams } from "react-router";
-import { Button } from "~/components/ui/button";
+import { eq } from 'drizzle-orm'
+import { Form, Link, useSearchParams } from 'react-router'
+import { Button } from '~/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
+} from '~/components/ui/card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
+} from '~/components/ui/select'
 import {
   Table,
   TableBody,
@@ -21,85 +22,76 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { useCanPerformAction } from "~/hooks/usePermissions";
-import { getUserOrganizations } from "~/server/auth/organization.server";
-import { requireAuth } from "~/server/auth/session.server";
-import { db } from "~/server/db";
-import { roleModel } from "~/server/db/schemas/auth";
-import { eq } from "drizzle-orm";
-import { isSuperAdmin } from "~/server/permissions";
-import { usersRepository } from "../server/repository";
-import { getFlash, redirectWithFlash } from "~/server/flash.server";
-import { updateMemberRole } from "../server/actions/update-role.action";
-import { useToastFromLoader } from "~/hooks/useToastFromLoader";
-import type { Route } from "./+types/index";
+} from '~/components/ui/table'
+import { useCanPerformAction } from '~/hooks/usePermissions'
+import { useToastFromLoader } from '~/hooks/useToastFromLoader'
+import { getUserOrganizations } from '~/server/auth/organization.server'
+import { requireAuth } from '~/server/auth/session.server'
+import { db } from '~/server/db'
+import { roleModel } from '~/server/db/schemas/auth'
+import { getFlash, redirectWithFlash } from '~/server/flash.server'
+import { isSuperAdmin } from '~/server/permissions'
+import { updateMemberRole } from '../server/actions/update-role.action'
+import { usersRepository } from '../server/repository'
+import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request);
-  const url = new URL(request.url);
-  const organizationId = url.searchParams.get("organizationId");
+  const session = await requireAuth(request)
+  const url = new URL(request.url)
+  const organizationId = url.searchParams.get('organizationId')
 
   // Get flash message
-  const { flash, headers } = getFlash(request);
+  const { flash } = getFlash(request)
 
   // Fetch all needed data in parallel
   const [isSuperAdminUser, organizations] = await Promise.all([
     isSuperAdmin(session.user.id),
     getUserOrganizations(session.user.id),
-  ]);
+  ])
 
   // Default to first org if none selected
-  const selectedOrgId = organizationId || organizations[0]?.organization.id;
+  const selectedOrgId = organizationId || organizations[0]?.organization.id
 
   // Fetch users, invitations, and available roles for selected organization
-  let users: any[] = [];
-  let invitations: any[] = [];
-  let availableRoles: any[] = [];
-  if (selectedOrgId) {
-    [users, invitations, availableRoles] = await Promise.all([
-      usersRepository.getAllByOrganization(selectedOrgId),
-      usersRepository.getPendingInvitations(selectedOrgId),
-      db
-        .select()
-        .from(roleModel)
-        .where(eq(roleModel.organizationId, selectedOrgId)),
-    ]);
-  }
+  const [users, invitations, availableRoles] = await Promise.all([
+    usersRepository.getAllByOrganization(selectedOrgId),
+    usersRepository.getPendingInvitations(selectedOrgId),
+    db
+      .select()
+      .from(roleModel)
+      .where(eq(roleModel.organizationId, selectedOrgId)),
+  ])
 
-  return Response.json(
-    {
-      isSuperAdmin: isSuperAdminUser,
-      organizations,
-      users,
-      invitations,
-      availableRoles,
-      selectedOrganizationId: selectedOrgId,
-      user: session.user,
-      toast: flash,
-    },
-    { headers },
-  );
+  return {
+    isSuperAdmin: isSuperAdminUser,
+    organizations,
+    users,
+    invitations,
+    availableRoles,
+    selectedOrganizationId: selectedOrgId,
+    user: session.user,
+    toast: flash,
+  }
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const memberId = formData.get("memberId") as string;
-  const roleId = formData.get("roleId") as string;
+  const formData = await request.formData()
+  const memberId = formData.get('memberId') as string
+  const roleId = formData.get('roleId') as string
 
-  const result = await updateMemberRole(request, memberId, roleId);
+  const result = await updateMemberRole(request, memberId, roleId)
 
   if (result.success) {
     return redirectWithFlash(request.url, {
-      type: "success",
+      type: 'success',
       message: result.message,
-    });
+    })
   }
 
   return redirectWithFlash(request.url, {
-    type: "error",
+    type: 'error',
     message: result.message,
-  });
+  })
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
@@ -111,46 +103,46 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
     availableRoles,
     selectedOrganizationId,
     toast,
-  } = loaderData;
-  const [searchParams, setSearchParams] = useSearchParams();
-  const canInviteUser = useCanPerformAction("users.invite");
-  const canUpdateUser = useCanPerformAction("users.invite"); // Using user:create as proxy for user:update
+  } = loaderData
+  const [, setSearchParams] = useSearchParams()
+  const canInviteUser = useCanPerformAction('users.invite')
+  const canUpdateUser = useCanPerformAction('users.invite') // Using user:create as proxy for user:update
 
-  useToastFromLoader(toast);
+  useToastFromLoader(toast)
 
   // Show message if no organizations
   if (organizations.length === 0) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">No Organizations Found</h2>
-          <p className="text-muted-foreground mb-6">
+      <div className='container mx-auto py-6'>
+        <div className='py-12 text-center'>
+          <h2 className='mb-4 text-2xl font-bold'>No Organizations Found</h2>
+          <p className='text-muted-foreground mb-6'>
             You need to be a member of at least one organization to manage
             users.
           </p>
           {isSuperAdmin && (
-            <Link to="/admin/organizations/create">
+            <Link to='/admin/organizations/create'>
               <Button>Create Organization</Button>
             </Link>
           )}
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className='text-3xl font-bold'>User Management</h1>
+          <p className='text-muted-foreground'>
             {isSuperAdmin
-              ? "Manage users across all organizations"
-              : "Manage users in your organization"}
+              ? 'Manage users across all organizations'
+              : 'Manage users in your organization'}
           </p>
         </div>
         {canInviteUser && (
-          <Link to="/users/invite">
+          <Link to='/users/invite'>
             <Button>Invite User</Button>
           </Link>
         )}
@@ -159,17 +151,17 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
       {/* Active Users Section */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className='flex items-center justify-between'>
             <div>
               <CardTitle>Active Users</CardTitle>
               <CardDescription>View and manage user accounts</CardDescription>
             </div>
             <Select
-              value={selectedOrganizationId || ""}
+              value={selectedOrganizationId || ''}
               onValueChange={(id) => setSearchParams({ organizationId: id })}
             >
-              <SelectTrigger className="w-75">
-                <SelectValue placeholder="Select organization" />
+              <SelectTrigger className='w-75'>
+                <SelectValue placeholder='Select organization' />
               </SelectTrigger>
               <SelectContent>
                 {organizations.map((org) => (
@@ -186,7 +178,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         </CardHeader>
         <CardContent>
           {users.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className='text-muted-foreground py-8 text-center'>
               No users found in this organization
             </div>
           ) : (
@@ -203,23 +195,23 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className='font-medium'>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       {canUpdateUser ? (
-                        <Form method="post" className="inline-block">
+                        <Form method='post' className='inline-block'>
                           <input
-                            type="hidden"
-                            name="memberId"
+                            type='hidden'
+                            name='memberId'
                             value={user.memberId}
                           />
                           <select
-                            name="roleId"
-                            value={user.roleId || ""}
+                            name='roleId'
+                            value={user.roleId || ''}
                             onChange={(e) =>
                               e.currentTarget.form?.requestSubmit()
                             }
-                            className="rounded-md border px-2 py-1 text-xs"
+                            className='rounded-md border px-2 py-1 text-xs'
                           >
                             {availableRoles.map((role) => (
                               <option key={role.id} value={role.id}>
@@ -229,16 +221,16 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                           </select>
                         </Form>
                       ) : (
-                        <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                        <span className='bg-primary/10 text-primary inline-flex items-center rounded-md px-2 py-1 text-xs font-medium'>
                           {user.roleName || user.memberRole}
                         </span>
                       )}
                     </TableCell>
                     <TableCell>
                       {user.emailVerified ? (
-                        <span className="text-green-600">✓ Verified</span>
+                        <span className='text-green-600'>✓ Verified</span>
                       ) : (
-                        <span className="text-amber-600">Pending</span>
+                        <span className='text-amber-600'>Pending</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -258,7 +250,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
           <CardHeader>
             <CardTitle>Pending Invitations</CardTitle>
             <CardDescription>
-              Users who have been invited but haven't accepted yet
+              Users who have been invited but haven&apos;t accepted yet
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -275,13 +267,13 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               <TableBody>
                 {invitations.map((inv) => (
                   <TableRow key={inv.id}>
-                    <TableCell className="font-medium">{inv.email}</TableCell>
+                    <TableCell className='font-medium'>{inv.email}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+                      <span className='inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800'>
                         {inv.roleName || inv.role}
                       </span>
                     </TableCell>
-                    <TableCell>{inv.inviterName || "Unknown"}</TableCell>
+                    <TableCell>{inv.inviterName || 'Unknown'}</TableCell>
                     <TableCell>
                       {new Date(inv.createdAt).toLocaleDateString()}
                     </TableCell>
@@ -296,5 +288,5 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         </Card>
       )}
     </div>
-  );
+  )
 }

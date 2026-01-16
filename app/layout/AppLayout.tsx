@@ -3,6 +3,7 @@ import AppSidebar from '~/components/AppSidebar'
 import SiteHeader from '~/components/SiteHeader'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AuthProvider } from '~/contexts/AuthContext'
+import type { Organization } from '~/features/organization/schemas'
 import { getUserPermissions } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isSuperAdmin } from '~/server/permissions'
@@ -23,7 +24,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   ])
 
   // Fetch all organizations for super admin, or just user's organizations
-  let organizations: any[] = []
+  let organizations: Organization[] = []
   if (isSuperAdminUser) {
     // Super admin sees ALL organizations
     const { db } = await import('~/server/db')
@@ -39,6 +40,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       name: org.organization.name,
       slug: org.organization.slug,
       isAdmin: org.organization.isAdmin,
+      logo: org.organization.logo,
+      createdAt: org.organization.createdAt,
     }))
   }
 

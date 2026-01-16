@@ -28,7 +28,8 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f postgres",
     "docker:reset": "docker-compose down -v && docker-compose up -d",
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint": "npx eslint . --fix --max-warnings 0 --config eslint.config.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

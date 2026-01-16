@@ -11,124 +11,117 @@ import {
   Section,
   Tailwind,
   Text,
-} from "@react-email/components";
+} from '@react-email/components'
 
 interface OrganizationInviteEmailProps {
-  inviterName: string;
-  organizationName: string;
-  inviteeEmail: string;
-  inviteLink: string;
-  organizationDescription?: string;
+  inviterName: string
+  organizationName: string
+  inviteeEmail: string
+  inviteLink: string
+  organizationDescription?: string
 }
 
 const OrganizationInviteEmail = (props: OrganizationInviteEmailProps) => {
-  const {
-    inviterName,
-    organizationName,
-    inviteeEmail,
-    inviteLink,
-    organizationDescription,
-  } = props;
+  const { inviterName, organizationName, inviteLink, organizationDescription } =
+    props
 
   return (
-    <Html lang="en" dir="ltr">
+    <Html lang='en' dir='ltr'>
       <Tailwind>
         <Head />
-        <Preview>You've been invited to join {organizationName}</Preview>
-        <Body className="bg-gray-100 font-sans py-[40px]">
-          <Container className="bg-white rounded-[8px] shadow-sm max-w-[600px] mx-auto p-[40px]">
+        <Preview>You&apos;ve been invited to join {organizationName}</Preview>
+        <Body className='bg-gray-100 py-10 font-sans'>
+          <Container className='mx-auto max-w-150 rounded-xl bg-white p-10 shadow-sm'>
             <Section>
-              <Heading className="text-[28px] font-bold text-gray-900 mb-[24px] text-center">
+              <Heading className='mb-6 text-center text-[28px] font-bold text-gray-900'>
                 Welcome to {organizationName}!
               </Heading>
 
-              <Text className="text-[16px] text-gray-700 mb-[20px]">
-                Hi there,
-              </Text>
+              <Text className='mb-5 text-[16px] text-gray-700'>Hi there,</Text>
 
-              <Text className="text-[16px] text-gray-700 mb-[20px]">
-                Great news! {inviterName} has invited you to join{" "}
+              <Text className='mb-5 text-[16px] text-gray-700'>
+                Great news! {inviterName} has invited you to join{' '}
                 <strong>{organizationName}</strong>.
                 {organizationDescription && ` ${organizationDescription}`}
               </Text>
 
-              <Text className="text-[16px] text-gray-700 mb-[32px]">
-                You'll have access to collaborate with the team, manage
+              <Text className='mb-8 text-[16px] text-gray-700'>
+                You&apos;ll have access to collaborate with the team, manage
                 projects, and contribute to our shared goals. Click the button
                 below to accept your invitation and get started.
               </Text>
 
-              <Section className="text-center mb-[32px]">
+              <Section className='mb-8 text-center'>
                 <Button
                   href={inviteLink}
-                  className="bg-blue-600 text-white px-[32px] py-[12px] rounded-[6px] text-[16px] font-medium box-border"
+                  className='box-border rounded-[6px] bg-blue-600 px-8 py-3 text-[16px] font-medium text-white'
                 >
                   Accept Invitation
                 </Button>
               </Section>
 
-              <Text className="text-[14px] text-gray-600 mb-[20px]">
-                If the button doesn't work, you can copy and paste this link
-                into your browser:
+              <Text className='mb-5 text-[14px] text-gray-600'>
+                If the button doesn&apos;t work, you can copy and paste this
+                link into your browser:
               </Text>
 
-              <Text className="text-[14px] text-blue-600 mb-[32px] break-all">
+              <Text className='mb-8 text-[14px] break-all text-blue-600'>
                 {inviteLink}
               </Text>
 
-              <Hr className="border-gray-200 my-[32px]" />
+              <Hr className='my-8 border-gray-200' />
 
-              <Text className="text-[16px] text-gray-700 mb-[20px]">
+              <Text className='mb-5 text-[16px] text-gray-700'>
                 <strong>What happens next?</strong>
               </Text>
 
-              <Text className="text-[14px] text-gray-600 mb-[8px]">
+              <Text className='mb-2 text-[14px] text-gray-600'>
                 • Complete your profile setup
               </Text>
-              <Text className="text-[14px] text-gray-600 mb-[8px]">
+              <Text className='mb-2 text-[14px] text-gray-600'>
                 • Explore your team workspace
               </Text>
-              <Text className="text-[14px] text-gray-600 mb-[8px]">
+              <Text className='mb-2 text-[14px] text-gray-600'>
                 • Connect with your teammates
               </Text>
-              <Text className="text-[14px] text-gray-600 mb-[24px]">
+              <Text className='mb-6 text-[14px] text-gray-600'>
                 • Start collaborating on projects
               </Text>
 
-              <Text className="text-[16px] text-gray-700 mb-[20px]">
+              <Text className='mb-5 text-[16px] text-gray-700'>
                 If you have any questions or need assistance, feel free to reach
                 out to {inviterName} or our support team.
               </Text>
 
-              <Text className="text-[16px] text-gray-700 mb-[32px]">
-                We're excited to have you on board!
+              <Text className='mb-8 text-[16px] text-gray-700'>
+                We&apos;re excited to have you on board!
               </Text>
 
-              <Text className="text-[16px] text-gray-700">
+              <Text className='text-[16px] text-gray-700'>
                 Best regards,
                 <br />
                 The {organizationName} Team
               </Text>
             </Section>
 
-            <Hr className="border-gray-200 my-[32px]" />
+            <Hr className='my-8 border-gray-200' />
 
             <Section>
-              <Text className="text-[12px] text-gray-500 m-0">
+              <Text className='m-0 text-[12px] text-gray-500'>
                 123 Business Street, Suite 100
                 <br />
                 Business City, BC 12345
               </Text>
-              <Text className="text-[12px] text-gray-500 mt-[8px] mb-[8px]">
-                <Link href="#" className="text-gray-500">
+              <Text className='mt-2 mb-2 text-[12px] text-gray-500'>
+                <Link href='#' className='text-gray-500'>
                   Unsubscribe
-                </Link>{" "}
+                </Link>{' '}
                 |
-                <Link href="#" className="text-gray-500 ml-[8px]">
+                <Link href='#' className='ml-2 text-gray-500'>
                   Privacy Policy
                 </Link>
               </Text>
-              <Text className="text-[12px] text-gray-500 m-0">
+              <Text className='m-0 text-[12px] text-gray-500'>
                 © 2026 {organizationName}. All rights reserved.
               </Text>
             </Section>
@@ -136,16 +129,16 @@ const OrganizationInviteEmail = (props: OrganizationInviteEmailProps) => {
         </Body>
       </Tailwind>
     </Html>
-  );
-};
+  )
+}
 
 OrganizationInviteEmail.PreviewProps = {
-  inviterName: "Sarah Johnson",
-  organizationName: "TechCorp Solutions",
-  inviteeEmail: "newmember@example.com",
-  inviteLink: "https://app.techcorp.com/invite/accept?token=abc123xyz",
+  inviterName: 'Sarah Johnson',
+  organizationName: 'TechCorp Solutions',
+  inviteeEmail: 'newmember@example.com',
+  inviteLink: 'https://app.techcorp.com/invite/accept?token=abc123xyz',
   organizationDescription:
     "We're a forward-thinking technology company focused on innovative software solutions.",
-};
+}
 
-export default OrganizationInviteEmail;
+export default OrganizationInviteEmail

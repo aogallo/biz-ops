@@ -53,5 +53,8 @@ export default [
       route('/:id', './features/roles/routes/show.tsx'),
       route('/:id/edit', './features/roles/routes/edit.tsx'),
     ]),
+    ...prefix('sat-processor', [
+      index('./features/sat-processor/routes/index.tsx'),
+    ]),
   ]),
 ] satisfies RouteConfig

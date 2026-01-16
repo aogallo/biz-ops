@@ -1,12 +1,12 @@
-import { and, eq } from "drizzle-orm";
-import { redirect } from "react-router";
-import { db } from "~/server/db";
+import { and, eq } from 'drizzle-orm'
+import { redirect } from 'react-router'
+import { db } from '~/server/db'
 import {
   memberModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
-} from "../db/schemas/auth";
+} from '../db/schemas/auth'
 
 /**
  * Check if user has specific permission in organization
@@ -18,14 +18,14 @@ import {
 export async function hasPermission(
   userId: string,
   organizationId: string,
-  permissionString: string,
+  permissionString: string
 ): Promise<boolean> {
-  const [resource, action] = permissionString.split(":");
+  const [resource, action] = permissionString.split(':')
 
-  console.log("data...", resource, action);
+  console.log('data...', resource, action)
   if (!resource || !action) {
-    console.warn(`Invalid permission format: ${permissionString}`);
-    return false;
+    console.warn(`Invalid permission format: ${permissionString}`)
+    return false
   }
 
   // Query: member → role → rolePermission → permission
@@ -35,23 +35,23 @@ export async function hasPermission(
     .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
     .innerJoin(
       rolePermissionModel,
-      eq(roleModel.id, rolePermissionModel.roleId),
+      eq(roleModel.id, rolePermissionModel.roleId)
     )
     .innerJoin(
       permissionModel,
-      eq(rolePermissionModel.permissionId, permissionModel.id),
+      eq(rolePermissionModel.permissionId, permissionModel.id)
     )
     .where(
       and(
         eq(memberModel.userId, userId),
         eq(memberModel.organizationId, organizationId),
         eq(permissionModel.resource, resource),
-        eq(permissionModel.action, action),
-      ),
+        eq(permissionModel.action, action)
+      )
     )
-    .limit(1);
+    .limit(1)
 
-  return result.length > 0;
+  return result.length > 0
 }
 
 /**
@@ -62,7 +62,7 @@ export async function hasPermission(
  */
 export async function getUserPermissions(
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): Promise<string[]> {
   const results = await db
     .select({
@@ -73,20 +73,20 @@ export async function getUserPermissions(
     .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
     .innerJoin(
       rolePermissionModel,
-      eq(roleModel.id, rolePermissionModel.roleId),
+      eq(roleModel.id, rolePermissionModel.roleId)
     )
     .innerJoin(
       permissionModel,
-      eq(rolePermissionModel.permissionId, permissionModel.id),
+      eq(rolePermissionModel.permissionId, permissionModel.id)
     )
     .where(
       and(
         eq(memberModel.userId, userId),
-        eq(memberModel.organizationId, organizationId),
-      ),
-    );
+        eq(memberModel.organizationId, organizationId)
+      )
+    )
 
-  return results.map((r) => `${r.resource}:${r.action}`);
+  return results.map((r) => `${r.resource}:${r.action}`)
 }
 
 /**
@@ -100,19 +100,19 @@ export async function getUserPermissions(
 export async function requirePermission(
   userId: string,
   organizationId: string,
-  permissionString: string,
+  permissionString: string
 ): Promise<void> {
-  const allowed = await hasPermission(userId, organizationId, permissionString);
+  const allowed = await hasPermission(userId, organizationId, permissionString)
 
-  console.log("allowed........", allowed);
+  console.log('allowed........', allowed)
 
   if (!allowed) {
-    throw redirect("/organization", {
+    throw redirect('/organization', {
       status: 403,
       headers: {
-        "X-Message": "You don't have permission for this action",
+        'X-Message': "You don't have permission for this action",
       },
-    });
+    })
   }
 }
 
@@ -127,12 +127,12 @@ export async function requirePermission(
 export async function hasAnyPermission(
   userId: string,
   organizationId: string,
-  permissions: string[],
+  permissions: string[]
 ): Promise<boolean> {
   const results = await Promise.all(
-    permissions.map((p) => hasPermission(userId, organizationId, p)),
-  );
-  return results.some((r) => r === true);
+    permissions.map((p) => hasPermission(userId, organizationId, p))
+  )
+  return results.some((r) => r === true)
 }
 
 /**
@@ -146,12 +146,12 @@ export async function hasAnyPermission(
 export async function hasAllPermissions(
   userId: string,
   organizationId: string,
-  permissions: string[],
+  permissions: string[]
 ): Promise<boolean> {
   const results = await Promise.all(
-    permissions.map((p) => hasPermission(userId, organizationId, p)),
-  );
-  return results.every((r) => r === true);
+    permissions.map((p) => hasPermission(userId, organizationId, p))
+  )
+  return results.every((r) => r === true)
 }
 
 /**
@@ -163,18 +163,18 @@ export async function hasAllPermissions(
  */
 export async function getUserPermissionsGrouped(
   userId: string,
-  organizationId: string,
+  organizationId: string
 ): Promise<Record<string, string[]>> {
-  const perms = await getUserPermissions(userId, organizationId);
-  const grouped: Record<string, string[]> = {};
+  const perms = await getUserPermissions(userId, organizationId)
+  const grouped: Record<string, string[]> = {}
 
   for (const perm of perms) {
-    const [resource, action] = perm.split(":");
+    const [resource, action] = perm.split(':')
     if (!grouped[resource]) {
-      grouped[resource] = [];
+      grouped[resource] = []
     }
-    grouped[resource].push(action);
+    grouped[resource].push(action)
   }
 
-  return grouped;
+  return grouped
 }

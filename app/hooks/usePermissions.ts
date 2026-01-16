@@ -93,9 +93,6 @@ export function useFilteredNavigation(
       const hasPermission = requiredPermissions.some((perm) =>
         permissions.list.includes(perm)
       )
-      console.log(
-        `Menu: ${item.name}, Path: ${item.path}, Has Permission: ${hasPermission}`
-      )
       return hasPermission
     })
 
@@ -107,6 +104,5 @@ export function useFilteredNavigation(
     return false
   })
 
-  console.log('Total visible menus:', filtered.length)
   return filtered
 }

@@ -1,157 +1,209 @@
-import { CloudUpload, Download, GitCompare, Search, Shapes } from 'lucide-react'
+import { Search } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { useActionData, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
 import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
+import { companyRepository } from '~/features/company/server/repository/company.repository'
 import { requireAuth } from '~/server/auth/session.server'
+import type { SatFile } from '~/server/db/schemas/sat-file'
 import { SatFileColumns } from '../components/Columns'
+import { ProgressStats } from '../components/ProgressStats'
+import { ProTipCard } from '../components/ProTipCard'
+import { QuickActions } from '../components/QuickActions'
+import { SelectedRowDetails } from '../components/SelectedRowDetails'
+import { UploadDropzone } from '../components/UploadDropzone'
+import { invoiceTypeSchema } from '../schemas'
+import { updateAccountAction } from '../server/actions/update-account.action'
+import { uploadSatFileAction } from '../server/actions/upload.action'
+import { satFileRepository } from '../server/repository/sat-file.repository'
 import type { Route } from './+types'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search') ?? undefined
 
   if (!session.session.activeOrganizationId) {
-    return { accounts: [] }
+    return {
+      satFiles: [],
+      accounts: [],
+      companies: [],
+      stats: { total: 0, matched: 0, review: 0 },
+    }
   }
 
-  const accounts = await getAccountingAccountsByOrganization(
-    session.session.activeOrganizationId
-  )
+  const organizationId = session.session.activeOrganizationId
 
-  return { accounts }
+  const [satFiles, accounts, companies, stats] = await Promise.all([
+    satFileRepository.getByOrganization(organizationId, { search }),
+    getAccountingAccountsByOrganization(organizationId),
+    companyRepository.getByOrganization(organizationId),
+    satFileRepository.getCategorizeStats(organizationId),
+  ])
+
+  return { satFiles, accounts, companies, stats }
 }
 
-const SATProcessorIndex = ({ loaderData }: Route.ComponentProps) => {
-  const { accounts } = loaderData
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request)
+
+  if (!session.session.activeOrganizationId) {
+    return { error: 'No organization selected' }
+  }
+
+  const organizationId = session.session.activeOrganizationId
+  const formData = await request.formData()
+  const actionType = formData.get('_action')
+
+  if (actionType === 'upload') {
+    const file = formData.get('file') as File | null
+    const companyId = formData.get('companyId') as string | null
+    const invoiceTypeRaw = formData.get('invoiceType') as string | null
+
+    if (!file || file.size === 0) {
+      return { error: 'No file provided' }
+    }
+
+    if (!companyId) {
+      return { error: 'Please select a company' }
+    }
+
+    const invoiceTypeParsed = invoiceTypeSchema.safeParse(invoiceTypeRaw)
+    if (!invoiceTypeParsed.success) {
+      return { error: 'Please select an invoice type' }
+    }
+
+    const result = await uploadSatFileAction(
+      file,
+      organizationId,
+      companyId,
+      invoiceTypeParsed.data
+    )
+
+    if (!result.success) {
+      console.error('upload errors', result.errors)
+      return {
+        error: 'Failed to upload file',
+        details: result.errors,
+      }
+    }
+
+    return {
+      success: true,
+      message: `Successfully uploaded ${result.created} records`,
+      created: result.created,
+      totalRows: result.totalRows,
+      errors: result.errors,
+    }
+  }
+
+  if (actionType === 'updateAccount') {
+    const satFileId = formData.get('satFileId') as string
+    const accountingAccountId = formData.get('accountingAccountId') as string
+
+    if (!satFileId) {
+      return { error: 'SAT file ID is required' }
+    }
+
+    const result = await updateAccountAction(
+      satFileId,
+      accountingAccountId || null,
+      organizationId
+    )
+
+    if (!result.success) {
+      return { error: result.error }
+    }
+
+    return { success: true, updated: result.data }
+  }
+
+  return { error: 'Unknown action' }
+}
+
+export default function SATProcessorIndex({
+  loaderData,
+}: Route.ComponentProps) {
+  const { satFiles, accounts, companies, stats } = loaderData
+  const actionData = useActionData<typeof action>()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [selectedRow, setSelectedRow] = useState<SatFile | null>(null)
+
+  const handleRowSelectionChange = useCallback((selectedRows: SatFile[]) => {
+    setSelectedRow(selectedRows.length > 0 ? selectedRows[0] : null)
+  }, [])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    if (value) {
+      setSearchParams({ search: value })
+    } else {
+      setSearchParams({})
+    }
+  }
+
+  const currentMonth = new Date().toLocaleString('es-GT', {
+    month: 'long',
+    year: 'numeric',
+  })
+
   return (
     <div className='flex flex-1 overflow-hidden'>
-      <div className='flex-1'>
-        <div className='space-y-6 p-6 pb-0'>
-          <div className='flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-slate-300 p-6 text-center dark:border-slate-700'>
-            <CloudUpload className='h-12 w-12 text-slate-400' />
-            <h3 className='text-base font-semibold'>
-              Upload SAT Export (CSV or XLS)
-            </h3>
-            <p className='mt-1 text-sm text-slate-500 dark:text-slate-400'>
-              Drag and drop your FEL export files here or click to browser
-            </p>
-            <span className='rounded border border-slate-200 bg-slate-100 px-2 py-1 text-[12px] font-bold uppercase dark:border-slate-700 dark:bg-slate-800'>
-              Supported: .csv, .xls
-            </span>
-            <div className='mt-4 flex gap-2'>
-              <button
-                type='button'
-                className='inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                Upload File
-              </button>
-              <button
-                type='button'
-                className='inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                Download Template
-              </button>
+      <div className='flex-1 overflow-auto'>
+        <div className='space-y-4 p-6 pb-0'>
+          <UploadDropzone companies={companies} />
+
+          {actionData && 'error' in actionData && actionData.error && (
+            <div className='rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
+              {actionData.error}
             </div>
-          </div>
+          )}
+
+          {actionData && 'success' in actionData && actionData.success && (
+            <div className='rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400'>
+              {'message' in actionData && actionData.message}
+            </div>
+          )}
+
+          <ProgressStats stats={stats} />
         </div>
+
         <div className='flex flex-1 flex-col overflow-hidden p-6'>
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <h2 className='text-lg font-bold'>Processed Invoices</h2>
-              <span className='rounded bg-slate-100 px-2 text-sm text-slate-500 dark:bg-slate-800'>
-                December 2025
+              <span className='rounded bg-slate-100 px-2 text-sm text-slate-500 capitalize dark:bg-slate-800'>
+                {currentMonth}
               </span>
             </div>
             <div className='flex items-center gap-2'>
-              <div className='flex items-center'>
-                <Search className='relative' />
-                <Input />
-                Filter
+              <div className='relative'>
+                <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400' />
+                <Input
+                  placeholder='Search...'
+                  className='w-64 pl-9'
+                  value={searchParams.get('search') ?? ''}
+                  onChange={handleSearchChange}
+                />
               </div>
             </div>
           </div>
-          <DataTable columns={SatFileColumns} data={[]} />
+          <DataTable
+            columns={SatFileColumns}
+            data={satFiles}
+            enableRowSelection
+            onRowSelectionChange={handleRowSelectionChange}
+          />
         </div>
       </div>
-      <aside className='w-1/3 border-l border-slate-200 p-6 dark:border-slate-700'>
-        <div>
-          <h3 className='mb-4 text-sm font-bold tracking-wider text-slate-500 uppercase'>
-            Quick Actions
-          </h3>
-          <div className='space-y-3'>
-            <Button variant='outline' className='w-full justify-start'>
-              <Shapes />
-              Bulk Assign Category
-            </Button>
-            <Button variant='outline' className='w-full justify-start'>
-              <GitCompare />
-              Match to Expense
-            </Button>
-            <Button variant='outline' className='w-full justify-start'>
-              <Download />
-              Export to Ledger
-            </Button>
-          </div>
-        </div>
-        <div className='h-px bg-slate-200 dark:bg-slate-800'></div>
-        <div>
-          <h3 className='mt-6 mb-4 text-sm font-bold tracking-wider text-slate-500 uppercase'>
-            Selected row details
-          </h3>
-          <div className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50'>
-            <div className='flex items-center justify-between'>
-              <span className='text-sm text-slate-500'>Document Type</span>
-              <span className='rounded bg-slate-200 px-2 py-0.5 text-xs font-bold dark:bg-slate-700'>
-                FACT FEL
-              </span>
-            </div>
-            <div className='flex items-center justify-between'>
-              <span className='text-sm text-slate-500'>IVA</span>
-              <span className='text-sm font-medium'>Q 123.33</span>
-            </div>
-            <div className='flex items-center justify-between'>
-              <span className='text-sm text-slate-500'>Exempt</span>
-              <span className='text-sm font-medium'>Q 0.00</span>
-            </div>
-            <div className='flex items-center justify-between'>
-              <span className='text-xs text-slate-500'>Currency</span>
-              <span className='text-xs font-medium'>GTQ (Quetzales)</span>
-            </div>
-          </div>
-          <div className='border-t border-slate-200 pt-2 dark:border-slate-700'>
-            <span className='text-sm text-slate-500 dark:border-slate-700'>
-              Accounting Account
-            </span>
-            <Select>
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Select an account' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel> Accounts</SelectLabel>
 
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+      <aside className='w-80 flex-shrink-0 overflow-auto border-l border-slate-200 p-6 dark:border-slate-700'>
+        <QuickActions />
+        <div className='my-6 h-px bg-slate-200 dark:bg-slate-800' />
+        <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
+        <ProTipCard />
       </aside>
     </div>
   )
 }
-
-export default SATProcessorIndex

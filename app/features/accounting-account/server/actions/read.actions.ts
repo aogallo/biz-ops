@@ -9,14 +9,15 @@ export async function getAccountingAccountsByOrganization(
   organizationId: string
 ): Promise<AccountingAccount[]> {
   try {
-    await db
+    const accounts = await db
       .select()
       .from(accountingAccountModel)
       .where(eq(accountingAccountModel.organizationId, organizationId))
+    return accounts
   } catch (error) {
     console.error(
-      `Failed to get Accounting Accounts from oganization: ${organizationId}, error:${error}`
+      `Failed to get Accounting Accounts from organization: ${organizationId}, error:${error}`
     )
+    return []
   }
-  return []
 }

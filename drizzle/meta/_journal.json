@@ -22,6 +22,20 @@
       "when": 1768590889603,
       "tag": "0002_sharp_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1768833518551,
+      "tag": "0003_magical_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768838341472,
+      "tag": "0004_fearless_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

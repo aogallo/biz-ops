@@ -56,5 +56,6 @@ export default [
     ...prefix('sat-processor', [
       index('./features/sat-processor/routes/index.tsx'),
     ]),
+    ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
   ]),
 ] satisfies RouteConfig

@@ -1,7 +1,7 @@
 import { Form, useActionData, useNavigation } from "react-router";
 import { requireAuth } from "~/server/auth/session.server";
 import { redirectWithFlash } from "~/server/flash.server";
-import type { Route } from "../../admin/routes/+types/organizations.create";
+import type { Route } from "./+types/create";
 import { createOrganization } from "../server/actions/create.action";
 
 export async function loader({ request }: Route.LoaderArgs) {

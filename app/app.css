@@ -11,8 +11,6 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
-
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
@@ -134,7 +132,7 @@ body {
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-slate-50 text-foreground dark:bg-gray-950;
   }
 
   :root {

@@ -36,6 +36,20 @@
       "when": 1768838341472,
       "tag": "0004_fearless_mister_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1768869229678,
+      "tag": "0005_elite_mesmero",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768870718581,
+      "tag": "0006_thin_slyde",
+      "breakpoints": true
     }
   ]
 }

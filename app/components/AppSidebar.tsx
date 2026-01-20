@@ -1,6 +1,7 @@
 import {
   Banknote,
   Building2,
+  BuildingIcon,
   Calendar1,
   CalendarDays,
   ChartColumnBig,
@@ -43,6 +44,7 @@ export const navigationItems = [
       { name: 'Users', path: '/users', icon: Users },
       { name: 'Roles', path: '/roles', icon: Users },
       { name: 'Business Partners', path: '/business-partners', icon: Users },
+      { name: 'Companies', path: '/company', icon: BuildingIcon },
       { name: 'Invitations', path: '/invitations', icon: Mail },
     ],
   },

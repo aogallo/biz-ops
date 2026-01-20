@@ -57,5 +57,10 @@ export default [
       index('./features/sat-processor/routes/index.tsx'),
     ]),
     ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
+    ...prefix('company', [
+      index('./features/company/routes/index.tsx'),
+      route('/new', './features/company/routes/create.tsx'),
+      route('/:companyId', './features/company/routes/show.tsx'),
+    ]),
   ]),
 ] satisfies RouteConfig

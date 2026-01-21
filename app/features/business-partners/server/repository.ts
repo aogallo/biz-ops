@@ -1,7 +1,13 @@
-import { and, eq, ne, or } from "drizzle-orm";
+import { and, eq, inArray, ne, or } from "drizzle-orm";
 import { db } from "~/server/db";
 import { businessPartnerModel } from "~/server/db/schemas/businessPartner";
 import type { CreateBusinessPartnerInput, PartnerType } from "../schemas";
+
+export interface PartnerToCreate {
+  nit: string;
+  name: string;
+  type: PartnerType;
+}
 
 export class BusinessPartnersRepository {
   /**
@@ -148,6 +154,123 @@ export class BusinessPartnersRepository {
       .limit(1);
 
     return !!partner;
+  }
+
+  /**
+   * Find business partner by NIT within organization
+   */
+  async findByNit(organizationId: string, nit: string) {
+    if (!nit) return null;
+
+    const [partner] = await db
+      .select()
+      .from(businessPartnerModel)
+      .where(
+        and(
+          eq(businessPartnerModel.organizationId, organizationId),
+          eq(businessPartnerModel.nit, nit),
+        ),
+      )
+      .limit(1);
+
+    return partner || null;
+  }
+
+  /**
+   * Find all business partners by NITs within organization
+   */
+  async findByNits(organizationId: string, nits: string[]) {
+    if (nits.length === 0) return [];
+
+    return await db
+      .select()
+      .from(businessPartnerModel)
+      .where(
+        and(
+          eq(businessPartnerModel.organizationId, organizationId),
+          inArray(businessPartnerModel.nit, nits),
+        ),
+      );
+  }
+
+  /**
+   * Bulk find or create business partners by NIT
+   * Returns a map of NIT -> partner ID
+   */
+  async bulkFindOrCreateByNit(
+    organizationId: string,
+    partners: PartnerToCreate[],
+  ): Promise<Map<string, string>> {
+    const nitToIdMap = new Map<string, string>();
+
+    if (partners.length === 0) return nitToIdMap;
+
+    // Get unique NITs
+    const uniquePartners = new Map<string, PartnerToCreate>();
+    for (const partner of partners) {
+      if (partner.nit && !uniquePartners.has(partner.nit)) {
+        uniquePartners.set(partner.nit, partner);
+      }
+    }
+
+    const uniqueNits = Array.from(uniquePartners.keys());
+
+    // Find existing partners by NIT
+    const existingPartners = await this.findByNits(organizationId, uniqueNits);
+
+    // Build map of existing partners and check for type upgrades
+    const partnersToUpgrade: { id: string; currentType: string }[] = [];
+    for (const existing of existingPartners) {
+      if (existing.nit) {
+        nitToIdMap.set(existing.nit, existing.id);
+
+        // Check if partner needs type upgrade to "both"
+        const requestedPartner = uniquePartners.get(existing.nit);
+        if (requestedPartner && existing.type !== "both") {
+          if (
+            (existing.type === "client" && requestedPartner.type === "vendor") ||
+            (existing.type === "vendor" && requestedPartner.type === "client")
+          ) {
+            partnersToUpgrade.push({ id: existing.id, currentType: existing.type });
+          }
+        }
+      }
+    }
+
+    // Upgrade partners that need to be "both"
+    for (const toUpgrade of partnersToUpgrade) {
+      await this.update(toUpgrade.id, { type: "both" });
+    }
+
+    // Find NITs that need to be created
+    const existingNits = new Set(existingPartners.map((p) => p.nit));
+    const nitsToCreate = uniqueNits.filter((nit) => !existingNits.has(nit));
+
+    // Create missing partners
+    if (nitsToCreate.length > 0) {
+      const partnersData = nitsToCreate.map((nit) => {
+        const partnerData = uniquePartners.get(nit)!;
+        return {
+          organizationId,
+          nit: partnerData.nit,
+          name: partnerData.name,
+          type: partnerData.type,
+        };
+      });
+
+      const createdPartners = await db
+        .insert(businessPartnerModel)
+        .values(partnersData)
+        .returning();
+
+      for (const created of createdPartners) {
+        if (created.nit) {
+          nitToIdMap.set(created.nit, created.id);
+        }
+      }
+    }
+
+    return nitToIdMap;
   }
 }
 

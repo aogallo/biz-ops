@@ -97,6 +97,20 @@ export function SelectedRowDetails({
             </span>
           </div>
         )}
+        {selectedRow.receptorNit && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">NIT Receptor</span>
+            <span className="text-sm font-medium">{selectedRow.receptorNit}</span>
+          </div>
+        )}
+        {selectedRow.receptorName && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Nombre Receptor</span>
+            <span className="max-w-[150px] truncate text-sm font-medium">
+              {selectedRow.receptorName}
+            </span>
+          </div>
+        )}
       </div>
       <div className="mt-4 border-t pt-4">
         <span className="mb-2 block text-sm text-muted-foreground">

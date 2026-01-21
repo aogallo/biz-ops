@@ -50,6 +50,13 @@
       "when": 1768870718581,
       "tag": "0006_thin_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1769013482845,
+      "tag": "0007_tiny_green_goblin",
+      "breakpoints": true
     }
   ]
 }

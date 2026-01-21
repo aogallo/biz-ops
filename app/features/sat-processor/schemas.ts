@@ -16,6 +16,8 @@ export const satFileRowSchema = z.object({
   dteNumber: z.string(),
   emitterNit: z.string().optional(),
   emitterName: z.string().optional(),
+  receptorNit: z.string().optional(),
+  receptorName: z.string().optional(),
   exportation: z.boolean().optional().default(false),
   certificatorNit: z.string().optional(),
   certificatorName: z.string().optional(),

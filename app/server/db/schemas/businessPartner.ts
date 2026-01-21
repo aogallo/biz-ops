@@ -13,6 +13,7 @@ export const businessPartnerModel = pgTable(
     name: text("name").notNull(),
     type: text("type").notNull(), // 'client', 'vendor', 'both'
     email: text("email"),
+    nit: text("nit"),
     ...timestamps,
   },
   (table) => [
@@ -20,6 +21,11 @@ export const businessPartnerModel = pgTable(
     uniqueIndex("business_partner_email_org_idx").on(
       table.organizationId,
       table.email,
+    ),
+    // NIT must be unique per organization (if provided)
+    uniqueIndex("business_partner_nit_org_idx").on(
+      table.organizationId,
+      table.nit,
     ),
   ],
 );

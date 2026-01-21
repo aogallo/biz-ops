@@ -6,7 +6,6 @@ import { Input } from '~/components/ui/input'
 import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import { SatFileColumns } from '~/features/sat-processor/components/Columns'
-import { ProgressStats } from '~/features/sat-processor/components/ProgressStats'
 import { ProTipCard } from '~/features/sat-processor/components/ProTipCard'
 import { QuickActions } from '~/features/sat-processor/components/QuickActions'
 import { SelectedRowDetails } from '~/features/sat-processor/components/SelectedRowDetails'
@@ -125,7 +124,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function SATProcessorIndex({
   loaderData,
 }: Route.ComponentProps) {
-  const { satFiles, accounts, companies, stats } = loaderData
+  const { satFiles, accounts, companies } = loaderData
   const actionData = useActionData<typeof action>()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedRow, setSelectedRow] = useState<SatFile | null>(null)
@@ -149,9 +148,9 @@ export default function SATProcessorIndex({
   })
 
   return (
-    <div className='flex flex-1 overflow-hidden'>
+    <div className='flex flex-1 gap-2 overflow-hidden'>
       <div className='flex-1 overflow-auto'>
-        <div className='space-y-4 p-6 pb-0'>
+        <div className='space-y-4'>
           <UploadDropzone companies={companies} />
 
           {actionData && 'error' in actionData && actionData.error && (
@@ -166,7 +165,7 @@ export default function SATProcessorIndex({
             </div>
           )}
 
-          <ProgressStats stats={stats} />
+          {/* <ProgressStats stats={stats} /> */}
         </div>
 
         <div className='flex flex-1 flex-col overflow-hidden p-6'>
@@ -198,7 +197,7 @@ export default function SATProcessorIndex({
         </div>
       </div>
 
-      <aside className='w-80 flex-shrink-0 overflow-auto border-l p-6'>
+      <aside className='w-80 shrink-0 overflow-auto border-l p-6'>
         <QuickActions />
         <div className='bg-border my-6 h-px' />
         <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />

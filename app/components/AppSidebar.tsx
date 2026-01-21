@@ -138,12 +138,10 @@ const AppSidebar = () => {
           {visibleMenus.map((section) => (
             <SidebarMenuItem key={section.section}>
               <SidebarMenuButton asChild>
-                {/* <Link to={section.}> */}
-                <SidebarMenuItem>
+                <div className='group/menu-item relative'>
                   <section.icon className={cn(section.color)} />
                   <span>{section.section}</span>
-                </SidebarMenuItem>
-                {/* </Link> */}
+                </div>
               </SidebarMenuButton>
               <SidebarMenuSub>
                 {section.items.map((item) => (

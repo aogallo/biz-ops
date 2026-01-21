@@ -26,7 +26,7 @@ export default [
   layout('./layout/AppLayout.tsx', [
     route('/switch-organization', './routes/switch-organization.tsx'),
     ...prefix('organization', [
-      index('./features/organization/routes/index.tsx'),
+      index('./routes/organization/index.tsx'),
       route('/new', './features/organization/routes/create.tsx'),
       route('/:slug', './features/organization/routes/show.tsx'),
     ]),

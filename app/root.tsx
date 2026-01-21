@@ -1,5 +1,6 @@
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -83,13 +84,23 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     stack = error.stack
   }
 
+  const isSessionError =
+    details === 'Failed to get session' || details.includes('session')
+
   return (
     <main className='container mx-auto p-4 pt-16'>
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (
         <pre className='w-full overflow-x-auto p-4'>
-          <code>{stack}</code>
+          {isSessionError ? (
+            <>
+              <code>There are problems with the session</code>
+              <Link to='/login'>Back to Login</Link>
+            </>
+          ) : (
+            <code>{stack}</code>
+          )}
         </pre>
       )}
     </main>

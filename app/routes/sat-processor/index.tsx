@@ -5,18 +5,18 @@ import { DataTable } from '~/components/dataTable/DataTable'
 import { Input } from '~/components/ui/input'
 import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
+import { SatFileColumns } from '~/features/sat-processor/components/Columns'
+import { ProgressStats } from '~/features/sat-processor/components/ProgressStats'
+import { ProTipCard } from '~/features/sat-processor/components/ProTipCard'
+import { QuickActions } from '~/features/sat-processor/components/QuickActions'
+import { SelectedRowDetails } from '~/features/sat-processor/components/SelectedRowDetails'
+import { UploadDropzone } from '~/features/sat-processor/components/UploadDropzone'
+import { invoiceTypeSchema } from '~/features/sat-processor/schemas'
+import { updateAccountAction } from '~/features/sat-processor/server/actions/update-account.action'
+import { uploadSatFileAction } from '~/features/sat-processor/server/actions/upload.action'
+import { satFileRepository } from '~/features/sat-processor/server/repository/sat-file.repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { SatFile } from '~/server/db/schemas/sat-file'
-import { SatFileColumns } from '../components/Columns'
-import { ProgressStats } from '../components/ProgressStats'
-import { ProTipCard } from '../components/ProTipCard'
-import { QuickActions } from '../components/QuickActions'
-import { SelectedRowDetails } from '../components/SelectedRowDetails'
-import { UploadDropzone } from '../components/UploadDropzone'
-import { invoiceTypeSchema } from '../schemas'
-import { updateAccountAction } from '../server/actions/update-account.action'
-import { uploadSatFileAction } from '../server/actions/upload.action'
-import { satFileRepository } from '../server/repository/sat-file.repository'
 import type { Route } from './+types'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -173,7 +173,7 @@ export default function SATProcessorIndex({
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <h2 className='text-lg font-bold'>Processed Invoices</h2>
-              <span className='rounded bg-muted px-2 text-sm text-muted-foreground capitalize'>
+              <span className='bg-muted text-muted-foreground rounded px-2 text-sm capitalize'>
                 {currentMonth}
               </span>
             </div>
@@ -200,7 +200,7 @@ export default function SATProcessorIndex({
 
       <aside className='w-80 flex-shrink-0 overflow-auto border-l p-6'>
         <QuickActions />
-        <div className='my-6 h-px bg-border' />
+        <div className='bg-border my-6 h-px' />
         <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
         <ProTipCard />
       </aside>

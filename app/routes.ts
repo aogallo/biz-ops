@@ -56,9 +56,7 @@ export default [
       route('/:id', './features/roles/routes/show.tsx'),
       route('/:id/edit', './features/roles/routes/edit.tsx'),
     ]),
-    ...prefix('sat-processor', [
-      index('./features/sat-processor/routes/index.tsx'),
-    ]),
+    ...prefix('sat-processor', [index('./routes/sat-processor/index.tsx')]),
     ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
     ...prefix('company', [
       index('./routes/company/index.tsx'),

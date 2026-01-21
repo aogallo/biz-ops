@@ -3,6 +3,7 @@ import { DataTable } from '~/components/dataTable/DataTable'
 import TitleAndActions from '~/components/TitleAndActions'
 import { Button } from '~/components/ui/button'
 import { listCompanies } from '~/features/company/server/loader.server'
+import { useCanPerformAction } from '~/hooks/usePermissions'
 import { CompanyColumns } from '../../features/company/components/Columns'
 import type { Route } from './+types/index'
 
@@ -25,12 +26,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 const CompanyIndex = ({ loaderData }: Route.ComponentProps) => {
   const companies = loaderData
+  const canCreateCompany = useCanPerformAction('company.create')
+
   return (
     <div className='flex-1 p-6'>
       <TitleAndActions title='Companies'>
-        <Link to='/company/new'>
-          <Button>Add Company</Button>
-        </Link>
+        {canCreateCompany && (
+          <Link to='/company/new'>
+            <Button>Add Company</Button>
+          </Link>
+        )}
       </TitleAndActions>
       {companies?.length === 0 ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>

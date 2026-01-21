@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { SquarePenIcon } from 'lucide-react'
-import { Link } from 'react-router'
 import type { Company } from '../schema'
+import RowOperations from './RowOperations'
 
 export const CompanyColumns: ColumnDef<Company>[] = [
   {
@@ -15,17 +14,7 @@ export const CompanyColumns: ColumnDef<Company>[] = [
   {
     id: 'operations',
     header: 'Operations',
-    cell: ({ row }) => {
-      const id = row.getValue('id')
-      return (
-        <div className='flex'>
-          <Link to={`/company/${id}/edit`}>
-            <button className=''>
-              <SquarePenIcon />
-            </button>
-          </Link>
-        </div>
-      )
-    },
+    size: 10,
+    cell: ({ row }) => <RowOperations row={row} />,
   },
 ]

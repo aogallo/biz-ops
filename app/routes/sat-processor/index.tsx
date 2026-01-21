@@ -7,7 +7,6 @@ import { getAccountingAccountsByOrganization } from '~/features/accounting-accou
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import { SatFileColumns } from '~/features/sat-processor/components/Columns'
 import { ProTipCard } from '~/features/sat-processor/components/ProTipCard'
-import { QuickActions } from '~/features/sat-processor/components/QuickActions'
 import { SelectedRowDetails } from '~/features/sat-processor/components/SelectedRowDetails'
 import { UploadDropzone } from '~/features/sat-processor/components/UploadDropzone'
 import { invoiceTypeSchema } from '~/features/sat-processor/schemas'
@@ -198,8 +197,8 @@ export default function SATProcessorIndex({
       </div>
 
       <aside className='w-80 shrink-0 overflow-auto border-l p-6'>
-        <QuickActions />
-        <div className='bg-border my-6 h-px' />
+        {/* <QuickActions /> */}
+        {/* <div className='bg-border my-6 h-px' /> */}
         <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
         <ProTipCard />
       </aside>

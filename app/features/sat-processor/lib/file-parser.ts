@@ -21,7 +21,7 @@ const COLUMN_MAPPING: Record<string, keyof SatFileRow> = {
   'número del dte': 'dteNumber',
   'nit del emisor': 'emitterNit',
   'nombre completo del emisor': 'emitterName',
-  'nit del receptor': 'receptorNit',
+  'id del receptor': 'receptorNit',
   'nombre completo del receptor': 'receptorName',
   exportacion: 'exportation',
   'nit del certificador': 'certificatorNit',

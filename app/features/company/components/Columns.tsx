@@ -9,6 +9,10 @@ export const CompanyColumns: ColumnDef<Company>[] = [
     header: 'Name',
   },
   {
+    accessorKey: 'nit',
+    header: 'NIT',
+  },
+  {
     id: 'operations',
     header: 'Operations',
     cell: ({ row }) => {

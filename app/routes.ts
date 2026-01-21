@@ -61,7 +61,7 @@ export default [
     ]),
     ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
     ...prefix('company', [
-      index('./features/company/routes/index.tsx'),
+      index('./routes/company/index.tsx'),
       route('/new', './features/company/routes/create.tsx'),
       route('/:companyId', './features/company/routes/show.tsx'),
     ]),

@@ -11,22 +11,22 @@ export function ProgressStats({ stats }: ProgressStatsProps) {
     : 0
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+    <div className="rounded-lg border bg-muted p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+        <span className="text-sm font-medium text-muted-foreground">
           Auto-Categorization Progress
         </span>
-        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+        <span className="text-sm font-bold text-foreground">
           {percentage}%
         </span>
       </div>
       <Progress value={percentage} className="mb-4" />
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-md bg-slate-100 p-2 text-center dark:bg-slate-900">
-          <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
+        <div className="rounded-md bg-secondary p-2 text-center">
+          <div className="text-lg font-bold text-foreground">
             {stats.total}
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-xs text-muted-foreground">
             Total Rows
           </div>
         </div>

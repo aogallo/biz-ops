@@ -5,11 +5,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
+  type LoaderFunctionArgs,
 } from 'react-router'
 import { Toaster } from 'sonner'
 
+import { ThemeProvider, useTheme } from 'remix-themes'
 import type { Route } from './+types/root'
 import './app.css'
+import { cn } from './lib/utils'
+import { themeSessionResolver } from './server/sessions.server'
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -24,9 +29,15 @@ export const links: Route.LinksFunction = () => [
   },
 ]
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const { getTheme } = await themeSessionResolver(request)
+  return { theme: getTheme() }
+}
+
+function Document({ children }: { children: React.ReactNode }) {
+  const [theme] = useTheme()
   return (
-    <html lang='en'>
+    <html lang='en' className={cn(theme)}>
       <head>
         <meta charSet='utf-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
@@ -40,6 +51,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>()
+  return (
+    <ThemeProvider specifiedTheme={data.theme} themeAction='/action/set-theme'>
+      <Document>{children}</Document>
+    </ThemeProvider>
   )
 }
 

@@ -94,7 +94,7 @@ export default function BusinessPartnersIndex({
       case 'both':
         return 'bg-purple-100 text-purple-700'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-muted text-muted-foreground'
     }
   }
 

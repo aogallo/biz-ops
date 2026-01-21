@@ -132,7 +132,7 @@ body {
   }
 
   body {
-    @apply bg-slate-50 text-foreground dark:bg-gray-950;
+    @apply bg-background text-foreground;
   }
 
   :root {

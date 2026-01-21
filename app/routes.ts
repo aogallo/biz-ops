@@ -13,6 +13,9 @@ export default [
   // API Routes
   route('/api/auth/*', 'routes/api.auth.$.tsx'), // Required by Better Auth
 
+  // Theme action
+  route('/action/set-theme', 'routes/action.set-theme.tsx'),
+
   // Public invitation acceptance
   route(
     '/invitation/accept/:token',

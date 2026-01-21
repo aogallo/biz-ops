@@ -41,7 +41,7 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
   const navigation = useNavigation()
   return (
     <div className='flex-1 space-y-8 overflow-y-auto'>
-      <div className='flex flex-col items-start justify-between gap-6 rounded-xl border border-slate-100 bg-white p-8 shadow-sm md:flex-row md:items-end dark:border-gray-800 dark:bg-gray-900'>
+      <div className='flex flex-col items-start justify-between gap-6 rounded-xl border bg-card p-8 shadow-sm md:flex-row md:items-end'>
         <div className='flex items-center gap-6'>
           <h2
             className='shadow-primary/20 flex size-24 items-center justify-center rounded-2xl bg-linear-to-br from-teal-200 to-teal-600 text-3xl font-bold text-white shadow-lg'

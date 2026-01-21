@@ -3,8 +3,8 @@ import { Link } from 'react-router'
 
 const AppointmentSummary = () => {
   return (
-    <section className='dark:bg-card-dark col-span-12 flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-4 dark:border-slate-800'>
-      <div className='flex items-center justify-between border-b border-slate-100 p-5 dark:border-slate-800'>
+    <section className='col-span-12 flex flex-col rounded-2xl border bg-card shadow-sm lg:col-span-4'>
+      <div className='flex items-center justify-between border-b p-5'>
         <h3 className='flex items-center gap-2 text-lg font-bold text-blue-600'>
           <CalendarPlus2 />
           Appointments
@@ -31,13 +31,13 @@ const AppointmentSummary = () => {
             <p className='w-12 text-center text-xs font-bold text-slate-400'>
               10:30
             </p>
-            <div className='h-px flex-1 bg-slate-500 dark:bg-slate-800' />
+            <div className='h-px flex-1 bg-border' />
           </div>
           <div className='flex items-center gap-4 px-2'>
             <p className='w-12 text-center text-xs font-bold text-slate-400'>
               11:00
             </p>
-            <div className='flex-1 rounded-xl border border-e-slate-100 bg-white p-3 dark:border-slate-700 dark:bg-slate-800'>
+            <div className='flex-1 rounded-xl border bg-card p-3'>
               <p className='text-xs font-bold'> Mria Garcia</p>
               <p className='text-[10px] text-slate-500'> Service: Consulting</p>
             </div>
@@ -45,7 +45,7 @@ const AppointmentSummary = () => {
         </div>
       </div>
       <Link
-        className='hover:border-primary hover:text-primary m-5 rounded-xl border-2 border-dashed border-slate-200 py-3 text-xs font-bold text-slate-500 transition-all dark:border-slate-700'
+        className='hover:border-primary hover:text-primary m-5 rounded-xl border-2 border-dashed border-border py-3 text-xs font-bold text-muted-foreground transition-all'
         to='/appointments/calendar'
       >
         Go to Calendar

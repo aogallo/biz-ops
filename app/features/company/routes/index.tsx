@@ -6,7 +6,7 @@ import { CompanyColumns } from '../components/Columns'
 
 const CompanyIndex = () => {
   return (
-    <div className='flex-1 bg-slate-50/50 p-6'>
+    <div className='flex-1 p-6'>
       <TitleAndActions title='Companies'>
         <Link to='/company/new'>
           <Button>Add Company</Button>

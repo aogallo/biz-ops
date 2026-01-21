@@ -67,7 +67,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     >
       <SidebarProvider>
         <AppSidebar />
-        <div className='flex min-h-screen flex-1 flex-col bg-slate-50/50'>
+        <div className='flex min-h-screen flex-1 flex-col bg-background'>
           <SiteHeader />
           <main className='container mx-auto mt-1 gap-1 self-stretch p-6 px-4 py-6 lg:gap-2 lg:px-6'>
             <Outlet />

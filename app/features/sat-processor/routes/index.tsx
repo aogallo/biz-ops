@@ -173,7 +173,7 @@ export default function SATProcessorIndex({
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <h2 className='text-lg font-bold'>Processed Invoices</h2>
-              <span className='rounded bg-slate-100 px-2 text-sm text-slate-500 capitalize dark:bg-slate-800'>
+              <span className='rounded bg-muted px-2 text-sm text-muted-foreground capitalize'>
                 {currentMonth}
               </span>
             </div>
@@ -198,9 +198,9 @@ export default function SATProcessorIndex({
         </div>
       </div>
 
-      <aside className='w-80 flex-shrink-0 overflow-auto border-l border-slate-200 p-6 dark:border-slate-700'>
+      <aside className='w-80 flex-shrink-0 overflow-auto border-l p-6'>
         <QuickActions />
-        <div className='my-6 h-px bg-slate-200 dark:bg-slate-800' />
+        <div className='my-6 h-px bg-border' />
         <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
         <ProTipCard />
       </aside>

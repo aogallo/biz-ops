@@ -34,7 +34,7 @@ const BranchDistribution = ({
             </div>
             <Progress
               value={branch.percentage}
-              className='h-2 bg-slate-200 dark:bg-slate-700 [&>div]:bg-teal-500'
+              className='h-2 bg-muted [&>div]:bg-teal-500'
             />
           </div>
         ))}

@@ -39,10 +39,10 @@ export function SelectedRowDetails({
   if (!selectedRow) {
     return (
       <div>
-        <h3 className="mb-4 mt-6 text-sm font-bold uppercase tracking-wider text-slate-500">
+        <h3 className="mb-4 mt-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">
           Selected Row Details
         </h3>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/50">
+        <div className="rounded-lg border bg-muted p-4 text-center text-sm text-muted-foreground">
           Select a row to view details
         </div>
       </div>
@@ -51,55 +51,55 @@ export function SelectedRowDetails({
 
   return (
     <div>
-      <h3 className="mb-4 mt-6 text-sm font-bold uppercase tracking-wider text-slate-500">
+      <h3 className="mb-4 mt-6 text-sm font-bold uppercase tracking-wider text-muted-foreground">
         Selected Row Details
       </h3>
-      <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+      <div className="space-y-3 rounded-lg border bg-muted p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-500">Document Type</span>
-          <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-bold dark:bg-slate-700">
+          <span className="text-sm text-muted-foreground">Document Type</span>
+          <span className="rounded bg-secondary px-2 py-0.5 text-xs font-bold">
             {selectedRow.dteType}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-500">Serie/Document</span>
+          <span className="text-sm text-muted-foreground">Serie/Document</span>
           <span className="text-sm font-medium">
             {selectedRow.serie}-{selectedRow.dteNumber}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-500">Total</span>
+          <span className="text-sm text-muted-foreground">Total</span>
           <span className="text-sm font-medium">
             Q {selectedRow.total.toFixed(2)}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-500">IVA</span>
+          <span className="text-sm text-muted-foreground">IVA</span>
           <span className="text-sm font-medium">
             Q {selectedRow.iva.toFixed(2)}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-500">Currency</span>
+          <span className="text-sm text-muted-foreground">Currency</span>
           <span className="text-sm font-medium">{selectedRow.money}</span>
         </div>
         {selectedRow.emitterNit && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-500">NIT Emisor</span>
+            <span className="text-sm text-muted-foreground">NIT Emisor</span>
             <span className="text-sm font-medium">{selectedRow.emitterNit}</span>
           </div>
         )}
         {selectedRow.emitterName && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-500">Nombre Emisor</span>
+            <span className="text-sm text-muted-foreground">Nombre Emisor</span>
             <span className="max-w-[150px] truncate text-sm font-medium">
               {selectedRow.emitterName}
             </span>
           </div>
         )}
       </div>
-      <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700">
-        <span className="mb-2 block text-sm text-slate-500">
+      <div className="mt-4 border-t pt-4">
+        <span className="mb-2 block text-sm text-muted-foreground">
           Accounting Account
         </span>
         <Select
@@ -124,7 +124,7 @@ export function SelectedRowDetails({
           </SelectContent>
         </Select>
         {isUpdating && (
-          <p className="mt-2 text-xs text-slate-500">Updating...</p>
+          <p className="mt-2 text-xs text-muted-foreground">Updating...</p>
         )}
       </div>
     </div>

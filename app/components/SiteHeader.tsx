@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
+import { ModeToggle } from './ui/mode-toggle'
 import { Separator } from './ui/separator'
 import { SidebarTrigger } from './ui/sidebar'
 import {
@@ -204,6 +205,7 @@ const SiteHeader = () => {
             orientation='vertical'
             className='mx-1 hidden data-[orientation=vertical]:h-4 md:block'
           />
+          <ModeToggle />
           <NotificationBell />
           <UserProfileDropdown />
         </div>

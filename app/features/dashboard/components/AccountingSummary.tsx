@@ -2,8 +2,8 @@ import { BanknoteArrowUpIcon } from 'lucide-react'
 
 const AccountingSummary = () => {
   return (
-    <section className='dark:bg-card-dark col-span-12 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-8 dark:border-slate-800'>
-      <div className='dark:bg-card-dark flex items-center justify-between border-b border-slate-100 bg-white p-5 dark:border-slate-800'>
+    <section className='col-span-12 overflow-hidden rounded-2xl border bg-card shadow-sm lg:col-span-8'>
+      <div className='flex items-center justify-between border-b bg-card p-5'>
         <h2 className='flex items-center gap-2 text-lg font-bold text-emerald-600'>
           <BanknoteArrowUpIcon />
           AccountingSummary
@@ -26,7 +26,7 @@ const AccountingSummary = () => {
 
       <div className='p-6'>
         <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
-          <div className='rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50'>
+          <div className='rounded-xl bg-muted p-4'>
             <p className='mb-1 text-xs font-bold text-slate-500 uppercase'>
               Pending Invoices
             </p>
@@ -35,7 +35,7 @@ const AccountingSummary = () => {
               Due this week
             </p>
           </div>
-          <div className='rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50'>
+          <div className='rounded-xl bg-muted p-4'>
             <p className='mb-1 text-xs font-bold text-slate-500 uppercase'>
               tax provisions
             </p>
@@ -44,7 +44,7 @@ const AccountingSummary = () => {
               Ready for SAT
             </p>
           </div>
-          <div className='rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50'>
+          <div className='rounded-xl bg-muted p-4'>
             <p className='mb-1 text-xs font-bold text-slate-500 uppercase'>
               Net Profit
             </p>

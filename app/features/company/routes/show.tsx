@@ -1,6 +1,10 @@
-import { Hash, MapPinCheck, TrendingUpIcon } from 'lucide-react'
+import { Hash, MapPinCheck } from 'lucide-react'
+import { useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { requireAuth } from '~/server/auth/session.server'
+import SkeletonStatCard from '../components/SkeletonStatCard'
+import StatCard from '../components/StatCard'
 import { getCompanyById } from '../server/loaders'
 import type { Route } from './+types/show'
 
@@ -23,6 +27,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
   const company = loaderData.company
+  const navigation = useNavigation()
   return (
     <div className='flex-1 space-y-8 overflow-y-auto'>
       <div className='flex flex-col items-start justify-between gap-6 rounded-xl border border-slate-100 bg-white p-8 shadow-sm md:flex-row md:items-end dark:border-gray-800 dark:bg-gray-900'>
@@ -60,27 +65,65 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
-        <section className='group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900'>
-          <div className='bg-primary absolute top-0 left-0 h-full w-1'></div>
-          <p className='mb-1 text-xs font-bold tracking-wider text-[#508a95] uppercase'>
-            Total Invoices
-          </p>
-          <div className='flex items-baseline gap-2'>
-            <h3 className='text-2xl font-extrabold text-[#0e181b] dark:text-white'>
-              1,200
-            </h3>
-            <span className='flex items-center text-sm font-bold text-green-600 dark:text-green-400'>
-              12%
-              <TrendingUpIcon />
-            </span>
+      {/* Tabs */}
+      <Tabs defaultValue='overview' className='w-full'>
+        <TabsList>
+          <TabsTrigger value='overview'>Overview</TabsTrigger>
+          <TabsTrigger value='financials'>Financials</TabsTrigger>
+          <TabsTrigger value='documents'>Documents</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value='overview' className='mt-6'>
+          {/* Stats Grid */}
+          {navigation.state === 'loading' ? (
+            <SkeletonStatCard />
+          ) : (
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+              <StatCard
+                title='Total Invoices'
+                variant='default'
+                size='sm'
+                progress={10}
+                value={1200}
+              />
+              <StatCard
+                title='Cuentas por Pagar'
+                variant='purple'
+                size='sm'
+                value={999999}
+                trendDirection='down'
+              />
+              <StatCard
+                title='Cuentas por Cobrar'
+                variant='warning'
+                size='sm'
+                value={29291}
+                trendDirection='up'
+              />
+              <StatCard
+                title='Overdue Invoices'
+                variant='success'
+                size='sm'
+                progress={40}
+                isPercentage
+                value={12.1}
+              />
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value='financials' className='mt-6'>
+          <div className='text-muted-foreground'>
+            Financial information will be displayed here.
           </div>
-          <div className='mt-4 h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800'>
-            <div className='bg-primary h-full w-[75%] rounded-full'></div>
+        </TabsContent>
+
+        <TabsContent value='documents' className='mt-6'>
+          <div className='text-muted-foreground'>
+            Documents will be displayed here.
           </div>
-        </section>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

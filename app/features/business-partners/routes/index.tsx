@@ -157,6 +157,7 @@ export default function BusinessPartnersIndex({
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>NIT</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Created</TableHead>
@@ -167,6 +168,7 @@ export default function BusinessPartnersIndex({
               {partners.map((partner) => (
                 <TableRow key={partner.id}>
                   <TableCell className='font-medium'>{partner.name}</TableCell>
+                  <TableCell className='font-medium'>{partner.nit}</TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeBadgeColor(

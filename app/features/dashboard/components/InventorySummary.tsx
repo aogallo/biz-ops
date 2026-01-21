@@ -3,8 +3,8 @@ import { Link } from 'react-router'
 
 const InventorySummary = () => {
   return (
-    <section className='col-span-12 overflow-hidden rounded-2xl border bg-card shadow-sm lg:col-span-4'>
-      <div className='border-b bg-muted p-5'>
+    <section className='bg-card col-span-12 overflow-hidden rounded-2xl border shadow-sm lg:col-span-4'>
+      <div className='border-b p-5'>
         <h3 className='flex items-center gap-2 text-lg font-bold text-amber-600'>
           <CirclePile />
           Inventory Alerts
@@ -16,7 +16,7 @@ const InventorySummary = () => {
             <p className='text-sm font-bold'> Cloud Nodes X</p>
             <p className='text-xs font-bold text-rose-500'>Critical: 12 left</p>
           </div>
-          <div className='h-2 w-full overflow-hidden rounded-full bg-muted'>
+          <div className='bg-muted h-2 w-full overflow-hidden rounded-full'>
             <div className='h-full w-[15%] bg-rose-500' />
           </div>
         </div>
@@ -25,7 +25,7 @@ const InventorySummary = () => {
             <p className='text-sm font-bold'>Security Hubs</p>
             <p className='text-xs font-bold text-amber-500'>Low: 54 left</p>
           </div>
-          <div className='h-2 w-full overflow-hidden rounded-full bg-muted'>
+          <div className='bg-muted h-2 w-full overflow-hidden rounded-full'>
             <div className='h-full w-[45%] bg-amber-500' />
           </div>
         </div>

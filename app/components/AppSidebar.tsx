@@ -37,7 +37,7 @@ export const navigationItems = [
   {
     section: 'Admin',
     icon: Drumstick,
-    color: 'text-gray-500',
+    color: 'text-rose-500',
     items: [
       { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
       { name: 'Organization', path: '/organization', icon: Building2 },

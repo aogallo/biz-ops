@@ -1,8 +1,19 @@
-import { Hash, MapPinCheck } from 'lucide-react'
+import {
+  Clock,
+  FolderClosed,
+  Hash,
+  Info,
+  Landmark,
+  MapPinCheck,
+} from 'lucide-react'
 import { useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { requireAuth } from '~/server/auth/session.server'
+import AccountHealthCard from '../components/AccountHealthCard'
+import BranchDistribution from '../components/BranchDistribution'
+import ContactCard from '../components/ContactCard'
+import LegalInformation from '../components/LegalInformation'
 import SkeletonStatCard from '../components/SkeletonStatCard'
 import StatCard from '../components/StatCard'
 import { getCompanyById } from '../server/loaders'
@@ -68,9 +79,22 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
       {/* Tabs */}
       <Tabs defaultValue='overview' className='w-full'>
         <TabsList>
-          <TabsTrigger value='overview'>Overview</TabsTrigger>
-          <TabsTrigger value='financials'>Financials</TabsTrigger>
-          <TabsTrigger value='documents'>Documents</TabsTrigger>
+          <TabsTrigger value='overview' className='gap-1.5'>
+            <Info className='size-4' />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value='financials' className='gap-1.5'>
+            <Landmark className='size-4' />
+            Financials
+          </TabsTrigger>
+          <TabsTrigger value='documents' className='gap-1.5'>
+            <FolderClosed className='size-4' />
+            Documents
+          </TabsTrigger>
+          <TabsTrigger value='activity' className='gap-1.5'>
+            <Clock className='size-4' />
+            Activity Log
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value='overview' className='mt-6'>
@@ -78,36 +102,58 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
           {navigation.state === 'loading' ? (
             <SkeletonStatCard />
           ) : (
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-              <StatCard
-                title='Total Invoices'
-                variant='default'
-                size='sm'
-                progress={10}
-                value={1200}
-              />
-              <StatCard
-                title='Cuentas por Pagar'
-                variant='purple'
-                size='sm'
-                value={999999}
-                trendDirection='down'
-              />
-              <StatCard
-                title='Cuentas por Cobrar'
-                variant='warning'
-                size='sm'
-                value={29291}
-                trendDirection='up'
-              />
-              <StatCard
-                title='Overdue Invoices'
-                variant='success'
-                size='sm'
-                progress={40}
-                isPercentage
-                value={12.1}
-              />
+            <div className='space-y-8'>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                <StatCard
+                  title='Total Invoices'
+                  variant='default'
+                  size='sm'
+                  progress={10}
+                  value={1200}
+                />
+                <StatCard
+                  title='Cuentas por Pagar'
+                  variant='purple'
+                  size='sm'
+                  value={999999}
+                  trendDirection='down'
+                />
+                <StatCard
+                  title='Cuentas por Cobrar'
+                  variant='warning'
+                  size='sm'
+                  value={29291}
+                  trendDirection='up'
+                />
+                <StatCard
+                  title='Overdue Invoices'
+                  variant='success'
+                  size='sm'
+                  progress={40}
+                  isPercentage
+                  value={12.1}
+                />
+              </div>
+
+              {/* Two-column layout */}
+              <div className='grid grid-cols-1 gap-8 lg:grid-cols-3'>
+                {/* Left column - 2/3 width */}
+                <div className='space-y-8 lg:col-span-2'>
+                  <LegalInformation
+                    company={{
+                      name: company?.name,
+                      nit: company?.nit,
+                    }}
+                  />
+                  <ContactCard />
+                </div>
+
+                {/* Right column - 1/3 width */}
+                <div className='space-y-6'>
+                  <AccountHealthCard />
+                  <BranchDistribution />
+                </div>
+              </div>
             </div>
           )}
         </TabsContent>
@@ -121,6 +167,12 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
         <TabsContent value='documents' className='mt-6'>
           <div className='text-muted-foreground'>
             Documents will be displayed here.
+          </div>
+        </TabsContent>
+
+        <TabsContent value='activity' className='mt-6'>
+          <div className='text-muted-foreground'>
+            Activity log will be displayed here.
           </div>
         </TabsContent>
       </Tabs>

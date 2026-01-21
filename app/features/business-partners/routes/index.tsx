@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router'
+import TitleAndActions from '~/components/TitleAndActions'
 import { Button } from '~/components/ui/button'
 import {
   Select,
@@ -93,25 +94,22 @@ export default function BusinessPartnersIndex({
       case 'both':
         return 'bg-purple-100 text-purple-700'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
   return (
     <div className='p-6'>
-      <div className='mb-6 flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold'>Business Partners</h1>
-          <p className='text-muted-foreground'>
-            Manage your clients and vendors
-          </p>
-        </div>
+      <TitleAndActions
+        title='Business Partners'
+        subtitle='Manage your clients and vendors'
+      >
         {canCreatePartner && (
           <Link to='/business-partners/new'>
             <Button>Add Partner</Button>
           </Link>
         )}
-      </div>
+      </TitleAndActions>
 
       <div className='mb-4 flex items-center gap-4'>
         <Select

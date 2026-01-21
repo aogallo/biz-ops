@@ -13,6 +13,9 @@ export default [
   // API Routes
   route('/api/auth/*', 'routes/api.auth.$.tsx'), // Required by Better Auth
 
+  // Theme action
+  route('/action/set-theme', 'routes/action.set-theme.tsx'),
+
   // Public invitation acceptance
   route(
     '/invitation/accept/:token',
@@ -52,6 +55,15 @@ export default [
       route('/new', './features/roles/routes/create.tsx'),
       route('/:id', './features/roles/routes/show.tsx'),
       route('/:id/edit', './features/roles/routes/edit.tsx'),
+    ]),
+    ...prefix('sat-processor', [
+      index('./features/sat-processor/routes/index.tsx'),
+    ]),
+    ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
+    ...prefix('company', [
+      index('./features/company/routes/index.tsx'),
+      route('/new', './features/company/routes/create.tsx'),
+      route('/:companyId', './features/company/routes/show.tsx'),
     ]),
   ]),
 ] satisfies RouteConfig

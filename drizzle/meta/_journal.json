@@ -15,6 +15,41 @@
       "when": 1768261800788,
       "tag": "0001_demonic_dragon_lord",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768590889603,
+      "tag": "0002_sharp_wolverine",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1768833518551,
+      "tag": "0003_magical_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768838341472,
+      "tag": "0004_fearless_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1768869229678,
+      "tag": "0005_elite_mesmero",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768870718581,
+      "tag": "0006_thin_slyde",
+      "breakpoints": true
     }
   ]
 }

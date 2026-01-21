@@ -1,8 +1,10 @@
 import {
   Banknote,
   Building2,
+  BuildingIcon,
   Calendar1,
   CalendarDays,
+  ChartColumnBig,
   Drumstick,
   FolderTreeIcon,
   LogOut,
@@ -14,7 +16,7 @@ import {
   Truck,
   Users,
 } from 'lucide-react'
-import { Form, Link } from 'react-router'
+import { Form, Link, NavLink } from 'react-router'
 import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
 import { useFilteredNavigation } from '~/hooks/usePermissions'
 import { cn } from '~/lib/utils'
@@ -35,12 +37,14 @@ export const navigationItems = [
   {
     section: 'Admin',
     icon: Drumstick,
-    color: 'text-gray-500',
+    color: 'text-rose-500',
     items: [
+      { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
       { name: 'Organization', path: '/organization', icon: Building2 },
       { name: 'Users', path: '/users', icon: Users },
       { name: 'Roles', path: '/roles', icon: Users },
       { name: 'Business Partners', path: '/business-partners', icon: Users },
+      { name: 'Companies', path: '/company', icon: BuildingIcon },
       { name: 'Invitations', path: '/invitations', icon: Mail },
     ],
   },
@@ -57,7 +61,7 @@ export const navigationItems = [
   {
     section: 'Accounting',
     icon: Building2,
-    color: 'text-emeral-500',
+    color: 'text-green-500',
     items: [
       { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
       { name: 'Expenses', path: '/expenses', icon: Banknote },
@@ -144,12 +148,19 @@ const AppSidebar = () => {
               <SidebarMenuSub>
                 {section.items.map((item) => (
                   <SidebarMenuSubItem key={item.name}>
-                    <SidebarMenuButton asChild>
-                      <Link to={item.path}>
+                    <NavLink
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'bg-blue-800 font-semibold text-blue-500'
+                          : ''
+                      }
+                      to={item.path}
+                    >
+                      <SidebarMenuButton>
                         <item.icon />
                         <span> {item.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
+                      </SidebarMenuButton>
+                    </NavLink>
                   </SidebarMenuSubItem>
                 ))}
               </SidebarMenuSub>

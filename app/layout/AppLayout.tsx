@@ -1,5 +1,6 @@
-import { Outlet } from 'react-router'
+import { Outlet, redirect, useNavigation } from 'react-router'
 import AppSidebar from '~/components/AppSidebar'
+import { PageSkeleton } from '~/components/skeleton/PageSkeleton'
 import SiteHeader from '~/components/SiteHeader'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AuthProvider } from '~/contexts/AuthContext'
@@ -12,6 +13,7 @@ import type { Route } from './+types/AppLayout'
 // Add loader to require authentication and load permissions
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  if (session) redirect('/login')
   const userId = session.user.id
   const organizationId = session.session.activeOrganizationId
 
@@ -56,6 +58,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
+  const navigation = useNavigation()
+  const isNavigating = navigation.state === 'loading'
+
   return (
     <AuthProvider
       value={{
@@ -66,10 +71,13 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     >
       <SidebarProvider>
         <AppSidebar />
-        <div className='flex-1'>
+        <div className='flex min-h-screen flex-1 flex-col bg-background'>
           <SiteHeader />
-          <main className='container mx-auto mt-1 gap-1 self-stretch p-6 px-4 py-6 lg:gap-2 lg:px-6'>
-            <Outlet />
+          <main
+            className='container mx-auto mt-1 gap-1 self-stretch p-6 px-4 py-6 lg:gap-2 lg:px-6'
+            aria-busy={isNavigating}
+          >
+            {isNavigating ? <PageSkeleton /> : <Outlet />}
           </main>
         </div>
       </SidebarProvider>

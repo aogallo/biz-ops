@@ -34,7 +34,18 @@ export interface CustomPermission {
   action: string;
 }
 
+export interface OrganizationData {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string | null;
+  isAdmin: boolean;
+}
+
 export interface InvitationFormData {
+  // Organization selection
+  organizationId: string | null;
+
   // Step 1: User Information
   email: string;
   name: string;

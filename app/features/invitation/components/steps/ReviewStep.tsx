@@ -4,6 +4,7 @@ interface ReviewStepProps {
   state: WizardState
   roles: RoleData[]
   permissions: PermissionData[]
+  organizationName: string
   previousStep: () => void
   goToStep: (step: 1 | 2 | 3 | 4) => void
   onSubmit: () => void
@@ -14,6 +15,7 @@ export function ReviewStep({
   state,
   roles,
   permissions,
+  organizationName,
   previousStep,
   goToStep,
   onSubmit,
@@ -46,6 +48,16 @@ export function ReviewStep({
       </div>
 
       <div className='divide-y rounded-lg border'>
+        {/* Organization */}
+        <div className='p-4'>
+          <div className='mb-2 flex items-center justify-between'>
+            <h3 className='font-medium'>Organization</h3>
+          </div>
+          <div className='text-sm'>
+            <span className='font-medium'>{organizationName}</span>
+          </div>
+        </div>
+
         {/* User Info */}
         <div className='p-4'>
           <div className='mb-2 flex items-center justify-between'>
@@ -182,8 +194,9 @@ export function ReviewStep({
       {/* Note */}
       <div className='rounded-lg bg-blue-50 p-4 text-sm'>
         <p>
-          An invitation email will be sent to <strong>{state.email}</strong>{' '}
-          after you click &quot;Send Invitation&quot;.
+          An invitation email will be sent to <strong>{state.email}</strong> to
+          join <strong>{organizationName}</strong> after you click &quot;Send
+          Invitation&quot;.
         </p>
       </div>
 

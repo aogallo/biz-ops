@@ -1,15 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useFetcher } from "react-router";
 import { useInvitationWizard } from "../hooks/useInvitationWizard";
 import { UserInformationStep } from "./steps/UserInformationStep";
 import { RoleAssignmentStep } from "./steps/RoleAssignmentStep";
 import { PermissionsStep } from "./steps/PermissionsStep";
 import { ReviewStep } from "./steps/ReviewStep";
-import type { RoleData, PermissionData } from "../types";
+import type { RoleData, PermissionData, OrganizationData } from "../types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Label } from "~/components/ui/label";
+import { Building2, Loader2 } from "lucide-react";
 
 interface InvitationWizardProps {
-  roles: RoleData[];
+  organizations: OrganizationData[];
+  isSuperAdmin: boolean;
+  defaultOrganizationId: string | null;
+  initialRoles: RoleData[];
   permissions: PermissionData[];
   onSubmit: (data: {
+    organizationId: string;
     email: string;
     name: string;
     roleId: string | null;
@@ -22,7 +36,10 @@ interface InvitationWizardProps {
 }
 
 export function InvitationWizard({
-  roles,
+  organizations,
+  isSuperAdmin,
+  defaultOrganizationId,
+  initialRoles,
   permissions,
   onSubmit,
 }: InvitationWizardProps) {
@@ -36,14 +53,49 @@ export function InvitationWizard({
     selectAllPermissionsForResource,
     addCustomPermission,
     removeCustomPermission,
+    setOrganization,
   } = useInvitationWizard();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [roles, setRoles] = useState<RoleData[]>(initialRoles);
+  const rolesFetcher = useFetcher<{ roles: RoleData[] }>();
+
+  // Initialize organization on mount
+  useEffect(() => {
+    if (defaultOrganizationId && !state.organizationId) {
+      updateField("organizationId", defaultOrganizationId);
+    }
+  }, [defaultOrganizationId, state.organizationId, updateField]);
+
+  // Update roles when fetcher returns data
+  useEffect(() => {
+    if (rolesFetcher.data?.roles) {
+      setRoles(rolesFetcher.data.roles);
+    }
+  }, [rolesFetcher.data]);
+
+  const handleOrganizationChange = (organizationId: string) => {
+    setOrganization(organizationId);
+    // Fetch roles for the new organization
+    rolesFetcher.load(`/invitations/roles?organizationId=${organizationId}`);
+  };
+
+  const selectedOrganization = organizations.find(
+    (org) => org.id === (state.organizationId || defaultOrganizationId)
+  );
+
+  const isLoadingRoles = rolesFetcher.state === "loading";
 
   const handleSubmit = async () => {
+    const organizationId = state.organizationId || defaultOrganizationId;
+    if (!organizationId) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit({
+        organizationId,
         email: state.email,
         name: state.name,
         roleId: state.roleId,
@@ -60,6 +112,49 @@ export function InvitationWizard({
 
   return (
     <div className="mx-auto max-w-3xl">
+      {/* Organization Selector */}
+      <div className="mb-6 rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <Label htmlFor="organization-select" className="text-sm font-medium">
+            Organization
+          </Label>
+        </div>
+        {isSuperAdmin ? (
+          <Select
+            value={state.organizationId || defaultOrganizationId || ""}
+            onValueChange={handleOrganizationChange}
+            disabled={isLoadingRoles}
+          >
+            <SelectTrigger id="organization-select" className="w-full">
+              <SelectValue placeholder="Select organization" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <div>
+            <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2 text-sm">
+              <span className="font-medium">{selectedOrganization?.name}</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              You can only invite users to your active organization
+            </p>
+          </div>
+        )}
+        {isLoadingRoles && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Loading roles...
+          </div>
+        )}
+      </div>
+
       {/* Progress Indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -150,6 +245,7 @@ export function InvitationWizard({
             state={state}
             roles={roles}
             permissions={permissions}
+            organizationName={selectedOrganization?.name || ""}
             previousStep={previousStep}
             goToStep={goToStep}
             onSubmit={handleSubmit}

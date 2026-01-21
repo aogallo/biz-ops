@@ -45,6 +45,7 @@ export default [
     ...prefix('invitations', [
       index('./features/invitation/routes/index.tsx'),
       route('/new', './features/invitation/routes/new.tsx'),
+      route('/roles', './features/invitation/routes/roles.tsx'),
     ]),
     ...prefix('users', [
       index('./features/users/routes/index.tsx'),

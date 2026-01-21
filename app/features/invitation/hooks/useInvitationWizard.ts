@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { WizardState, CustomPermission } from "../types";
 
 const initialState: WizardState = {
+  organizationId: null,
   email: "",
   name: "",
   roleId: null,
@@ -132,6 +133,19 @@ export function useInvitationWizard() {
     setState(initialState);
   };
 
+  const setOrganization = (organizationId: string) => {
+    setState((prev) => ({
+      ...prev,
+      organizationId,
+      // Reset role-related fields when organization changes
+      roleId: null,
+      createNewRole: false,
+      newRoleName: "",
+      newRoleDescription: "",
+      selectedPermissions: [],
+    }));
+  };
+
   return {
     state,
     updateField,
@@ -144,5 +158,6 @@ export function useInvitationWizard() {
     addCustomPermission,
     removeCustomPermission,
     reset,
+    setOrganization,
   };
 }

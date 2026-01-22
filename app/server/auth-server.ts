@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "../server/db";
-import { getInitialOrganization } from "./auth/organization.server";
+import { getInitialOrganization } from "./auth/organization-queries.server";
 import {
   assignRole,
   createSystemRoles,

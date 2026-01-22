@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { Form, redirect } from 'react-router'
+import { Form, redirect, useNavigation } from 'react-router'
 import auth from '~/server/auth-server'
 import { db } from '~/server/db'
 import {
@@ -186,6 +186,8 @@ export default function AcceptInvitation({
 }: Route.ComponentProps) {
   const { invitation, error: loaderError } = loaderData
   const actionError = actionData?.error
+  const navigation = useNavigation()
+  const isLoading = navigation.state === 'submitting'
 
   if (loaderError || !invitation) {
     return (
@@ -286,6 +288,7 @@ export default function AcceptInvitation({
             <button
               type='submit'
               className='bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md px-4 py-2 text-sm font-medium'
+              disabled={isLoading}
             >
               Create Account & Join
             </button>

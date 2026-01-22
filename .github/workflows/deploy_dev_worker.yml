@@ -18,6 +18,11 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          npm run db:migrate
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:

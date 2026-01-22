@@ -186,8 +186,6 @@ export async function getUserOrganizations(userId: string) {
         eq(memberModel.organizationId, organizationModel.id)
       )
 
-    console.log('allOrgs', allOrgs)
-
     // Return in same format but without membership data for non-member orgs
     return allOrgs.map((data) => ({
       membership: {

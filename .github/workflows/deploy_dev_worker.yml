@@ -18,6 +18,11 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Debug DB
+        env:
+          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+        run: |
+          node -e "console.log(new URL(process.env.DATABASE_URL).hostname)"
       - name: Run migrations
         env:
           DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}

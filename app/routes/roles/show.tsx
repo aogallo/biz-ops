@@ -26,9 +26,9 @@ import { db } from '~/server/db'
 import { memberModel } from '~/server/db/schemas/auth'
 import { redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../messages'
-import { deleteRole } from '../server/actions/delete.action'
-import { rolesRepository } from '../server/repository'
+import { ROLE_MESSAGES } from '../../features/roles/messages'
+import { deleteRole } from '../../features/roles/server/actions/delete.action'
+import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {

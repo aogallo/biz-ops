@@ -39,11 +39,12 @@ export async function sendInvitationEmail(params: InvitationEmailParams) {
   // Production mode: Send via Resend
   try {
     // Dynamically import Resend only in production
+    console.log(`\n🚀 Sending invitation email to: ${to}\n`)
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     const { data } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com',
+      from: process.env.EMAIL_FROM!,
       to,
       subject: `You've been invited to join ${organizationName}`,
       react: OrganizationInviteEmail({

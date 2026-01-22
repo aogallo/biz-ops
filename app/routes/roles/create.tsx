@@ -5,9 +5,9 @@ import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
-import { ROLE_MESSAGES } from '../messages'
-import { createRole } from '../server/actions/create.action'
-import { rolesRepository } from '../server/repository'
+import { ROLE_MESSAGES } from '../../features/roles/messages'
+import { createRole } from '../../features/roles/server/actions/create.action'
+import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/create'
 
 export async function loader({ request }: Route.LoaderArgs) {

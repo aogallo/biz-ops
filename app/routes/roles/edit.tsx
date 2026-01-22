@@ -6,9 +6,9 @@ import { Checkbox } from '~/components/ui/checkbox'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../messages'
-import { updateRole } from '../server/actions/update.action'
-import { rolesRepository } from '../server/repository'
+import { ROLE_MESSAGES } from '../../features/roles/messages'
+import { updateRole } from '../../features/roles/server/actions/update.action'
+import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/edit'
 
 export async function loader({ request, params }: Route.LoaderArgs) {

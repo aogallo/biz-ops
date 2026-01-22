@@ -13,7 +13,7 @@ import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
-import { rolesRepository } from '../server/repository'
+import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {

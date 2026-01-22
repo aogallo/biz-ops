@@ -4,6 +4,7 @@ interface ReviewStepProps {
   state: WizardState
   roles: RoleData[]
   permissions: PermissionData[]
+  organizationName: string
   previousStep: () => void
   goToStep: (step: 1 | 2 | 3 | 4) => void
   onSubmit: () => void
@@ -14,12 +15,18 @@ export function ReviewStep({
   state,
   roles,
   permissions,
+  organizationName,
   previousStep,
   goToStep,
   onSubmit,
   isSubmitting,
 }: ReviewStepProps) {
-  const selectedRole = roles.find((r) => r.id === state.roleId)
+  // Get all selected roles (many-to-many)
+  const selectedRoles = roles.filter((r) => state.roleIds.includes(r.id))
+  // Fallback to legacy single role if roleIds is empty
+  const legacyRole = state.roleId ? roles.find((r) => r.id === state.roleId) : null
+  const displayRoles = selectedRoles.length > 0 ? selectedRoles : legacyRole ? [legacyRole] : []
+
   const selectedPerms = permissions.filter((p) =>
     state.selectedPermissions.includes(p.id)
   )
@@ -46,6 +53,16 @@ export function ReviewStep({
       </div>
 
       <div className='divide-y rounded-lg border'>
+        {/* Organization */}
+        <div className='p-4'>
+          <div className='mb-2 flex items-center justify-between'>
+            <h3 className='font-medium'>Organization</h3>
+          </div>
+          <div className='text-sm'>
+            <span className='font-medium'>{organizationName}</span>
+          </div>
+        </div>
+
         {/* User Info */}
         <div className='p-4'>
           <div className='mb-2 flex items-center justify-between'>
@@ -70,7 +87,7 @@ export function ReviewStep({
           </div>
         </div>
 
-        {/* Role */}
+        {/* Roles */}
         <div className='p-4'>
           <div className='mb-2 flex items-center justify-between'>
             <h3 className='font-medium'>Role Assignment</h3>
@@ -82,32 +99,57 @@ export function ReviewStep({
               Edit
             </button>
           </div>
-          <div className='text-sm'>
-            {state.createNewRole ? (
-              <div>
-                <div className='font-medium'>{state.newRoleName}</div>
-                {state.newRoleDescription && (
-                  <div className='text-muted-foreground'>
-                    {state.newRoleDescription}
+          <div className='space-y-2 text-sm'>
+            {/* Display selected roles */}
+            {displayRoles.length > 0 && (
+              <div className='space-y-2'>
+                {displayRoles.map((role) => (
+                  <div key={role.id} className='flex items-start gap-2'>
+                    <div className='flex-1'>
+                      <div className='font-medium'>{role.name}</div>
+                      {role.description && (
+                        <div className='text-muted-foreground text-xs'>
+                          {role.description}
+                        </div>
+                      )}
+                    </div>
+                    {role.isSystem && (
+                      <span className='inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800'>
+                        System
+                      </span>
+                    )}
                   </div>
-                )}
-                <div className='mt-1 inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-800'>
-                  Custom Role
+                ))}
+              </div>
+            )}
+
+            {/* Display custom role if being created */}
+            {state.createNewRole && (
+              <div className='border-t pt-2'>
+                <div className='flex items-start gap-2'>
+                  <div className='flex-1'>
+                    <div className='font-medium'>{state.newRoleName}</div>
+                    {state.newRoleDescription && (
+                      <div className='text-muted-foreground text-xs'>
+                        {state.newRoleDescription}
+                      </div>
+                    )}
+                  </div>
+                  <span className='inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-800'>
+                    New
+                  </span>
                 </div>
               </div>
-            ) : (
-              <div>
-                <div className='font-medium'>{selectedRole?.name}</div>
-                {selectedRole?.description && (
-                  <div className='text-muted-foreground'>
-                    {selectedRole.description}
-                  </div>
-                )}
-                {selectedRole?.isSystem && (
-                  <div className='mt-1 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800'>
-                    System Role
-                  </div>
-                )}
+            )}
+
+            {displayRoles.length === 0 && !state.createNewRole && (
+              <div className='text-muted-foreground'>No roles selected</div>
+            )}
+
+            {displayRoles.length > 0 && (
+              <div className='text-muted-foreground mt-1 text-xs'>
+                {displayRoles.length} role(s) selected
+                {state.createNewRole && ' + 1 new role'}
               </div>
             )}
           </div>
@@ -182,8 +224,9 @@ export function ReviewStep({
       {/* Note */}
       <div className='rounded-lg bg-blue-50 p-4 text-sm'>
         <p>
-          An invitation email will be sent to <strong>{state.email}</strong>{' '}
-          after you click &quot;Send Invitation&quot;.
+          An invitation email will be sent to <strong>{state.email}</strong> to
+          join <strong>{organizationName}</strong> after you click &quot;Send
+          Invitation&quot;.
         </p>
       </div>
 

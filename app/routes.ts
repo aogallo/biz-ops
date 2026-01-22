@@ -26,7 +26,7 @@ export default [
   layout('./layout/AppLayout.tsx', [
     route('/switch-organization', './routes/switch-organization.tsx'),
     ...prefix('organization', [
-      index('./features/organization/routes/index.tsx'),
+      index('./routes/organization/index.tsx'),
       route('/new', './features/organization/routes/create.tsx'),
       route('/:slug', './features/organization/routes/show.tsx'),
     ]),
@@ -45,10 +45,12 @@ export default [
     ...prefix('invitations', [
       index('./features/invitation/routes/index.tsx'),
       route('/new', './features/invitation/routes/new.tsx'),
+      route('/roles', './features/invitation/routes/roles.tsx'),
     ]),
     ...prefix('users', [
       index('./features/users/routes/index.tsx'),
       route('/invite', './features/users/routes/invite.tsx'),
+      route('/:memberId/roles', './features/users/routes/$memberId.roles.tsx'),
     ]),
     ...prefix('roles', [
       index('./features/roles/routes/index.tsx'),
@@ -56,12 +58,10 @@ export default [
       route('/:id', './features/roles/routes/show.tsx'),
       route('/:id/edit', './features/roles/routes/edit.tsx'),
     ]),
-    ...prefix('sat-processor', [
-      index('./features/sat-processor/routes/index.tsx'),
-    ]),
+    ...prefix('sat-processor', [index('./routes/sat-processor/index.tsx')]),
     ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
     ...prefix('company', [
-      index('./features/company/routes/index.tsx'),
+      index('./routes/company/index.tsx'),
       route('/new', './features/company/routes/create.tsx'),
       route('/:companyId', './features/company/routes/show.tsx'),
     ]),

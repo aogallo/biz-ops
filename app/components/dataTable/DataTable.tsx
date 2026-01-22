@@ -2,15 +2,15 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
-  type SortingState,
   type RowSelectionState,
+  type SortingState,
   useReactTable,
   type VisibilityState,
-} from "@tanstack/react-table";
-import { useState, useEffect } from "react";
+} from '@tanstack/react-table'
+import { useEffect, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -18,15 +18,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import { DataTablePagination } from "./DataTablePagination";
-import { DataTableViewOptions } from "./DataTableViewOptions";
+} from '../ui/table'
+import { DataTablePagination } from './DataTablePagination'
+import { DataTableViewOptions } from './DataTableViewOptions'
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  onRowSelectionChange?: (selectedRows: TData[]) => void;
-  enableRowSelection?: boolean;
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  onRowSelectionChange?: (selectedRows: TData[]) => void
+  enableRowSelection?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -35,9 +35,9 @@ export function DataTable<TData, TValue>({
   onRowSelectionChange,
   enableRowSelection = false,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const table = useReactTable({
     columns: columns,
@@ -55,22 +55,22 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
-  });
+  })
 
   useEffect(() => {
     if (onRowSelectionChange) {
       const selectedRows = table
         .getFilteredSelectedRowModel()
-        .rows.map((row) => row.original);
-      onRowSelectionChange(selectedRows);
+        .rows.map((row) => row.original)
+      onRowSelectionChange(selectedRows)
     }
-  }, [rowSelection, onRowSelectionChange, table]);
+  }, [rowSelection, onRowSelectionChange, table])
 
   return (
     <>
       <div>
         <DataTableViewOptions table={table} />
-        <Table>
+        <Table className='rounded-lg border'>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -81,10 +81,10 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                     </TableHead>
-                  );
+                  )
                 })}
               </TableRow>
             ))}
@@ -94,13 +94,13 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}
@@ -114,5 +114,5 @@ export function DataTable<TData, TValue>({
       </div>
       <DataTablePagination table={table} />
     </>
-  );
+  )
 }

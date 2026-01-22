@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { Form, Link, useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -54,7 +54,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Fetch users, invitations, and available roles for selected organization
   const [users, invitations, availableRoles] = await Promise.all([
-    usersRepository.getAllByOrganization(selectedOrgId),
+    usersRepository.getAllByOrganizationWithRoles(selectedOrgId),
     usersRepository.getPendingInvitations(selectedOrgId),
     db
       .select()
@@ -100,7 +100,6 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
     organizations,
     users,
     invitations,
-    availableRoles,
     selectedOrganizationId,
     toast,
   } = loaderData
@@ -198,32 +197,33 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                     <TableCell className='font-medium'>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      {canUpdateUser ? (
-                        <Form method='post' className='inline-block'>
-                          <input
-                            type='hidden'
-                            name='memberId'
-                            value={user.memberId}
-                          />
-                          <select
-                            name='roleId'
-                            value={user.roleId || ''}
-                            onChange={(e) =>
-                              e.currentTarget.form?.requestSubmit()
-                            }
-                            className='rounded-md border px-2 py-1 text-xs'
-                          >
-                            {availableRoles.map((role) => (
-                              <option key={role.id} value={role.id}>
-                                {role.name}
-                              </option>
-                            ))}
-                          </select>
-                        </Form>
-                      ) : (
-                        <span className='bg-primary/10 text-primary inline-flex items-center rounded-md px-2 py-1 text-xs font-medium'>
-                          {user.roleName || user.memberRole}
-                        </span>
+                      <div className='flex flex-wrap gap-1'>
+                        {user.roles && user.roles.length > 0 ? (
+                          user.roles.map((role) => (
+                            <span
+                              key={role.id}
+                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                                role.isSystem
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-primary/10 text-primary'
+                              }`}
+                            >
+                              {role.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className='bg-muted text-muted-foreground inline-flex items-center rounded-md px-2 py-1 text-xs font-medium'>
+                            {user.memberRole}
+                          </span>
+                        )}
+                      </div>
+                      {canUpdateUser && (
+                        <Link
+                          to={`/users/${user.memberId}/roles?organizationId=${selectedOrganizationId}`}
+                          className='text-primary mt-1 block text-xs hover:underline'
+                        >
+                          Manage roles
+                        </Link>
                       )}
                     </TableCell>
                     <TableCell>

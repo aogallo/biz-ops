@@ -3,6 +3,7 @@ import { redirect } from 'react-router'
 import { db } from '~/server/db'
 import {
   memberModel,
+  memberRoleModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
@@ -28,11 +29,13 @@ export async function hasPermission(
     return false
   }
 
-  // Query: member → role → rolePermission → permission
+  // Query: member → memberRole → role → rolePermission → permission
+  // Aggregates permissions from ALL roles assigned to the member
   const result = await db
     .select()
     .from(memberModel)
-    .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(memberRoleModel, eq(memberModel.id, memberRoleModel.memberId))
+    .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
     .innerJoin(
       rolePermissionModel,
       eq(roleModel.id, rolePermissionModel.roleId)
@@ -64,13 +67,16 @@ export async function getUserPermissions(
   userId: string,
   organizationId: string
 ): Promise<string[]> {
+  // Query: member → memberRole → role → rolePermission → permission
+  // Aggregates permissions from ALL roles assigned to the member
   const results = await db
-    .select({
+    .selectDistinct({
       resource: permissionModel.resource,
       action: permissionModel.action,
     })
     .from(memberModel)
-    .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(memberRoleModel, eq(memberModel.id, memberRoleModel.memberId))
+    .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
     .innerJoin(
       rolePermissionModel,
       eq(roleModel.id, rolePermissionModel.roleId)

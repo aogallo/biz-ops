@@ -1,11 +1,11 @@
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, inArray } from 'drizzle-orm'
 import { Link } from 'react-router'
 import { requireOrganizationAdmin } from '~/server/auth/organization.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
-import { invitationModel, roleModel, userModel } from '~/server/db/schemas/auth'
+import { invitationModel, invitationRoleModel, roleModel, userModel } from '~/server/db/schemas/auth'
 import { InvitationList } from '../components/InvitationList'
-import type { InvitationRow } from '../types'
+import type { InvitationRole, InvitationRow } from '../types'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -33,10 +33,43 @@ export async function loader({ request }: Route.LoaderArgs) {
     // .where(eq(invitation.organizationId, organization.id))
     .orderBy(desc(invitationModel.createdAt))
 
-  // Map to typed InvitationRow
+  // Get all invitation IDs
+  const invitationIds = rawInvitations.map((inv) => inv.id)
+
+  // Fetch roles from junction table for all invitations
+  let invitationRolesMap: Record<string, InvitationRole[]> = {}
+  if (invitationIds.length > 0) {
+    const invitationRoles = await db
+      .select({
+        invitationId: invitationRoleModel.invitationId,
+        roleId: roleModel.id,
+        roleName: roleModel.name,
+      })
+      .from(invitationRoleModel)
+      .innerJoin(roleModel, eq(invitationRoleModel.roleId, roleModel.id))
+      .where(inArray(invitationRoleModel.invitationId, invitationIds))
+
+    // Group roles by invitation ID
+    invitationRolesMap = invitationRoles.reduce(
+      (acc, ir) => {
+        if (!acc[ir.invitationId]) {
+          acc[ir.invitationId] = []
+        }
+        acc[ir.invitationId].push({
+          id: ir.roleId,
+          name: ir.roleName,
+        })
+        return acc
+      },
+      {} as Record<string, InvitationRole[]>
+    )
+  }
+
+  // Map to typed InvitationRow with roles
   const invitations: InvitationRow[] = rawInvitations.map((inv) => ({
     ...inv,
     status: inv.status as 'pending' | 'accepted' | 'expired',
+    roles: invitationRolesMap[inv.id] || [],
   }))
 
   return { invitations, organization }

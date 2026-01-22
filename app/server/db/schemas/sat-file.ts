@@ -33,6 +33,8 @@ export const satFileModel = pgTable('sat_file', {
   dteNumber: text('dte_number').notNull(),
   emitterNit: text('emitter_nit'),
   emitterName: text('emitter_name'),
+  receptorNit: text('receptor_nit'),
+  receptorName: text('receptor_name'),
   exportation: boolean('exportation').default(false),
   certificatorNit: text('certificator_nit'),
   certificatorName: text('certificator_name'),

@@ -47,6 +47,14 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
     header: 'Nombre Emisor',
   },
   {
+    accessorKey: 'receptorNit',
+    header: 'NIT Receptor',
+  },
+  {
+    accessorKey: 'receptorName',
+    header: 'Nombre Receptor',
+  },
+  {
     accessorKey: 'total',
     header: 'Total',
     cell: ({ row }) => {

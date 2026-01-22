@@ -17,6 +17,7 @@
     "db:studio": "USE_LOCAL_DB=true drizzle-kit studio",
     "db:seed": "USE_LOCAL_DB=true tsx scripts/seed-local.ts",
     "db:seed:permissions": "tsx scripts/seed-permissions.ts",
+    "db:seed:accounts": "tsx scripts/seed-accounts.ts",
     "db:seed:org:permissions": "tsx scripts/seed-organization-permission.ts",
     "db:seed:super-admin": "tsx scripts/seed-super-admin.ts",
     "db:migrate:rbac": "USE_LOCAL_DB=true tsx scripts/migrate-members-to-roles.ts",

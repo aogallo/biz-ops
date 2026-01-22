@@ -1,25 +1,25 @@
-import { and, eq } from "drizzle-orm";
-import { redirect } from "react-router";
-import auth from "~/server/auth-server";
-import { db } from "~/server/db";
-import { memberModel, organizationModel, roleModel } from "../db/schemas/auth";
-import type { SessionData } from "./session.server";
+import { and, eq, sql } from 'drizzle-orm'
+import { redirect } from 'react-router'
+import auth from '~/server/auth-server'
+import { db } from '~/server/db'
+import { memberModel, organizationModel, roleModel } from '../db/schemas/auth'
+import type { SessionData } from './session.server'
 
 export interface OrganizationMember {
-  id: string;
-  organizationId: string;
-  userId: string;
-  role: string; // 'owner' | 'admin' | 'member' - from legacyRole during migration
-  roleId: string | null; // Future: RBAC role ID
-  createdAt: Date;
+  id: string
+  organizationId: string
+  userId: string
+  role: string // 'owner' | 'admin' | 'member' - from legacyRole during migration
+  roleId: string | null // Future: RBAC role ID
+  createdAt: Date
 }
 
 export interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  logo: string | null;
-  createdAt: Date;
+  id: string
+  name: string
+  slug: string
+  logo: string | null
+  createdAt: Date
 }
 
 /**
@@ -34,17 +34,17 @@ export async function requireOrganizationAdmin(session: SessionData) {
     .where(
       and(
         eq(memberModel.userId, session.user.id),
-        eq(roleModel.name, "super-admin"),
-      ),
+        eq(roleModel.name, 'super-admin')
+      )
     )
-    .limit(1);
+    .limit(1)
 
   if (!membership) {
-    throw redirect("/organization", {
+    throw redirect('/organization', {
       headers: {
-        "X-Message": "You don't have access to this operation",
+        'X-Message': "You don't have access to this operation",
       },
-    });
+    })
   }
 
   // Get organization
@@ -52,10 +52,10 @@ export async function requireOrganizationAdmin(session: SessionData) {
     .select()
     .from(organizationModel)
     .where(eq(organizationModel.id, membership.member.organizationId))
-    .limit(1);
+    .limit(1)
 
   if (!org) {
-    throw redirect("/organization");
+    throw redirect('/organization')
   }
 
   return {
@@ -63,7 +63,7 @@ export async function requireOrganizationAdmin(session: SessionData) {
     membership: {
       ...membership,
     },
-  };
+  }
 }
 
 /**
@@ -71,14 +71,14 @@ export async function requireOrganizationAdmin(session: SessionData) {
  * Returns organization and membership data
  */
 export async function requireOrganization(
-  session: SessionData,
+  session: SessionData
 ): Promise<{ organization: Organization; membership: OrganizationMember }> {
   if (!session.session.activeOrganizationId) {
-    throw redirect("/organization", {
+    throw redirect('/organization', {
       headers: {
-        "X-Message": "Please select an organization",
+        'X-Message': 'Please select an organization',
       },
-    });
+    })
   }
 
   // Get membership
@@ -88,17 +88,17 @@ export async function requireOrganization(
     .where(
       and(
         eq(memberModel.userId, session.user.id),
-        eq(memberModel.organizationId, session.session.activeOrganizationId),
-      ),
+        eq(memberModel.organizationId, session.session.activeOrganizationId)
+      )
     )
-    .limit(1);
+    .limit(1)
 
   if (!membership) {
-    throw redirect("/organization", {
+    throw redirect('/organization', {
       headers: {
-        "X-Message": "You don't have access to this organization",
+        'X-Message': "You don't have access to this organization",
       },
-    });
+    })
   }
 
   // Get organization
@@ -106,19 +106,19 @@ export async function requireOrganization(
     .select()
     .from(organizationModel)
     .where(eq(organizationModel.id, session.session.activeOrganizationId))
-    .limit(1);
+    .limit(1)
 
   if (!org) {
-    throw redirect("/organization");
+    throw redirect('/organization')
   }
 
   return {
     organization: org,
     membership: {
       ...membership,
-      role: membership.legacyRole || "member", // Fallback to legacyRole during migration
+      role: membership.legacyRole || 'member', // Fallback to legacyRole during migration
     } as OrganizationMember,
-  };
+  }
 }
 
 /**
@@ -126,19 +126,19 @@ export async function requireOrganization(
  */
 export async function requireRole(
   session: SessionData,
-  allowedRoles: string[],
+  allowedRoles: string[]
 ): Promise<{ organization: Organization; membership: OrganizationMember }> {
-  const data = await requireOrganization(session);
+  const data = await requireOrganization(session)
 
   if (!allowedRoles.includes(data.membership.role)) {
-    throw redirect("/organization", {
+    throw redirect('/organization', {
       headers: {
-        "X-Message": "You don't have permission for this action",
+        'X-Message': "You don't have permission for this action",
       },
-    });
+    })
   }
 
-  return data;
+  return data
 }
 
 /**
@@ -154,43 +154,42 @@ export async function getUserOrganizations(userId: string) {
     .from(memberModel)
     .innerJoin(
       organizationModel,
-      eq(memberModel.organizationId, organizationModel.id),
+      eq(memberModel.organizationId, organizationModel.id)
     )
     .leftJoin(roleModel, eq(memberModel.roleId, roleModel.id))
     .where(
       and(
         eq(memberModel.userId, userId),
         eq(organizationModel.isAdmin, true),
-        eq(roleModel.name, "super-admin"),
-      ),
+        eq(roleModel.name, 'super-admin')
+      )
     )
-    .limit(1);
+    .limit(1)
 
-  const isSuperAdmin = superAdminCheck.length > 0;
+  const isSuperAdmin = superAdminCheck.length > 0
 
   if (isSuperAdmin) {
     // Super admin: return ALL organizations
     const allOrgs = await db
-      .select({
+      .selectDistinct({
         organizationId: organizationModel.id,
         organizationName: organizationModel.name,
         slug: organizationModel.slug,
         logo: organizationModel.logo,
         createdAt: organizationModel.createdAt,
-        roleName: roleModel.name,
+        roleName: sql<string>`'super-admin'`,
         isAdmin: organizationModel.isAdmin,
       })
       .from(organizationModel)
       .innerJoin(
         memberModel,
-        eq(memberModel.organizationId, organizationModel.id),
+        eq(memberModel.organizationId, organizationModel.id)
       )
-      .innerJoin(roleModel, eq(roleModel.id, memberModel.roleId));
 
     // Return in same format but without membership data for non-member orgs
     return allOrgs.map((data) => ({
       membership: {
-        id: "",
+        id: '',
         organizationId: data.organizationId,
         userId: userId,
         role: data.roleName,
@@ -205,7 +204,7 @@ export async function getUserOrganizations(userId: string) {
         createdAt: data.createdAt,
         isAdmin: data.isAdmin,
       },
-    }));
+    }))
   }
 
   // Regular user: return only organizations they're members of
@@ -214,9 +213,9 @@ export async function getUserOrganizations(userId: string) {
     .from(memberModel)
     .innerJoin(
       organizationModel,
-      eq(organizationModel.id, memberModel.organizationId),
+      eq(organizationModel.id, memberModel.organizationId)
     )
-    .where(eq(memberModel.userId, userId));
+    .where(eq(memberModel.userId, userId))
 
   // Transform the result to match expected structure
   return memberships.map((row) => ({
@@ -236,7 +235,7 @@ export async function getUserOrganizations(userId: string) {
       createdAt: row.organization.createdAt,
       isAdmin: row.organization.isAdmin,
     },
-  }));
+  }))
 }
 
 /**
@@ -245,17 +244,17 @@ export async function getUserOrganizations(userId: string) {
  */
 export async function setActiveOrganization(
   request: Request,
-  organizationId?: string,
+  organizationId?: string
 ): Promise<void> {
   const session = await auth.api.getSession({
     headers: request.headers,
-  });
+  })
 
   if (!session?.user) {
-    throw new Error("User not authenticated");
+    throw new Error('User not authenticated')
   }
 
-  let targetOrgId = organizationId;
+  let targetOrgId = organizationId
 
   // If no organization ID provided, get the first one
   if (!targetOrgId) {
@@ -263,13 +262,13 @@ export async function setActiveOrganization(
       .select({ organizationId: memberModel.organizationId })
       .from(memberModel)
       .where(eq(memberModel.userId, session.user.id))
-      .limit(1);
+      .limit(1)
 
     if (memberships.length === 0) {
-      throw new Error("User is not a member of any organization");
+      throw new Error('User is not a member of any organization')
     }
 
-    targetOrgId = memberships[0].organizationId;
+    targetOrgId = memberships[0].organizationId
   }
 
   // Set active organization using Better Auth
@@ -278,20 +277,20 @@ export async function setActiveOrganization(
     body: {
       organizationId: targetOrgId,
     },
-  });
+  })
 }
 
 /**
  * Get the active organization ID from the session
  */
 export async function getActiveOrganization(
-  request: Request,
+  request: Request
 ): Promise<string | null> {
   const session = await auth.api.getSession({
     headers: request.headers,
-  });
+  })
 
-  return session?.session?.activeOrganizationId ?? null;
+  return session?.session?.activeOrganizationId ?? null
 }
 
 /**
@@ -304,17 +303,17 @@ export async function getInitialOrganization(userId: string) {
     .from(memberModel)
     .innerJoin(
       organizationModel,
-      eq(organizationModel.id, memberModel.organizationId),
+      eq(organizationModel.id, memberModel.organizationId)
     )
     .where(eq(memberModel.userId, userId))
-    .limit(1);
+    .limit(1)
 
   if (memberships.length === 0) {
-    return {};
+    return {}
   }
 
   // Transform the result to match expected structure
   return {
     organization: memberships[0].organization,
-  };
+  }
 }

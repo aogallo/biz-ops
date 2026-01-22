@@ -19,6 +19,11 @@ export const insertBusinessPartnerSchema = createInsertSchema(
       .email('Invalid email address')
       .optional()
       .or(z.literal('')),
+    nit: z
+      .string()
+      .max(20, 'NIT must not exceed 20 characters')
+      .optional()
+      .or(z.literal('')),
   }
 )
 

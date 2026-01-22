@@ -4,7 +4,9 @@ import auth from '~/server/auth-server'
 import { db } from '~/server/db'
 import {
   invitationModel,
+  invitationRoleModel,
   memberModel,
+  memberRoleModel,
   userModel,
 } from '~/server/db/schemas/auth'
 import { acceptInvitationSchema } from '../../users/schemas'
@@ -122,6 +124,12 @@ export async function action({ params, request }: Route.ActionArgs) {
       return { error: 'Failed to create user account' }
     }
 
+    // Get invitation roles from junction table
+    const invitationRoles = await db
+      .select()
+      .from(invitationRoleModel)
+      .where(eq(invitationRoleModel.invitationId, token))
+
     // Manually create member record (since acceptInvitation requires auth)
     const memberId = crypto.randomUUID()
     await db.insert(memberModel).values({
@@ -129,10 +137,26 @@ export async function action({ params, request }: Route.ActionArgs) {
       organizationId: inv.organizationId,
       userId: newUser.id,
       role: inv.role,
-      roleId: inv.roleId,
+      roleId: inv.roleId, // Keep for backward compatibility
       createdAt: new Date(),
       updatedAt: new Date(),
     })
+
+    // Create member roles in junction table (many-to-many)
+    if (invitationRoles.length > 0) {
+      await db.insert(memberRoleModel).values(
+        invitationRoles.map((ir) => ({
+          memberId,
+          roleId: ir.roleId,
+        }))
+      )
+    } else if (inv.roleId) {
+      // Fallback to legacy roleId if no junction table records
+      await db.insert(memberRoleModel).values({
+        memberId,
+        roleId: inv.roleId,
+      })
+    }
 
     // Mark invitation as accepted
     await db

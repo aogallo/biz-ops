@@ -168,8 +168,6 @@ export async function getUserOrganizations(userId: string) {
 
   const isSuperAdmin = superAdminCheck.length > 0
 
-  console.log('isSuperAdmin', isSuperAdmin)
-
   if (isSuperAdmin) {
     // Super admin: return ALL organizations
     const allOrgs = await db

@@ -28,16 +28,6 @@ jobs:
           DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
         run: |
           npm run db:migrate:ci
-      - name: Seed Accounts (dev)
-        if: github.ref == 'refs/heads/dev'
-        env:
-          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
-        run: npm run db:seed:accounts
-      - name: Seed Permissions (dev)
-        if: github.ref == 'refs/heads/dev'
-        env:
-          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
-        run: npm run db:seed:permissions
       - name: Seed super admin (dev)
         if: github.ref == 'refs/heads/dev'
         env:

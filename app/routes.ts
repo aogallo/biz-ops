@@ -50,6 +50,7 @@ export default [
     ...prefix('users', [
       index('./features/users/routes/index.tsx'),
       route('/invite', './features/users/routes/invite.tsx'),
+      route('/:memberId/roles', './features/users/routes/$memberId.roles.tsx'),
     ]),
     ...prefix('roles', [
       index('./features/roles/routes/index.tsx'),

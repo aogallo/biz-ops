@@ -7,6 +7,7 @@ import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import {
   invitationModel,
+  invitationRoleModel,
   organizationModel,
   permissionModel,
   roleModel,
@@ -102,7 +103,9 @@ export async function action({ request }: Route.ActionArgs) {
   await requirePermission(session.user.id, organizationId, 'user:create')
 
   try {
-    let roleId = data.roleId
+    // Collect all role IDs to assign
+    const roleIds: string[] = [...(data.roleIds || [])]
+    let primaryRoleId = data.roleId
 
     // 1. Create custom role if needed
     if (data.createNewRole) {
@@ -118,7 +121,11 @@ export async function action({ request }: Route.ActionArgs) {
         updatedAt: new Date(),
       })
 
-      roleId = newRoleId
+      // Add the new role to the list
+      roleIds.push(newRoleId)
+      if (!primaryRoleId) {
+        primaryRoleId = newRoleId
+      }
 
       // Assign permissions to new role
       if (data.selectedPermissions && data.selectedPermissions.length > 0) {
@@ -133,6 +140,11 @@ export async function action({ request }: Route.ActionArgs) {
           }))
         )
       }
+    }
+
+    // Use first roleId as primary for backward compatibility
+    if (!primaryRoleId && roleIds.length > 0) {
+      primaryRoleId = roleIds[0]
     }
 
     // 2. Create custom permissions if any
@@ -170,16 +182,21 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
-    // 3. Get role name for invitation
-    const [selectedRole] = await db
-      .select()
-      .from(roleModel)
-      .where(eq(roleModel.id, roleId))
-      .limit(1)
+    // 3. Get role name for invitation (use first role's name)
+    let roleName = 'member'
+    if (primaryRoleId) {
+      const [selectedRole] = await db
+        .select()
+        .from(roleModel)
+        .where(eq(roleModel.id, primaryRoleId))
+        .limit(1)
+      if (selectedRole) {
+        roleName = selectedRole.name
+      }
+    }
 
     // 4. Create invitation via Better Auth
     // Better Auth will automatically trigger the sendInvitationEmail callback
-    const roleName = selectedRole?.name || 'member'
     const invitationResponse = await auth.api.createInvitation({
       headers: request.headers,
       body: {
@@ -198,12 +215,22 @@ export async function action({ request }: Route.ActionArgs) {
     await db
       .update(invitationModel)
       .set({
-        roleId,
+        roleId: primaryRoleId,
         customPermissions:
           customPermIds.length > 0 ? JSON.stringify(customPermIds) : null,
         inviterId: session.user.id,
       })
       .where(eq(invitationModel.id, invitationId))
+
+    // 6. Save roles to junction table for many-to-many relationship
+    if (roleIds.length > 0) {
+      await db.insert(invitationRoleModel).values(
+        roleIds.map((roleId) => ({
+          invitationId,
+          roleId,
+        }))
+      )
+    }
 
     return redirect('/invitations')
   } catch (error) {
@@ -239,6 +266,7 @@ export default function NewInvitation({
     email: string
     name: string
     roleId: string | null
+    roleIds: string[]
     createNewRole: boolean
     newRoleName: string
     newRoleDescription: string

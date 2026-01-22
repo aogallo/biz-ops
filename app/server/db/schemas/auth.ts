@@ -3,7 +3,7 @@
  */
 
 import { relations } from 'drizzle-orm'
-import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
 import { timestamps } from './common'
 
 export const userModel = pgTable('user', {
@@ -133,6 +133,46 @@ export const rolePermissionModel = pgTable('role_permission', {
   ...timestamps,
 })
 
+/**
+ * --- MEMBER-ROLE JUNCTION TABLE ---
+ * Enables many-to-many relationship between members and roles.
+ * A member can have multiple roles (e.g., "member" + "accountant").
+ */
+export const memberRoleModel = pgTable(
+  'member_role',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    memberId: uuid('member_id')
+      .notNull()
+      .references(() => memberModel.id, { onDelete: 'cascade' }),
+    roleId: uuid('role_id')
+      .notNull()
+      .references(() => roleModel.id, { onDelete: 'cascade' }),
+    ...timestamps,
+  },
+  (table) => [unique('member_role_unique').on(table.memberId, table.roleId)]
+)
+
+/**
+ * --- INVITATION-ROLE JUNCTION TABLE ---
+ * Enables many-to-many relationship between invitations and roles.
+ * An invitation can assign multiple roles to the invitee.
+ */
+export const invitationRoleModel = pgTable(
+  'invitation_role',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    invitationId: uuid('invitation_id')
+      .notNull()
+      .references(() => invitationModel.id, { onDelete: 'cascade' }),
+    roleId: uuid('role_id')
+      .notNull()
+      .references(() => roleModel.id, { onDelete: 'cascade' }),
+    ...timestamps,
+  },
+  (table) => [unique('invitation_role_unique').on(table.invitationId, table.roleId)]
+)
+
 /** * --- DRIZZLE RELATIONS ---
  * Type-safe relations for queries.
  */
@@ -143,6 +183,8 @@ export const roleRelations = relations(roleModel, ({ one, many }) => ({
   }),
   permissions: many(rolePermissionModel),
   members: many(memberModel),
+  memberRoles: many(memberRoleModel),
+  invitationRoles: many(invitationRoleModel),
 }))
 
 export const permissionRelations = relations(permissionModel, ({ many }) => ({
@@ -166,3 +208,60 @@ export const rolePermissionRelations = relations(
     }),
   })
 )
+
+export const memberRoleRelations = relations(memberRoleModel, ({ one }) => ({
+  member: one(memberModel, {
+    fields: [memberRoleModel.memberId],
+    references: [memberModel.id],
+  }),
+  role: one(roleModel, {
+    fields: [memberRoleModel.roleId],
+    references: [roleModel.id],
+  }),
+}))
+
+export const invitationRoleRelations = relations(
+  invitationRoleModel,
+  ({ one }) => ({
+    invitation: one(invitationModel, {
+      fields: [invitationRoleModel.invitationId],
+      references: [invitationModel.id],
+    }),
+    role: one(roleModel, {
+      fields: [invitationRoleModel.roleId],
+      references: [roleModel.id],
+    }),
+  })
+)
+
+export const memberRelations = relations(memberModel, ({ one, many }) => ({
+  organization: one(organizationModel, {
+    fields: [memberModel.organizationId],
+    references: [organizationModel.id],
+  }),
+  user: one(userModel, {
+    fields: [memberModel.userId],
+    references: [userModel.id],
+  }),
+  role: one(roleModel, {
+    fields: [memberModel.roleId],
+    references: [roleModel.id],
+  }),
+  memberRoles: many(memberRoleModel),
+}))
+
+export const invitationRelations = relations(invitationModel, ({ one, many }) => ({
+  organization: one(organizationModel, {
+    fields: [invitationModel.organizationId],
+    references: [organizationModel.id],
+  }),
+  inviter: one(userModel, {
+    fields: [invitationModel.inviterId],
+    references: [userModel.id],
+  }),
+  role: one(roleModel, {
+    fields: [invitationModel.roleId],
+    references: [roleModel.id],
+  }),
+  invitationRoles: many(invitationRoleModel),
+}))

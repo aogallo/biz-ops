@@ -1,7 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
+  invitationRoleModel,
   memberModel,
+  memberRoleModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
@@ -351,18 +353,29 @@ export async function deleteSystemRoles(organizationId: string) {
 }
 
 /**
- * Assign specific role for an member
+ * Assign specific role for a member (legacy - updates member.roleId for backward compatibility)
+ * @deprecated Use assignRoleToMember for junction table approach
  * @param roleId - Role ID
- * @param userId - User ID
+ * @param memberId - Member ID
  * @returns boolean success
  */
 export async function assignRole(roleId: string, memberId: string) {
   try {
     console.log(`Assigning role ${roleId} to member ${memberId}`);
+    // Update legacy roleId for backward compatibility
     await db
       .update(memberModel)
       .set({ roleId: roleId })
       .where(eq(memberModel.id, memberId));
+
+    // Also insert into junction table
+    await db
+      .insert(memberRoleModel)
+      .values({
+        memberId,
+        roleId,
+      })
+      .onConflictDoNothing();
 
     console.log(`✅ Assigned role ${roleId} to member ${memberId}`);
     return true;
@@ -373,4 +386,191 @@ export async function assignRole(roleId: string, memberId: string) {
     );
     return false;
   }
+}
+
+/**
+ * Add a role to a member (many-to-many via junction table)
+ * @param memberId - Member ID
+ * @param roleId - Role ID
+ * @returns Created member_role record
+ */
+export async function assignRoleToMember(memberId: string, roleId: string) {
+  const [result] = await db
+    .insert(memberRoleModel)
+    .values({ memberId, roleId })
+    .onConflictDoNothing()
+    .returning();
+
+  return result;
+}
+
+/**
+ * Add multiple roles to a member (many-to-many via junction table)
+ * @param memberId - Member ID
+ * @param roleIds - Array of Role IDs
+ * @returns Created member_role records
+ */
+export async function assignRolesToMember(memberId: string, roleIds: string[]) {
+  if (roleIds.length === 0) return [];
+
+  const results = await db
+    .insert(memberRoleModel)
+    .values(roleIds.map((roleId) => ({ memberId, roleId })))
+    .onConflictDoNothing()
+    .returning();
+
+  return results;
+}
+
+/**
+ * Remove a role from a member
+ * @param memberId - Member ID
+ * @param roleId - Role ID
+ * @returns boolean success
+ */
+export async function removeRoleFromMember(
+  memberId: string,
+  roleId: string
+): Promise<boolean> {
+  await db
+    .delete(memberRoleModel)
+    .where(
+      and(
+        eq(memberRoleModel.memberId, memberId),
+        eq(memberRoleModel.roleId, roleId)
+      )
+    );
+
+  return true;
+}
+
+/**
+ * Get all roles for a member
+ * @param memberId - Member ID
+ * @returns Array of roles
+ */
+export async function getMemberRoles(memberId: string) {
+  const results = await db
+    .select({
+      id: roleModel.id,
+      name: roleModel.name,
+      description: roleModel.description,
+      isSystem: roleModel.isSystem,
+      organizationId: roleModel.organizationId,
+    })
+    .from(memberRoleModel)
+    .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
+    .where(eq(memberRoleModel.memberId, memberId));
+
+  return results;
+}
+
+/**
+ * Replace all roles for a member (removes existing, adds new)
+ * @param memberId - Member ID
+ * @param roleIds - Array of Role IDs to set
+ * @returns Updated member_role records
+ */
+export async function setMemberRoles(memberId: string, roleIds: string[]) {
+  // Delete all existing roles for this member
+  await db
+    .delete(memberRoleModel)
+    .where(eq(memberRoleModel.memberId, memberId));
+
+  // Insert new roles
+  if (roleIds.length === 0) return [];
+
+  const results = await db
+    .insert(memberRoleModel)
+    .values(roleIds.map((roleId) => ({ memberId, roleId })))
+    .returning();
+
+  return results;
+}
+
+/**
+ * Add a role to an invitation (many-to-many via junction table)
+ * @param invitationId - Invitation ID
+ * @param roleId - Role ID
+ * @returns Created invitation_role record
+ */
+export async function assignRoleToInvitation(
+  invitationId: string,
+  roleId: string
+) {
+  const [result] = await db
+    .insert(invitationRoleModel)
+    .values({ invitationId, roleId })
+    .onConflictDoNothing()
+    .returning();
+
+  return result;
+}
+
+/**
+ * Add multiple roles to an invitation (many-to-many via junction table)
+ * @param invitationId - Invitation ID
+ * @param roleIds - Array of Role IDs
+ * @returns Created invitation_role records
+ */
+export async function assignRolesToInvitation(
+  invitationId: string,
+  roleIds: string[]
+) {
+  if (roleIds.length === 0) return [];
+
+  const results = await db
+    .insert(invitationRoleModel)
+    .values(roleIds.map((roleId) => ({ invitationId, roleId })))
+    .onConflictDoNothing()
+    .returning();
+
+  return results;
+}
+
+/**
+ * Get all roles for an invitation
+ * @param invitationId - Invitation ID
+ * @returns Array of roles
+ */
+export async function getInvitationRoles(invitationId: string) {
+  const results = await db
+    .select({
+      id: roleModel.id,
+      name: roleModel.name,
+      description: roleModel.description,
+      isSystem: roleModel.isSystem,
+      organizationId: roleModel.organizationId,
+    })
+    .from(invitationRoleModel)
+    .innerJoin(roleModel, eq(invitationRoleModel.roleId, roleModel.id))
+    .where(eq(invitationRoleModel.invitationId, invitationId));
+
+  return results;
+}
+
+/**
+ * Replace all roles for an invitation (removes existing, adds new)
+ * @param invitationId - Invitation ID
+ * @param roleIds - Array of Role IDs to set
+ * @returns Updated invitation_role records
+ */
+export async function setInvitationRoles(
+  invitationId: string,
+  roleIds: string[]
+) {
+  // Delete all existing roles for this invitation
+  await db
+    .delete(invitationRoleModel)
+    .where(eq(invitationRoleModel.invitationId, invitationId));
+
+  // Insert new roles
+  if (roleIds.length === 0) return [];
+
+  const results = await db
+    .insert(invitationRoleModel)
+    .values(roleIds.map((roleId) => ({ invitationId, roleId })))
+    .returning();
+
+  return results;
 }

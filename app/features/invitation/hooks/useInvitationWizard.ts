@@ -6,6 +6,7 @@ const initialState: WizardState = {
   email: '',
   name: '',
   roleId: null,
+  roleIds: [],
   createNewRole: false,
   newRoleName: '',
   newRoleDescription: '',
@@ -42,14 +43,15 @@ export function useInvitationWizard() {
         errors.name = 'Name is required'
       }
 
-      if (!state.roleId) {
-        errors.roleId = 'Role is required'
+      // Check for roles (either roleIds or legacy roleId)
+      if (state.roleIds.length === 0 && !state.roleId) {
+        errors.roleId = 'At least one role is required'
       }
     }
 
     if (step === 2) {
-      if (!state.roleId && !state.createNewRole) {
-        errors.role = 'Select a role or create a new one'
+      if (state.roleIds.length === 0 && !state.roleId && !state.createNewRole) {
+        errors.role = 'Select at least one role or create a new one'
       }
       if (state.createNewRole && !state.newRoleName) {
         errors.newRoleName = 'Role name is required'
@@ -143,10 +145,36 @@ export function useInvitationWizard() {
       organizationId,
       // Reset role-related fields when organization changes
       roleId: null,
+      roleIds: [],
       createNewRole: false,
       newRoleName: '',
       newRoleDescription: '',
       selectedPermissions: [],
+    }))
+  }
+
+  const toggleRole = (roleId: string) => {
+    setState((prev) => {
+      const selected = prev.roleIds.includes(roleId)
+      return {
+        ...prev,
+        roleIds: selected
+          ? prev.roleIds.filter((id) => id !== roleId)
+          : [...prev.roleIds, roleId],
+        // Also set legacy roleId for backward compatibility (first selected role)
+        roleId: selected
+          ? prev.roleIds.filter((id) => id !== roleId)[0] || null
+          : roleId,
+      }
+    })
+  }
+
+  const setRoles = (roleIds: string[]) => {
+    setState((prev) => ({
+      ...prev,
+      roleIds,
+      // Also set legacy roleId for backward compatibility (first selected role)
+      roleId: roleIds[0] || null,
     }))
   }
 
@@ -158,6 +186,8 @@ export function useInvitationWizard() {
     goToStep,
     validateStep,
     togglePermission,
+    toggleRole,
+    setRoles,
     selectAllPermissionsForResource,
     addCustomPermission,
     removeCustomPermission,

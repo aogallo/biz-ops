@@ -27,6 +27,7 @@ interface InvitationWizardProps {
     email: string
     name: string
     roleId: string | null
+    roleIds: string[]
     createNewRole: boolean
     newRoleName: string
     newRoleDescription: string
@@ -50,6 +51,7 @@ export function InvitationWizard({
     previousStep,
     goToStep,
     togglePermission,
+    toggleRole,
     selectAllPermissionsForResource,
     addCustomPermission,
     removeCustomPermission,
@@ -99,6 +101,7 @@ export function InvitationWizard({
         email: state.email,
         name: state.name,
         roleId: state.roleId,
+        roleIds: state.roleIds,
         createNewRole: state.createNewRole,
         newRoleName: state.newRoleName,
         newRoleDescription: state.newRoleDescription,
@@ -223,6 +226,7 @@ export function InvitationWizard({
             state={state}
             roles={roles}
             updateField={updateField}
+            toggleRole={toggleRole}
             nextStep={nextStep}
             previousStep={previousStep}
           />

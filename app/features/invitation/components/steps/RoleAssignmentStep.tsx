@@ -7,6 +7,7 @@ interface RoleAssignmentStepProps {
     field: K,
     value: WizardState[K],
   ) => void;
+  toggleRole: (roleId: string) => void;
   nextStep: () => void;
   previousStep: () => void;
 }
@@ -15,6 +16,7 @@ export function RoleAssignmentStep({
   state,
   roles,
   updateField,
+  toggleRole,
   nextStep,
   previousStep,
 }: RoleAssignmentStepProps) {
@@ -23,28 +25,35 @@ export function RoleAssignmentStep({
       <div>
         <h2 className="text-xl font-semibold">Role Assignment</h2>
         <p className="text-sm text-muted-foreground">
-          Assign or create role for this user
+          Assign one or more roles to this user
         </p>
       </div>
 
-      {/* Existing Roles */}
+      {/* Existing Roles - Checkboxes for multi-select */}
       <div>
         <label className="mb-3 block text-sm font-medium">
-          Select Existing Role
+          Select Roles
         </label>
+        <p className="mb-3 text-xs text-muted-foreground">
+          You can select multiple roles. The user will have combined permissions from all selected roles.
+        </p>
         <div className="space-y-3">
           {roles.map((role) => (
             <label
               key={role.id}
-              className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50"
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50 ${
+                state.roleIds.includes(role.id) ? "border-primary bg-primary/5" : ""
+              }`}
             >
               <input
-                type="radio"
-                name="roleSelection"
-                checked={state.roleId === role.id && !state.createNewRole}
+                type="checkbox"
+                checked={state.roleIds.includes(role.id)}
                 onChange={() => {
-                  updateField("roleId", role.id);
-                  updateField("createNewRole", false);
+                  toggleRole(role.id);
+                  // Disable createNewRole when selecting existing roles
+                  if (state.createNewRole) {
+                    updateField("createNewRole", false);
+                  }
                 }}
                 className="mt-1"
               />
@@ -69,22 +78,31 @@ export function RoleAssignmentStep({
         {state.errors.role && (
           <p className="mt-2 text-sm text-destructive">{state.errors.role}</p>
         )}
+        {state.errors.roleId && (
+          <p className="mt-2 text-sm text-destructive">{state.errors.roleId}</p>
+        )}
+        {state.roleIds.length > 0 && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {state.roleIds.length} role(s) selected
+          </p>
+        )}
       </div>
 
       {/* Create Custom Role */}
       <div className="border-t pt-6">
         <label className="flex cursor-pointer items-center gap-3">
           <input
-            type="radio"
-            name="roleSelection"
+            type="checkbox"
             checked={state.createNewRole}
             onChange={() => {
-              updateField("createNewRole", true);
-              updateField("roleId", null);
+              updateField("createNewRole", !state.createNewRole);
             }}
           />
-          <span className="font-medium">Create Custom Role</span>
+          <span className="font-medium">Also create a custom role</span>
         </label>
+        <p className="ml-7 text-xs text-muted-foreground">
+          Create an additional custom role for this user
+        </p>
 
         {state.createNewRole && (
           <div className="ml-7 mt-4 space-y-4">

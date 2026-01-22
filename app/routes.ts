@@ -17,10 +17,7 @@ export default [
   route('/action/set-theme', 'routes/action.set-theme.tsx'),
 
   // Public invitation acceptance
-  route(
-    '/invitation/accept/:token',
-    './features/invitation/routes/accept.$token.tsx'
-  ),
+  route('/invitation/accept/:token', './routes/invitation/accept.$token.tsx'),
 
   // App routes with sidebar layout
   layout('./layout/AppLayout.tsx', [

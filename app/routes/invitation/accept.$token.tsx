@@ -9,8 +9,8 @@ import {
   memberRoleModel,
   userModel,
 } from '~/server/db/schemas/auth'
-import { acceptInvitationSchema } from '../../users/schemas'
-import type { Route } from './+types/accept.$token'
+import type { Route } from '../../features/invitation/routes/+types/accept.$token'
+import { acceptInvitationSchema } from '../../features/users/schemas'
 
 export async function loader({ params }: Route.LoaderArgs) {
   const token = params.token

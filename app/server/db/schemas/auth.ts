@@ -182,7 +182,8 @@ export const roleRelations = relations(roleModel, ({ one, many }) => ({
     references: [organizationModel.id],
   }),
   permissions: many(rolePermissionModel),
-  members: many(memberModel),
+  members: many(memberModel, { relationName: 'memberLegacyRole' }),
+  invitations: many(invitationModel, { relationName: 'invitationLegacyRole' }),
   memberRoles: many(memberRoleModel),
   invitationRoles: many(invitationRoleModel),
 }))
@@ -243,9 +244,10 @@ export const memberRelations = relations(memberModel, ({ one, many }) => ({
     fields: [memberModel.userId],
     references: [userModel.id],
   }),
-  role: one(roleModel, {
+  legacyRole: one(roleModel, {
     fields: [memberModel.roleId],
     references: [roleModel.id],
+    relationName: 'memberLegacyRole',
   }),
   memberRoles: many(memberRoleModel),
 }))
@@ -259,9 +261,10 @@ export const invitationRelations = relations(invitationModel, ({ one, many }) =>
     fields: [invitationModel.inviterId],
     references: [userModel.id],
   }),
-  role: one(roleModel, {
+  legacyRole: one(roleModel, {
     fields: [invitationModel.roleId],
     references: [roleModel.id],
+    relationName: 'invitationLegacyRole',
   }),
   invitationRoles: many(invitationRoleModel),
 }))

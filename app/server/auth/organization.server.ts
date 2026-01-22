@@ -293,27 +293,6 @@ export async function getActiveOrganization(
   return session?.session?.activeOrganizationId ?? null
 }
 
-/**
- * Get the first organization user is member of
- */
-export async function getInitialOrganization(userId: string) {
-  // Regular user: return only organizations they're members of
-  const memberships = await db
-    .select()
-    .from(memberModel)
-    .innerJoin(
-      organizationModel,
-      eq(organizationModel.id, memberModel.organizationId)
-    )
-    .where(eq(memberModel.userId, userId))
-    .limit(1)
-
-  if (memberships.length === 0) {
-    return {}
-  }
-
-  // Transform the result to match expected structure
-  return {
-    organization: memberships[0].organization,
-  }
-}
+// Re-export from organization-queries.server.ts for backward compatibility
+// This breaks the circular import between auth-server.ts and this file
+export { getInitialOrganization } from './organization-queries.server'

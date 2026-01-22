@@ -47,7 +47,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!defaultOrgId) {
     throw redirect('/organization', {
       headers: {
-        'X-Message': 'You need to be a member of an organization to invite users',
+        'X-Message':
+          'You need to be a member of an organization to invite users',
       },
     })
   }
@@ -243,7 +244,13 @@ export default function NewInvitation({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { isSuperAdmin: isSuperAdminUser, organizations, defaultOrganization, roles, permissions } = loaderData
+  const {
+    isSuperAdmin: isSuperAdminUser,
+    organizations,
+    defaultOrganization,
+    roles,
+    permissions,
+  } = loaderData
 
   // Map data to match wizard types
   const roleData: RoleData[] = roles.map((r) => ({

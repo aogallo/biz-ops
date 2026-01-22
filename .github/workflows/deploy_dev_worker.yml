@@ -45,7 +45,11 @@ jobs:
             BETTER_AUTH_SECRET
             BETTER_AUTH_URL
             DATABASE_URL
+            RESEND_API_KEY
+            EMAIL_FROM
         env:
           BETTER_AUTH_SECRET: ${{ secrets.DEV_BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.DEV_BETTER_AUTH_URL }}
           DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.DEV_RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.DEV_EMAIL_FROM }}

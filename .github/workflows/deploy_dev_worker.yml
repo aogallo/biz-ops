@@ -20,7 +20,7 @@ jobs:
         run: npm run build
       - name: Run migrations
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
         run: |
           npm run db:migrate
       - name: Seed super admin (dev)

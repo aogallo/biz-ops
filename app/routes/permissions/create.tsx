@@ -10,11 +10,11 @@ import type { Route } from '../roles/+types/create'
 
 export async function action({ request }: Route.ActionArgs) {
   const result = await processPermissionFile(request)
-  console.info(result)
+  console.log('actionresult', result)
   if (result.success) {
     void redirectWithFlash('/permissions', {
       type: 'success',
-      message: 'Permissions are created',
+      message: result.message,
     })
   }
   return result
@@ -40,7 +40,7 @@ const PermissionCreatePage = ({ actionData }: Route.ComponentProps) => {
         subtitle='Create or bulk the permissions'
       >
         <div className='flex gap-3'>
-          <fetcher.Form method='post'>
+          <fetcher.Form method='post' encType='multipart/form-data'>
             <input
               type='file'
               id='permissionFile'

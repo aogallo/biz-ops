@@ -29,22 +29,41 @@ export async function processPermissionFile(request: Request) {
   }
 
   // Validate permissions permissions:bulk
-  const isValidatePermissions =
-    !isValidateRole &&
-    (await hasPermission(user.id, activeOrganizationId, 'permission:upload'))
+  const isValidatePermissions = await hasPermission(
+    user.id,
+    activeOrganizationId,
+    'permission:upload'
+  )
 
-  if (!isValidatePermissions) {
+  if (!isValidateRole && !isValidatePermissions) {
     return {
       success: false,
       message: 'You don"t have permission to perform this action.',
     }
   }
 
-  console.log('Start processing file')
   const formData = await request.formData()
-  const file = formData.get('permissionFile')
+  const file = formData.get('permissionFile') as File | null
+
+  if (!file) {
+    return {
+      success: false,
+      message: 'The file ',
+    }
+  }
+
+  console.info('file....', file)
+  const fileName = file.name.toLowerCase()
+
+  if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+    return {
+      success: false,
+      message: 'Unsupported file',
+    }
+  }
+
   return {
-    success: false,
-    message: 'You don"t have permission to perform this action.',
+    success: true,
+    message: 'Permissions are created',
   }
 }

@@ -23,7 +23,6 @@ export async function hasPermission(
 ): Promise<boolean> {
   const [resource, action] = permissionString.split(':')
 
-  console.log('data...', resource, action)
   if (!resource || !action) {
     console.warn(`Invalid permission format: ${permissionString}`)
     return false

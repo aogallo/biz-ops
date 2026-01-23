@@ -15,7 +15,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Check permission to view users/invitations
   // await requirePermission(session.user.id, organization.id, "user:read");
 
-  // Get all invitations for this organization
+  // Get all invitations for this organization (roles fetched via junction table below)
   const rawInvitations = await db
     .select({
       id: invitationModel.id,
@@ -23,12 +23,9 @@ export async function loader({ request }: Route.LoaderArgs) {
       status: invitationModel.status,
       createdAt: invitationModel.createdAt,
       expiresAt: invitationModel.expiresAt,
-      roleName: roleModel.name,
-      roleId: invitationModel.roleId,
       inviterName: userModel.name,
     })
     .from(invitationModel)
-    .leftJoin(roleModel, eq(invitationModel.roleId, roleModel.id))
     .innerJoin(userModel, eq(invitationModel.inviterId, userModel.id))
     // .where(eq(invitation.organizationId, organization.id))
     .orderBy(desc(invitationModel.createdAt))

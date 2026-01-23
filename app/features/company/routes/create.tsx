@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
 import { createCompany } from '../server/actions/create.action.server'
-import type { Route } from './+types'
+import type { Route } from './+types/create'
 
 export async function action({ request }: Route.ActionArgs) {
   const response = await createCompany(request)

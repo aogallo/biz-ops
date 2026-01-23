@@ -5,7 +5,6 @@ const initialState: WizardState = {
   organizationId: null,
   email: '',
   name: '',
-  roleId: null,
   roleIds: [],
   createNewRole: false,
   newRoleName: '',
@@ -43,14 +42,14 @@ export function useInvitationWizard() {
         errors.name = 'Name is required'
       }
 
-      // Check for roles (either roleIds or legacy roleId)
-      if (state.roleIds.length === 0 && !state.roleId) {
-        errors.roleId = 'At least one role is required'
+      // Check for roles
+      if (state.roleIds.length === 0) {
+        errors.roleIds = 'At least one role is required'
       }
     }
 
     if (step === 2) {
-      if (state.roleIds.length === 0 && !state.roleId && !state.createNewRole) {
+      if (state.roleIds.length === 0 && !state.createNewRole) {
         errors.role = 'Select at least one role or create a new one'
       }
       if (state.createNewRole && !state.newRoleName) {
@@ -144,7 +143,6 @@ export function useInvitationWizard() {
       ...prev,
       organizationId,
       // Reset role-related fields when organization changes
-      roleId: null,
       roleIds: [],
       createNewRole: false,
       newRoleName: '',
@@ -161,10 +159,6 @@ export function useInvitationWizard() {
         roleIds: selected
           ? prev.roleIds.filter((id) => id !== roleId)
           : [...prev.roleIds, roleId],
-        // Also set legacy roleId for backward compatibility (first selected role)
-        roleId: selected
-          ? prev.roleIds.filter((id) => id !== roleId)[0] || null
-          : roleId,
       }
     })
   }
@@ -173,8 +167,6 @@ export function useInvitationWizard() {
     setState((prev) => ({
       ...prev,
       roleIds,
-      // Also set legacy roleId for backward compatibility (first selected role)
-      roleId: roleIds[0] || null,
     }))
   }
 

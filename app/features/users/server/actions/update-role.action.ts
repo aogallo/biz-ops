@@ -3,8 +3,7 @@ import { requirePermission } from "~/server/auth/permissions.server";
 import { usersRepository } from "../repository";
 
 /**
- * Update a member's single role (legacy)
- * @deprecated Use updateMemberRoles for multi-role support
+ * Update a member's single role (sets a single role, replacing all existing)
  */
 export async function updateMemberRole(
   request: Request,
@@ -25,8 +24,8 @@ export async function updateMemberRole(
     // Check if user has permission to update user roles
     await requirePermission(session.user.id, organizationId, "user:update");
 
-    // Update the member's role
-    await usersRepository.updateMemberRole(memberId, newRoleId);
+    // Update the member's roles (set single role)
+    await usersRepository.setMemberRoles(memberId, [newRoleId]);
 
     return {
       success: true,

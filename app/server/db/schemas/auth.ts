@@ -75,7 +75,6 @@ export const memberModel = pgTable('member', {
     .notNull()
     .references(() => userModel.id),
   role: text('role').notNull(), // Keep for better Auth compatibility: 'owner', 'admin', 'member'
-  roleId: uuid('role_id').references(() => roleModel.id),
   ...timestamps,
 })
 
@@ -86,7 +85,6 @@ export const invitationModel = pgTable('invitation', {
     .references(() => organizationModel.id),
   email: text('email').notNull(),
   role: text('role').notNull(), // Keep for better Auth compatibility
-  roleId: uuid('role_id').references(() => roleModel.id),
   customPermissions: text('custom_permissions'), // JSON array of permission IDs
   status: text('status').notNull(), // 'pending', 'accepted', 'expired'
   expiresAt: timestamp('expires_at').notNull(),
@@ -182,8 +180,6 @@ export const roleRelations = relations(roleModel, ({ one, many }) => ({
     references: [organizationModel.id],
   }),
   permissions: many(rolePermissionModel),
-  members: many(memberModel, { relationName: 'memberLegacyRole' }),
-  invitations: many(invitationModel, { relationName: 'invitationLegacyRole' }),
   memberRoles: many(memberRoleModel),
   invitationRoles: many(invitationRoleModel),
 }))
@@ -244,11 +240,6 @@ export const memberRelations = relations(memberModel, ({ one, many }) => ({
     fields: [memberModel.userId],
     references: [userModel.id],
   }),
-  legacyRole: one(roleModel, {
-    fields: [memberModel.roleId],
-    references: [roleModel.id],
-    relationName: 'memberLegacyRole',
-  }),
   memberRoles: many(memberRoleModel),
 }))
 
@@ -260,11 +251,6 @@ export const invitationRelations = relations(invitationModel, ({ one, many }) =>
   inviter: one(userModel, {
     fields: [invitationModel.inviterId],
     references: [userModel.id],
-  }),
-  legacyRole: one(roleModel, {
-    fields: [invitationModel.roleId],
-    references: [roleModel.id],
-    relationName: 'invitationLegacyRole',
   }),
   invitationRoles: many(invitationRoleModel),
 }))

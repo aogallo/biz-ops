@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm'
 import { db } from './db'
-import { memberModel, organizationModel, roleModel } from './db/schemas/auth'
+import { memberModel, memberRoleModel, organizationModel, roleModel } from './db/schemas/auth'
 
 export const SUPER_ADMIN_ROLE = 'super-admin'
 export const ADMIN_ROLE = 'admin'
@@ -19,7 +19,8 @@ export async function isSuperAdmin(userId: string): Promise<boolean> {
       organizationModel,
       eq(memberModel.organizationId, organizationModel.id)
     )
-    .leftJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(memberRoleModel, eq(memberRoleModel.memberId, memberModel.id))
+    .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
     .where(
       and(
         eq(memberModel.userId, userId),

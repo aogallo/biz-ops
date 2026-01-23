@@ -23,9 +23,7 @@ export function ReviewStep({
 }: ReviewStepProps) {
   // Get all selected roles (many-to-many)
   const selectedRoles = roles.filter((r) => state.roleIds.includes(r.id))
-  // Fallback to legacy single role if roleIds is empty
-  const legacyRole = state.roleId ? roles.find((r) => r.id === state.roleId) : null
-  const displayRoles = selectedRoles.length > 0 ? selectedRoles : legacyRole ? [legacyRole] : []
+  const displayRoles = selectedRoles
 
   const selectedPerms = permissions.filter((p) =>
     state.selectedPermissions.includes(p.id)

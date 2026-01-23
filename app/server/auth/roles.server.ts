@@ -1,13 +1,15 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "~/server/db";
+import { and, eq } from 'drizzle-orm'
+import { db } from '~/server/db'
 import {
   invitationRoleModel,
   memberModel,
   memberRoleModel,
+  organizationModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
-} from "../db/schemas/auth";
+  userModel,
+} from '../db/schemas/auth'
 
 /**
  * Create system role for the organization admin
@@ -17,18 +19,18 @@ import {
  * @returns
  */
 export async function createSystemRolesForAdminOrg(organizationId: string) {
-  const superId = crypto.randomUUID();
+  const superId = crypto.randomUUID()
   await db.insert(roleModel).values({
     id: superId,
     organizationId,
-    name: "super-admin",
-    description: "Full administarion for system",
+    name: 'super-admin',
+    description: 'Full administarion for system',
     isSystem: true,
     createdAt: new Date(),
     updatedAt: new Date(),
-  });
+  })
 
-  return { superId };
+  return { superId }
 }
 
 /**
@@ -40,34 +42,34 @@ export async function createSystemOrganizationPermissions() {
   const existingPermissions = await db
     .select()
     .from(permissionModel)
-    .where(eq(permissionModel.resource, "organization"));
+    .where(eq(permissionModel.resource, 'organization'))
 
   if (existingPermissions.length > 0) {
-    return existingPermissions;
+    return existingPermissions
   }
 
-  console.log("Seeding organization permissions...");
+  console.log('Seeding organization permissions...')
   const permissions = [
     {
-      resource: "organization",
-      action: "update",
-      description: "Update Organization",
+      resource: 'organization',
+      action: 'update',
+      description: 'Update Organization',
       isSystem: true,
     },
     {
-      resource: "organization",
-      action: "delete",
-      description: "Delete Organization",
+      resource: 'organization',
+      action: 'delete',
+      description: 'Delete Organization',
       isSystem: true,
     },
     {
-      resource: "organization",
-      action: "view",
-      description: "View Organization",
+      resource: 'organization',
+      action: 'view',
+      description: 'View Organization',
       isSystem: true,
     },
-  ];
-  return await db.insert(permissionModel).values(permissions).returning();
+  ]
+  return await db.insert(permissionModel).values(permissions).returning()
 }
 /**
  * Create system roles for a new organization
@@ -77,23 +79,23 @@ export async function createSystemOrganizationPermissions() {
  * @returns Object with role IDs
  */
 export async function createSystemRoles(organizationId: string) {
-  console.log(`Creating system roles for organization ${organizationId}`);
+  console.log(`Creating system roles for organization ${organizationId}`)
   // Get all permissions
-  const existingPermissions = await createSystemOrganizationPermissions();
+  const existingPermissions = await createSystemOrganizationPermissions()
 
-  console.log("Existing permissions:", existingPermissions);
+  console.log('Existing permissions:', existingPermissions)
 
   // Owner role - all permissions
-  const ownerId = crypto.randomUUID();
+  const ownerId = crypto.randomUUID()
   await db.insert(roleModel).values({
     id: ownerId,
     organizationId,
-    name: "owner",
-    description: "Full organization access with all permissions",
+    name: 'owner',
+    description: 'Full organization access with all permissions',
     isSystem: true,
     createdAt: new Date(),
     updatedAt: new Date(),
-  });
+  })
 
   // Assign all permissions to owner
   await db.insert(rolePermissionModel).values(
@@ -104,24 +106,24 @@ export async function createSystemRoles(organizationId: string) {
       organizationId,
       createdAt: new Date(),
       updatedAt: new Date(),
-    })),
-  );
+    }))
+  )
 
   // Admin role - most permissions except settings:manage
-  const adminId = crypto.randomUUID();
+  const adminId = crypto.randomUUID()
   const adminPermissions = existingPermissions.filter(
-    (p) => !(p.resource === "organization" && p.action === "delete"),
-  );
+    (p) => !(p.resource === 'organization' && p.action === 'delete')
+  )
 
   await db.insert(roleModel).values({
     id: adminId,
     organizationId,
-    name: "admin",
-    description: "Administrative access with most permissions",
+    name: 'admin',
+    description: 'Administrative access with most permissions',
     isSystem: true,
     createdAt: new Date(),
     updatedAt: new Date(),
-  });
+  })
 
   await db.insert(rolePermissionModel).values(
     adminPermissions.map((p) => ({
@@ -131,24 +133,24 @@ export async function createSystemRoles(organizationId: string) {
       organizationId,
       createdAt: new Date(),
       updatedAt: new Date(),
-    })),
-  );
+    }))
+  )
 
   // Member role - read-only permissions
-  const memberId = crypto.randomUUID();
+  const memberId = crypto.randomUUID()
   const memberPermissions = existingPermissions.filter(
-    (p) => p.action === "read" || p.action === "view",
-  );
+    (p) => p.action === 'read' || p.action === 'view'
+  )
 
   await db.insert(roleModel).values({
     id: memberId,
     organizationId,
-    name: "member",
-    description: "Basic member with read-only access",
+    name: 'member',
+    description: 'Basic member with read-only access',
     isSystem: true,
     createdAt: new Date(),
     updatedAt: new Date(),
-  });
+  })
 
   await db.insert(rolePermissionModel).values(
     memberPermissions.map((p) => ({
@@ -158,14 +160,14 @@ export async function createSystemRoles(organizationId: string) {
       organizationId,
       createdAt: new Date(),
       updatedAt: new Date(),
-    })),
-  );
+    }))
+  )
 
   console.log(
-    `✅ Created system roles for organization ${organizationId}: owner, admin, member`,
-  );
+    `✅ Created system roles for organization ${organizationId}: owner, admin, member`
+  )
 
-  return { ownerId, adminId, memberId };
+  return { ownerId, adminId, memberId }
 }
 
 /**
@@ -180,9 +182,9 @@ export async function createCustomRole(
   organizationId: string,
   name: string,
   description: string,
-  permissionIds: string[],
+  permissionIds: string[]
 ) {
-  const roleId = crypto.randomUUID();
+  const roleId = crypto.randomUUID()
 
   // Create role
   const [newRole] = await db
@@ -196,7 +198,7 @@ export async function createCustomRole(
       createdAt: new Date(),
       updatedAt: new Date(),
     })
-    .returning();
+    .returning()
 
   // Assign permissions
   if (permissionIds.length > 0) {
@@ -208,11 +210,11 @@ export async function createCustomRole(
         organizationId,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })),
-    );
+      }))
+    )
   }
 
-  return newRole;
+  return newRole
 }
 
 /**
@@ -224,7 +226,7 @@ export async function getRolesByOrganization(organizationId: string) {
   return await db
     .select()
     .from(roleModel)
-    .where(eq(roleModel.organizationId, organizationId));
+    .where(eq(roleModel.organizationId, organizationId))
 }
 
 /**
@@ -243,11 +245,11 @@ export async function getRolePermissions(roleId: string) {
     .from(rolePermissionModel)
     .innerJoin(
       permissionModel,
-      eq(rolePermissionModel.permissionId, permissionModel.id),
+      eq(rolePermissionModel.permissionId, permissionModel.id)
     )
-    .where(eq(rolePermissionModel.roleId, roleId));
+    .where(eq(rolePermissionModel.roleId, roleId))
 
-  return results;
+  return results
 }
 
 /**
@@ -264,12 +266,12 @@ export async function getRoleByName(organizationId: string, roleName: string) {
     .where(
       and(
         eq(roleModel.organizationId, organizationId),
-        eq(roleModel.name, roleName),
-      ),
+        eq(roleModel.name, roleName)
+      )
     )
-    .limit(1);
+    .limit(1)
 
-  return result || null;
+  return result || null
 }
 
 /**
@@ -280,12 +282,12 @@ export async function getRoleByName(organizationId: string, roleName: string) {
 export async function updateRolePermissions(
   roleId: string,
   organizationId: string,
-  permissionIds: string[],
+  permissionIds: string[]
 ) {
   // Delete existing permissions
   await db
     .delete(rolePermissionModel)
-    .where(eq(rolePermissionModel.roleId, roleId));
+    .where(eq(rolePermissionModel.roleId, roleId))
 
   // Insert new permissions
   if (permissionIds.length > 0) {
@@ -297,8 +299,8 @@ export async function updateRolePermissions(
         organizationId,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })),
-    );
+      }))
+    )
   }
 }
 
@@ -313,20 +315,20 @@ export async function deleteRole(roleId: string): Promise<boolean> {
     .select()
     .from(roleModel)
     .where(eq(roleModel.id, roleId))
-    .limit(1);
+    .limit(1)
 
   if (!roleToDelete) {
-    return false;
+    return false
   }
 
   if (roleToDelete.isSystem) {
-    throw new Error("Cannot delete system roles");
+    throw new Error('Cannot delete system roles')
   }
 
   // Delete role (cascade will handle rolePermission)
-  await db.delete(roleModel).where(eq(roleModel.id, roleId));
+  await db.delete(roleModel).where(eq(roleModel.id, roleId))
 
-  return true;
+  return true
 }
 
 /**
@@ -338,17 +340,17 @@ export async function deleteRole(roleId: string): Promise<boolean> {
  */
 export async function deleteSystemRoles(organizationId: string) {
   try {
-    console.log(`Deleting system roles for organization ${organizationId}`);
+    console.log(`Deleting system roles for organization ${organizationId}`)
     const existingRoles = await db
       .select()
       .from(roleModel)
-      .where(eq(roleModel.organizationId, organizationId));
+      .where(eq(roleModel.organizationId, organizationId))
 
     existingRoles.forEach(async (role) => {
-      await db.delete(roleModel).where(eq(roleModel.id, role.id));
-    });
+      await db.delete(roleModel).where(eq(roleModel.id, role.id))
+    })
   } catch (error) {
-    console.error("Failed to delete system roles", error);
+    console.error('Failed to delete system roles', error)
   }
 }
 
@@ -361,12 +363,12 @@ export async function deleteSystemRoles(organizationId: string) {
  */
 export async function assignRole(roleId: string, memberId: string) {
   try {
-    console.log(`Assigning role ${roleId} to member ${memberId}`);
+    console.log(`Assigning role ${roleId} to member ${memberId}`)
     // Update legacy roleId for backward compatibility
     await db
       .update(memberModel)
       .set({ roleId: roleId })
-      .where(eq(memberModel.id, memberId));
+      .where(eq(memberModel.id, memberId))
 
     // Also insert into junction table
     await db
@@ -375,16 +377,16 @@ export async function assignRole(roleId: string, memberId: string) {
         memberId,
         roleId,
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing()
 
-    console.log(`✅ Assigned role ${roleId} to member ${memberId}`);
-    return true;
+    console.log(`✅ Assigned role ${roleId} to member ${memberId}`)
+    return true
   } catch (error) {
     console.error(
       `Failed to assign role ${roleId} to member ${memberId}`,
-      error,
-    );
-    return false;
+      error
+    )
+    return false
   }
 }
 
@@ -399,9 +401,9 @@ export async function assignRoleToMember(memberId: string, roleId: string) {
     .insert(memberRoleModel)
     .values({ memberId, roleId })
     .onConflictDoNothing()
-    .returning();
+    .returning()
 
-  return result;
+  return result
 }
 
 /**
@@ -411,15 +413,15 @@ export async function assignRoleToMember(memberId: string, roleId: string) {
  * @returns Created member_role records
  */
 export async function assignRolesToMember(memberId: string, roleIds: string[]) {
-  if (roleIds.length === 0) return [];
+  if (roleIds.length === 0) return []
 
   const results = await db
     .insert(memberRoleModel)
     .values(roleIds.map((roleId) => ({ memberId, roleId })))
     .onConflictDoNothing()
-    .returning();
+    .returning()
 
-  return results;
+  return results
 }
 
 /**
@@ -439,9 +441,9 @@ export async function removeRoleFromMember(
         eq(memberRoleModel.memberId, memberId),
         eq(memberRoleModel.roleId, roleId)
       )
-    );
+    )
 
-  return true;
+  return true
 }
 
 /**
@@ -460,9 +462,9 @@ export async function getMemberRoles(memberId: string) {
     })
     .from(memberRoleModel)
     .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
-    .where(eq(memberRoleModel.memberId, memberId));
+    .where(eq(memberRoleModel.memberId, memberId))
 
-  return results;
+  return results
 }
 
 /**
@@ -473,19 +475,17 @@ export async function getMemberRoles(memberId: string) {
  */
 export async function setMemberRoles(memberId: string, roleIds: string[]) {
   // Delete all existing roles for this member
-  await db
-    .delete(memberRoleModel)
-    .where(eq(memberRoleModel.memberId, memberId));
+  await db.delete(memberRoleModel).where(eq(memberRoleModel.memberId, memberId))
 
   // Insert new roles
-  if (roleIds.length === 0) return [];
+  if (roleIds.length === 0) return []
 
   const results = await db
     .insert(memberRoleModel)
     .values(roleIds.map((roleId) => ({ memberId, roleId })))
-    .returning();
+    .returning()
 
-  return results;
+  return results
 }
 
 /**
@@ -502,9 +502,9 @@ export async function assignRoleToInvitation(
     .insert(invitationRoleModel)
     .values({ invitationId, roleId })
     .onConflictDoNothing()
-    .returning();
+    .returning()
 
-  return result;
+  return result
 }
 
 /**
@@ -517,15 +517,15 @@ export async function assignRolesToInvitation(
   invitationId: string,
   roleIds: string[]
 ) {
-  if (roleIds.length === 0) return [];
+  if (roleIds.length === 0) return []
 
   const results = await db
     .insert(invitationRoleModel)
     .values(roleIds.map((roleId) => ({ invitationId, roleId })))
     .onConflictDoNothing()
-    .returning();
+    .returning()
 
-  return results;
+  return results
 }
 
 /**
@@ -544,9 +544,9 @@ export async function getInvitationRoles(invitationId: string) {
     })
     .from(invitationRoleModel)
     .innerJoin(roleModel, eq(invitationRoleModel.roleId, roleModel.id))
-    .where(eq(invitationRoleModel.invitationId, invitationId));
+    .where(eq(invitationRoleModel.invitationId, invitationId))
 
-  return results;
+  return results
 }
 
 /**
@@ -562,15 +562,70 @@ export async function setInvitationRoles(
   // Delete all existing roles for this invitation
   await db
     .delete(invitationRoleModel)
-    .where(eq(invitationRoleModel.invitationId, invitationId));
+    .where(eq(invitationRoleModel.invitationId, invitationId))
 
   // Insert new roles
-  if (roleIds.length === 0) return [];
+  if (roleIds.length === 0) return []
 
   const results = await db
     .insert(invitationRoleModel)
     .values(roleIds.map((roleId) => ({ invitationId, roleId })))
-    .returning();
+    .returning()
 
-  return results;
+  return results
+}
+
+interface HasRolesParams {
+  userId: string
+  organizationId: string
+  roleName: string
+}
+
+/**
+ * Check if user has specific role in organization
+ * @param Object
+ * @param userId - User ID
+ * @param organizationId - Organization ID
+ * @param roleName - Role (e.g., "super-admin")
+ * @returns boolean
+ */
+export async function hasRole({
+  userId,
+  organizationId,
+  roleName,
+}: HasRolesParams) {
+  try {
+    const [existingUser] = await db
+      .select()
+      .from(userModel)
+      .where(eq(userModel.id, userId))
+      .limit(1)
+
+    if (!existingUser) {
+      return false
+    }
+
+    const [existingOrganization] = await db
+      .select()
+      .from(organizationModel)
+      .where(eq(organizationModel.id, organizationId))
+      .limit(1)
+
+    if (!existingOrganization) {
+      return false
+    }
+
+    const data = await db
+      .select()
+      .from(memberRoleModel)
+      .innerJoin(memberModel, eq(memberModel.id, memberRoleModel.memberId))
+      .innerJoin(roleModel, eq(roleModel.id, memberRoleModel.roleId))
+      .where(and(eq(memberModel.userId, userId), eq(roleModel.name, roleName)))
+
+    return data.length > 0
+  } catch (e) {
+    const error = e instanceof Error ? e.message : 'No error information'
+    console.error(`Failed to validate Role: ${roleName} error: ${error}`)
+    return false
+  }
 }

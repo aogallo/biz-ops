@@ -62,5 +62,9 @@ export default [
       route('/new', './features/company/routes/create.tsx'),
       route('/:companyId', './features/company/routes/show.tsx'),
     ]),
+    ...prefix('permissions', [
+      index('./routes/permissions/index.tsx'),
+      route('/new', './routes/permissions/create.tsx'),
+    ]),
   ]),
 ] satisfies RouteConfig

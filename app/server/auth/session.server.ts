@@ -1,5 +1,6 @@
 import { redirect } from 'react-router'
 import auth from '~/server/auth-server'
+import { isSuperAdmin } from '../permissions'
 
 export interface SessionData {
   session: {
@@ -14,6 +15,7 @@ export interface SessionData {
     emailVerified: boolean
     name: string
     image: string | null
+    isSuperAdmin: boolean
   }
 }
 
@@ -34,7 +36,14 @@ export async function requireAuth(request: Request): Promise<SessionData> {
     })
   }
 
-  return session as SessionData
+  const isSA = await isSuperAdmin(session.user.id)
+
+  const customSession = {
+    ...session,
+    user: { ...session.user, isSuperAdmin: isSA },
+  }
+
+  return customSession as SessionData
 }
 
 /**

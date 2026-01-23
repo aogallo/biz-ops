@@ -296,4 +296,4 @@ Contributions are welcome! Please ensure all tests pass and code quality checks 
 
 ## Note:
 
-I remove this `"postinstall": "npm run cf-typegen"` command to deploy the app to vercel
+I remove this `"postinstall": "npm run cf-typegen"` and update `"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"`command to deploy the app to vercel

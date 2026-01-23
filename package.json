@@ -10,7 +10,7 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "preview": "npm run build && vite preview",
-    "typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
+    "typecheck": "react-router typegen && tsc -b",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "USE_LOCAL_DB=true drizzle-kit migrate",
     "db:migrate:ci": "npx drizzle-kit migrate",

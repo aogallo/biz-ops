@@ -25,7 +25,17 @@ export default async function handleRequestReactRouter(
   if (isProduction) {
     response.headers.set(
       'Content-Security-Policy',
-      `script-src 'nonce-${nonce}'`
+      [
+        `default-src 'self'`,
+        `script-src 'self' 'nonce-${nonce}'`,
+        `style-src 'self' 'unsafe-inline'`,
+        `img-src 'self' data: blob:`,
+        `media-src 'self' blob:`,
+        `connect-src 'self' https:`,
+        `form-action 'self'`,
+        `frame-ancestors 'none'`,
+        `base-uri 'self'`,
+      ].join('; ')
     )
   }
 

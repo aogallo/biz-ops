@@ -22,22 +22,40 @@ export default async function handleRequestReactRouter(
   )
 
   // Only apply strict CSP in production; in dev, Vite scripts don't have nonce
-  if (isProduction) {
-    response.headers.set(
-      'Content-Security-Policy',
-      [
-        `default-src 'self'`,
-        `script-src 'self' 'nonce-${nonce}'`,
-        `style-src 'self' 'unsafe-inline'`,
-        `img-src 'self' data: blob:`,
-        `media-src 'self' blob:`,
-        `connect-src 'self' https:`,
-        `form-action 'self'`,
-        `frame-ancestors 'none'`,
-        `base-uri 'self'`,
-      ].join('; ')
-    )
-  }
+if (isProduction) {
+  response.headers.set(
+    'Content-Security-Policy',
+    [
+      // Defaults
+      `default-src 'self'`,
+
+      // Scripts
+      `script-src 'self' 'nonce-${nonce}'`,
+      `script-src-elem 'self' 'unsafe-inline'`,
+
+      // Styles
+      `style-src 'self' 'unsafe-inline'`,
+      `style-src-elem 'self' https://fonts.googleapis.com`,
+
+      // Fonts
+      `font-src 'self' https://fonts.gstatic.com`,
+
+      // Data / uploads / previews
+      `img-src 'self' data: blob:`,
+      `media-src 'self' blob:`,
+
+      // React Router loaders/actions/fetcher
+      `connect-src 'self' https:`,
+
+      // Forms (file uploads)
+      `form-action 'self'`,
+
+      // Hardening
+      `base-uri 'self'`,
+      `frame-ancestors 'none'`,
+    ].join('; ')
+  )
+}
 
   return response
 }

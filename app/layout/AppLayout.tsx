@@ -13,7 +13,6 @@ import type { Route } from './+types/AppLayout'
 // Add loader to require authentication and load permissions
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
-  if (session) redirect('/login')
   const userId = session.user.id
   const organizationId = session.session.activeOrganizationId
 
@@ -45,6 +44,11 @@ export async function loader({ request }: Route.LoaderArgs) {
       logo: org.organization.logo,
       createdAt: org.organization.createdAt,
     }))
+  }
+
+  // Redirect to welcome page if user has no organizations (and is not super admin)
+  if (!isSuperAdminUser && organizations.length === 0) {
+    throw redirect('/welcome')
   }
 
   return {

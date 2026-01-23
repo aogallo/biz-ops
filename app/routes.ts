@@ -9,6 +9,7 @@ import {
 export default [
   index('routes/login.tsx'),
   route('/logout', 'routes/logout.tsx'),
+  route('/welcome', 'routes/welcome.tsx'),
 
   // API Routes
   route('/api/auth/*', 'routes/api.auth.$.tsx'), // Required by Better Auth

@@ -293,3 +293,7 @@ This project is licensed under the MIT License.
 ## 🤝 Contributing
 
 Contributions are welcome! Please ensure all tests pass and code quality checks are satisfied before submitting a pull request.
+
+## Note:
+
+I remove this `"postinstall": "npm run cf-typegen"` command to deploy the app to vercel

@@ -1,7 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
-  memberModel,
+  memberRoleModel,
   permissionModel,
   roleModel,
   rolePermissionModel,
@@ -228,11 +228,11 @@ export class RolesRepository {
       }
     }
 
-    // Check if members are assigned
+    // Check if members are assigned via junction table
     const [result] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(memberModel)
-      .where(eq(memberModel.roleId, roleId))
+      .from(memberRoleModel)
+      .where(eq(memberRoleModel.roleId, roleId))
 
     const memberCount = Number(result.count)
     if (memberCount > 0) {

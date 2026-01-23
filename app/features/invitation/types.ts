@@ -14,13 +14,9 @@ export interface InvitationRow {
   status: "pending" | "accepted" | "expired";
   createdAt: Date;
   expiresAt: Date;
-  /** @deprecated Use roles[] instead */
-  roleName: string | null;
-  /** @deprecated Use roles[] instead */
-  roleId: string | null;
   /** Multiple roles assigned to the invitation */
   roles: InvitationRole[];
-  inviterName: string;
+  inviterName: string | null;
 }
 
 export interface RoleData {
@@ -60,8 +56,6 @@ export interface InvitationFormData {
   name: string;
 
   // Step 2: Role Assignment
-  /** @deprecated Use roleIds[] instead */
-  roleId: string | null;
   /** Multiple roles to assign to the invitee */
   roleIds: string[];
   createNewRole: boolean;

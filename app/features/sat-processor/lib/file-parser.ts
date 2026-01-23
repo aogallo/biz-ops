@@ -86,15 +86,23 @@ function mapRowToSatFileRow(row: Record<string, unknown>): Partial<SatFileRow> {
 /**
  * Simple CSV parser that works in edge runtimes (Cloudflare Workers)
  */
-function parseCSVContent(content: string): Record<string, string>[] {
+export function parseCSVContent(
+  content: string,
+  specificHeader: string[] = []
+): Record<string, string>[] {
   const lines = content.split(/\r?\n/).filter((line) => line.trim() !== '')
+  let headers: string[] = []
 
   if (lines.length === 0) {
     return []
   }
 
   // Parse header row
-  const headers = parseCSVLine(lines[0])
+  if (specificHeader.length > 0) {
+    headers = specificHeader
+  } else {
+    headers = parseCSVLine(lines[0])
+  }
 
   // Parse data rows
   const rows: Record<string, string>[] = []

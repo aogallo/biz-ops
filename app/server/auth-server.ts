@@ -1,40 +1,40 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { organization } from "better-auth/plugins";
-import { db } from "../server/db";
-import { getInitialOrganization } from "./auth/organization-queries.server";
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { organization } from 'better-auth/plugins'
+import { db } from '../server/db'
+import { getInitialOrganization } from './auth/organization-queries.server'
 import {
   assignRoleToMember,
   createSystemRoles,
   deleteSystemRoles,
   getInvitationRoles,
-} from "./auth/roles.server";
-import { schema } from "./db/schemas";
-import { sendInvitationEmail } from "./email/invitation.server";
+} from './auth/roles.server'
+import { schema } from './db/schemas'
+import { sendInvitationEmail } from './email/invitation.server'
 
 // Generate RFC 4122-compliant UUIDs for Better Auth records
 // This ensures compatibility with PostgreSQL's UUID type
 function generateId(): string {
-  return crypto.randomUUID();
+  return crypto.randomUUID()
 }
 
-const isDev = process.env.NODE_ENV === "development";
+const isDev = false
 
 // Helper to convert ArrayBuffer or Uint8Array to hex string
 function bufferToHex(buffer: ArrayBuffer | Uint8Array): string {
-  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 // Helper to convert hex string to Uint8Array
 function hexToBuffer(hex: string): Uint8Array<ArrayBuffer> {
-  const bytes = new Uint8Array(hex.length / 2);
+  const bytes = new Uint8Array(hex.length / 2)
   for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+    bytes[i / 2] = parseInt(hex.substr(i, 2), 16)
   }
-  return bytes as Uint8Array<ArrayBuffer>;
+  return bytes as Uint8Array<ArrayBuffer>
 }
 
 // Low-cost PBKDF2 for development (Cloudflare Workers free tier)
@@ -42,73 +42,73 @@ function hexToBuffer(hex: string): Uint8Array<ArrayBuffer> {
 const devPasswordConfig = isDev
   ? {
       hash: async (password: string): Promise<string> => {
-        const salt = crypto.getRandomValues(new Uint8Array(16));
-        const encoder = new TextEncoder();
+        const salt = crypto.getRandomValues(new Uint8Array(16))
+        const encoder = new TextEncoder()
         const key = await crypto.subtle.importKey(
-          "raw",
+          'raw',
           encoder.encode(password),
-          "PBKDF2",
+          'PBKDF2',
           false,
-          ["deriveBits"]
-        );
+          ['deriveBits']
+        )
         // Low iterations for dev (1000 vs 600000 recommended for production)
         const bits = await crypto.subtle.deriveBits(
-          { name: "PBKDF2", salt, iterations: 1000, hash: "SHA-256" },
+          { name: 'PBKDF2', salt, iterations: 1000, hash: 'SHA-256' },
           key,
           256
-        );
-        const saltHex = bufferToHex(salt);
-        const hashHex = bufferToHex(bits);
-        return `pbkdf2:${saltHex}:${hashHex}`;
+        )
+        const saltHex = bufferToHex(salt)
+        const hashHex = bufferToHex(bits)
+        return `pbkdf2:${saltHex}:${hashHex}`
       },
       verify: async ({
         hash,
         password,
       }: {
-        hash: string;
-        password: string;
+        hash: string
+        password: string
       }): Promise<boolean> => {
-        const [prefix, saltHex, storedHash] = hash.split(":");
-        if (prefix !== "pbkdf2") {
+        const [prefix, saltHex, storedHash] = hash.split(':')
+        if (prefix !== 'pbkdf2') {
           // Hash was created with production algorithm, can't verify in dev
           console.warn(
-            "Cannot verify production password hash in development mode"
-          );
-          return false;
+            'Cannot verify production password hash in development mode'
+          )
+          return false
         }
-        const salt = hexToBuffer(saltHex);
-        const encoder = new TextEncoder();
+        const salt = hexToBuffer(saltHex)
+        const encoder = new TextEncoder()
         const key = await crypto.subtle.importKey(
-          "raw",
+          'raw',
           encoder.encode(password),
-          "PBKDF2",
+          'PBKDF2',
           false,
-          ["deriveBits"]
-        );
+          ['deriveBits']
+        )
         const bits = await crypto.subtle.deriveBits(
-          { name: "PBKDF2", salt, iterations: 1000, hash: "SHA-256" },
+          { name: 'PBKDF2', salt, iterations: 1000, hash: 'SHA-256' },
           key,
           256
-        );
-        return bufferToHex(bits) === storedHash;
+        )
+        return bufferToHex(bits) === storedHash
       },
     }
-  : undefined;
+  : undefined
 
 if (isDev) {
   console.warn(
-    "⚠️  Using low-cost password hashing for development. DO NOT use in production!"
-  );
+    '⚠️  Using low-cost password hashing for development. DO NOT use in production!'
+  )
 }
 
 const auth = betterAuth({
-  basePath: "/api/auth",
+  basePath: '/api/auth',
   emailAndPassword: {
     enabled: true,
     ...(devPasswordConfig && { password: devPasswordConfig }),
   },
   database: drizzleAdapter(db, {
-    provider: "pg", // Use 'pg' for both node-postgres and neon-http (both PostgreSQL-compatible)
+    provider: 'pg', // Use 'pg' for both node-postgres and neon-http (both PostgreSQL-compatible)
     schema,
   }),
   advanced: {
@@ -120,13 +120,13 @@ const auth = betterAuth({
     session: {
       create: {
         before: async (session) => {
-          const { organization } = await getInitialOrganization(session.userId);
+          const { organization } = await getInitialOrganization(session.userId)
           return {
             data: {
               ...session,
               activeOrganizationId: organization?.id,
             },
-          };
+          }
         },
       },
     },
@@ -136,26 +136,26 @@ const auth = betterAuth({
       async sendInvitationEmail(data) {
         try {
           // Query custom role table to get user-facing role name
-          let roleName = data.role; // Default to Better Auth role
+          let roleName = data.role // Default to Better Auth role
 
           // Look up invitation roles from junction table
-          const invitationRoles = await getInvitationRoles(data.id);
+          const invitationRoles = await getInvitationRoles(data.id)
 
           if (invitationRoles.length > 0) {
             // Use first role name for email
-            roleName = invitationRoles[0].name;
+            roleName = invitationRoles[0].name
           }
 
           // Call existing email service with mapped parameters
           await sendInvitationEmail({
             to: data.email,
-            inviterName: data.inviter.user.name || "A team member",
+            inviterName: data.inviter.user.name || 'A team member',
             organizationName: data.organization.name,
             invitationToken: data.id,
             roleName,
-          });
+          })
         } catch (error) {
-          console.error("Failed to send invitation email:", error);
+          console.error('Failed to send invitation email:', error)
           // Don't throw - email failures shouldn't block invitation creation
         }
       },
@@ -164,19 +164,19 @@ const auth = betterAuth({
           // Run custom logic after organization is created
           // e.g., create default resources, send notifications
 
-          const { ownerId } = await createSystemRoles(organization.id);
-          await assignRoleToMember(member.id, ownerId);
+          const { ownerId } = await createSystemRoles(organization.id)
+          await assignRoleToMember(member.id, ownerId)
         },
         beforeDeleteOrganization: async ({ organization }) => {
           // a callback to run after deleting org
 
-          console.log("Deleting organization roles...", organization);
+          console.log('Deleting organization roles...', organization)
           // Clean up related resources, notify users, etc.
-          await deleteSystemRoles(organization.id);
+          await deleteSystemRoles(organization.id)
         },
       },
     }),
   ],
-});
+})
 
-export default auth;
+export default auth

@@ -1,16 +1,19 @@
+import { handleRequest } from '@vercel/react-router/entry.server'
 import { isbot } from 'isbot'
 import { renderToReadableStream } from 'react-dom/server'
-import type { EntryContext } from 'react-router'
+import type { AppLoadContext, EntryContext } from 'react-router'
 import { ServerRouter } from 'react-router'
 
-export default async function handleRequest(
+export default async function handleRequestReactRouter(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  routerContext: EntryContext
+  routerContext: EntryContext,
+  loadContext?: AppLoadContext
 ) {
   let shellRendered = false
   const userAgent = request.headers.get('user-agent')
+  const nonce = crypto.randomUUID()
 
   const body = await renderToReadableStream(
     <ServerRouter context={routerContext} url={request.url} />,
@@ -34,9 +37,19 @@ export default async function handleRequest(
     await body.allReady
   }
 
-  responseHeaders.set('Content-Type', 'text/html')
-  return new Response(body, {
-    headers: responseHeaders,
-    status: responseStatusCode,
-  })
+  // responseHeaders.set('Content-Type', 'text/html')
+  // return new Response(body, {
+  //   headers: responseHeaders,
+  //   status: responseStatusCode,
+  // })
+  const response = await handleRequest(
+    request,
+    responseStatusCode,
+    responseHeaders,
+    routerContext,
+    loadContext,
+    { nonce }
+  )
+  response.headers.set('Content-Security-Policy', `script-src 'nonce-${nonce}'`)
+  return response
 }

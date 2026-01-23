@@ -270,7 +270,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                     <TableCell className='font-medium'>{inv.email}</TableCell>
                     <TableCell>
                       <span className='inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800'>
-                        {inv.roleName || inv.role}
+                        {inv.role}
                       </span>
                     </TableCell>
                     <TableCell>{inv.inviterName || 'Unknown'}</TableCell>

@@ -10,9 +10,8 @@ import type { Route } from '../roles/+types/create'
 
 export async function action({ request }: Route.ActionArgs) {
   const result = await processPermissionFile(request)
-  console.log('actionresult', result)
   if (result.success) {
-    void redirectWithFlash('/permissions', {
+    return redirectWithFlash('/permissions', {
       type: 'success',
       message: result.message,
     })
@@ -46,6 +45,7 @@ const PermissionCreatePage = ({ actionData }: Route.ComponentProps) => {
               id='permissionFile'
               name='permissionFile'
               ref={inputRef}
+              accept='.csv,.xlsx'
               className='sr-only'
               onChange={(e) => fetcher.submit(e.currentTarget.form)}
             />

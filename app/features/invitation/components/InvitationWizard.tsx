@@ -26,7 +26,6 @@ interface InvitationWizardProps {
     organizationId: string
     email: string
     name: string
-    roleId: string | null
     roleIds: string[]
     createNewRole: boolean
     newRoleName: string
@@ -100,7 +99,6 @@ export function InvitationWizard({
         organizationId,
         email: state.email,
         name: state.name,
-        roleId: state.roleId,
         roleIds: state.roleIds,
         createNewRole: state.createNewRole,
         newRoleName: state.newRoleName,

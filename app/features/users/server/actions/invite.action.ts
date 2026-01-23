@@ -3,7 +3,7 @@ import auth from '~/server/auth-server'
 import { getRoleByName } from '~/server/auth/roles.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
-import { invitationModel, roleModel } from '~/server/db/schemas/auth'
+import { invitationModel, invitationRoleModel, roleModel } from '~/server/db/schemas/auth'
 import { isOrgAdmin, isSuperAdmin } from '~/server/permissions'
 import { USER_MESSAGES } from '../../messages'
 import { inviteUserSchema } from '../../schemas'
@@ -90,15 +90,22 @@ export async function inviteUser(request: Request) {
 
     const invitationId = invitation.id
 
-    // Update invitation with custom roleId
-    if (finalRoleId && invitationId) {
+    // Update invitation with inviter info
+    if (invitationId) {
       await db
         .update(invitationModel)
         .set({
-          roleId: finalRoleId,
           inviterId: session.user.id,
         })
         .where(eq(invitationModel.id, invitationId))
+
+      // Add role to junction table
+      if (finalRoleId) {
+        await db.insert(invitationRoleModel).values({
+          invitationId,
+          roleId: finalRoleId,
+        })
+      }
     }
 
     return {

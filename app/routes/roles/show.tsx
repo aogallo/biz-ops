@@ -23,7 +23,7 @@ import { Button } from '~/components/ui/button'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
-import { memberModel } from '~/server/db/schemas/auth'
+import { memberRoleModel } from '~/server/db/schemas/auth'
 import { redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
 import { ROLE_MESSAGES } from '../../features/roles/messages'
@@ -48,8 +48,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     rolesRepository.getRolePermissions(roleId),
     db
       .select({ count: sql<number>`count(*)` })
-      .from(memberModel)
-      .where(eq(memberModel.roleId, roleId))
+      .from(memberRoleModel)
+      .where(eq(memberRoleModel.roleId, roleId))
       .then((r) => Number(r[0].count)),
     isSuperAdmin(session.user.id),
   ])

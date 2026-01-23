@@ -9,6 +9,9 @@ import {
   userModel,
 } from '~/server/db/schemas/auth'
 
+// Note: Legacy roleId column has been removed from memberModel and invitationModel.
+// All role assignments now use junction tables (member_role, invitation_role).
+
 /**
  * Users Repository - Query-only operations
  * Does NOT create users (Better Auth owns that)
@@ -16,7 +19,8 @@ import {
  */
 export class UsersRepository {
   /**
-   * Get all users in an organization with their roles
+   * Get all users in an organization with their Better Auth role
+   * Note: For full role info with many-to-many, use getAllByOrganizationWithRoles()
    */
   async getAllByOrganization(organizationId: string) {
     return await db
@@ -29,19 +33,16 @@ export class UsersRepository {
         createdAt: userModel.createdAt,
         memberId: memberModel.id,
         memberRole: memberModel.role, // Better Auth role (owner/admin/member)
-        roleId: memberModel.roleId,
-        roleName: roleModel.name,
-        roleDescription: roleModel.description,
       })
       .from(userModel)
       .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
-      .leftJoin(roleModel, eq(roleModel.id, memberModel.roleId))
       .where(eq(memberModel.organizationId, organizationId))
       .orderBy(userModel.createdAt)
   }
 
   /**
    * Get pending invitations for an organization
+   * Note: Roles are now fetched separately via getInvitationRoles()
    */
   async getPendingInvitations(organizationId: string) {
     return await db
@@ -52,12 +53,9 @@ export class UsersRepository {
         status: invitationModel.status,
         expiresAt: invitationModel.expiresAt,
         createdAt: invitationModel.createdAt,
-        roleId: invitationModel.roleId,
-        roleName: roleModel.name,
         inviterName: userModel.name,
       })
       .from(invitationModel)
-      .leftJoin(roleModel, eq(roleModel.id, invitationModel.roleId))
       .leftJoin(userModel, eq(userModel.id, invitationModel.inviterId))
       .where(
         and(
@@ -130,27 +128,6 @@ export class UsersRepository {
   }
 
   /**
-   * Update member role in an organization (legacy - updates single roleId)
-   * @deprecated Use updateMemberRoles for junction table approach
-   */
-  async updateMemberRole(memberId: string, roleId: string) {
-    // Update legacy roleId for backward compatibility
-    await db
-      .update(memberModel)
-      .set({ roleId, updatedAt: new Date() })
-      .where(eq(memberModel.id, memberId))
-
-    // Also update junction table - replace all with the single role
-    await db
-      .delete(memberRoleModel)
-      .where(eq(memberRoleModel.memberId, memberId))
-
-    await db.insert(memberRoleModel).values({ memberId, roleId })
-
-    return true
-  }
-
-  /**
    * Get all roles for a member (many-to-many via junction table)
    */
   async getMemberRoles(memberId: string) {
@@ -180,12 +157,6 @@ export class UsersRepository {
       await db.insert(memberRoleModel).values(
         roleIds.map((roleId) => ({ memberId, roleId }))
       )
-
-      // Update legacy roleId for backward compatibility (use first role)
-      await db
-        .update(memberModel)
-        .set({ roleId: roleIds[0], updatedAt: new Date() })
-        .where(eq(memberModel.id, memberId))
     }
 
     return true

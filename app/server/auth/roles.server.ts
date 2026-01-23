@@ -355,42 +355,6 @@ export async function deleteSystemRoles(organizationId: string) {
 }
 
 /**
- * Assign specific role for a member (legacy - updates member.roleId for backward compatibility)
- * @deprecated Use assignRoleToMember for junction table approach
- * @param roleId - Role ID
- * @param memberId - Member ID
- * @returns boolean success
- */
-export async function assignRole(roleId: string, memberId: string) {
-  try {
-    console.log(`Assigning role ${roleId} to member ${memberId}`)
-    // Update legacy roleId for backward compatibility
-    await db
-      .update(memberModel)
-      .set({ roleId: roleId })
-      .where(eq(memberModel.id, memberId))
-
-    // Also insert into junction table
-    await db
-      .insert(memberRoleModel)
-      .values({
-        memberId,
-        roleId,
-      })
-      .onConflictDoNothing()
-
-    console.log(`✅ Assigned role ${roleId} to member ${memberId}`)
-    return true
-  } catch (error) {
-    console.error(
-      `Failed to assign role ${roleId} to member ${memberId}`,
-      error
-    )
-    return false
-  }
-}
-
-/**
  * Add a role to a member (many-to-many via junction table)
  * @param memberId - Member ID
  * @param roleId - Role ID

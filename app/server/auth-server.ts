@@ -1,16 +1,15 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
-import { eq } from "drizzle-orm";
 import { db } from "../server/db";
 import { getInitialOrganization } from "./auth/organization-queries.server";
 import {
-  assignRole,
+  assignRoleToMember,
   createSystemRoles,
   deleteSystemRoles,
+  getInvitationRoles,
 } from "./auth/roles.server";
 import { schema } from "./db/schemas";
-import { invitationModel, roleModel } from "./db/schemas/auth";
 import { sendInvitationEmail } from "./email/invitation.server";
 
 // Generate RFC 4122-compliant UUIDs for Better Auth records
@@ -53,23 +52,12 @@ const auth = betterAuth({
           // Query custom role table to get user-facing role name
           let roleName = data.role; // Default to Better Auth role
 
-          // Look up invitation to get roleId
-          const [invitationRecord] = await db
-            .select()
-            .from(invitationModel)
-            .where(eq(invitationModel.id, data.id))
-            .limit(1);
+          // Look up invitation roles from junction table
+          const invitationRoles = await getInvitationRoles(data.id);
 
-          if (invitationRecord?.roleId) {
-            const [roleRecord] = await db
-              .select()
-              .from(roleModel)
-              .where(eq(roleModel.id, invitationRecord.roleId))
-              .limit(1);
-
-            if (roleRecord) {
-              roleName = roleRecord.name;
-            }
+          if (invitationRoles.length > 0) {
+            // Use first role name for email
+            roleName = invitationRoles[0].name;
           }
 
           // Call existing email service with mapped parameters
@@ -91,7 +79,7 @@ const auth = betterAuth({
           // e.g., create default resources, send notifications
 
           const { ownerId } = await createSystemRoles(organization.id);
-          await assignRole(ownerId, member.id);
+          await assignRoleToMember(member.id, ownerId);
         },
         beforeDeleteOrganization: async ({ organization }) => {
           // a callback to run after deleting org

@@ -2,15 +2,14 @@ import { and, eq, sql } from 'drizzle-orm'
 import { redirect } from 'react-router'
 import auth from '~/server/auth-server'
 import { db } from '~/server/db'
-import { memberModel, organizationModel, roleModel } from '../db/schemas/auth'
+import { memberModel, memberRoleModel, organizationModel, roleModel } from '../db/schemas/auth'
 import type { SessionData } from './session.server'
 
 export interface OrganizationMember {
   id: string
   organizationId: string
   userId: string
-  role: string // 'owner' | 'admin' | 'member' - from legacyRole during migration
-  roleId: string | null // Future: RBAC role ID
+  role: string // 'owner' | 'admin' | 'member' - Better Auth compatibility
   createdAt: Date
 }
 
@@ -28,9 +27,13 @@ export interface Organization {
  */
 export async function requireOrganizationAdmin(session: SessionData) {
   const [membership] = await db
-    .select()
+    .select({
+      member: memberModel,
+      role: roleModel,
+    })
     .from(memberModel)
-    .innerJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(memberRoleModel, eq(memberRoleModel.memberId, memberModel.id))
+    .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
     .where(
       and(
         eq(memberModel.userId, session.user.id),
@@ -116,7 +119,7 @@ export async function requireOrganization(
     organization: org,
     membership: {
       ...membership,
-      role: membership.legacyRole || 'member', // Fallback to legacyRole during migration
+      role: membership.role || 'member',
     } as OrganizationMember,
   }
 }
@@ -156,7 +159,8 @@ export async function getUserOrganizations(userId: string) {
       organizationModel,
       eq(memberModel.organizationId, organizationModel.id)
     )
-    .leftJoin(roleModel, eq(memberModel.roleId, roleModel.id))
+    .innerJoin(memberRoleModel, eq(memberRoleModel.memberId, memberModel.id))
+    .innerJoin(roleModel, eq(memberRoleModel.roleId, roleModel.id))
     .where(
       and(
         eq(memberModel.userId, userId),
@@ -193,7 +197,6 @@ export async function getUserOrganizations(userId: string) {
         organizationId: data.organizationId,
         userId: userId,
         role: data.roleName,
-        roleId: null,
         createdAt: data.createdAt,
       },
       organization: {
@@ -224,7 +227,6 @@ export async function getUserOrganizations(userId: string) {
       organizationId: row.member.organizationId,
       userId: row.member.userId,
       role: row.member.role,
-      roleId: row.member.roleId,
       createdAt: row.member.createdAt,
     },
     organization: {

@@ -26,13 +26,14 @@ export function UserInformationStep({
 }: UserInformationStepProps) {
   const defaultRole = roles.find((role) => role.name === 'member')
 
-  if (defaultRole) {
-    updateField('roleId', defaultRole.id)
+  // Set default role if no roles are selected
+  if (defaultRole && state.roleIds.length === 0) {
+    updateField('roleIds', [defaultRole.id])
   }
 
   const handleOrganizationRoleChange = (id: string) => {
     console.log(id)
-    updateField('roleId', id)
+    updateField('roleIds', [id])
     updateField('createNewRole', false)
   }
 
@@ -86,7 +87,7 @@ export function UserInformationStep({
           Role
         </Label>
         <Select
-          value={state.roleId || defaultRole?.id || ''}
+          value={state.roleIds[0] || defaultRole?.id || ''}
           onValueChange={handleOrganizationRoleChange}
         >
           <SelectTrigger id='role-select' className='w-full'>
@@ -100,8 +101,8 @@ export function UserInformationStep({
             ))}
           </SelectContent>
         </Select>
-        {state.errors.roleId && (
-          <p className='text-destructive mt-1 text-sm'>{state.errors.roleId}</p>
+        {state.errors.roleIds && (
+          <p className='text-destructive mt-1 text-sm'>{state.errors.roleIds}</p>
         )}
         <p className='text-muted-foreground mt-1 text-xs'>
           An invitation will be sent to this email address

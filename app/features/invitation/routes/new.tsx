@@ -106,7 +106,6 @@ export async function action({ request }: Route.ActionArgs) {
   try {
     // Collect all role IDs to assign
     const roleIds: string[] = [...(data.roleIds || [])]
-    let primaryRoleId = data.roleId
 
     // 1. Create custom role if needed
     if (data.createNewRole) {
@@ -124,9 +123,6 @@ export async function action({ request }: Route.ActionArgs) {
 
       // Add the new role to the list
       roleIds.push(newRoleId)
-      if (!primaryRoleId) {
-        primaryRoleId = newRoleId
-      }
 
       // Assign permissions to new role
       if (data.selectedPermissions && data.selectedPermissions.length > 0) {
@@ -141,11 +137,6 @@ export async function action({ request }: Route.ActionArgs) {
           }))
         )
       }
-    }
-
-    // Use first roleId as primary for backward compatibility
-    if (!primaryRoleId && roleIds.length > 0) {
-      primaryRoleId = roleIds[0]
     }
 
     // 2. Create custom permissions if any
@@ -185,11 +176,11 @@ export async function action({ request }: Route.ActionArgs) {
 
     // 3. Get role name for invitation (use first role's name)
     let roleName = 'member'
-    if (primaryRoleId) {
+    if (roleIds.length > 0) {
       const [selectedRole] = await db
         .select()
         .from(roleModel)
-        .where(eq(roleModel.id, primaryRoleId))
+        .where(eq(roleModel.id, roleIds[0]))
         .limit(1)
       if (selectedRole) {
         roleName = selectedRole.name
@@ -212,11 +203,10 @@ export async function action({ request }: Route.ActionArgs) {
     const invitationData = invitationResponse as any as { id: string }
     const invitationId = invitationData.id
 
-    // 5. Update invitation with custom fields (roleId and customPermissions)
+    // 5. Update invitation with custom fields (customPermissions)
     await db
       .update(invitationModel)
       .set({
-        roleId: primaryRoleId,
         customPermissions:
           customPermIds.length > 0 ? JSON.stringify(customPermIds) : null,
         inviterId: session.user.id,
@@ -272,7 +262,6 @@ export default function NewInvitation({
     organizationId: string
     email: string
     name: string
-    roleId: string | null
     roleIds: string[]
     createNewRole: boolean
     newRoleName: string

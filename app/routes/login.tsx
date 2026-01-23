@@ -15,6 +15,7 @@ import {
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
+import { getPostLoginRedirect } from '~/server/auth/access.server'
 import auth from '~/server/auth-server'
 import { getOptionalAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/login'
@@ -24,7 +25,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Redirect if already logged in
   if (session) {
-    return redirect('/organization')
+    const redirectUrl = await getPostLoginRedirect(session.user.id)
+    return redirect(redirectUrl)
   }
 
   // Extract messages from query params
@@ -56,8 +58,12 @@ export async function action({ request }: Route.ActionArgs) {
       // Extract session cookie from Better Auth response
       const setCookie = response.headers.get('set-cookie')
 
+      // Parse response to get user data for smart redirect
+      const data = (await response.json()) as { user: { id: string } }
+      const redirectUrl = await getPostLoginRedirect(data.user.id)
+
       // Redirect with session cookies
-      return redirect('/organization', {
+      return redirect(redirectUrl, {
         headers: setCookie ? { 'set-cookie': setCookie } : {},
       })
     }

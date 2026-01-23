@@ -58,7 +58,18 @@ export async function getOptionalAuth(
       headers: request.headers,
     })
 
-    return session?.session && session?.user ? (session as SessionData) : null
+    if (!session?.session || !session?.user) {
+      return null
+    }
+
+    const isSA = await isSuperAdmin(session.user.id)
+
+    const customSession = {
+      ...session,
+      user: { ...session.user, isSuperAdmin: isSA },
+    }
+
+    return customSession as SessionData
   } catch {
     return null
   }

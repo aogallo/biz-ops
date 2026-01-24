@@ -3,7 +3,15 @@
  */
 
 import { relations } from 'drizzle-orm'
-import { boolean, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import { timestamps } from './common'
 
 export const userModel = pgTable('user', {
@@ -108,14 +116,20 @@ export const roleModel = pgTable('role', {
   ...timestamps,
 })
 
-export const permissionModel = pgTable('permission', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  resource: text('resource').notNull(),
-  action: text('action').notNull(),
-  description: text('description'),
-  isSystem: boolean('is_system').default(false).notNull(),
-  ...timestamps,
-})
+export const permissionModel = pgTable(
+  'permission',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    resource: text('resource').notNull(),
+    action: text('action').notNull(),
+    description: text('description'),
+    isSystem: boolean('is_system').default(false).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex('uq_resource_action_idx').on(table.resource, table.action),
+  ]
+)
 
 export const rolePermissionModel = pgTable('role_permission', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -168,7 +182,9 @@ export const invitationRoleModel = pgTable(
       .references(() => roleModel.id, { onDelete: 'cascade' }),
     ...timestamps,
   },
-  (table) => [unique('invitation_role_unique').on(table.invitationId, table.roleId)]
+  (table) => [
+    unique('invitation_role_unique').on(table.invitationId, table.roleId),
+  ]
 )
 
 /** * --- DRIZZLE RELATIONS ---
@@ -243,14 +259,17 @@ export const memberRelations = relations(memberModel, ({ one, many }) => ({
   memberRoles: many(memberRoleModel),
 }))
 
-export const invitationRelations = relations(invitationModel, ({ one, many }) => ({
-  organization: one(organizationModel, {
-    fields: [invitationModel.organizationId],
-    references: [organizationModel.id],
-  }),
-  inviter: one(userModel, {
-    fields: [invitationModel.inviterId],
-    references: [userModel.id],
-  }),
-  invitationRoles: many(invitationRoleModel),
-}))
+export const invitationRelations = relations(
+  invitationModel,
+  ({ one, many }) => ({
+    organization: one(organizationModel, {
+      fields: [invitationModel.organizationId],
+      references: [organizationModel.id],
+    }),
+    inviter: one(userModel, {
+      fields: [invitationModel.inviterId],
+      references: [userModel.id],
+    }),
+    invitationRoles: many(invitationRoleModel),
+  })
+)

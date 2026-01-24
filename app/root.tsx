@@ -58,7 +58,10 @@ function Document({ children }: { children: React.ReactNode }) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<typeof loader>()
   return (
-    <ThemeProvider specifiedTheme={data.theme} themeAction='/action/set-theme'>
+    <ThemeProvider
+      specifiedTheme={data?.theme ?? null}
+      themeAction='/action/set-theme'
+    >
       <Document>{children}</Document>
     </ThemeProvider>
   )

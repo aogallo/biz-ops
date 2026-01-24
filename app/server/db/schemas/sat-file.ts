@@ -1,4 +1,12 @@
-import { boolean, date, pgTable, real, text, uuid } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  date,
+  pgTable,
+  real,
+  text,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import {
   createInsertSchema,
   createSelectSchema,
@@ -56,7 +64,17 @@ export const satFileModel = pgTable('sat_file', {
   noAlcoholicTax: real('no_alcoholic_tax').default(0.0),
   portTariffTax: real('port_tariff_tax').default(0.0),
   ...timestamps,
-})
+}, (table) => [
+  uniqueIndex('sat_file_unique_dte_idx').on(
+    table.organizationId,
+    table.companyId,
+    table.date,
+    table.authorizationNumber,
+    table.dteType,
+    table.serie,
+    table.dteNumber
+  ),
+])
 
 export const selectSatFileSchema = createSelectSchema(satFileModel)
 export const insertSatFileSchema = createInsertSchema(satFileModel)

@@ -38,6 +38,7 @@ export const satFileRowSchema = z.object({
   cementTax: z.coerce.number().optional().default(0),
   noAlcoholicTax: z.coerce.number().optional().default(0),
   portTariffTax: z.coerce.number().optional().default(0),
+  accountCode: z.string().optional(),
 })
 
 export type SatFileRow = z.infer<typeof satFileRowSchema>

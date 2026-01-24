@@ -3,6 +3,13 @@ import { useCallback, useState } from 'react'
 import { useActionData, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { Input } from '~/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import { SatFileColumns } from '~/features/sat-processor/components/Columns'
@@ -21,6 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const url = new URL(request.url)
   const search = url.searchParams.get('search') ?? undefined
+  const companyId = url.searchParams.get('companyId') ?? undefined
 
   if (!session.session.activeOrganizationId) {
     return {
@@ -34,7 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const organizationId = session.session.activeOrganizationId
 
   const [satFiles, accounts, companies, stats] = await Promise.all([
-    satFileRepository.getByOrganization(organizationId, { search }),
+    satFileRepository.getByOrganization(organizationId, { search, companyId }),
     getAccountingAccountsByOrganization(organizationId),
     companyRepository.getByOrganization(organizationId),
     satFileRepository.getCategorizeStats(organizationId),
@@ -87,10 +95,29 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
+    // Build message based on what happened
+    const messageParts: string[] = []
+    if (result.inserted > 0) {
+      messageParts.push(`${result.inserted} new records inserted`)
+    }
+    if (result.updated > 0) {
+      messageParts.push(`${result.updated} existing records updated`)
+    }
+    if (result.skipped > 0) {
+      messageParts.push(`${result.skipped} duplicates skipped`)
+    }
+
+    const message =
+      messageParts.length > 0
+        ? `Successfully processed: ${messageParts.join(', ')}`
+        : 'No records were processed'
+
     return {
       success: true,
-      message: `Successfully uploaded ${result.created} records`,
-      created: result.created,
+      message,
+      inserted: result.inserted,
+      updated: result.updated,
+      skipped: result.skipped,
       totalRows: result.totalRows,
       errors: result.errors,
     }
@@ -134,11 +161,23 @@ export default function SATProcessorIndex({
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
+    const newParams = new URLSearchParams(searchParams)
     if (value) {
-      setSearchParams({ search: value })
+      newParams.set('search', value)
     } else {
-      setSearchParams({})
+      newParams.delete('search')
     }
+    setSearchParams(newParams)
+  }
+
+  const handleCompanyChange = (value: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (value && value !== 'all') {
+      newParams.set('companyId', value)
+    } else {
+      newParams.delete('companyId')
+    }
+    setSearchParams(newParams)
   }
 
   const currentMonth = new Date().toLocaleString('es-GT', {
@@ -176,6 +215,22 @@ export default function SATProcessorIndex({
               </span>
             </div>
             <div className='flex items-center gap-2'>
+              <Select
+                value={searchParams.get('companyId') ?? 'all'}
+                onValueChange={handleCompanyChange}
+              >
+                <SelectTrigger className='w-48'>
+                  <SelectValue placeholder='All Companies' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Companies</SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className='relative'>
                 <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400' />
                 <Input

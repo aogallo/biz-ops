@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "uq_resource_action_idx" ON "permission" USING btree ("resource","action");

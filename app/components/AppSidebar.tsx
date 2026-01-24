@@ -67,7 +67,7 @@ export const navigationItems = [
     color: 'text-green-500',
     items: [
       { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
-      { name: 'Expenses', path: '/expenses', icon: Banknote },
+      { name: 'Expenses', path: '/sat-processor', icon: Banknote },
       { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
     ],
   },

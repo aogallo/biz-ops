@@ -11,6 +11,7 @@ type InsertSatFile = z.infer<typeof insertSatFileSchema>
 
 export interface GetSatFilesOptions {
   search?: string
+  companyId?: string
   limit?: number
   offset?: number
 }
@@ -26,9 +27,13 @@ export class SatFileRepository {
     organizationId: string,
     options: GetSatFilesOptions = {}
   ): Promise<SatFile[]> {
-    const { search, limit = 50, offset = 0 } = options
+    const { search, companyId, limit = 50, offset = 0 } = options
 
     const conditions = [eq(satFileModel.organizationId, organizationId)]
+
+    if (companyId) {
+      conditions.push(eq(satFileModel.companyId, companyId))
+    }
 
     if (search) {
       conditions.push(

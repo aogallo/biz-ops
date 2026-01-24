@@ -1,6 +1,6 @@
 import { CloudUpload } from 'lucide-react'
-import { useState } from 'react'
-import { Form, useNavigation } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Form, useActionData, useNavigation } from 'react-router'
 import { Label } from '~/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import {
@@ -30,9 +30,27 @@ export function UploadDropzone({ companies }: UploadDropzoneProps) {
     InvoiceType | ''
   >('')
   const navigation = useNavigation()
+  const actionData = useActionData<{
+    success?: boolean
+    error?: string
+  }>()
   const isUploading = navigation.state === 'submitting'
 
   const canUpload = selectedCompanyId && selectedInvoiceType && selectedFile
+
+  // Reset form after successful upload
+  useEffect(() => {
+    if (actionData && 'success' in actionData && actionData.success) {
+      setSelectedFile(null)
+      // Reset file input
+      const fileInput = document.getElementById(
+        'sat-file-input'
+      ) as HTMLInputElement
+      if (fileInput) {
+        fileInput.value = ''
+      }
+    }
+  }, [actionData])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()

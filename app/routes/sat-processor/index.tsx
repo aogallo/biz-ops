@@ -87,10 +87,29 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
+    // Build message based on what happened
+    const messageParts: string[] = []
+    if (result.inserted > 0) {
+      messageParts.push(`${result.inserted} new records inserted`)
+    }
+    if (result.updated > 0) {
+      messageParts.push(`${result.updated} existing records updated`)
+    }
+    if (result.skipped > 0) {
+      messageParts.push(`${result.skipped} duplicates skipped`)
+    }
+
+    const message =
+      messageParts.length > 0
+        ? `Successfully processed: ${messageParts.join(', ')}`
+        : 'No records were processed'
+
     return {
       success: true,
-      message: `Successfully uploaded ${result.created} records`,
-      created: result.created,
+      message,
+      inserted: result.inserted,
+      updated: result.updated,
+      skipped: result.skipped,
       totalRows: result.totalRows,
       errors: result.errors,
     }

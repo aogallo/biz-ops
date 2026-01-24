@@ -46,6 +46,7 @@ const COLUMN_MAPPING: Record<string, keyof SatFileRow> = {
   'Impuesto No Alcoholico': 'noAlcoholicTax',
   'bebidas no alcohólicas (monto de este impuesto)': 'noAlcoholicTax',
   'tarifa portuaria (monto de este impuesto)': 'portTariffTax',
+  'cuenta contable': 'accountCode',
 }
 
 function normalizeColumnName(name: string): string {

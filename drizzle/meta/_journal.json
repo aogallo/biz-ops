@@ -64,6 +64,13 @@
       "when": 1769039793372,
       "tag": "0008_abandoned_anita_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1769214242365,
+      "tag": "0009_jittery_betty_brant",
+      "breakpoints": true
     }
   ]
 }

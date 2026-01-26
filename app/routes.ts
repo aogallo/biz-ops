@@ -68,5 +68,6 @@ export default [
       index('./routes/permissions/index.tsx'),
       route('/new', './routes/permissions/create.tsx'),
     ]),
+    route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

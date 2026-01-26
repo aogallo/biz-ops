@@ -64,16 +64,26 @@ app/
 ├── components/          # React components
 │   ├── ui/             # shadcn/ui components
 │   └── AppSidebar.tsx  # Main sidebar component
-├── features/           # Feature-based modules
-│   └── organization/   # Organization feature
-│       └── routes/     # Organization routes
+├── features/           # Feature-based modules (server logic + components only)
+│   └── organization/   # Example feature
+│       ├── components/ # Feature-specific components
+│       ├── server/     # Server-side logic
+│       │   ├── repository.ts
+│       │   └── actions/
+│       └── schemas.ts  # Zod schemas (drizzle-zod)
 ├── hooks/              # Custom React hooks
 ├── layout/             # Layout components
 │   └── AppLayout.tsx   # Main app layout with sidebar
 ├── lib/                # Utilities
 │   └── utils.ts        # cn() helper and utilities
-├── routes/             # Top-level routes
-│   └── login.tsx       # Login page
+├── routes/             # ALL routes live here (file-based routing ready)
+│   ├── login.tsx       # Login page
+│   ├── organization/   # Organization routes
+│   │   ├── index.tsx
+│   │   └── create.tsx
+│   ├── users/          # Users routes
+│   ├── roles/          # Roles routes
+│   └── ...
 ├── server/             # Server-side code
 │   ├── auth-client.ts  # Better Auth client config
 │   ├── auth-server.ts  # Better Auth server config
@@ -86,6 +96,8 @@ app/
 ├── index.ts            # App entry point
 └── routes.ts           # Route configuration
 ```
+
+**Note**: All routes are placed in `/app/routes/` to prepare for file-based routing. Features only contain server logic (repository, actions) and components.
 
 ### Database Architecture
 
@@ -121,7 +133,7 @@ Better Auth is configured with:
 
 ### Routing
 
-Routes are defined in `app/routes.ts` using React Router v7's file-based routing:
+Routes are defined in `app/routes.ts` using React Router v7's configuration. All routes are in `/app/routes/`:
 
 ```typescript
 [
@@ -129,14 +141,20 @@ Routes are defined in `app/routes.ts` using React Router v7's file-based routing
   layout("./layout/AppLayout.tsx", [
     // Nested routes with sidebar
     prefix("organization", [
-      index("./features/organization/routes/index.tsx"), // /organization
-      route("/new", "./features/organization/routes/CreateOrganization.tsx"), // /organization/new
+      index("./routes/organization/index.tsx"), // /organization
+      route("/new", "./routes/organization/create.tsx"), // /organization/new
+    ]),
+    prefix("users", [
+      index("./routes/users/index.tsx"), // /users
+      route("/create", "./routes/users/create.tsx"), // /users/create
     ]),
   ]),
 ];
 ```
 
 Layout wraps routes with `AppSidebar` and `SidebarProvider`.
+
+**Note**: The project is preparing for file-based routing, so all routes are centralized in `/app/routes/`.
 
 ### Cloudflare Workers Integration
 
@@ -158,11 +176,19 @@ Components are installed to `app/components/ui/` and use the `~/*` path alias.
 
 ### Creating New Features
 
-Follow the feature-based structure in `app/features/`:
+Follow this two-step structure:
 
+**Step 1: Create feature logic in `app/features/`:**
 1. Create feature directory (e.g., `app/features/invoices/`)
-2. Add `routes/` subdirectory for route components
-3. Add feature-specific components, hooks, and utilities
+2. Add `server/repository.ts` for database access
+3. Add `server/actions/` for business logic
+4. Add `schemas.ts` for Zod validation schemas
+5. Add `components/` for feature-specific UI components (optional)
+
+**Step 2: Create routes in `app/routes/`:**
+1. Create route directory (e.g., `app/routes/invoices/`)
+2. Add route files (`index.tsx`, `create.tsx`, `edit.tsx`, etc.)
+3. Import server logic from features: `import { invoicesRepository } from "~/features/invoices/server/repository"`
 4. Register routes in `app/routes.ts`
 
 ### Database Changes
@@ -189,30 +215,40 @@ Follow the feature-based structure in `app/features/`:
 
 ### Feature Structure
 
-Each feature MUST follow this directory structure:
+Features contain **server logic and components only**. Routes live in `/app/routes/`.
 
 ```
 app/features/<feature-name>/
-├── routes/              # Route components (UI layer)
 ├── server/              # Server-side logic
-│   ├── repository/      # Database access layer
+│   ├── repository.ts    # Database access layer
 │   └── actions/         # Business logic layer
 ├── components/          # Feature-specific components (optional)
+├── schemas.ts           # Zod schemas from drizzle-zod
 └── types.ts            # Feature-specific types (optional)
+
+app/routes/<feature-name>/
+├── index.tsx           # List view
+├── create.tsx          # Create form
+├── edit.tsx            # Edit form
+└── show.tsx            # Detail view
 ```
 
 **Example**:
 
 ```
 app/features/users/
-├── routes/
-│   ├── index.tsx       # List users
-│   └── create.tsx      # Create user form
 ├── server/
-│   ├── repository/
-│   │   └── users.repository.ts
+│   ├── repository.ts           # UsersRepository class
 │   └── actions/
 │       └── create-user.action.ts
+├── components/
+│   └── user-form.tsx
+└── schemas.ts                  # createUserSchema, updateUserSchema
+
+app/routes/users/
+├── index.tsx       # List users (imports from ~/features/users/server/repository)
+├── create.tsx      # Create user form
+└── edit.tsx        # Edit user form
 ```
 
 ### Repository Pattern (Data Access Layer)
@@ -478,7 +514,7 @@ export class UsersRepository {
 export const usersRepository = new UsersRepository();
 ```
 
-**Types** (`app/features/users/types.ts`):
+**Schemas** (`app/features/users/schemas.ts`):
 
 ```typescript
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -534,13 +570,13 @@ export async function createUserAction(input: CreateUserInput) {
 }
 ```
 
-**Route** (`app/features/users/routes/create.tsx`):
+**Route** (`app/routes/users/create.tsx`):
 
 ```typescript
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/create";
-import { createUserAction } from "../server/actions/create-user.action";
-import { createUserSchema } from "../types";
+import { createUserAction } from "~/features/users/server/actions/create-user.action";
+import { createUserSchema } from "~/features/users/schemas";
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
@@ -606,12 +642,13 @@ export default function CreateUser() {
 
 ### Summary of Rules
 
-1. **Feature Structure**: Each feature must have `routes/`, `server/repository/`, and `server/actions/` directories
-2. **Repository Pattern**: Always use repository classes for database access, never access DB directly from actions
+1. **Feature Structure**: Features contain `server/repository.ts`, `server/actions/`, `schemas.ts`, and optional `components/`. Routes go in `/app/routes/<feature-name>/`
+2. **Repository Pattern**: Always use repository classes for database access, never access DB directly from actions or routes
 3. **Type Safety**: Use `drizzle-zod` with `createInsertSchema` and `createSelectSchema` to generate types from database schemas
 4. **No Type Casting**: Never use `as string`, `as any`, or similar type assertions - use Zod validation instead
 5. **Schema Extension**: Extend base schemas with `.extend()` or `.refine()` for additional validation rules
 6. **Input Validation**: Always validate user input with Zod schemas using `.safeParse()` before processing
+7. **Route Location**: ALL routes live in `/app/routes/` directory, not in features (file-based routing ready)
 
 # React Router v7 Framework Guidelines
 

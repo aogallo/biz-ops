@@ -53,6 +53,7 @@ export default [
     ...prefix('roles', [
       index('./routes/roles/index.tsx'),
       route('/new', './routes/roles/create.tsx'),
+      route('/assign', './routes/roles/assign.tsx'),
       route('/:id', './routes/roles/show.tsx'),
       route('/:id/edit', './routes/roles/edit.tsx'),
     ]),
@@ -67,5 +68,6 @@ export default [
       index('./routes/permissions/index.tsx'),
       route('/new', './routes/permissions/create.tsx'),
     ]),
+    route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

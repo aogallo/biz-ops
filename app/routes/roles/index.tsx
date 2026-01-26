@@ -73,11 +73,18 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
             Manage roles and their associated permissions
           </p>
         </div>
-        {canCreateRole && (
-          <Link to='/roles/new'>
-            <Button>Create Role</Button>
+        <div className='flex gap-2'>
+          {canCreateRole && (
+            <Link to='/roles/new'>
+              <Button className='cursor-pointer'>Create Role</Button>
+            </Link>
+          )}
+          <Link to='/roles/assign'>
+            <Button className='cursor-pointer' variant='ghost'>
+              Assign Role
+            </Button>
           </Link>
-        )}
+        </div>
       </div>
 
       {/* System Roles Section */}

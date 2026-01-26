@@ -1,5 +1,4 @@
 import { and, eq } from 'drizzle-orm'
-import { redirect } from 'react-router'
 import { db } from '~/server/db'
 import {
   memberModel,
@@ -96,11 +95,11 @@ export async function getUserPermissions(
 
 /**
  * Require permission middleware for route handlers
- * Throws redirect if user lacks permission
+ * Throws 403 Response if user lacks permission
  * @param userId - User ID
  * @param organizationId - Organization ID
  * @param permissionString - Required permission in "resource:action" format
- * @throws Redirect with 403 status if permission denied
+ * @throws Response with 403 status if permission denied (handled by ErrorBoundary)
  */
 export async function requirePermission(
   userId: string,
@@ -109,14 +108,10 @@ export async function requirePermission(
 ): Promise<void> {
   const allowed = await hasPermission(userId, organizationId, permissionString)
 
-  console.log('allowed........', allowed)
-
   if (!allowed) {
-    throw redirect('/organization', {
+    throw new Response(`Permission denied: ${permissionString}`, {
       status: 403,
-      headers: {
-        'X-Message': "You don't have permission for this action",
-      },
+      statusText: "You don't have permission for this action",
     })
   }
 }

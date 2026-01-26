@@ -59,8 +59,10 @@ export async function updateMemberRoles(
   }
 
   try {
-    // Check if user has permission to update user roles
-    await requirePermission(session.user.id, organizationId, "user:update");
+    // Check if user has permission to assign roles (skip for super admins)
+    if (!session.user.isSuperAdmin) {
+      await requirePermission(session.user.id, organizationId, "role:assign");
+    }
 
     // Update the member's roles
     await usersRepository.setMemberRoles(memberId, roleIds);

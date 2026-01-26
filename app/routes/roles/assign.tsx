@@ -43,8 +43,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect('/organization')
   }
 
-  // Check permission
-  await requirePermission(session.user.id, activeOrgId, 'user:update')
+  // Check permission (skip for super admins)
+  if (!session.user.isSuperAdmin) {
+    await requirePermission(session.user.id, activeOrgId, 'role:assign')
+  }
 
   // Fetch users with roles for the selected organization
   let users = await usersRepository.getAllByOrganizationWithRoles(activeOrgId)

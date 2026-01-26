@@ -18,7 +18,7 @@ import {
   Truck,
   Users,
 } from 'lucide-react'
-import { Form, Link, NavLink } from 'react-router'
+import { Form, Link, NavLink, useFetcher } from 'react-router'
 import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
 import { useFilteredNavigation } from '~/hooks/usePermissions'
 import { cn } from '~/lib/utils'
@@ -82,6 +82,7 @@ export const navigationItems = [
 const AppSidebar = () => {
   const { session, permissions, availableOrganizations } = useAuth()
   const organization = useOptionalOrganization()
+  const fetcher = useFetcher()
 
   // Filter navigation items based on user permissions
   const visibleMenus = useFilteredNavigation(navigationItems)
@@ -98,7 +99,7 @@ const AppSidebar = () => {
             availableOrganizations &&
             availableOrganizations.length > 0 ? (
               // Super admin organization switcher
-              <Form method='post' action='/switch-organization'>
+              <fetcher.Form method='post' action='/switch-organization'>
                 <select
                   name='organizationId'
                   value={activeOrgId || ''}
@@ -112,7 +113,7 @@ const AppSidebar = () => {
                     </option>
                   ))}
                 </select>
-              </Form>
+              </fetcher.Form>
             ) : (
               // Regular user organization display
               <SidebarMenuButton asChild>

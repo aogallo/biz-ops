@@ -19,19 +19,21 @@ interface UserWithRoles {
 }
 
 interface UserListPanelProps {
-  users: UserWithRoles[]
+  users: UserWithRoles[] // Already filtered users
+  allUsersCount: number // Total count before filtering
   selectedMemberId: string | null
   onSelectUser: (memberId: string) => void
   searchQuery: string
-  onSearch: (query: string) => void
+  onSearchChange: (query: string) => void
 }
 
 export function UserListPanel({
   users,
+  allUsersCount,
   selectedMemberId,
   onSelectUser,
   searchQuery,
-  onSearch,
+  onSearchChange,
 }: UserListPanelProps) {
   const getInitials = (name: string | null, email: string) => {
     if (name) {
@@ -50,7 +52,7 @@ export function UserListPanel({
       <CardHeader className='pb-3'>
         <div className='flex items-center justify-between'>
           <CardTitle className='text-lg'>
-            Users ({users.length})
+            Users ({searchQuery ? `${users.length} of ${allUsersCount}` : users.length})
           </CardTitle>
         </div>
         <div className='relative'>
@@ -58,7 +60,7 @@ export function UserListPanel({
           <Input
             placeholder='Search by name or email...'
             value={searchQuery}
-            onChange={(e) => onSearch(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             className='pl-9'
           />
         </div>

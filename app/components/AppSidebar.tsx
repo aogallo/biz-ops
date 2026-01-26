@@ -75,7 +75,7 @@ export const navigationItems = [
     section: 'Appointments',
     icon: CalendarDays,
     color: 'text-blue-500',
-    items: [{ name: 'Calendar', path: '/calendar', icon: Calendar1 }],
+    items: [{ name: 'Calendar', path: '/appointments', icon: Calendar1 }],
   },
 ]
 

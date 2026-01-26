@@ -8,12 +8,24 @@
  * Each menu item requires at least one of the specified permissions to be visible
  */
 export const MENU_PERMISSIONS = {
-  '/users': ['user:read'],
-  '/roles': ['role:read'],
+  // Administrations
+  '/dashboard': ['dashboard:read'],
   '/organization': ['organization:read'],
+  '/users': ['user:read'],
+  '/permissions': ['permission:read'],
+  '/roles': ['role:read'],
   '/business-partners': ['business-partner:read'],
-  '/products': ['product:read'],
+  '/company': ['company:read'],
   '/invitations': ['invitation:read'],
+  // Inventory
+  '/products': ['product:read'],
+  '/stock': ['stock:read'],
+  '/suppliers': ['suppliers:read'],
+  // Accounting
+  '/invocies': ['invoice:read'],
+  '/sat-processor': ['sat-processor:read'],
+  // Appointments
+  '/appointments': ['appointments:read'],
 } as const
 
 /**

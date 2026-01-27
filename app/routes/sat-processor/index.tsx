@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
+import { accountsRepository } from '~/features/accounts/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import { SatFileColumns } from '~/features/sat-processor/components/Columns'
 import { ProTipCard } from '~/features/sat-processor/components/ProTipCard'
@@ -43,7 +43,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const [satFiles, accounts, companies, stats] = await Promise.all([
     satFileRepository.getByOrganization(organizationId, { search, companyId }),
-    getAccountingAccountsByOrganization(organizationId),
+    accountsRepository.getAllByOrganization(organizationId),
     companyRepository.getByOrganization(organizationId),
     satFileRepository.getCategorizeStats(organizationId),
   ])

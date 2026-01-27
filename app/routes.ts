@@ -67,6 +67,8 @@ export default [
     ...prefix('permissions', [
       index('./routes/permissions/index.tsx'),
       route('/new', './routes/permissions/create.tsx'),
+      route('/:id', './routes/permissions/show.tsx'),
+      route('/:id/edit', './routes/permissions/edit.tsx'),
     ]),
     route('*', './routes/error/NotFound.tsx'),
   ]),

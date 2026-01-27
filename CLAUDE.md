@@ -649,6 +649,7 @@ export default function CreateUser() {
 5. **Schema Extension**: Extend base schemas with `.extend()` or `.refine()` for additional validation rules
 6. **Input Validation**: Always validate user input with Zod schemas using `.safeParse()` before processing
 7. **Route Location**: ALL routes live in `/app/routes/` directory, not in features (file-based routing ready)
+8. **Table Pagination**: Every table displaying data MUST implement pagination. Use server-side pagination with URL searchParams for page state. Default page size: 10 items.
 
 # React Router v7 Framework Guidelines
 

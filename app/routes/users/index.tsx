@@ -31,8 +31,8 @@ import { db } from '~/server/db'
 import { roleModel } from '~/server/db/schemas/auth'
 import { getFlash, redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
-import { updateMemberRole } from '../server/actions/update-role.action'
-import { usersRepository } from '../server/repository'
+import { updateMemberRole } from '../../features/users/server/actions/update-role.action'
+import { usersRepository } from '../../features/users/server/repository'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {

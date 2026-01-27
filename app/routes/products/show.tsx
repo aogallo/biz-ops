@@ -9,9 +9,9 @@ import {
 } from '~/components/ui/card'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
-import { PRODUCT_MESSAGES } from '../messages'
-import { deleteProduct } from '../server/actions/delete.action'
-import { productsRepository } from '../server/repository'
+import { PRODUCT_MESSAGES } from '../../features/products/messages'
+import { deleteProduct } from '../../features/products/server/actions/delete.action'
+import { productsRepository } from '../../features/products/server/repository'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -1,20 +1,28 @@
 import { eq } from 'drizzle-orm'
 import { Form, Link, redirect } from 'react-router'
 import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { requirePermission } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import { memberModel, roleModel, userModel } from '~/server/db/schemas/auth'
 import { redirectWithFlash } from '~/server/flash.server'
-import { updateMemberRoles } from '../server/actions/update-role.action'
-import { usersRepository } from '../server/repository'
+import { updateMemberRoles } from '../../features/users/server/actions/update-role.action'
+import { usersRepository } from '../../features/users/server/repository'
 import type { Route } from './+types/$memberId.roles'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const url = new URL(request.url)
-  const organizationId = url.searchParams.get('organizationId') || session.session.activeOrganizationId
+  const organizationId =
+    url.searchParams.get('organizationId') ||
+    session.session.activeOrganizationId
 
   if (!organizationId) {
     throw redirect('/users')
@@ -80,7 +88,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   return { error: result.message }
 }
 
-export default function ManageMemberRoles({ loaderData, actionData }: Route.ComponentProps) {
+export default function ManageMemberRoles({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const { member, memberRoles, availableRoles, organizationId } = loaderData
 
   const memberRoleIds = memberRoles.map((r) => r.id)
@@ -100,7 +111,8 @@ export default function ManageMemberRoles({ loaderData, actionData }: Route.Comp
         <CardHeader>
           <CardTitle>Manage Roles for {member.userName}</CardTitle>
           <CardDescription>
-            Select the roles to assign to {member.userEmail}. The user will have combined permissions from all selected roles.
+            Select the roles to assign to {member.userEmail}. The user will have
+            combined permissions from all selected roles.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -115,8 +127,10 @@ export default function ManageMemberRoles({ loaderData, actionData }: Route.Comp
               {availableRoles.map((role) => (
                 <label
                   key={role.id}
-                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50 ${
-                    memberRoleIds.includes(role.id) ? 'border-primary bg-primary/5' : ''
+                  className={`hover:bg-muted/50 flex cursor-pointer items-start gap-3 rounded-lg border p-4 ${
+                    memberRoleIds.includes(role.id)
+                      ? 'border-primary bg-primary/5'
+                      : ''
                   }`}
                 >
                   <input
@@ -136,7 +150,9 @@ export default function ManageMemberRoles({ loaderData, actionData }: Route.Comp
                       )}
                     </div>
                     {role.description && (
-                      <p className='text-muted-foreground text-sm'>{role.description}</p>
+                      <p className='text-muted-foreground text-sm'>
+                        {role.description}
+                      </p>
                     )}
                   </div>
                 </label>

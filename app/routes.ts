@@ -33,9 +33,9 @@ export default [
     // Products Routes
     ...prefix('products', [
       index('./routes/products/index.tsx'),
-      route('/new', './features/products/routes/create.tsx'),
-      route('/:sku', './features/products/routes/show.tsx'),
-      route('/:sku/edit', './features/products/routes/edit.tsx'),
+      route('/new', './routes/products/create.tsx'),
+      route('/:sku', './routes/products/show.tsx'),
+      route('/:sku/edit', './routes/products/edit.tsx'),
     ]),
 
     // Pertner Routes
@@ -48,16 +48,16 @@ export default [
 
     // Invitation Routes
     ...prefix('invitations', [
-      index('./features/invitation/routes/index.tsx'),
-      route('/new', './features/invitation/routes/new.tsx'),
-      route('/roles', './features/invitation/routes/roles.tsx'),
+      index('./routes/invitation/index.tsx'),
+      route('/new', './routes/invitation/new.tsx'),
+      route('/roles', './routes/invitation/roles.tsx'),
     ]),
 
     // User Routes
     ...prefix('users', [
-      index('./features/users/routes/index.tsx'),
-      route('/invite', './features/users/routes/invite.tsx'),
-      route('/:memberId/roles', './features/users/routes/$memberId.roles.tsx'),
+      index('./routes/users/index.tsx'),
+      route('/invite', './routes/users/invite.tsx'),
+      route('/:memberId/roles', './routes/users/$memberId.roles.tsx'),
     ]),
 
     // Roles Routes

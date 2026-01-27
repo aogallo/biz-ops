@@ -650,6 +650,7 @@ export default function CreateUser() {
 6. **Input Validation**: Always validate user input with Zod schemas using `.safeParse()` before processing
 7. **Route Location**: ALL routes live in `/app/routes/` directory, not in features (file-based routing ready)
 8. **Table Pagination**: Every table displaying data MUST implement pagination. Use server-side pagination with URL searchParams for page state. Default page size: 10 items.
+9. **Drizzle Migrations**: Every time update or create table use the command `npm run db:generate`
 
 # React Router v7 Framework Guidelines
 

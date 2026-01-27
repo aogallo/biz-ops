@@ -2,8 +2,8 @@ import { eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   organizationAccountingConfigModel,
-  type OrganizationAccountingConfig,
   type InsertOrganizationAccountingConfig,
+  type OrganizationAccountingConfig,
   type UpdateOrganizationAccountingConfig,
 } from '~/server/db/schemas/organizationConfig'
 
@@ -14,7 +14,9 @@ export class OrganizationConfigRepository {
     const [config] = await db
       .select()
       .from(organizationAccountingConfigModel)
-      .where(eq(organizationAccountingConfigModel.organizationId, organizationId))
+      .where(
+        eq(organizationAccountingConfigModel.organizationId, organizationId)
+      )
       .limit(1)
 
     return config ?? null
@@ -38,7 +40,9 @@ export class OrganizationConfigRepository {
 
   async update(
     organizationId: string,
-    data: Partial<Omit<UpdateOrganizationAccountingConfig, 'id' | 'organizationId'>>
+    data: Partial<
+      Omit<UpdateOrganizationAccountingConfig, 'id' | 'organizationId'>
+    >
   ): Promise<OrganizationAccountingConfig | null> {
     const [updated] = await db
       .update(organizationAccountingConfigModel)
@@ -46,7 +50,9 @@ export class OrganizationConfigRepository {
         ...data,
         updatedAt: new Date(),
       })
-      .where(eq(organizationAccountingConfigModel.organizationId, organizationId))
+      .where(
+        eq(organizationAccountingConfigModel.organizationId, organizationId)
+      )
       .returning()
 
     return updated ?? null
@@ -54,7 +60,9 @@ export class OrganizationConfigRepository {
 
   async upsert(
     organizationId: string,
-    data: Partial<Omit<InsertOrganizationAccountingConfig, 'id' | 'organizationId'>>
+    data: Partial<
+      Omit<InsertOrganizationAccountingConfig, 'id' | 'organizationId'>
+    >
   ): Promise<OrganizationAccountingConfig> {
     const existing = await this.getByOrganizationId(organizationId)
 
@@ -83,7 +91,7 @@ export class OrganizationConfigRepository {
     formatted: string
   }> {
     // First ensure config exists
-    const config = await this.getOrCreate(organizationId)
+    // const config = await this.getOrCreate(organizationId)
 
     // Atomically increment and return the number
     const [result] = await db
@@ -92,7 +100,9 @@ export class OrganizationConfigRepository {
         nextJournalEntryNumber: sql`${organizationAccountingConfigModel.nextJournalEntryNumber} + 1`,
         updatedAt: new Date(),
       })
-      .where(eq(organizationAccountingConfigModel.organizationId, organizationId))
+      .where(
+        eq(organizationAccountingConfigModel.organizationId, organizationId)
+      )
       .returning()
 
     // The number returned is the NEW value (after increment), so we need to subtract 1

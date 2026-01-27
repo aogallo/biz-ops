@@ -1,16 +1,13 @@
 import { z } from 'zod'
 import {
-  insertInvoiceSchema,
   insertInvoiceLineSchema,
-  selectInvoiceSchema,
+  insertInvoiceSchema,
   selectInvoiceLineSchema,
+  selectInvoiceSchema,
 } from '~/server/db/schemas/invoice'
 
 // Base schemas from drizzle-zod
-export {
-  selectInvoiceSchema,
-  selectInvoiceLineSchema,
-}
+export { selectInvoiceLineSchema, selectInvoiceSchema }
 
 // Schema for creating an invoice line
 export const createInvoiceLineSchema = insertInvoiceLineSchema

@@ -1,5 +1,6 @@
 import { ArrowLeft, Save } from 'lucide-react'
 import { Form, Link, useNavigation } from 'react-router'
+import z from 'zod'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -18,9 +19,9 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
-import { organizationConfigRepository } from '~/features/organization-config/server/repository'
-import { updateAccountingConfigAction } from '~/features/organization-config/server/actions/update.action'
 import { updateAccountingConfigSchema } from '~/features/organization-config/schemas'
+import { updateAccountingConfigAction } from '~/features/organization-config/server/actions/update.action'
+import { organizationConfigRepository } from '~/features/organization-config/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/accounting'
 
@@ -82,7 +83,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (!result.success) {
     return {
       error: 'Validation failed',
-      fieldErrors: result.error.flatten().fieldErrors,
+      fieldErrors: z.flattenError(result.error).fieldErrors,
     }
   }
 
@@ -104,7 +105,11 @@ interface AccountSelectProps {
   label: string
   description: string
   value: string | null
-  accounts: Array<{ id: string; name: string | null; accountNumber: string | null }>
+  accounts: Array<{
+    id: string
+    name: string | null
+    accountNumber: string | null
+  }>
 }
 
 function AccountSelect({
@@ -131,7 +136,7 @@ function AccountSelect({
           ))}
         </SelectContent>
       </Select>
-      <p className='text-sm text-muted-foreground'>{description}</p>
+      <p className='text-muted-foreground text-sm'>{description}</p>
     </div>
   )
 }
@@ -149,7 +154,7 @@ export default function AccountingSettings({
       {/* Back Link */}
       <Link
         to='/dashboard'
-        className='mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground'
+        className='text-muted-foreground hover:text-foreground mb-4 inline-flex items-center text-sm'
       >
         <ArrowLeft className='mr-1 h-4 w-4' />
         Back to Dashboard
@@ -266,7 +271,7 @@ export default function AccountingSettings({
                   placeholder='JE'
                   maxLength={10}
                 />
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-muted-foreground text-sm'>
                   Prefix for journal entry numbers (e.g., JE-000001)
                 </p>
               </div>

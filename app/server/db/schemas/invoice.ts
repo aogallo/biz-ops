@@ -6,7 +6,6 @@ import {
   pgEnum,
   pgTable,
   text,
-  timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
 import {
@@ -33,7 +32,11 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
   'voided',
 ])
 
-export const ivaTypeEnum = pgEnum('iva_type', ['taxed', 'exempt', 'non_subject'])
+export const ivaTypeEnum = pgEnum('iva_type', [
+  'taxed',
+  'exempt',
+  'non_subject',
+])
 
 // Invoice Model
 export const invoiceModel = pgTable('invoice', {

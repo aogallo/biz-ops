@@ -1,5 +1,5 @@
-import { journalEntryRepository } from '../repository'
 import type { JournalEntry } from '~/server/db/schemas/journalEntry'
+import { journalEntryRepository } from '../repository'
 
 export interface VoidJournalEntryResult {
   success: boolean
@@ -40,11 +40,11 @@ export async function voidJournalEntryAction(
     }
 
     // Void the entry (append reason to notes)
-    const existingNotes = entry.notes || ''
-    const voidNote = `[VOIDED: ${reason}]`
-    const updatedNotes = existingNotes
-      ? `${existingNotes}\n${voidNote}`
-      : voidNote
+    // const existingNotes = entry.notes || ''
+    // const voidNote = `[VOIDED: ${reason}]`
+    // const updatedNotes = existingNotes
+    //   ? `${existingNotes}\n${voidNote}`
+    //   : voidNote
 
     // First update the status
     const updated = await journalEntryRepository.updateStatus(

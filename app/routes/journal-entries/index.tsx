@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Eye, Search } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
-import { Input } from '~/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -26,8 +25,8 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
-import { journalEntryRepository } from '~/features/journal-entry/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
+import { journalEntryRepository } from '~/features/journal-entry/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types'
 
@@ -80,7 +79,11 @@ function getStatusBadge(status: string) {
     case 'draft':
       return <Badge variant='secondary'>Draft</Badge>
     case 'posted':
-      return <Badge variant='default' className='bg-green-600'>Posted</Badge>
+      return (
+        <Badge variant='default' className='bg-green-600'>
+          Posted
+        </Badge>
+      )
     case 'voided':
       return <Badge variant='destructive'>Voided</Badge>
     default:
@@ -88,7 +91,9 @@ function getStatusBadge(status: string) {
   }
 }
 
-export default function JournalEntriesIndex({ loaderData }: Route.ComponentProps) {
+export default function JournalEntriesIndex({
+  loaderData,
+}: Route.ComponentProps) {
   const { entries, companies, total, page, pageSize } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -191,7 +196,7 @@ export default function JournalEntriesIndex({ loaderData }: Route.ComponentProps
                   <TableRow>
                     <TableCell
                       colSpan={8}
-                      className='py-8 text-center text-muted-foreground'
+                      className='text-muted-foreground py-8 text-center'
                     >
                       No journal entries found
                     </TableCell>
@@ -205,7 +210,7 @@ export default function JournalEntriesIndex({ loaderData }: Route.ComponentProps
                       <TableCell>
                         {format(new Date(entry.entryDate), 'dd/MM/yyyy')}
                       </TableCell>
-                      <TableCell className='max-w-[200px] truncate'>
+                      <TableCell className='max-w-50 truncate'>
                         {entry.description}
                       </TableCell>
                       <TableCell>{entry.company?.name || '-'}</TableCell>
@@ -233,7 +238,7 @@ export default function JournalEntriesIndex({ loaderData }: Route.ComponentProps
           {/* Pagination */}
           {totalPages > 1 && (
             <div className='mt-4 flex items-center justify-between'>
-              <div className='text-sm text-muted-foreground'>
+              <div className='text-muted-foreground text-sm'>
                 Showing {(page - 1) * pageSize + 1} to{' '}
                 {Math.min(page * pageSize, total)} of {total} entries
               </div>

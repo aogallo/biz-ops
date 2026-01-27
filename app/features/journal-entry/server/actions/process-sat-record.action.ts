@@ -1,14 +1,17 @@
-import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
-import { journalEntryRepository } from '../repository'
 import { organizationConfigRepository } from '~/features/organization-config/server/repository'
-import { satFileModel, type SatFile } from '~/server/db/schemas/sat-file'
+import { db } from '~/server/db'
 import {
-  invoiceModel,
   invoiceLineModel,
+  invoiceModel,
   type InsertInvoice,
 } from '~/server/db/schemas/invoice'
-import type { JournalEntry, InsertJournalEntryLine } from '~/server/db/schemas/journalEntry'
+import type {
+  InsertJournalEntryLine,
+  JournalEntry,
+} from '~/server/db/schemas/journalEntry'
+import { satFileModel, type SatFile } from '~/server/db/schemas/sat-file'
+import { journalEntryRepository } from '../repository'
 
 export interface ProcessSatRecordResult {
   success: boolean
@@ -58,7 +61,8 @@ export async function processSatRecordAction(
     }
 
     // Get organization config
-    const config = await organizationConfigRepository.getOrCreate(organizationId)
+    const config =
+      await organizationConfigRepository.getOrCreate(organizationId)
 
     // Determine if this is a purchase or sale
     const isPurchase = satFile.invoiceType === 'purchase'
@@ -92,9 +96,7 @@ export async function processSatRecordAction(
     return {
       success: false,
       error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to process SAT record',
+        error instanceof Error ? error.message : 'Failed to process SAT record',
     }
   }
 }
@@ -186,7 +188,10 @@ async function createNewJournalEntry(
       )
 
     // Build journal entry lines based on invoice type
-    const journalLines: Omit<InsertJournalEntryLine, 'id' | 'journalEntryId' | 'createdAt' | 'updatedAt'>[] = []
+    const journalLines: Omit<
+      InsertJournalEntryLine,
+      'id' | 'journalEntryId' | 'createdAt' | 'updatedAt'
+    >[] = []
 
     if (isPurchase) {
       /**
@@ -323,9 +328,8 @@ async function updateExistingJournalEntry(
   isPurchase: boolean
 ): Promise<ProcessSatRecordResult> {
   return await db.transaction(async (tx) => {
-    const { journalEntryLineModel } = await import(
-      '~/server/db/schemas/journalEntry'
-    )
+    const { journalEntryLineModel } =
+      await import('~/server/db/schemas/journalEntry')
 
     // Calculate amounts
     const total = satFile.total
@@ -346,7 +350,7 @@ async function updateExistingJournalEntry(
     // Update the specific journal entry line (expense/revenue line, not IVA or A/P, A/R)
     // For purchases: line 1 (expense account)
     // For sales: line 2 (revenue account)
-    const lineToUpdate = isPurchase ? 1 : 2
+    // const lineToUpdate = isPurchase ? 1 : 2
 
     await tx
       .update(journalEntryLineModel)
@@ -359,12 +363,10 @@ async function updateExistingJournalEntry(
         creditAmount: isPurchase ? '0' : subtotal.toFixed(2),
         updatedAt: new Date(),
       })
-      .where(
-        eq(journalEntryLineModel.journalEntryId, satFile.journalEntryId!)
-      )
-      // Note: In a real scenario, we'd filter by lineNumber too
-      // But for simplicity, we update all lines with this journal entry
-      // A better approach would be to store the line ID in the invoice line
+      .where(eq(journalEntryLineModel.journalEntryId, satFile.journalEntryId!))
+    // Note: In a real scenario, we'd filter by lineNumber too
+    // But for simplicity, we update all lines with this journal entry
+    // A better approach would be to store the line ID in the invoice line
 
     // Update SAT file accounting account
     await tx

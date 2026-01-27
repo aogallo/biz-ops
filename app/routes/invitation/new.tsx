@@ -1,5 +1,11 @@
 import { and, eq } from 'drizzle-orm'
 import { redirect } from 'react-router'
+import { InvitationWizard } from '~/features/invitation/components/InvitationWizard'
+import type {
+  OrganizationData,
+  PermissionData,
+  RoleData,
+} from '~/features/invitation/types'
 import auth from '~/server/auth-server'
 import { getUserOrganizations } from '~/server/auth/organization.server'
 import { requirePermission } from '~/server/auth/permissions.server'
@@ -14,8 +20,6 @@ import {
   rolePermissionModel,
 } from '~/server/db/schemas/auth'
 import { isSuperAdmin } from '~/server/permissions'
-import { InvitationWizard } from '../components/InvitationWizard'
-import type { OrganizationData, PermissionData, RoleData } from '../types'
 import type { Route } from './+types/new'
 
 export async function loader({ request }: Route.LoaderArgs) {

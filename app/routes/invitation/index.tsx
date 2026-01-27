@@ -1,11 +1,16 @@
 import { desc, eq, inArray } from 'drizzle-orm'
 import { Link } from 'react-router'
+import { InvitationList } from '~/features/invitation/components/InvitationList'
+import type { InvitationRole, InvitationRow } from '~/features/invitation/types'
 import { requireOrganizationAdmin } from '~/server/auth/organization.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
-import { invitationModel, invitationRoleModel, roleModel, userModel } from '~/server/db/schemas/auth'
-import { InvitationList } from '../components/InvitationList'
-import type { InvitationRole, InvitationRow } from '../types'
+import {
+  invitationModel,
+  invitationRoleModel,
+  roleModel,
+  userModel,
+} from '~/server/db/schemas/auth'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {

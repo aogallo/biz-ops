@@ -8,11 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
+import { productsRepository } from '~/features/products/server/repository'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
-import { productsRepository } from '../server/repository'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -3,6 +3,19 @@ import { db } from '~/server/db'
 import { permissionModel, rolePermissionModel } from '~/server/db/schemas/auth'
 import type { CreatePermissionInput, UpdatePermissionInput } from '../schemas'
 
+export interface PaginationOptions {
+  page?: number
+  pageSize?: number
+}
+
+export interface PaginatedResult<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 /**
  * Permissions Repository - Full CRUD operations for permissions
  * Permissions are global (not organization-scoped)
@@ -49,6 +62,38 @@ export class PermissionsRepository {
       .select()
       .from(permissionModel)
       .orderBy(permissionModel.resource, permissionModel.action)
+  }
+
+  /**
+   * Get paginated permissions ordered by resource, action
+   */
+  async getPaginated(
+    options: PaginationOptions = {}
+  ): Promise<PaginatedResult<typeof permissionModel.$inferSelect>> {
+    const { page = 1, pageSize = 10 } = options
+    const offset = (page - 1) * pageSize
+
+    const [items, countResult] = await Promise.all([
+      db
+        .select()
+        .from(permissionModel)
+        .orderBy(permissionModel.resource, permissionModel.action)
+        .limit(pageSize)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(permissionModel),
+    ])
+
+    const total = Number(countResult[0].count)
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    }
   }
 
   /**

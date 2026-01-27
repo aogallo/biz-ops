@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { getAccountingAccountsByOrganization } from '~/features/accounting-account/server/actions/read.actions'
+import { accountsRepository } from '~/features/accounts/server/repository'
 import { updateAccountingConfigSchema } from '~/features/organization-config/schemas'
 import { updateAccountingConfigAction } from '~/features/organization-config/server/actions/update.action'
 import { organizationConfigRepository } from '~/features/organization-config/server/repository'
@@ -36,7 +36,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const [config, accounts] = await Promise.all([
     organizationConfigRepository.getOrCreate(organizationId),
-    getAccountingAccountsByOrganization(organizationId),
+    accountsRepository.getAllByOrganization(organizationId),
   ])
 
   return { config, accounts }

@@ -66,10 +66,12 @@ export default [
       route('/accounting', './routes/settings/accounting.tsx'),
     ]),
     ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
+
+    // Company Routes
     ...prefix('company', [
       index('./routes/company/index.tsx'),
-      route('/new', './features/company/routes/create.tsx'),
-      route('/:companyId', './features/company/routes/show.tsx'),
+      route('/new', './routes/company/create.tsx'),
+      route('/:companyId', './routes/company/show.tsx'),
     ]),
     ...prefix('permissions', [
       index('./routes/permissions/index.tsx'),

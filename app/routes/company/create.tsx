@@ -8,7 +8,7 @@ import {
 } from 'react-router'
 import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
-import { createCompany } from '../server/actions/create.action.server'
+import { createCompany } from '~/features/company/server/actions/create.action.server'
 import type { Route } from './+types/create'
 
 export async function action({ request }: Route.ActionArgs) {

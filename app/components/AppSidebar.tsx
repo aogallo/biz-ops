@@ -1,5 +1,6 @@
 import {
   Banknote,
+  BookOpen,
   Building2,
   BuildingIcon,
   Calendar1,
@@ -13,6 +14,7 @@ import {
   NewspaperIcon,
   Package,
   PackageCheck,
+  Settings,
   Shapes,
   ShieldXIcon,
   Truck,
@@ -66,9 +68,18 @@ export const navigationItems = [
     icon: Building2,
     color: 'text-green-500',
     items: [
+      { name: 'Journal Entries', path: '/journal-entries', icon: BookOpen },
+      { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
       { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
       { name: 'Expenses', path: '/sat-processor', icon: Banknote },
-      { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
+    ],
+  },
+  {
+    section: 'Settings',
+    icon: Settings,
+    color: 'text-gray-500',
+    items: [
+      { name: 'Accounting', path: '/settings/accounting', icon: Settings },
     ],
   },
   {

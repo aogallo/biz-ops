@@ -1,27 +1,27 @@
 import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
+import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import {
   getUserOrganizations,
   requireOrganizationAdmin,
 } from '~/server/auth/organization.server'
 import { requireAuth } from '~/server/auth/session.server'
+import { getFlash } from '~/server/flash.server'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  try {
-    const session = await requireAuth(request)
-    await requireOrganizationAdmin(session)
-    const organizations = await getUserOrganizations(session.user.id)
+  const session = await requireAuth(request)
+  await requireOrganizationAdmin(session)
+  const organizations = await getUserOrganizations(session.user.id)
 
-    return { organizations }
-  } catch (error) {
-    console.error('Error loading organizations:', error)
-    return { organizations: [] }
-  }
+  const { flash } = getFlash(request)
+
+  return { organizations, toast: flash }
 }
 
 export default function Organization({ loaderData }: Route.ComponentProps) {
-  const { organizations } = loaderData
+  const { organizations, toast } = loaderData
+  useToastFromLoader(toast)
 
   return (
     <div className=''>

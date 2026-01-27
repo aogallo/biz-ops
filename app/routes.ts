@@ -25,8 +25,8 @@ export default [
     route('/switch-organization', './routes/switch-organization.tsx'),
     ...prefix('organization', [
       index('./routes/organization/index.tsx'),
-      route('/new', './features/organization/routes/create.tsx'),
-      route('/:slug', './features/organization/routes/show.tsx'),
+      route('/new', './routes/organization/create.tsx'),
+      route('/:slug', './routes/organization/show.tsx'),
     ]),
     ...prefix('products', [
       index('./features/products/routes/index.tsx'),
@@ -35,10 +35,10 @@ export default [
       route('/:sku/edit', './features/products/routes/edit.tsx'),
     ]),
     ...prefix('business-partners', [
-      index('./features/business-partners/routes/index.tsx'),
-      route('/new', './features/business-partners/routes/create.tsx'),
-      route('/:id', './features/business-partners/routes/show.tsx'),
-      route('/:id/edit', './features/business-partners/routes/edit.tsx'),
+      index('./routes/business-partner/index.tsx'),
+      route('/new', './routes/business-partner/create.tsx'),
+      route('/:id', './routes/business-partner/show.tsx'),
+      route('/:id/edit', './routes/business-partner/edit.tsx'),
     ]),
     ...prefix('invitations', [
       index('./features/invitation/routes/index.tsx'),

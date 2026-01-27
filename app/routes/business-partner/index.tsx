@@ -16,12 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
+import type { PartnerType } from '~/features/business-partners/schemas'
+import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
-import type { PartnerType } from '../schemas'
-import { businessPartnersRepository } from '../server/repository'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {

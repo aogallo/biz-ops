@@ -7,11 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { BUSINESS_PARTNER_MESSAGES } from '~/features/business-partners/messages'
+import { deleteBusinessPartner } from '~/features/business-partners/server/actions/delete.action'
+import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
-import { BUSINESS_PARTNER_MESSAGES } from '../messages'
-import { deleteBusinessPartner } from '../server/actions/delete.action'
-import { businessPartnersRepository } from '../server/repository'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {

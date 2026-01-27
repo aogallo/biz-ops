@@ -1,6 +1,7 @@
 import {
   Banknote,
   BookOpen,
+  BookOpenIcon,
   Building2,
   BuildingIcon,
   Calendar1,
@@ -19,6 +20,7 @@ import {
   ShieldXIcon,
   Truck,
   Users,
+  UserStarIcon,
 } from 'lucide-react'
 import { Form, Link, NavLink, useFetcher } from 'react-router'
 import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
@@ -44,11 +46,16 @@ export const navigationItems = [
     color: 'text-rose-500',
     items: [
       { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
+      { name: 'Accounts', path: '/accounts', icon: BookOpenIcon },
       { name: 'Organization', path: '/organization', icon: Building2 },
       { name: 'Users', path: '/users', icon: Users },
       { name: 'Permissions', path: '/permissions', icon: ShieldXIcon },
       { name: 'Roles', path: '/roles', icon: HandshakeIcon },
-      { name: 'Business Partners', path: '/business-partners', icon: Users },
+      {
+        name: 'Business Partners',
+        path: '/business-partners',
+        icon: UserStarIcon,
+      },
       { name: 'Companies', path: '/company', icon: BuildingIcon },
       { name: 'Invitations', path: '/invitations', icon: Mail },
     ],

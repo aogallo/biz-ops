@@ -96,6 +96,14 @@ export default [
       route('/:id', './routes/permissions/show.tsx'),
       route('/:id/edit', './routes/permissions/edit.tsx'),
     ]),
+
+    // Accounts Routes
+    ...prefix('accounts', [
+      index('./routes/accounts/index.tsx'),
+      route('/new', './routes/accounts/create.tsx'),
+      route('/:id', './routes/accounts/show.tsx'),
+      route('/:id/edit', './routes/accounts/edit.tsx'),
+    ]),
     route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

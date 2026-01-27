@@ -58,6 +58,13 @@ export default [
       route('/:id/edit', './routes/roles/edit.tsx'),
     ]),
     ...prefix('sat-processor', [index('./routes/sat-processor/index.tsx')]),
+    ...prefix('journal-entries', [
+      index('./routes/journal-entries/index.tsx'),
+      route('/:id', './routes/journal-entries/show.tsx'),
+    ]),
+    ...prefix('settings', [
+      route('/accounting', './routes/settings/accounting.tsx'),
+    ]),
     ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
     ...prefix('company', [
       index('./routes/company/index.tsx'),

@@ -1,2 +1,0 @@
-CREATE UNIQUE INDEX "business_partner_email_org_idx" ON "business_partner" USING btree ("organization_id","email");--> statement-breakpoint
-CREATE UNIQUE INDEX "product_sku_org_idx" ON "product" USING btree ("organization_id","sku");

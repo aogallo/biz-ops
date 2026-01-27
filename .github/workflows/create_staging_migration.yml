@@ -1,0 +1,30 @@
+name: Create Staging Migrations
+on:
+  push:
+    branches:
+      - staging
+jobs:
+  create_staging_migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          npm run db:migrate
+      - name: Create the super admin user
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          SUPER_ADMIN_PASSWORD: ${{ secrets.STAGING_SUPER_ADMIN_PASSWORD }}
+          SUPER_ADMIN_EMAIL: ${{ secrets.STAGING_SUPER_ADMIN_EMAIL }}
+        run: |
+          npm run db:seed:super-admin

@@ -4,6 +4,7 @@ import {
   pgTable,
   real,
   text,
+  timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
@@ -63,6 +64,10 @@ export const satFileModel = pgTable('sat_file', {
   cementTax: real('cement_tax').default(0.0),
   noAlcoholicTax: real('no_alcoholic_tax').default(0.0),
   portTariffTax: real('port_tariff_tax').default(0.0),
+  // Processing fields
+  processedAt: timestamp('processed_at'),
+  invoiceId: uuid('invoice_id'), // FK to invoice, set when journal entry is created
+  journalEntryId: uuid('journal_entry_id'), // FK to journal entry
   ...timestamps,
 }, (table) => [
   uniqueIndex('sat_file_unique_dte_idx').on(

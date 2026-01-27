@@ -17,7 +17,7 @@ import { ProTipCard } from '~/features/sat-processor/components/ProTipCard'
 import { SelectedRowDetails } from '~/features/sat-processor/components/SelectedRowDetails'
 import { UploadDropzone } from '~/features/sat-processor/components/UploadDropzone'
 import { invoiceTypeSchema } from '~/features/sat-processor/schemas'
-import { updateAccountAction } from '~/features/sat-processor/server/actions/update-account.action'
+import { processSatRecordAction } from '~/features/journal-entry/server/actions/process-sat-record.action'
 import { uploadSatFileAction } from '~/features/sat-processor/server/actions/upload.action'
 import { satFileRepository } from '~/features/sat-processor/server/repository/sat-file.repository'
 import { requireAuth } from '~/server/auth/session.server'
@@ -131,17 +131,34 @@ export async function action({ request }: Route.ActionArgs) {
       return { error: 'SAT file ID is required' }
     }
 
-    const result = await updateAccountAction(
+    // If no account selected, just clear it (no journal entry creation)
+    if (!accountingAccountId) {
+      const { satFileRepository } = await import(
+        '~/features/sat-processor/server/repository/sat-file.repository'
+      )
+      await satFileRepository.updateAccountingAccount(satFileId, null)
+      return { success: true, message: 'Account removed' }
+    }
+
+    // Process the SAT record - this creates/updates the journal entry
+    const result = await processSatRecordAction({
       satFileId,
-      accountingAccountId || null,
-      organizationId
-    )
+      accountingAccountId,
+      organizationId,
+    })
 
     if (!result.success) {
       return { error: result.error }
     }
 
-    return { success: true, updated: result.data }
+    return {
+      success: true,
+      message: result.isUpdate
+        ? 'Journal entry updated'
+        : 'Journal entry created',
+      journalEntryId: result.journalEntry?.id,
+      invoiceId: result.invoiceId,
+    }
   }
 
   return { error: 'Unknown action' }

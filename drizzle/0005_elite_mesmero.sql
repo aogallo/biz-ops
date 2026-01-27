@@ -1,1 +1,0 @@
-ALTER TABLE "company" ADD COLUMN "nit" text NOT NULL;

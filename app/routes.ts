@@ -14,42 +14,53 @@ export default [
   // API Routes
   route('/api/auth/*', 'routes/api.auth.$.tsx'), // Required by Better Auth
 
-  // Theme action
+  // Action routes
   route('/action/set-theme', 'routes/action.set-theme.tsx'),
+  route('/action/switch-organization', 'routes/action.switch-organization.tsx'),
 
   // Public invitation acceptance
   route('/invitation/accept/:token', './routes/invitation/accept.$token.tsx'),
 
   // App routes with sidebar layout
   layout('./layout/AppLayout.tsx', [
-    route('/switch-organization', './routes/switch-organization.tsx'),
+    // Organization Routes
     ...prefix('organization', [
       index('./routes/organization/index.tsx'),
-      route('/new', './features/organization/routes/create.tsx'),
-      route('/:slug', './features/organization/routes/show.tsx'),
+      route('/new', './routes/organization/create.tsx'),
+      route('/:slug', './routes/organization/show.tsx'),
     ]),
+
+    // Products Routes
     ...prefix('products', [
-      index('./features/products/routes/index.tsx'),
-      route('/new', './features/products/routes/create.tsx'),
-      route('/:sku', './features/products/routes/show.tsx'),
-      route('/:sku/edit', './features/products/routes/edit.tsx'),
+      index('./routes/products/index.tsx'),
+      route('/new', './routes/products/create.tsx'),
+      route('/:sku', './routes/products/show.tsx'),
+      route('/:sku/edit', './routes/products/edit.tsx'),
     ]),
+
+    // Pertner Routes
     ...prefix('business-partners', [
-      index('./features/business-partners/routes/index.tsx'),
-      route('/new', './features/business-partners/routes/create.tsx'),
-      route('/:id', './features/business-partners/routes/show.tsx'),
-      route('/:id/edit', './features/business-partners/routes/edit.tsx'),
+      index('./routes/business-partner/index.tsx'),
+      route('/new', './routes/business-partner/create.tsx'),
+      route('/:id', './routes/business-partner/show.tsx'),
+      route('/:id/edit', './routes/business-partner/edit.tsx'),
     ]),
+
+    // Invitation Routes
     ...prefix('invitations', [
-      index('./features/invitation/routes/index.tsx'),
-      route('/new', './features/invitation/routes/new.tsx'),
-      route('/roles', './features/invitation/routes/roles.tsx'),
+      index('./routes/invitation/index.tsx'),
+      route('/new', './routes/invitation/new.tsx'),
+      route('/roles', './routes/invitation/roles.tsx'),
     ]),
+
+    // User Routes
     ...prefix('users', [
-      index('./features/users/routes/index.tsx'),
-      route('/invite', './features/users/routes/invite.tsx'),
-      route('/:memberId/roles', './features/users/routes/$memberId.roles.tsx'),
+      index('./routes/users/index.tsx'),
+      route('/invite', './routes/users/invite.tsx'),
+      route('/:memberId/roles', './routes/users/$memberId.roles.tsx'),
     ]),
+
+    // Roles Routes
     ...prefix('roles', [
       index('./routes/roles/index.tsx'),
       route('/new', './routes/roles/create.tsx'),
@@ -57,25 +68,41 @@ export default [
       route('/:id', './routes/roles/show.tsx'),
       route('/:id/edit', './routes/roles/edit.tsx'),
     ]),
+
+    // SAT Processor Routes
     ...prefix('sat-processor', [index('./routes/sat-processor/index.tsx')]),
     ...prefix('journal-entries', [
       index('./routes/journal-entries/index.tsx'),
       route('/:id', './routes/journal-entries/show.tsx'),
     ]),
+
+    // Settings Routes
     ...prefix('settings', [
       route('/accounting', './routes/settings/accounting.tsx'),
     ]),
-    ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
+
+    // Dashboard Routes
+    ...prefix('dashboard', [index('./routes/dashboard/index.tsx')]),
+
+    // Company Routes
     ...prefix('company', [
       index('./routes/company/index.tsx'),
-      route('/new', './features/company/routes/create.tsx'),
-      route('/:companyId', './features/company/routes/show.tsx'),
+      route('/new', './routes/company/create.tsx'),
+      route('/:companyId', './routes/company/show.tsx'),
     ]),
     ...prefix('permissions', [
       index('./routes/permissions/index.tsx'),
       route('/new', './routes/permissions/create.tsx'),
       route('/:id', './routes/permissions/show.tsx'),
       route('/:id/edit', './routes/permissions/edit.tsx'),
+    ]),
+
+    // Accounts Routes
+    ...prefix('accounts', [
+      index('./routes/accounts/index.tsx'),
+      route('/new', './routes/accounts/create.tsx'),
+      route('/:id', './routes/accounts/show.tsx'),
+      route('/:id/edit', './routes/accounts/edit.tsx'),
     ]),
     route('*', './routes/error/NotFound.tsx'),
   ]),

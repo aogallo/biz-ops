@@ -110,7 +110,7 @@ const AppSidebar = () => {
             availableOrganizations &&
             availableOrganizations.length > 0 ? (
               // Super admin organization switcher
-              <fetcher.Form method='post' action='/switch-organization'>
+              <fetcher.Form method='post' action='/action/switch-organization'>
                 <select
                   name='organizationId'
                   value={activeOrgId || ''}

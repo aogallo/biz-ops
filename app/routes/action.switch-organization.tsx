@@ -1,7 +1,7 @@
 import { redirect } from 'react-router'
 import { setActiveOrganization } from '~/server/auth/organization.server'
 import { requireAuth } from '~/server/auth/session.server'
-import type { Route } from './+types/switch-organization'
+import type { Route } from './+types/action.switch-organization'
 
 export async function action({ request }: Route.ActionArgs) {
   await requireAuth(request)

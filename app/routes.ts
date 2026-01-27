@@ -65,7 +65,9 @@ export default [
     ...prefix('settings', [
       route('/accounting', './routes/settings/accounting.tsx'),
     ]),
-    ...prefix('dashboard', [index('./features/dashboard/routes/index.tsx')]),
+
+    // Dashboard Routes
+    ...prefix('dashboard', [index('./routes/dashboard/index.tsx')]),
 
     // Company Routes
     ...prefix('company', [

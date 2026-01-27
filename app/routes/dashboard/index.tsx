@@ -1,7 +1,7 @@
-import AccountingSummary from '../components/AccountingSummary'
-import AppointmentSummary from '../components/AppointmentSummary'
-import Greetings from '../components/Greetings'
-import InventorySummary from '../components/InventorySummary'
+import AccountingSummary from '~/features/dashboard/components/AccountingSummary'
+import AppointmentSummary from '~/features/dashboard/components/AppointmentSummary'
+import Greetings from '~/features/dashboard/components/Greetings'
+import InventorySummary from '~/features/dashboard/components/InventorySummary'
 
 const index = () => {
   return (

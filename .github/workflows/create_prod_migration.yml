@@ -20,7 +20,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
         run: |
-          npm run db:migrate:ci
+          npm run db:migrate
       - name: Create the super admin user
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}

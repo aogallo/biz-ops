@@ -1,4 +1,7 @@
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { DataTable } from '~/components/dataTable/DataTable'
 import TitleAndActions from '~/components/TitleAndActions'
 import { Button } from '~/components/ui/button'
 import {
@@ -8,14 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
 import type { PartnerType } from '~/features/business-partners/schemas'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { useCanPerformAction } from '~/hooks/usePermissions'
@@ -23,6 +18,10 @@ import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import type { Route } from './+types/index'
+
+type BusinessPartner = Awaited<
+  ReturnType<typeof businessPartnersRepository.getAllByOrganization>
+>[number]
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -70,6 +69,89 @@ export default function BusinessPartnersIndex({
   // Show toast if present in loader data
   useToastFromLoader(toastData)
 
+  const getTypeBadgeColor = (type: string) => {
+    switch (type) {
+      case 'client':
+        return 'bg-blue-100 text-blue-700'
+      case 'vendor':
+        return 'bg-green-100 text-green-700'
+      case 'both':
+        return 'bg-purple-100 text-purple-700'
+      default:
+        return 'bg-muted text-muted-foreground'
+    }
+  }
+
+  const columns = useMemo<ColumnDef<BusinessPartner>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('name')}</span>
+        ),
+      },
+      {
+        accessorKey: 'nit',
+        header: 'NIT',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('nit')}</span>
+        ),
+      },
+      {
+        accessorKey: 'type',
+        header: 'Type',
+        cell: ({ row }) => {
+          const type = row.getValue('type') as string
+          return (
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeBadgeColor(type)}`}
+            >
+              {type === 'both'
+                ? 'Client & Vendor'
+                : type.charAt(0).toUpperCase() + type.slice(1)}
+            </span>
+          )
+        },
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        cell: ({ row }) => {
+          const email = row.getValue('email') as string | null
+          return email ? (
+            <a href={`mailto:${email}`} className="text-primary hover:underline">
+              {email}
+            </a>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )
+        },
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Created',
+        cell: ({ row }) => {
+          const date = row.getValue('createdAt') as Date
+          return <div>{new Date(date).toLocaleDateString()}</div>
+        },
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <Link
+            to={`/business-partners/${row.original.id}`}
+            className="text-primary text-sm font-medium hover:underline"
+          >
+            View
+          </Link>
+        ),
+      },
+    ],
+    []
+  )
+
   if (noOrganization) {
     return (
       <div className='p-6'>
@@ -83,19 +165,6 @@ export default function BusinessPartnersIndex({
         </div>
       </div>
     )
-  }
-
-  const getTypeBadgeColor = (type: string) => {
-    switch (type) {
-      case 'client':
-        return 'bg-blue-100 text-blue-700'
-      case 'vendor':
-        return 'bg-green-100 text-green-700'
-      case 'both':
-        return 'bg-purple-100 text-purple-700'
-      default:
-        return 'bg-muted text-muted-foreground'
-    }
   }
 
   return (
@@ -152,63 +221,12 @@ export default function BusinessPartnersIndex({
           )}
         </div>
       ) : (
-        <div className='rounded-lg border'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>NIT</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {partners.map((partner) => (
-                <TableRow key={partner.id}>
-                  <TableCell className='font-medium'>{partner.name}</TableCell>
-                  <TableCell className='font-medium'>{partner.nit}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeBadgeColor(
-                        partner.type
-                      )}`}
-                    >
-                      {partner.type === 'both'
-                        ? 'Client & Vendor'
-                        : partner.type.charAt(0).toUpperCase() +
-                          partner.type.slice(1)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {partner.email ? (
-                      <a
-                        href={`mailto:${partner.email}`}
-                        className='text-primary hover:underline'
-                      >
-                        {partner.email}
-                      </a>
-                    ) : (
-                      <span className='text-muted-foreground'>—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(partner.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/business-partners/${partner.id}`}
-                      className='text-primary text-sm font-medium hover:underline'
-                    >
-                      View →
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={partners}
+          enableSearch
+          searchPlaceholder="Search partners..."
+        />
       )}
     </div>
   )

@@ -1,8 +1,15 @@
-import { Search } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useActionData, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
-import { Input } from '~/components/ui/input'
+import { Button } from '~/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '~/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -27,7 +34,6 @@ import type { Route } from './+types'
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const url = new URL(request.url)
-  const search = url.searchParams.get('search') ?? undefined
   const companyId = url.searchParams.get('companyId') ?? undefined
 
   if (!session.session.activeOrganizationId) {
@@ -42,7 +48,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const organizationId = session.session.activeOrganizationId
 
   const [satFiles, accounts, companies, stats] = await Promise.all([
-    satFileRepository.getByOrganization(organizationId, { search, companyId }),
+    satFileRepository.getByOrganization(organizationId, { companyId }),
     accountsRepository.getAllByOrganization(organizationId),
     companyRepository.getByOrganization(organizationId),
     satFileRepository.getCategorizeStats(organizationId),
@@ -171,9 +177,14 @@ export default function SATProcessorIndex({
   const actionData = useActionData<typeof action>()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedRow, setSelectedRow] = useState<SatFile | null>(null)
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
 
   const handleRowSelectionChange = useCallback((selectedRows: SatFile[]) => {
     setSelectedRow(selectedRows.length > 0 ? selectedRows[0] : null)
+  }, [])
+
+  const handleUploadSuccess = useCallback(() => {
+    setIsUploadDialogOpen(false)
   }, [])
 
   // Sync selectedRow when satFiles updates (e.g., after account update action)
@@ -185,17 +196,6 @@ export default function SATProcessorIndex({
       }
     }
   }, [satFiles, selectedRow])
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    const newParams = new URLSearchParams(searchParams)
-    if (value) {
-      newParams.set('search', value)
-    } else {
-      newParams.delete('search')
-    }
-    setSearchParams(newParams)
-  }
 
   const handleCompanyChange = (value: string) => {
     const newParams = new URLSearchParams(searchParams)
@@ -214,76 +214,83 @@ export default function SATProcessorIndex({
 
   return (
     <div className='flex flex-1 gap-2 overflow-hidden'>
-      <div className='flex-1 overflow-auto'>
-        <div className='space-y-4'>
-          <UploadDropzone companies={companies} />
-
-          {actionData && 'error' in actionData && actionData.error && (
-            <div className='rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
-              {actionData.error}
-            </div>
-          )}
-
-          {actionData && 'success' in actionData && actionData.success && (
-            <div className='rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400'>
-              {'message' in actionData && actionData.message}
-            </div>
-          )}
-
-          {/* <ProgressStats stats={stats} /> */}
-        </div>
-
-        <div className='flex flex-1 flex-col overflow-hidden p-6'>
-          <div className='mb-4 flex items-center justify-between'>
-            <div className='flex items-center gap-2'>
-              <h2 className='text-lg font-bold'>Processed Invoices</h2>
-              <span className='bg-muted text-muted-foreground rounded px-2 text-sm capitalize'>
-                {currentMonth}
-              </span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <Select
-                value={searchParams.get('companyId') ?? 'all'}
-                onValueChange={handleCompanyChange}
-              >
-                <SelectTrigger className='w-48'>
-                  <SelectValue placeholder='All Companies' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Companies</SelectItem>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className='relative'>
-                <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400' />
-                <Input
-                  placeholder='Search...'
-                  className='w-64 pl-9'
-                  value={searchParams.get('search') ?? ''}
-                  onChange={handleSearchChange}
-                />
-              </div>
-            </div>
+      <div className='flex flex-1 flex-col overflow-hidden p-6'>
+        <div className='mb-4 flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
+            <h2 className='text-lg font-bold'>Processed Invoices</h2>
+            <span className='bg-muted text-muted-foreground rounded px-2 text-sm capitalize'>
+              {currentMonth}
+            </span>
           </div>
-          <DataTable
-            columns={SatFileColumns}
-            data={satFiles}
-            enableRowSelection
-            onRowSelectionChange={handleRowSelectionChange}
-          />
+          <div className='flex items-center gap-2'>
+            <Select
+              value={searchParams.get('companyId') ?? 'all'}
+              onValueChange={handleCompanyChange}
+            >
+              <SelectTrigger className='w-48'>
+                <SelectValue placeholder='All Companies' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Companies</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Dialog
+              open={isUploadDialogOpen}
+              onOpenChange={setIsUploadDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <Upload className='mr-2 h-4 w-4' />
+                  Upload SAT File
+                </Button>
+              </DialogTrigger>
+              <DialogContent className='sm:max-w-2xl'>
+                <DialogHeader>
+                  <DialogTitle>Upload SAT Export</DialogTitle>
+                </DialogHeader>
+                <UploadDropzone
+                  companies={companies}
+                  onSuccess={handleUploadSuccess}
+                />
+
+                {actionData && 'error' in actionData && actionData.error && (
+                  <div className='rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
+                    {actionData.error}
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+
+        {actionData && 'success' in actionData && actionData.success && (
+          <div className='mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400'>
+            {'message' in actionData && actionData.message}
+          </div>
+        )}
+
+        <DataTable
+          columns={SatFileColumns}
+          data={satFiles}
+          enableRowSelection
+          onRowSelectionChange={handleRowSelectionChange}
+          enableSearch
+          searchPlaceholder='Search invoices...'
+        />
       </div>
 
-      <aside className='w-80 shrink-0 overflow-auto border-l p-6'>
-        {/* <QuickActions /> */}
-        {/* <div className='bg-border my-6 h-px' /> */}
-        <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
-        <ProTipCard />
-      </aside>
+      {selectedRow && (
+        <aside className='w-80 shrink-0 overflow-auto border-l p-6'>
+          <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
+          <ProTipCard />
+        </aside>
+      )}
     </div>
   )
 }

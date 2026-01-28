@@ -1,19 +1,18 @@
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMemo } from 'react'
 import { Link } from 'react-router'
+import { DataTable } from '~/components/dataTable/DataTable'
 import { Button } from '~/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
 import { productsRepository } from '~/features/products/server/repository'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import type { Route } from './+types/index'
+
+type Product = Awaited<
+  ReturnType<typeof productsRepository.getAllByOrganization>
+>[number]
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -45,6 +44,78 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
 
   // Show toast if present in loader data
   useToastFromLoader(toast)
+
+  const columns = useMemo<ColumnDef<Product>[]>(
+    () => [
+      {
+        accessorKey: 'sku',
+        header: 'SKU',
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{row.getValue('sku')}</span>
+        ),
+      },
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('name')}</span>
+        ),
+      },
+      {
+        accessorKey: 'price',
+        header: () => <div className="text-right">Price</div>,
+        cell: ({ row }) => {
+          const price = row.getValue('price') as string | number
+          return (
+            <div className="text-right">${Number(price).toFixed(2)}</div>
+          )
+        },
+      },
+      {
+        accessorKey: 'stock',
+        header: () => <div className="text-right">Stock</div>,
+        cell: ({ row }) => {
+          const stock = (row.getValue('stock') as number | null) ?? 0
+          return (
+            <div className="text-right">
+              <span
+                className={
+                  stock === 0
+                    ? 'text-destructive'
+                    : stock < 10
+                      ? 'text-amber-600'
+                      : 'text-green-600'
+                }
+              >
+                {stock}
+              </span>
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Created',
+        cell: ({ row }) => {
+          const date = row.getValue('createdAt') as Date
+          return <div>{new Date(date).toLocaleDateString()}</div>
+        },
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <Link
+            to={`/products/${row.original.sku}`}
+            className="text-primary text-sm font-medium hover:underline"
+          >
+            View
+          </Link>
+        ),
+      },
+    ],
+    []
+  )
 
   if (noOrganization) {
     return (
@@ -89,57 +160,12 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
           )}
         </div>
       ) : (
-        <div className='rounded-lg border'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>SKU</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead className='text-right'>Price</TableHead>
-                <TableHead className='text-right'>Stock</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className='font-mono text-sm'>
-                    {product.sku}
-                  </TableCell>
-                  <TableCell className='font-medium'>{product.name}</TableCell>
-                  <TableCell className='text-right'>
-                    ${Number(product.price).toFixed(2)}
-                  </TableCell>
-                  <TableCell className='text-right'>
-                    <span
-                      className={
-                        (product.stock ?? 0) === 0
-                          ? 'text-destructive'
-                          : (product.stock ?? 0) < 10
-                            ? 'text-amber-600'
-                            : 'text-green-600'
-                      }
-                    >
-                      {product.stock ?? 0}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(product.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/products/${product.sku}`}
-                      className='text-primary text-sm font-medium hover:underline'
-                    >
-                      View →
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={products}
+          enableSearch
+          searchPlaceholder="Search products..."
+        />
       )}
     </div>
   )

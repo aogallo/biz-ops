@@ -1,5 +1,8 @@
+import type { ColumnDef } from '@tanstack/react-table'
 import { eq } from 'drizzle-orm'
+import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { DataTable } from '~/components/dataTable/DataTable'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -9,14 +12,6 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { Combobox } from '~/components/ui/combobox'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { getUserOrganizations } from '~/server/auth/organization.server'
@@ -28,6 +23,14 @@ import { isSuperAdmin } from '~/server/permissions'
 import { updateMemberRole } from '../../features/users/server/actions/update-role.action'
 import { usersRepository } from '../../features/users/server/repository'
 import type { Route } from './+types/index'
+
+type User = Awaited<
+  ReturnType<typeof usersRepository.getAllByOrganizationWithRoles>
+>[number]
+
+type Invitation = Awaited<
+  ReturnType<typeof usersRepository.getPendingInvitations>
+>[number]
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -99,9 +102,131 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
   } = loaderData
   const [, setSearchParams] = useSearchParams()
   const canInviteUser = useCanPerformAction('users.invite')
-  const canUpdateUser = useCanPerformAction('users.invite') // Using user:create as proxy for user:update
+  const canUpdateUser = useCanPerformAction('users.invite')
 
   useToastFromLoader(toast)
+
+  const userColumns = useMemo<ColumnDef<User>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('name')}</span>
+        ),
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+      },
+      {
+        accessorKey: 'roles',
+        header: 'Role',
+        cell: ({ row }) => {
+          const roles = row.original.roles
+          const memberRole = row.original.memberRole
+          return (
+            <div>
+              <div className="flex flex-wrap gap-1">
+                {roles && roles.length > 0 ? (
+                  roles.map((role) => (
+                    <span
+                      key={role.id}
+                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                        role.isSystem
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-primary/10 text-primary'
+                      }`}
+                    >
+                      {role.name}
+                    </span>
+                  ))
+                ) : (
+                  <span className="bg-muted text-muted-foreground inline-flex items-center rounded-md px-2 py-1 text-xs font-medium">
+                    {memberRole}
+                  </span>
+                )}
+              </div>
+              {canUpdateUser && (
+                <Link
+                  to={`/users/${row.original.memberId}/roles?organizationId=${selectedOrganizationId}`}
+                  className="text-primary mt-1 block text-xs hover:underline"
+                >
+                  Manage roles
+                </Link>
+              )}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'emailVerified',
+        header: 'Verified',
+        cell: ({ row }) => {
+          const verified = row.getValue('emailVerified') as boolean
+          return verified ? (
+            <span className="text-green-600">Verified</span>
+          ) : (
+            <span className="text-amber-600">Pending</span>
+          )
+        },
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Created',
+        cell: ({ row }) => {
+          const date = row.getValue('createdAt') as Date
+          return <div>{new Date(date).toLocaleDateString()}</div>
+        },
+      },
+    ],
+    [canUpdateUser, selectedOrganizationId]
+  )
+
+  const invitationColumns = useMemo<ColumnDef<Invitation>[]>(
+    () => [
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('email')}</span>
+        ),
+      },
+      {
+        accessorKey: 'role',
+        header: 'Role',
+        cell: ({ row }) => (
+          <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+            {row.getValue('role')}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'inviterName',
+        header: 'Invited By',
+        cell: ({ row }) => (
+          <span>{row.getValue('inviterName') || 'Unknown'}</span>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Sent',
+        cell: ({ row }) => {
+          const date = row.getValue('createdAt') as Date
+          return <div>{new Date(date).toLocaleDateString()}</div>
+        },
+      },
+      {
+        accessorKey: 'expiresAt',
+        header: 'Expires',
+        cell: ({ row }) => {
+          const date = row.getValue('expiresAt') as Date
+          return <div>{new Date(date).toLocaleDateString()}</div>
+        },
+      },
+    ],
+    []
+  )
 
   // Show message if no organizations
   if (organizations.length === 0) {
@@ -169,65 +294,12 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               No users found in this organization
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Verified</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className='font-medium'>{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <div className='flex flex-wrap gap-1'>
-                        {user.roles && user.roles.length > 0 ? (
-                          user.roles.map((role) => (
-                            <span
-                              key={role.id}
-                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                                role.isSystem
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-primary/10 text-primary'
-                              }`}
-                            >
-                              {role.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className='bg-muted text-muted-foreground inline-flex items-center rounded-md px-2 py-1 text-xs font-medium'>
-                            {user.memberRole}
-                          </span>
-                        )}
-                      </div>
-                      {canUpdateUser && (
-                        <Link
-                          to={`/users/${user.memberId}/roles?organizationId=${selectedOrganizationId}`}
-                          className='text-primary mt-1 block text-xs hover:underline'
-                        >
-                          Manage roles
-                        </Link>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {user.emailVerified ? (
-                        <span className='text-green-600'>✓ Verified</span>
-                      ) : (
-                        <span className='text-amber-600'>Pending</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable
+              columns={userColumns}
+              data={users}
+              enableSearch
+              searchPlaceholder="Search users..."
+            />
           )}
         </CardContent>
       </Card>
@@ -242,36 +314,12 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Invited By</TableHead>
-                  <TableHead>Sent</TableHead>
-                  <TableHead>Expires</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invitations.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell className='font-medium'>{inv.email}</TableCell>
-                    <TableCell>
-                      <span className='inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800'>
-                        {inv.role}
-                      </span>
-                    </TableCell>
-                    <TableCell>{inv.inviterName || 'Unknown'}</TableCell>
-                    <TableCell>
-                      {new Date(inv.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(inv.expiresAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable
+              columns={invitationColumns}
+              data={invitations}
+              enableSearch
+              searchPlaceholder="Search invitations..."
+            />
           </CardContent>
         </Card>
       )}

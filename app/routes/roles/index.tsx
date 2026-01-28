@@ -1,20 +1,17 @@
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMemo } from 'react'
 import { Link } from 'react-router'
+import { DataTable } from '~/components/dataTable/DataTable'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/index'
+
+type Role = Awaited<ReturnType<typeof rolesRepository.getAllByOrganization>>[number]
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -46,6 +43,65 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
 
   useToastFromLoader(toast)
 
+  const columns = useMemo<ColumnDef<Role>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('name')}</span>
+        ),
+      },
+      {
+        accessorKey: 'description',
+        header: 'Description',
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.getValue('description') || 'No description'}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'isSystem',
+        header: 'Type',
+        cell: ({ row }) => {
+          const isSystem = row.getValue('isSystem') as boolean
+          return isSystem ? (
+            <Badge variant="secondary">System</Badge>
+          ) : (
+            <Badge>Custom</Badge>
+          )
+        },
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => {
+          const isSystem = row.original.isSystem
+          return (
+            <div className="flex gap-2">
+              {!isSystem && canEditRole && (
+                <Link
+                  to={`/roles/${row.original.id}/edit`}
+                  className="text-primary text-sm font-medium hover:underline"
+                >
+                  Edit
+                </Link>
+              )}
+              <Link
+                to={`/roles/${row.original.id}`}
+                className="text-primary text-sm font-medium hover:underline"
+              >
+                View
+              </Link>
+            </div>
+          )
+        },
+      },
+    ],
+    [canEditRole]
+  )
+
   if (noOrganization) {
     return (
       <div className='p-6'>
@@ -60,9 +116,6 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
       </div>
     )
   }
-
-  const systemRoles = roles.filter((role) => role.isSystem)
-  const customRoles = roles.filter((role) => !role.isSystem)
 
   return (
     <div className='p-6'>
@@ -87,112 +140,25 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
 
-      {/* System Roles Section */}
-      <div className='mb-8'>
-        <div className='mb-4'>
-          <h2 className='text-lg font-semibold'>System Roles</h2>
-          <p className='text-muted-foreground text-sm'>
-            Default roles that cannot be modified or deleted
+      {roles.length === 0 ? (
+        <div className='rounded-lg border border-dashed p-8 text-center'>
+          <p className='text-muted-foreground mb-4'>
+            No roles found. Create your first role to get started.
           </p>
+          {canCreateRole && (
+            <Link to='/roles/new'>
+              <Button>Create Role</Button>
+            </Link>
+          )}
         </div>
-        <div className='rounded-lg border'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {systemRoles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell className='font-medium'>{role.name}</TableCell>
-                  <TableCell className='text-muted-foreground'>
-                    {role.description || 'No description'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant='secondary'>System</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/roles/${role.id}`}
-                      className='text-primary text-sm font-medium hover:underline'
-                    >
-                      View →
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Custom Roles Section */}
-      <div>
-        <div className='mb-4'>
-          <h2 className='text-lg font-semibold'>Custom Roles</h2>
-          <p className='text-muted-foreground text-sm'>
-            Roles created for your organization
-          </p>
-        </div>
-        {customRoles.length === 0 ? (
-          <div className='rounded-lg border border-dashed p-8 text-center'>
-            <p className='text-muted-foreground mb-4'>
-              No custom roles found. Create your first role to get started.
-            </p>
-            {canCreateRole && (
-              <Link to='/roles/new'>
-                <Button>Create Role</Button>
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className='rounded-lg border'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customRoles.map((role) => (
-                  <TableRow key={role.id}>
-                    <TableCell className='font-medium'>{role.name}</TableCell>
-                    <TableCell className='text-muted-foreground'>
-                      {role.description || 'No description'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge>Custom</Badge>
-                    </TableCell>
-                    <TableCell className='flex gap-2'>
-                      {canEditRole && (
-                        <Link
-                          to={`/roles/${role.id}/edit`}
-                          className='text-primary text-sm font-medium hover:underline'
-                        >
-                          Edit
-                        </Link>
-                      )}
-                      <Link
-                        to={`/roles/${role.id}`}
-                        className='text-primary text-sm font-medium hover:underline'
-                      >
-                        View →
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={roles}
+          enableSearch
+          searchPlaceholder="Search roles..."
+        />
+      )}
     </div>
   )
 }

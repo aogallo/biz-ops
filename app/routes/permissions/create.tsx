@@ -71,7 +71,8 @@ export default function PermissionCreatePage({
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Extract field errors for display
-  const fieldErrors = (actionData as { errors?: Record<string, string[]> })?.errors
+  const fieldErrors = (actionData as { errors?: Record<string, string[]> })
+    ?.errors
 
   return (
     <>
@@ -87,7 +88,7 @@ export default function PermissionCreatePage({
         </Link>
       </TitleAndActions>
 
-      <div className='mx-auto max-w-3xl space-y-6 p-6'>
+      <div className='mx-auto flex flex-row justify-around gap-2 space-y-6 p-6'>
         {/* Single Permission Form */}
         <Card>
           <CardHeader>

@@ -44,16 +44,10 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [globalFilter, setGlobalFilter] = useState('')
-  const [isMounted, setIsMounted] = useState(false)
-
-  // Track client-side mount to prevent SSR hydration mismatch
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   const table = useReactTable({
-    columns,
-    data,
+    columns: columns,
+    data: data,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -84,17 +78,12 @@ export function DataTable<TData, TValue>({
     <>
       <div>
         <div className="flex items-center justify-between py-4">
-          {/* Only render search after client-side mount to prevent SSR hydration mismatch */}
-          {enableSearch && isMounted && (
+          {enableSearch && (
             <DataTableSearch
               value={globalFilter}
               onChange={setGlobalFilter}
               placeholder={searchPlaceholder}
             />
-          )}
-          {/* Placeholder to maintain layout during SSR */}
-          {enableSearch && !isMounted && (
-            <div className="w-full max-w-sm h-10" />
           )}
           <DataTableViewOptions table={table} />
         </div>

@@ -1,6 +1,9 @@
+import type { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
 import { Eye } from 'lucide-react'
+import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { DataTable } from '~/components/dataTable/DataTable'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
@@ -18,20 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
-import { journalEntryRepository } from '~/features/journal-entry/server/repository'
+import { journalEntryRepository, type JournalEntryWithLines } from '~/features/journal-entry/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types'
-
-const PAGE_SIZE = 10
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -41,14 +34,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     return {
       entries: [],
       companies: [],
-      total: 0,
-      page: 1,
-      pageSize: PAGE_SIZE,
     }
   }
 
   const organizationId = session.session.activeOrganizationId
-  const page = parseInt(url.searchParams.get('page') || '1', 10)
   const companyId = url.searchParams.get('companyId') || undefined
   const status = url.searchParams.get('status') as
     | 'draft'
@@ -56,22 +45,14 @@ export async function loader({ request }: Route.LoaderArgs) {
     | 'voided'
     | undefined
 
-  const [{ entries, total }, companies] = await Promise.all([
-    journalEntryRepository.getPaginated(organizationId, {
-      companyId,
-      status,
-      limit: PAGE_SIZE,
-      offset: (page - 1) * PAGE_SIZE,
-    }),
+  const [entries, companies] = await Promise.all([
+    journalEntryRepository.getAll(organizationId, { companyId, status }),
     companyRepository.getByOrganization(organizationId),
   ])
 
   return {
     entries,
     companies,
-    total,
-    page,
-    pageSize: PAGE_SIZE,
   }
 }
 
@@ -95,10 +76,8 @@ function getStatusBadge(status: string) {
 export default function JournalEntriesIndex({
   loaderData,
 }: Route.ComponentProps) {
-  const { entries, companies, total, page, pageSize } = loaderData
+  const { entries, companies } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
-
-  const totalPages = Math.ceil(total / pageSize)
 
   const handleCompanyChange = (value: string) => {
     const params = new URLSearchParams(searchParams)
@@ -107,7 +86,6 @@ export default function JournalEntriesIndex({
     } else {
       params.delete('companyId')
     }
-    params.set('page', '1')
     setSearchParams(params)
   }
 
@@ -118,15 +96,84 @@ export default function JournalEntriesIndex({
     } else {
       params.delete('status')
     }
-    params.set('page', '1')
     setSearchParams(params)
   }
 
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', String(newPage))
-    setSearchParams(params)
-  }
+  const columns = useMemo<ColumnDef<JournalEntryWithLines>[]>(
+    () => [
+      {
+        accessorKey: 'entryNumber',
+        header: 'Entry #',
+        cell: ({ row }) => (
+          <span className="font-medium">{row.getValue('entryNumber')}</span>
+        ),
+      },
+      {
+        accessorKey: 'entryDate',
+        header: 'Date',
+        cell: ({ row }) => {
+          const date = row.getValue('entryDate') as Date
+          return <div>{format(new Date(date), 'dd/MM/yyyy')}</div>
+        },
+      },
+      {
+        accessorKey: 'description',
+        header: 'Description',
+        cell: ({ row }) => (
+          <div className="max-w-50 truncate">{row.getValue('description')}</div>
+        ),
+      },
+      {
+        accessorKey: 'company',
+        header: 'Company',
+        cell: ({ row }) => {
+          const company = row.original.company
+          return <div>{company?.name || '-'}</div>
+        },
+      },
+      {
+        accessorKey: 'totalDebit',
+        header: () => <div className="text-right">Debit</div>,
+        cell: ({ row }) => {
+          const debit = row.getValue('totalDebit') as string | number
+          return (
+            <div className="text-right font-mono">
+              Q {Number(debit).toFixed(2)}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'totalCredit',
+        header: () => <div className="text-right">Credit</div>,
+        cell: ({ row }) => {
+          const credit = row.getValue('totalCredit') as string | number
+          return (
+            <div className="text-right font-mono">
+              Q {Number(credit).toFixed(2)}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => getStatusBadge(row.getValue('status')),
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <Button variant='ghost' size='icon' asChild>
+            <Link to={`/journal-entries/${row.original.id}`}>
+              <Eye className='h-4 w-4' />
+            </Link>
+          </Button>
+        ),
+      },
+    ],
+    []
+  )
 
   return (
     <div className='container mx-auto py-6'>
@@ -176,91 +223,17 @@ export default function JournalEntriesIndex({
             </Select>
           </div>
 
-          {/* Table */}
-          <div className='rounded-md border'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Entry #</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead className='text-right'>Debit</TableHead>
-                  <TableHead className='text-right'>Credit</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className='w-[80px]'>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entries.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className='text-muted-foreground py-8 text-center'
-                    >
-                      No journal entries found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  entries.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell className='font-medium'>
-                        {entry.entryNumber}
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(entry.entryDate), 'dd/MM/yyyy')}
-                      </TableCell>
-                      <TableCell className='max-w-50 truncate'>
-                        {entry.description}
-                      </TableCell>
-                      <TableCell>{entry.company?.name || '-'}</TableCell>
-                      <TableCell className='text-right font-mono'>
-                        Q {Number(entry.totalDebit).toFixed(2)}
-                      </TableCell>
-                      <TableCell className='text-right font-mono'>
-                        Q {Number(entry.totalCredit).toFixed(2)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(entry.status)}</TableCell>
-                      <TableCell>
-                        <Button variant='ghost' size='icon' asChild>
-                          <Link to={`/journal-entries/${entry.id}`}>
-                            <Eye className='h-4 w-4' />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className='mt-4 flex items-center justify-between'>
-              <div className='text-muted-foreground text-sm'>
-                Showing {(page - 1) * pageSize + 1} to{' '}
-                {Math.min(page * pageSize, total)} of {total} entries
-              </div>
-              <div className='flex gap-2'>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page <= 1}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page >= totalPages}
-                >
-                  Next
-                </Button>
-              </div>
+          {entries.length === 0 ? (
+            <div className='text-muted-foreground py-8 text-center'>
+              No journal entries found
             </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={entries}
+              enableSearch
+              searchPlaceholder="Search entries..."
+            />
           )}
         </CardContent>
       </Card>

@@ -141,5 +141,12 @@ export function InvitationList({ invitations }: InvitationListProps) {
     )
   }
 
-  return <DataTable columns={columns} data={invitations} />
+  return (
+    <DataTable
+      columns={columns}
+      data={invitations}
+      enableSearch
+      searchPlaceholder="Search invitations..."
+    />
+  )
 }

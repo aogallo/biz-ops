@@ -122,6 +122,94 @@ export class JournalEntryRepository {
     }
   }
 
+  async getAll(
+    organizationId: string,
+    options: Omit<GetJournalEntriesOptions, 'limit' | 'offset'> = {}
+  ): Promise<JournalEntryWithLines[]> {
+    const { companyId, status } = options
+
+    const conditions = [eq(journalEntryModel.organizationId, organizationId)]
+
+    if (companyId) {
+      conditions.push(eq(journalEntryModel.companyId, companyId))
+    }
+
+    if (status) {
+      conditions.push(eq(journalEntryModel.status, status))
+    }
+
+    // Get entries
+    const entries = await db
+      .select({
+        entry: journalEntryModel,
+        company: {
+          id: companyModel.id,
+          name: companyModel.name,
+        },
+      })
+      .from(journalEntryModel)
+      .leftJoin(companyModel, eq(journalEntryModel.companyId, companyModel.id))
+      .where(and(...conditions))
+      .orderBy(desc(journalEntryModel.entryDate), desc(journalEntryModel.createdAt))
+
+    // Get lines for all entries
+    const entryIds = entries.map((e) => e.entry.id)
+    const allLines =
+      entryIds.length > 0
+        ? await db
+            .select({
+              id: journalEntryLineModel.id,
+              journalEntryId: journalEntryLineModel.journalEntryId,
+              lineNumber: journalEntryLineModel.lineNumber,
+              accountingAccountId: journalEntryLineModel.accountingAccountId,
+              description: journalEntryLineModel.description,
+              debitAmount: journalEntryLineModel.debitAmount,
+              creditAmount: journalEntryLineModel.creditAmount,
+              invoiceLineId: journalEntryLineModel.invoiceLineId,
+              createdAt: journalEntryLineModel.createdAt,
+              updatedAt: journalEntryLineModel.updatedAt,
+              accountingAccount: {
+                id: accountingAccountModel.id,
+                name: accountingAccountModel.name,
+                accountNumber: accountingAccountModel.accountNumber,
+              },
+            })
+            .from(journalEntryLineModel)
+            .leftJoin(
+              accountingAccountModel,
+              eq(
+                journalEntryLineModel.accountingAccountId,
+                accountingAccountModel.id
+              )
+            )
+            .where(
+              sql`${journalEntryLineModel.journalEntryId} IN (${sql.join(
+                entryIds.map((id) => sql`${id}`),
+                sql`, `
+              )})`
+            )
+            .orderBy(journalEntryLineModel.lineNumber)
+        : []
+
+    // Group lines by entry
+    const linesByEntry = allLines.reduce(
+      (acc, line) => {
+        if (!acc[line.journalEntryId]) {
+          acc[line.journalEntryId] = []
+        }
+        acc[line.journalEntryId].push(line)
+        return acc
+      },
+      {} as Record<string, typeof allLines>
+    )
+
+    return entries.map((e) => ({
+      ...e.entry,
+      lines: linesByEntry[e.entry.id] || [],
+      company: e.company,
+    }))
+  }
+
   async getPaginated(
     organizationId: string,
     options: GetJournalEntriesOptions = {}

@@ -1,8 +1,6 @@
-import { Search } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useActionData, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
-import { Input } from '~/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -27,7 +25,6 @@ import type { Route } from './+types'
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const url = new URL(request.url)
-  const search = url.searchParams.get('search') ?? undefined
   const companyId = url.searchParams.get('companyId') ?? undefined
 
   if (!session.session.activeOrganizationId) {
@@ -42,7 +39,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const organizationId = session.session.activeOrganizationId
 
   const [satFiles, accounts, companies, stats] = await Promise.all([
-    satFileRepository.getByOrganization(organizationId, { search, companyId }),
+    satFileRepository.getByOrganization(organizationId, { companyId }),
     accountsRepository.getAllByOrganization(organizationId),
     companyRepository.getByOrganization(organizationId),
     satFileRepository.getCategorizeStats(organizationId),
@@ -186,17 +183,6 @@ export default function SATProcessorIndex({
     }
   }, [satFiles, selectedRow])
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    const newParams = new URLSearchParams(searchParams)
-    if (value) {
-      newParams.set('search', value)
-    } else {
-      newParams.delete('search')
-    }
-    setSearchParams(newParams)
-  }
-
   const handleCompanyChange = (value: string) => {
     const newParams = new URLSearchParams(searchParams)
     if (value && value !== 'all') {
@@ -241,39 +227,30 @@ export default function SATProcessorIndex({
                 {currentMonth}
               </span>
             </div>
-            <div className='flex items-center gap-2'>
-              <Select
-                value={searchParams.get('companyId') ?? 'all'}
-                onValueChange={handleCompanyChange}
-              >
-                <SelectTrigger className='w-48'>
-                  <SelectValue placeholder='All Companies' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Companies</SelectItem>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className='relative'>
-                <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400' />
-                <Input
-                  placeholder='Search...'
-                  className='w-64 pl-9'
-                  value={searchParams.get('search') ?? ''}
-                  onChange={handleSearchChange}
-                />
-              </div>
-            </div>
+            <Select
+              value={searchParams.get('companyId') ?? 'all'}
+              onValueChange={handleCompanyChange}
+            >
+              <SelectTrigger className='w-48'>
+                <SelectValue placeholder='All Companies' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Companies</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <DataTable
             columns={SatFileColumns}
             data={satFiles}
             enableRowSelection
             onRowSelectionChange={handleRowSelectionChange}
+            enableSearch
+            searchPlaceholder="Search invoices..."
           />
         </div>
       </div>

@@ -10,7 +10,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -47,16 +47,13 @@ export function DataTable<TData, TValue>({
   const [isMounted, setIsMounted] = useState(false)
 
   // Track client-side mount to prevent SSR hydration mismatch
-  // TanStack Table's getFilteredRowModel() relies on client-side JS functions
-  // that don't serialize properly during SSR
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // Only apply filtering after client-side hydration is complete
-  const tableConfig = useMemo(() => ({
-    columns: columns,
-    data: data,
+  const table = useReactTable({
+    columns,
+    data,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -70,12 +67,9 @@ export function DataTable<TData, TValue>({
       sorting,
       columnVisibility,
       rowSelection,
-      // Only apply globalFilter after mount to prevent hydration mismatch
-      globalFilter: isMounted ? globalFilter : '',
+      globalFilter,
     },
-  }), [columns, data, sorting, columnVisibility, rowSelection, globalFilter, enableRowSelection, isMounted])
-
-  const table = useReactTable(tableConfig)
+  })
 
   useEffect(() => {
     if (onRowSelectionChange) {
@@ -90,12 +84,17 @@ export function DataTable<TData, TValue>({
     <>
       <div>
         <div className="flex items-center justify-between py-4">
-          {enableSearch && (
+          {/* Only render search after client-side mount to prevent SSR hydration mismatch */}
+          {enableSearch && isMounted && (
             <DataTableSearch
               value={globalFilter}
               onChange={setGlobalFilter}
               placeholder={searchPlaceholder}
             />
+          )}
+          {/* Placeholder to maintain layout during SSR */}
+          {enableSearch && !isMounted && (
+            <div className="w-full max-w-sm h-10" />
           )}
           <DataTableViewOptions table={table} />
         </div>

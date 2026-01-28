@@ -14,9 +14,10 @@ interface Company {
 
 interface UploadDropzoneProps {
   companies: Company[]
+  onSuccess?: () => void
 }
 
-export function UploadDropzone({ companies }: UploadDropzoneProps) {
+export function UploadDropzone({ companies, onSuccess }: UploadDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('')
@@ -43,8 +44,10 @@ export function UploadDropzone({ companies }: UploadDropzoneProps) {
       if (fileInput) {
         fileInput.value = ''
       }
+      // Call onSuccess callback if provided (e.g., to close dialog)
+      onSuccess?.()
     }
-  }, [actionData])
+  }, [actionData, onSuccess])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -79,9 +82,7 @@ export function UploadDropzone({ companies }: UploadDropzoneProps) {
       <input type='hidden' name='companyId' value={selectedCompanyId} />
       <input type='hidden' name='invoiceType' value={selectedInvoiceType} />
 
-      <div className='bg-card space-y-4 rounded-lg border p-4'>
-        <h3 className='text-base font-semibold'>Upload SAT Export</h3>
-
+      <div className='space-y-4'>
         <div className='grid gap-4 sm:grid-cols-2'>
           <div className='space-y-2'>
             <Label htmlFor='company-select'>Company</Label>

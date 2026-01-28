@@ -1,5 +1,5 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
@@ -15,11 +15,21 @@ export function DataTableSearch({
   placeholder = "Search...",
 }: DataTableSearchProps) {
   const [localValue, setLocalValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isFirstMount = useRef(true);
 
-  // Sync local state with external value
+  // Only sync when value is externally cleared (e.g., reset button)
+  // This prevents the re-render loop that causes focus loss
   useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    // Only sync if value was cleared externally
+    if (value === "" && localValue !== "") {
+      setLocalValue("");
+    }
+  }, [value, localValue]);
 
   // Debounce the onChange callback
   useEffect(() => {
@@ -35,12 +45,15 @@ export function DataTableSearch({
   const handleClear = () => {
     setLocalValue("");
     onChange("");
+    // Focus back on input after clearing
+    inputRef.current?.focus();
   };
 
   return (
     <div className="relative w-full max-w-sm">
       <Search className="text-muted-foreground absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" />
       <Input
+        ref={inputRef}
         type="text"
         placeholder={placeholder}
         value={localValue}

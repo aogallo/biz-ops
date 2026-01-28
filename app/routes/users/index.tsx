@@ -8,13 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import {
   Table,
   TableBody,
@@ -155,24 +149,18 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               <CardTitle>Active Users</CardTitle>
               <CardDescription>View and manage user accounts</CardDescription>
             </div>
-            <Select
+            <Combobox
               value={selectedOrganizationId || ''}
               onValueChange={(id) => setSearchParams({ organizationId: id })}
-            >
-              <SelectTrigger className='w-75'>
-                <SelectValue placeholder='Select organization' />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem
-                    key={org.organization.id}
-                    value={org.organization.id}
-                  >
-                    {org.organization.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={organizations.map((org) => ({
+                value: org.organization.id,
+                label: org.organization.name,
+              }))}
+              placeholder='Select organization'
+              searchPlaceholder='Search organizations...'
+              emptyMessage='No organizations found.'
+              className='w-75'
+            />
           </div>
         </CardHeader>
         <CardContent>

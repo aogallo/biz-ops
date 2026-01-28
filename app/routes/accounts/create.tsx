@@ -1,11 +1,11 @@
 import { Form, redirect, useActionData, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { createAccount } from '~/features/accounts/server/actions/create.action'
+import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/create'
 
 export async function loader({ request }: Route.LoaderArgs) {
   // Action handles auth, but loader ensures page is protected
-  const { requireAuth } = await import('~/server/auth/session.server')
   await requireAuth(request)
   return {}
 }

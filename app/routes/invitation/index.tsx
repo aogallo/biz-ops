@@ -1,24 +1,111 @@
-import { desc, eq, inArray } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { Link } from 'react-router'
 import { InvitationList } from '~/features/invitation/components/InvitationList'
-import type { InvitationRole, InvitationRow } from '~/features/invitation/types'
-import { requireOrganizationAdmin } from '~/server/auth/organization.server'
+import { resendInvitationSchema } from '~/features/invitation/schemas'
+import { ORGANIZATION_MESSAGES } from '~/features/organization/messages'
+import { COMMON_MESSAGES } from '~/lib/messages'
+import auth from '~/server/auth-server'
+import { hasPermission } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import {
   invitationModel,
   invitationRoleModel,
+  organizationModel,
   roleModel,
   userModel,
 } from '~/server/db/schemas/auth'
 import type { Route } from './+types/index'
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
-  const { organization } = await requireOrganizationAdmin(session)
+export async function action({ request }: Route.ActionArgs) {
+  const { user } = await requireAuth(request)
+  const formData = await request.formData()
+  const intent = formData.get('intent')
 
-  // Check permission to view users/invitations
-  // await requirePermission(session.user.id, organization.id, "user:read");
+  if (intent === 'resend') {
+    const result = resendInvitationSchema.safeParse({
+      email: formData.get('email'),
+      organizationId: formData.get('organizationId'),
+      roleName: formData.get('roleName'),
+    })
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: 'Invalid invitation data',
+        fieldErrors: result.error.flatten().fieldErrors,
+      }
+    }
+
+    // Check permissions
+    const canResend = await hasPermission(
+      user.id,
+      result.data.organizationId,
+      'invitation:create'
+    )
+
+    if (!user.isSuperAdmin && !canResend) {
+      return {
+        success: false,
+        error: COMMON_MESSAGES.notPermission,
+      }
+    }
+
+    try {
+      await auth.api.createInvitation({
+        headers: request.headers,
+        body: {
+          email: result.data.email,
+          organizationId: result.data.organizationId,
+          role: result.data.roleName,
+          resend: true,
+        },
+      })
+
+      return {
+        success: true,
+        message: 'Invitation resent successfully',
+      }
+    } catch (error) {
+      console.error('Error resending invitation:', error)
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to resend invitation',
+      }
+    }
+  }
+
+  return { success: false, error: 'Unknown action' }
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const {
+    user,
+    session: { activeOrganizationId = null },
+  } = await requireAuth(request)
+
+  if (!activeOrganizationId) {
+    return { success: false, message: ORGANIZATION_MESSAGES.notFound }
+  }
+
+  // Validate permissions permissions:bulk
+  const isValidatePermissions = await hasPermission(
+    user.id,
+    activeOrganizationId,
+    'invitation:read'
+  )
+
+  if (!user.isSuperAdmin && isValidatePermissions) {
+    return { success: false, message: COMMON_MESSAGES.notPermission }
+  }
+
+  const [organization] = await db
+    .select()
+    .from(organizationModel)
+    .where(eq(organizationModel.id, activeOrganizationId))
 
   // Get all invitations for this organization (roles fetched via junction table below)
   const rawInvitations = await db
@@ -29,52 +116,21 @@ export async function loader({ request }: Route.LoaderArgs) {
       createdAt: invitationModel.createdAt,
       expiresAt: invitationModel.expiresAt,
       inviterName: userModel.name,
+      organizationId: invitationModel.organizationId,
+      roleId: roleModel.id,
+      roleName: roleModel.name,
     })
     .from(invitationModel)
     .innerJoin(userModel, eq(invitationModel.inviterId, userModel.id))
+    .innerJoin(
+      invitationRoleModel,
+      eq(invitationRoleModel.id, invitationModel.id)
+    )
+    .innerJoin(roleModel, eq(roleModel.id, invitationRoleModel.roleId))
     // .where(eq(invitation.organizationId, organization.id))
     .orderBy(desc(invitationModel.createdAt))
 
-  // Get all invitation IDs
-  const invitationIds = rawInvitations.map((inv) => inv.id)
-
-  // Fetch roles from junction table for all invitations
-  let invitationRolesMap: Record<string, InvitationRole[]> = {}
-  if (invitationIds.length > 0) {
-    const invitationRoles = await db
-      .select({
-        invitationId: invitationRoleModel.invitationId,
-        roleId: roleModel.id,
-        roleName: roleModel.name,
-      })
-      .from(invitationRoleModel)
-      .innerJoin(roleModel, eq(invitationRoleModel.roleId, roleModel.id))
-      .where(inArray(invitationRoleModel.invitationId, invitationIds))
-
-    // Group roles by invitation ID
-    invitationRolesMap = invitationRoles.reduce(
-      (acc, ir) => {
-        if (!acc[ir.invitationId]) {
-          acc[ir.invitationId] = []
-        }
-        acc[ir.invitationId].push({
-          id: ir.roleId,
-          name: ir.roleName,
-        })
-        return acc
-      },
-      {} as Record<string, InvitationRole[]>
-    )
-  }
-
-  // Map to typed InvitationRow with roles
-  const invitations: InvitationRow[] = rawInvitations.map((inv) => ({
-    ...inv,
-    status: inv.status as 'pending' | 'accepted' | 'expired',
-    roles: invitationRolesMap[inv.id] || [],
-  }))
-
-  return { invitations, organization }
+  return { invitations: rawInvitations, organization }
 }
 
 export default function InvitationsIndex({ loaderData }: Route.ComponentProps) {
@@ -86,7 +142,7 @@ export default function InvitationsIndex({ loaderData }: Route.ComponentProps) {
         <div>
           <h1 className='text-2xl font-bold'>Team Invitations</h1>
           <p className='text-muted-foreground text-sm'>
-            Manage invitations for {organization.name}
+            Manage invitations for {organization?.name}
           </p>
         </div>
         <Link

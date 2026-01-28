@@ -1,3 +1,4 @@
+import z from 'zod'
 import { requireAuth } from '~/server/auth/session.server'
 import { PERMISSION_MESSAGES } from '../../messages'
 import { createPermissionSchema } from '../../schemas'
@@ -27,7 +28,7 @@ export async function createPermission(request: Request) {
     return {
       success: false,
       message: 'Validation failed',
-      errors: result.error.flatten().fieldErrors,
+      errors: z.flattenError(result.error).fieldErrors,
     }
   }
 

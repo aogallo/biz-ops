@@ -124,7 +124,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     .innerJoin(userModel, eq(invitationModel.inviterId, userModel.id))
     .innerJoin(
       invitationRoleModel,
-      eq(invitationRoleModel.id, invitationModel.id)
+      eq(invitationRoleModel.invitationId, invitationModel.id)
     )
     .innerJoin(roleModel, eq(roleModel.id, invitationRoleModel.roleId))
     // .where(eq(invitation.organizationId, organization.id))

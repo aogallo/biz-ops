@@ -47,6 +47,7 @@ export const ACTION_PERMISSIONS = {
   'company.create': ['company:create'],
   'company.edit': ['company:update'],
   'company.delete': ['company:delete'],
+  'settings.accounting': ['settings:accounting'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

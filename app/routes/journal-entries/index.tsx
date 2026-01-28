@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { Combobox } from '~/components/ui/combobox'
 import {
   Select,
   SelectContent,
@@ -143,22 +144,21 @@ export default function JournalEntriesIndex({
         <CardContent>
           {/* Filters */}
           <div className='mb-4 flex items-center gap-4'>
-            <Select
+            <Combobox
               value={searchParams.get('companyId') || 'all'}
               onValueChange={handleCompanyChange}
-            >
-              <SelectTrigger className='w-48'>
-                <SelectValue placeholder='All Companies' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>All Companies</SelectItem>
-                {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.id}>
-                    {company.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={[
+                { value: 'all', label: 'All Companies' },
+                ...companies.map((company) => ({
+                  value: company.id,
+                  label: company.name,
+                })),
+              ]}
+              placeholder='All Companies'
+              searchPlaceholder='Search companies...'
+              emptyMessage='No companies found.'
+              className='w-48'
+            />
 
             <Select
               value={searchParams.get('status') || 'all'}

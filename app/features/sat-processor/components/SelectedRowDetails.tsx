@@ -3,15 +3,7 @@ import { useEffect } from 'react'
 import { Link, useFetcher } from 'react-router'
 import { toast } from 'sonner'
 import { Badge } from '~/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import type { SatFile } from '~/server/db/schemas/sat-file'
 import type { AccountingAccount } from '~/server/db/schemas/accounting'
 
@@ -173,27 +165,23 @@ export function SelectedRowDetails({
         <span className='mb-2 block text-sm text-muted-foreground'>
           Accounting Account
         </span>
-        <Select
+        <Combobox
           value={selectedRow.accountingAccountId ?? 'none'}
           onValueChange={handleAccountChange}
           disabled={isUpdating}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='Select an account' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Accounts</SelectLabel>
-              <SelectItem value='none'>No account assigned</SelectItem>
-              {accounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.accountNumber ? `${account.accountNumber} - ` : ''}
-                  {account.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          options={[
+            { value: 'none', label: 'No account assigned' },
+            ...accounts.map((account) => ({
+              value: account.id,
+              label: account.accountNumber
+                ? `${account.accountNumber} - ${account.name}`
+                : account.name || '',
+            })),
+          ]}
+          placeholder='Select an account'
+          searchPlaceholder='Search accounts...'
+          emptyMessage='No accounts found.'
+        />
         {isUpdating && (
           <div className='mt-2 flex items-center gap-2 text-xs text-muted-foreground'>
             <Loader2 className='h-3 w-3 animate-spin' />

@@ -10,7 +10,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -44,17 +44,8 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [globalFilter, setGlobalFilter] = useState('')
-  const [isMounted, setIsMounted] = useState(false)
 
-  // Track client-side mount to prevent SSR hydration mismatch
-  // TanStack Table's getFilteredRowModel() relies on client-side JS functions
-  // that don't serialize properly during SSR
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  // Only apply filtering after client-side hydration is complete
-  const tableConfig = useMemo(() => ({
+  const table = useReactTable({
     columns: columns,
     data: data,
     getCoreRowModel: getCoreRowModel(),
@@ -70,12 +61,9 @@ export function DataTable<TData, TValue>({
       sorting,
       columnVisibility,
       rowSelection,
-      // Only apply globalFilter after mount to prevent hydration mismatch
-      globalFilter: isMounted ? globalFilter : '',
+      globalFilter,
     },
-  }), [columns, data, sorting, columnVisibility, rowSelection, globalFilter, enableRowSelection, isMounted])
-
-  const table = useReactTable(tableConfig)
+  })
 
   useEffect(() => {
     if (onRowSelectionChange) {

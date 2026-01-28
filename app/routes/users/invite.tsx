@@ -14,13 +14,7 @@ import {
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import { organizationRepository } from '~/features/organization/server/repository'
 import { getRolesByOrganization } from '~/server/auth/roles.server'
 import { requireAuth } from '~/server/auth/session.server'
@@ -120,18 +114,17 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
               </Field>
               <Field>
                 <FieldLabel htmlFor='organization'>Organization</FieldLabel>
-                <Select name='organizationId' disabled={isSubmitting}>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select organization' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((organization) => (
-                      <SelectItem key={organization.id} value={organization.id}>
-                        {organization.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  name='organizationId'
+                  disabled={isSubmitting}
+                  options={organizations.map((organization) => ({
+                    value: organization.id,
+                    label: organization.name,
+                  }))}
+                  placeholder='Select organization'
+                  searchPlaceholder='Search organizations...'
+                  emptyMessage='No organizations found.'
+                />
                 <FieldDescription>
                   The organization the user will be invited to
                 </FieldDescription>
@@ -144,29 +137,19 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
 
               <Field>
                 <FieldLabel htmlFor='role'>Role</FieldLabel>
-                <Select
+                <Combobox
                   name='roleId'
                   defaultValue={defaultRoleId}
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select role (defaults to member)' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        <div className='flex items-center gap-4'>
-                          <div className='font-medium'>{role.name}</div>
-                          {role.description && (
-                            <div className='text-muted-foreground text-xs'>
-                              {role.description}
-                            </div>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={roles.map((role) => ({
+                    value: role.id,
+                    label: role.name,
+                    description: role.description || undefined,
+                  }))}
+                  placeholder='Select role (defaults to member)'
+                  searchPlaceholder='Search roles...'
+                  emptyMessage='No roles found.'
+                />
                 <FieldDescription>
                   The role that will be assigned to the user in your
                   organization

@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { redirect, useFetcher, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import { UserListPanel } from '~/features/roles/components/user-list-panel'
 import { RoleAssignmentPanel } from '~/features/roles/components/role-assignment-panel'
 import { rolesRepository } from '~/features/roles/server/repository'
@@ -184,18 +178,18 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
         </div>
 
         {organizations.length > 1 && (
-          <Select value={selectedOrgId} onValueChange={handleOrganizationChange}>
-            <SelectTrigger className='w-64'>
-              <SelectValue placeholder='Select organization' />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.organization.id} value={org.organization.id}>
-                  {org.organization.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            value={selectedOrgId}
+            onValueChange={handleOrganizationChange}
+            options={organizations.map((org) => ({
+              value: org.organization.id,
+              label: org.organization.name,
+            }))}
+            placeholder='Select organization'
+            searchPlaceholder='Search organizations...'
+            emptyMessage='No organizations found.'
+            className='w-64'
+          />
         )}
       </div>
 

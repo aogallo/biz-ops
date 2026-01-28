@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useActionData, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { Input } from '~/components/ui/input'
@@ -175,6 +175,16 @@ export default function SATProcessorIndex({
   const handleRowSelectionChange = useCallback((selectedRows: SatFile[]) => {
     setSelectedRow(selectedRows.length > 0 ? selectedRows[0] : null)
   }, [])
+
+  // Sync selectedRow when satFiles updates (e.g., after account update action)
+  useEffect(() => {
+    if (selectedRow) {
+      const updatedRow = satFiles.find((file) => file.id === selectedRow.id)
+      if (updatedRow && updatedRow !== selectedRow) {
+        setSelectedRow(updatedRow)
+      }
+    }
+  }, [satFiles, selectedRow])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value

@@ -1,5 +1,7 @@
 import { CheckCircle2, ExternalLink, Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, useFetcher } from 'react-router'
+import { toast } from 'sonner'
 import { Badge } from '~/components/ui/badge'
 import {
   Select,
@@ -24,6 +26,20 @@ export function SelectedRowDetails({
 }: SelectedRowDetailsProps) {
   const fetcher = useFetcher()
   const isUpdating = fetcher.state !== 'idle'
+
+  // Handle fetcher response for toast notifications
+  const fetcherData = fetcher.data as
+    | { success?: boolean; error?: string; message?: string }
+    | undefined
+
+  useEffect(() => {
+    if (fetcherData?.error) {
+      toast.error(fetcherData.error)
+    }
+    if (fetcherData?.success && fetcherData?.message) {
+      toast.success(fetcherData.message)
+    }
+  }, [fetcherData])
 
   const handleAccountChange = (accountId: string) => {
     if (!selectedRow) return

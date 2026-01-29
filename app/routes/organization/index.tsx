@@ -1,17 +1,14 @@
 import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
-import {
-  getUserOrganizations,
-  requireOrganizationAdmin,
-} from '~/server/auth/organization.server'
+import { getUserOrganizations } from '~/server/auth/organization.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
-  await requireOrganizationAdmin(session)
+
   const organizations = await getUserOrganizations(session.user.id)
 
   const { flash } = getFlash(request)

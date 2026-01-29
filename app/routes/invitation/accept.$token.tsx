@@ -108,8 +108,6 @@ export async function action({ params, request }: Route.ActionArgs) {
       asResponse: true,
     })
 
-    console.log('new user...', signUpResponse)
-
     // Check if signup was successful
     if (!signUpResponse.ok) {
       const errorData = await signUpResponse.json().catch(() => ({}))
@@ -129,7 +127,7 @@ export async function action({ params, request }: Route.ActionArgs) {
       return { error: 'Failed to create user account' }
     }
 
-    console.log('new user db', newUser)
+    console.log('new user db', newUser.id)
 
     // Get invitation roles from junction table
     const invitationRoles = await db

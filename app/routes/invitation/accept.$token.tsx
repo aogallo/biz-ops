@@ -127,6 +127,11 @@ export async function action({ params, request }: Route.ActionArgs) {
       return { error: 'Failed to create user account' }
     }
 
+    await db
+      .update(userModel)
+      .set({ emailVerified: true })
+      .where(eq(userModel.id, newUser.id))
+
     console.log('new user db', newUser.id)
 
     // Get invitation roles from junction table

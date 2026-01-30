@@ -17,7 +17,7 @@ function isCloudflareWorker(): boolean {
 }
 
 function shouldUseLocalDb(): boolean {
-  const useLocalDb = process.env.USE_LOCAL_DB === 'true'
+  const useLocalDb = process.env.USE_PG_DRIVER === 'true'
 
   // In Cloudflare Workers, always use Neon HTTP
   if (isCloudflareWorker()) {

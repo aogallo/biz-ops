@@ -1,6 +1,6 @@
 import { Upload } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { useActionData, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { Button } from '~/components/ui/button'
 import {
@@ -19,12 +19,12 @@ import {
 } from '~/components/ui/select'
 import { accountsRepository } from '~/features/accounts/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
+import { processSatRecordAction } from '~/features/journal-entry/server/actions/process-sat-record.action'
 import { SatFileColumns } from '~/features/sat-processor/components/Columns'
 import { ProTipCard } from '~/features/sat-processor/components/ProTipCard'
 import { SelectedRowDetails } from '~/features/sat-processor/components/SelectedRowDetails'
 import { UploadDropzone } from '~/features/sat-processor/components/UploadDropzone'
 import { invoiceTypeSchema } from '~/features/sat-processor/schemas'
-import { processSatRecordAction } from '~/features/journal-entry/server/actions/process-sat-record.action'
 import { uploadSatFileAction } from '~/features/sat-processor/server/actions/upload.action'
 import { satFileRepository } from '~/features/sat-processor/server/repository/sat-file.repository'
 import { requireAuth } from '~/server/auth/session.server'
@@ -139,9 +139,8 @@ export async function action({ request }: Route.ActionArgs) {
 
     // If no account selected, just clear it (no journal entry creation)
     if (!accountingAccountId) {
-      const { satFileRepository } = await import(
-        '~/features/sat-processor/server/repository/sat-file.repository'
-      )
+      const { satFileRepository } =
+        await import('~/features/sat-processor/server/repository/sat-file.repository')
       await satFileRepository.updateAccountingAccount(satFileId, null)
       return { success: true, message: 'Account removed' }
     }
@@ -153,6 +152,7 @@ export async function action({ request }: Route.ActionArgs) {
       organizationId,
     })
 
+    console.log('updating account...', result)
     if (!result.success) {
       return { error: result.error }
     }
@@ -172,12 +172,14 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function SATProcessorIndex({
   loaderData,
+  actionData,
 }: Route.ComponentProps) {
   const { satFiles, accounts, companies } = loaderData
-  const actionData = useActionData<typeof action>()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedRow, setSelectedRow] = useState<SatFile | null>(null)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
+
+  console.log('actionData...', actionData?.error)
 
   const handleRowSelectionChange = useCallback((selectedRows: SatFile[]) => {
     setSelectedRow(selectedRows.length > 0 ? selectedRows[0] : null)
@@ -258,12 +260,6 @@ export default function SATProcessorIndex({
                   companies={companies}
                   onSuccess={handleUploadSuccess}
                 />
-
-                {actionData && 'error' in actionData && actionData.error && (
-                  <div className='rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
-                    {actionData.error}
-                  </div>
-                )}
               </DialogContent>
             </Dialog>
           </div>
@@ -272,6 +268,12 @@ export default function SATProcessorIndex({
         {actionData && 'success' in actionData && actionData.success && (
           <div className='mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400'>
             {'message' in actionData && actionData.message}
+          </div>
+        )}
+
+        {actionData && 'error' in actionData && actionData.error && (
+          <div className='rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
+            {actionData.error}
           </div>
         )}
 

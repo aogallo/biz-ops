@@ -94,7 +94,6 @@ export async function action({ request }: Route.ActionArgs) {
     )
 
     if (!result.success) {
-      console.error('upload errors', result.errors)
       return {
         error: 'Failed to upload file',
         details: result.errors,
@@ -139,8 +138,6 @@ export async function action({ request }: Route.ActionArgs) {
 
     // If no account selected, just clear it (no journal entry creation)
     if (!accountingAccountId) {
-      const { satFileRepository } =
-        await import('~/features/sat-processor/server/repository/sat-file.repository')
       await satFileRepository.updateAccountingAccount(satFileId, null)
       return { success: true, message: 'Account removed' }
     }
@@ -152,7 +149,6 @@ export async function action({ request }: Route.ActionArgs) {
       organizationId,
     })
 
-    console.log('updating account...', result)
     if (!result.success) {
       return { error: result.error }
     }

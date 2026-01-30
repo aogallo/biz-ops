@@ -5,6 +5,8 @@ import { PageSkeleton } from '~/components/skeleton/PageSkeleton'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AuthProvider } from '~/contexts/AuthContext'
 import type { Organization } from '~/features/organization/schemas'
+import { organizationRepository } from '~/features/organization/server/repository'
+import { getUserOrganizations } from '~/server/auth/organization.server'
 import { getUserPermissions } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isSuperAdmin } from '~/server/permissions'
@@ -28,13 +30,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   let organizations: Organization[] = []
   if (isSuperAdminUser) {
     // Super admin sees ALL organizations
-    const { db } = await import('~/server/db')
-    const { organizationModel } = await import('~/server/db/schemas/auth')
-    organizations = await db.select().from(organizationModel)
+    organizations = await organizationRepository.getAll()
   } else {
     // Regular users see only their member organizations
-    const { getUserOrganizations } =
-      await import('~/server/auth/organization.server')
     const userOrgs = await getUserOrganizations(userId)
     organizations = userOrgs.map((org) => ({
       id: org.organization.id,

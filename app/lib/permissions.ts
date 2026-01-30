@@ -26,6 +26,8 @@ export const MENU_PERMISSIONS = {
   '/sat-processor': ['sat-processor:read'],
   // Appointments
   '/appointments': ['appointments:read'],
+  // Settings
+  '/settings/accounting': ['settings:accounting'],
 } as const
 
 /**

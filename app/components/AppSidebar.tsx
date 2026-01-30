@@ -22,7 +22,7 @@ import {
   UserStarIcon,
 } from 'lucide-react'
 import { Link, NavLink, useFetcher } from 'react-router'
-import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
+import { useAuth } from '~/contexts/AuthContext'
 import { useFilteredNavigation } from '~/hooks/usePermissions'
 import { cn } from '~/lib/utils'
 import {
@@ -97,7 +97,6 @@ export const navigationItems = [
 
 const AppSidebar = () => {
   const { session, permissions, availableOrganizations } = useAuth()
-  const organization = useOptionalOrganization()
   const fetcher = useFetcher()
 
   // Filter navigation items based on user permissions
@@ -134,17 +133,12 @@ const AppSidebar = () => {
               // Regular user organization display
               <SidebarMenuButton asChild>
                 <Link to='/organization'>
-                  {organization ? (
+                  {availableOrganizations && (
                     <div className='flex flex-col items-start'>
                       <span className='font-semibold'>
-                        {organization.data.name}
-                      </span>
-                      <span className='text-muted-foreground text-xs'>
-                        {organization.membership.role}
+                        {availableOrganizations[0].name}
                       </span>
                     </div>
-                  ) : (
-                    <span>ERP System</span>
                   )}
                 </Link>
               </SidebarMenuButton>

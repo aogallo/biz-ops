@@ -84,6 +84,12 @@ export default [
     // Dashboard Routes
     ...prefix('dashboard', [index('./routes/dashboard/index.tsx')]),
 
+    // Appointments Routes
+    ...prefix('appointments', [
+      index('./routes/appointments/index.tsx'),
+      route('/new', './routes/appointments/new.tsx'),
+    ]),
+
     // Company Routes
     ...prefix('company', [
       index('./routes/company/index.tsx'),

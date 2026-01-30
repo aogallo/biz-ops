@@ -10,7 +10,6 @@ import {
   Drumstick,
   FolderTreeIcon,
   HandshakeIcon,
-  LogOut,
   Mail,
   NewspaperIcon,
   Package,
@@ -22,14 +21,13 @@ import {
   Users,
   UserStarIcon,
 } from 'lucide-react'
-import { Form, Link, NavLink, useFetcher } from 'react-router'
+import { Link, NavLink, useFetcher } from 'react-router'
 import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
 import { useFilteredNavigation } from '~/hooks/usePermissions'
 import { cn } from '~/lib/utils'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
@@ -190,31 +188,6 @@ const AppSidebar = () => {
 
         <SidebarGroup />
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className='flex flex-col gap-2 px-2 py-3'>
-              <p className='text-foreground text-sm font-medium'>
-                {session.user.name || session.user.email}
-              </p>
-              {session.user.name && (
-                <p className='text-muted-foreground text-xs'>
-                  {session.user.email}
-                </p>
-              )}
-              <Form method='post' action='/logout'>
-                <button
-                  type='submit'
-                  className='text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors'
-                >
-                  <LogOut className='h-4 w-4' />
-                  Sign Out
-                </button>
-              </Form>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   )
 }

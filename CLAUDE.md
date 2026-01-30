@@ -11,7 +11,7 @@ This is a multi-tenant B2B SaaS application built with React Router v7, Cloudfla
 ### Development
 
 ```bash
-npm run dev                 # Start development server (localhost:5173)
+npm run dev                # Start development server (localhost:5173)
 npm run build              # Build for production
 npm run preview            # Preview production build locally
 npm run typecheck          # Run TypeScript type checking
@@ -31,7 +31,7 @@ npx tsx scripts/seed-local.ts  # Seed local database
 ### Deployment (Cloudflare)
 
 ```bash
-npm run deploy             # Build and deploy to Cloudflare Workers
+npm run deploy            # Build and deploy to Cloudflare Workers
 wrangler deploy           # Deploy without rebuilding
 wrangler tail             # View live logs
 ```
@@ -129,7 +129,6 @@ Better Auth is configured with:
 
 - `app/server/auth-server.ts`: Server-side Better Auth instance
 - `app/server/auth-client.ts`: Client-side auth configuration
-- `auth-schema.ts` (root): Legacy schema file (actual schema is in `app/server/db/schema.ts`)
 
 ### Routing
 
@@ -193,7 +192,7 @@ Follow this two-step structure:
 
 ### Database Changes
 
-1. Modify schema in `app/server/db/schema.ts`
+1. Modify schema in `app/server/db/**`
 2. Generate migration: `npx drizzle-kit generate`
 3. Apply migration: `npx drizzle-kit migrate`
 4. Update TypeScript types: `npm run typecheck`
@@ -253,7 +252,7 @@ app/routes/users/
 
 ### Repository Pattern (Data Access Layer)
 
-**ALWAYS** use repository classes for database access. **NEVER** access the database directly from actions or routes.
+**ALWAYS** use repository classes for database access. **NEVER** access the database directly from actions, loaders or routes.
 
 ```typescript
 // ✅ CORRECT - users.repository.ts

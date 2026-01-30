@@ -14,6 +14,7 @@ export const MENU_PERMISSIONS = {
   '/users': ['user:read'],
   '/permissions': ['permission:read'],
   '/roles': ['role:read'],
+  '/accounts': ['account:read'],
   '/business-partners': ['business-partner:read'],
   '/company': ['company:read'],
   '/invitations': ['invitation:read'],

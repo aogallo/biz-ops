@@ -1,4 +1,10 @@
-import { Form, Link, useActionData, useNavigation } from 'react-router'
+import {
+  Form,
+  Link,
+  useActionData,
+  useNavigation,
+  useSearchParams,
+} from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -19,28 +25,52 @@ import { organizationRepository } from '~/features/organization/server/repositor
 import { getRolesByOrganization } from '~/server/auth/roles.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
+import { isSuperAdmin } from '~/server/permissions'
 import { USER_MESSAGES } from '../../features/users/messages'
 import { inviteUser } from '../../features/users/server/actions/invite.action'
 import type { Route } from './+types/invite'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
-  const organizationId = session.session.activeOrganizationId
+  const url = new URL(request.url)
 
-  if (!organizationId) {
+  // Check if user is super admin
+  const isSuperAdminUser = await isSuperAdmin(session.user.id)
+
+  // Get organization ID from searchParams or fall back to active org
+  const searchParamOrgId = url.searchParams.get('organizationId')
+  const activeOrgId = session.session.activeOrganizationId
+
+  // Determine selected organization ID
+  let selectedOrganizationId: string | null = null
+  let organizations: Awaited<ReturnType<typeof organizationRepository.getAll>> =
+    []
+
+  if (isSuperAdminUser) {
+    // Super admin can select any org
+    organizations = await organizationRepository.getAll()
+    selectedOrganizationId =
+      searchParamOrgId || organizations[0]?.id || activeOrgId
+  } else {
+    // Regular user uses their active org
+    selectedOrganizationId = activeOrgId
+  }
+
+  if (!selectedOrganizationId) {
     return redirectWithFlash('/users', {
       type: 'error',
       message: USER_MESSAGES.noOrganization,
     })
   }
 
-  // Fetch roles for organization
-  const roles = await getRolesByOrganization(organizationId)
-  const organizations = await organizationRepository.getAll()
+  // Fetch roles for the selected organization
+  const roles = await getRolesByOrganization(selectedOrganizationId)
 
   return {
     organizations,
     roles,
+    selectedOrganizationId,
+    isSuperAdmin: isSuperAdminUser,
   }
 }
 
@@ -58,7 +88,9 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
-  const { organizations, roles } = loaderData
+  const { organizations, roles, selectedOrganizationId, isSuperAdmin } =
+    loaderData
+  const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
@@ -66,6 +98,13 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
   // Get default member role if available
   const memberRole = roles.find((r) => r.name === 'member')
   const defaultRoleId = memberRole?.id || ''
+
+  // Handle organization change - update URL to trigger loader
+  const handleOrganizationChange = (orgId: string) => {
+    if (orgId) {
+      setSearchParams({ organizationId: orgId })
+    }
+  }
 
   return (
     <div className='container mx-auto max-w-2xl py-6'>
@@ -112,32 +151,44 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                   </p>
                 )}
               </Field>
-              <Field>
-                <FieldLabel htmlFor='organization'>Organization</FieldLabel>
-                <Combobox
+
+              {isSuperAdmin ? (
+                <Field>
+                  <FieldLabel htmlFor='organization'>Organization</FieldLabel>
+                  <Combobox
+                    name='organizationId'
+                    value={selectedOrganizationId}
+                    onValueChange={handleOrganizationChange}
+                    disabled={isSubmitting}
+                    options={organizations.map((organization) => ({
+                      value: organization.id,
+                      label: organization.name,
+                    }))}
+                    placeholder='Select organization'
+                    searchPlaceholder='Search organizations...'
+                    emptyMessage='No organizations found.'
+                  />
+                  <FieldDescription>
+                    The organization the user will be invited to
+                  </FieldDescription>
+                  {actionData?.errors?.organizationId && (
+                    <p className='text-destructive mt-1 text-sm'>
+                      {actionData.errors.organizationId}
+                    </p>
+                  )}
+                </Field>
+              ) : (
+                <input
+                  type='hidden'
                   name='organizationId'
-                  disabled={isSubmitting}
-                  options={organizations.map((organization) => ({
-                    value: organization.id,
-                    label: organization.name,
-                  }))}
-                  placeholder='Select organization'
-                  searchPlaceholder='Search organizations...'
-                  emptyMessage='No organizations found.'
+                  value={selectedOrganizationId}
                 />
-                <FieldDescription>
-                  The organization the user will be invited to
-                </FieldDescription>
-                {actionData?.errors?.organizationId && (
-                  <p className='text-destructive mt-1 text-sm'>
-                    {actionData.errors.organizationId}
-                  </p>
-                )}
-              </Field>
+              )}
 
               <Field>
                 <FieldLabel htmlFor='role'>Role</FieldLabel>
                 <Combobox
+                  key={selectedOrganizationId}
                   name='roleId'
                   defaultValue={defaultRoleId}
                   disabled={isSubmitting}

@@ -112,7 +112,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         accessorKey: 'name',
         header: 'Name',
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('name')}</span>
+          <span className='font-medium'>{row.getValue('name')}</span>
         ),
       },
       {
@@ -127,7 +127,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
           const memberRole = row.original.memberRole
           return (
             <div>
-              <div className="flex flex-wrap gap-1">
+              <div className='flex flex-wrap gap-1'>
                 {roles && roles.length > 0 ? (
                   roles.map((role) => (
                     <span
@@ -142,7 +142,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                     </span>
                   ))
                 ) : (
-                  <span className="bg-muted text-muted-foreground inline-flex items-center rounded-md px-2 py-1 text-xs font-medium">
+                  <span className='bg-muted text-muted-foreground inline-flex items-center rounded-md px-2 py-1 text-xs font-medium'>
                     {memberRole}
                   </span>
                 )}
@@ -150,7 +150,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               {canUpdateUser && (
                 <Link
                   to={`/users/${row.original.memberId}/roles?organizationId=${selectedOrganizationId}`}
-                  className="text-primary mt-1 block text-xs hover:underline"
+                  className='text-primary mt-1 block text-xs hover:underline'
                 >
                   Manage roles
                 </Link>
@@ -161,13 +161,13 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'emailVerified',
-        header: 'Verified',
+        header: 'Email Verified',
         cell: ({ row }) => {
           const verified = row.getValue('emailVerified') as boolean
           return verified ? (
-            <span className="text-green-600">Verified</span>
+            <span className='text-green-600'>Verified</span>
           ) : (
-            <span className="text-amber-600">Pending</span>
+            <span className='text-amber-600'>Pending</span>
           )
         },
       },
@@ -189,14 +189,14 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         accessorKey: 'email',
         header: 'Email',
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('email')}</span>
+          <span className='font-medium'>{row.getValue('email')}</span>
         ),
       },
       {
         accessorKey: 'role',
         header: 'Role',
         cell: ({ row }) => (
-          <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+          <span className='inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800'>
             {row.getValue('role')}
           </span>
         ),
@@ -298,7 +298,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               columns={userColumns}
               data={users}
               enableSearch
-              searchPlaceholder="Search users..."
+              searchPlaceholder='Search users...'
             />
           )}
         </CardContent>
@@ -318,7 +318,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
               columns={invitationColumns}
               data={invitations}
               enableSearch
-              searchPlaceholder="Search invitations..."
+              searchPlaceholder='Search invitations...'
             />
           </CardContent>
         </Card>

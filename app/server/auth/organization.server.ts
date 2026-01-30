@@ -2,7 +2,12 @@ import { and, eq, sql } from 'drizzle-orm'
 import { redirect } from 'react-router'
 import auth from '~/server/auth-server'
 import { db } from '~/server/db'
-import { memberModel, memberRoleModel, organizationModel, roleModel } from '../db/schemas/auth'
+import {
+  memberModel,
+  memberRoleModel,
+  organizationModel,
+  roleModel,
+} from '../db/schemas/auth'
 import type { SessionData } from './session.server'
 
 export interface OrganizationMember {
@@ -43,11 +48,10 @@ export async function requireOrganizationAdmin(session: SessionData) {
     .limit(1)
 
   if (!membership) {
-    throw redirect('/organization', {
-      headers: {
-        'X-Message': "You don't have access to this operation",
-      },
-    })
+    return {
+      success: false,
+      message: 'You don"t have access to this operation',
+    }
   }
 
   // Get organization

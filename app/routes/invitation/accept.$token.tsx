@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { Form, redirect, useNavigation } from 'react-router'
+import z from 'zod'
 import auth from '~/server/auth-server'
 import { db } from '~/server/db'
 import {
@@ -52,7 +53,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   })
 
   if (!result.success) {
-    const errors = result.error.flatten().fieldErrors
+    const errors = z.flattenError(result.error).fieldErrors
     return {
       error:
         errors.name?.[0] ||
@@ -71,6 +72,8 @@ export async function action({ params, request }: Route.ActionArgs) {
       .from(invitationModel)
       .where(eq(invitationModel.id, token))
       .limit(1)
+
+    console.log('invitation db...', inv)
 
     if (!inv || inv.status !== 'pending') {
       return { error: 'Invalid or expired invitation' }
@@ -124,11 +127,20 @@ export async function action({ params, request }: Route.ActionArgs) {
       return { error: 'Failed to create user account' }
     }
 
+    await db
+      .update(userModel)
+      .set({ emailVerified: true })
+      .where(eq(userModel.id, newUser.id))
+
+    console.log('new user db', newUser.id)
+
     // Get invitation roles from junction table
     const invitationRoles = await db
       .select()
       .from(invitationRoleModel)
       .where(eq(invitationRoleModel.invitationId, token))
+
+    console.log('invitation roles db...', invitationRoles)
 
     // Manually create member record (since acceptInvitation requires auth)
     const memberId = crypto.randomUUID()
@@ -160,11 +172,14 @@ export async function action({ params, request }: Route.ActionArgs) {
       })
       .where(eq(invitationModel.id, token))
 
+    console.log('invitation is accepted....')
+
     // Extract session cookies from Better Auth response
     const setCookie = signUpResponse.headers.get('set-cookie')
 
+    console.log('set cookies and redirect ....')
     // Redirect to organization with session cookies
-    return redirect('/organization', {
+    return redirect('/welcome', {
       headers: setCookie ? { 'set-cookie': setCookie } : {},
     })
   } catch (error) {
@@ -283,7 +298,7 @@ export default function AcceptInvitation({
               className='bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md px-4 py-2 text-sm font-medium'
               disabled={isLoading}
             >
-              Create Account & Join
+              {isLoading ? 'Creating the user' : 'Create Account & Join'}
             </button>
           </Form>
 

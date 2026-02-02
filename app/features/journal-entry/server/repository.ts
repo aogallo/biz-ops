@@ -1,4 +1,4 @@
-import { and, count, desc, eq, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   journalEntryModel,
@@ -30,6 +30,31 @@ export interface GetJournalEntriesOptions {
   status?: 'draft' | 'posted' | 'voided'
   limit?: number
   offset?: number
+}
+
+export interface GetForReportOptions {
+  companyId?: string
+  dateFrom?: Date
+  dateTo?: Date
+  limit?: number
+  offset?: number
+}
+
+export interface ReportLineItem {
+  id: string
+  date: string
+  refNo: string
+  accountName: string
+  description: string
+  debit: number
+  credit: number
+}
+
+export interface ReportResult {
+  data: ReportLineItem[]
+  total: number
+  totalDebit: number
+  totalCredit: number
 }
 
 export class JournalEntryRepository {
@@ -403,6 +428,169 @@ export class JournalEntryRepository {
       .returning()
 
     return result.length > 0
+  }
+
+  async getForReport(
+    organizationId: string,
+    options: GetForReportOptions = {}
+  ): Promise<ReportResult> {
+    const { companyId, dateFrom, dateTo, limit = 20, offset = 0 } = options
+
+    // Build conditions for entries
+    const conditions = [eq(journalEntryModel.organizationId, organizationId)]
+
+    if (companyId) {
+      conditions.push(eq(journalEntryModel.companyId, companyId))
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(journalEntryModel.entryDate, dateFrom))
+    }
+
+    if (dateTo) {
+      conditions.push(lte(journalEntryModel.entryDate, dateTo))
+    }
+
+    // Get total count of lines for pagination
+    const countQuery = await db
+      .select({ count: count() })
+      .from(journalEntryLineModel)
+      .innerJoin(
+        journalEntryModel,
+        eq(journalEntryLineModel.journalEntryId, journalEntryModel.id)
+      )
+      .where(and(...conditions))
+
+    const total = countQuery[0]?.count ?? 0
+
+    // Get aggregated totals (debit/credit)
+    const totalsQuery = await db
+      .select({
+        totalDebit: sql<string>`COALESCE(SUM(${journalEntryLineModel.debitAmount}), 0)`,
+        totalCredit: sql<string>`COALESCE(SUM(${journalEntryLineModel.creditAmount}), 0)`,
+      })
+      .from(journalEntryLineModel)
+      .innerJoin(
+        journalEntryModel,
+        eq(journalEntryLineModel.journalEntryId, journalEntryModel.id)
+      )
+      .where(and(...conditions))
+
+    const totalDebit = Number(totalsQuery[0]?.totalDebit ?? 0)
+    const totalCredit = Number(totalsQuery[0]?.totalCredit ?? 0)
+
+    // Get paginated line-level data
+    const lines = await db
+      .select({
+        lineId: journalEntryLineModel.id,
+        entryDate: journalEntryModel.entryDate,
+        entryNumber: journalEntryModel.entryNumber,
+        accountName: accountingAccountModel.name,
+        lineDescription: journalEntryLineModel.description,
+        entryDescription: journalEntryModel.description,
+        debitAmount: journalEntryLineModel.debitAmount,
+        creditAmount: journalEntryLineModel.creditAmount,
+      })
+      .from(journalEntryLineModel)
+      .innerJoin(
+        journalEntryModel,
+        eq(journalEntryLineModel.journalEntryId, journalEntryModel.id)
+      )
+      .leftJoin(
+        accountingAccountModel,
+        eq(journalEntryLineModel.accountingAccountId, accountingAccountModel.id)
+      )
+      .where(and(...conditions))
+      .orderBy(desc(journalEntryModel.entryDate), journalEntryLineModel.lineNumber)
+      .limit(limit)
+      .offset(offset)
+
+    // Transform to report format
+    const data: ReportLineItem[] = lines.map((line) => ({
+      id: line.lineId,
+      date: line.entryDate
+        ? new Date(line.entryDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        : '',
+      refNo: line.entryNumber,
+      accountName: line.accountName ?? 'Unknown Account',
+      description: line.lineDescription || line.entryDescription,
+      debit: Number(line.debitAmount ?? 0),
+      credit: Number(line.creditAmount ?? 0),
+    }))
+
+    return {
+      data,
+      total,
+      totalDebit,
+      totalCredit,
+    }
+  }
+
+  async getAllForExport(
+    organizationId: string,
+    options: Omit<GetForReportOptions, 'limit' | 'offset'>
+  ): Promise<ReportLineItem[]> {
+    const { companyId, dateFrom, dateTo } = options
+
+    // Build conditions for entries
+    const conditions = [eq(journalEntryModel.organizationId, organizationId)]
+
+    if (companyId) {
+      conditions.push(eq(journalEntryModel.companyId, companyId))
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(journalEntryModel.entryDate, dateFrom))
+    }
+
+    if (dateTo) {
+      conditions.push(lte(journalEntryModel.entryDate, dateTo))
+    }
+
+    // Get all line-level data without pagination
+    const lines = await db
+      .select({
+        lineId: journalEntryLineModel.id,
+        entryDate: journalEntryModel.entryDate,
+        entryNumber: journalEntryModel.entryNumber,
+        accountName: accountingAccountModel.name,
+        lineDescription: journalEntryLineModel.description,
+        entryDescription: journalEntryModel.description,
+        debitAmount: journalEntryLineModel.debitAmount,
+        creditAmount: journalEntryLineModel.creditAmount,
+      })
+      .from(journalEntryLineModel)
+      .innerJoin(
+        journalEntryModel,
+        eq(journalEntryLineModel.journalEntryId, journalEntryModel.id)
+      )
+      .leftJoin(
+        accountingAccountModel,
+        eq(journalEntryLineModel.accountingAccountId, accountingAccountModel.id)
+      )
+      .where(and(...conditions))
+      .orderBy(desc(journalEntryModel.entryDate), journalEntryLineModel.lineNumber)
+
+    // Transform to report format
+    return lines.map((line) => ({
+      id: line.lineId,
+      date: line.entryDate
+        ? new Date(line.entryDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        : '',
+      refNo: line.entryNumber,
+      accountName: line.accountName ?? 'Unknown Account',
+      description: line.lineDescription || line.entryDescription,
+      debit: Number(line.debitAmount ?? 0),
+      credit: Number(line.creditAmount ?? 0),
+    }))
   }
 }
 

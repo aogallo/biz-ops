@@ -5,9 +5,9 @@ import {
   PlayIcon,
   SlidersHorizontalIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
-import { useSearchParams } from 'react-router'
+import { useFetcher, useSearchParams } from 'react-router'
 import TitleAndActions from '~/components/TitleAndActions'
 import TitleAndActionsBody from '~/components/TitleAndActionsBody'
 import { Badge } from '~/components/ui/badge'
@@ -35,8 +35,87 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
+import {
+  generateReportSchema,
+  exportReportSchema,
+} from '~/features/reports/schemas'
+import {
+  generateJournalReportAction,
+  exportJournalReportAction,
+  type GenerateReportResult,
+  type ExportReportResult,
+} from '~/features/reports/server/actions/journal.entry.action'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/index'
+
+type ActionResult =
+  | GenerateReportResult
+  | ExportReportResult
+  | { success: false; error: string }
+
+export async function action({ request }: Route.ActionArgs) {
+  const session = await requireAuth(request)
+  const organizationId = session.session.activeOrganizationId
+
+  if (!organizationId) {
+    return { success: false, error: 'No organization selected' } as const
+  }
+
+  const formData = await request.formData()
+  const actionType = formData.get('_action')
+
+  if (actionType === 'generate') {
+    const result = generateReportSchema.safeParse({
+      _action: formData.get('_action'),
+      reportType: formData.get('reportType'),
+      companyId: formData.get('companyId') || undefined,
+      dateFrom: formData.get('dateFrom') || undefined,
+      dateTo: formData.get('dateTo') || undefined,
+      page: formData.get('page') || 1,
+      pageSize: formData.get('pageSize') || 20,
+    })
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: 'Validation failed: ' + result.error.message,
+      } as const
+    }
+
+    // Currently only journal-entry report is implemented
+    if (result.data.reportType === 'journal-entry') {
+      return await generateJournalReportAction(organizationId, result.data)
+    }
+
+    return { success: false, error: 'Report type not implemented' } as const
+  }
+
+  if (actionType === 'export') {
+    const result = exportReportSchema.safeParse({
+      _action: formData.get('_action'),
+      reportType: formData.get('reportType'),
+      companyId: formData.get('companyId') || undefined,
+      dateFrom: formData.get('dateFrom') || undefined,
+      dateTo: formData.get('dateTo') || undefined,
+    })
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: 'Validation failed: ' + result.error.message,
+      } as const
+    }
+
+    // Currently only journal-entry report is implemented
+    if (result.data.reportType === 'journal-entry') {
+      return await exportJournalReportAction(organizationId, result.data)
+    }
+
+    return { success: false, error: 'Report type not implemented' } as const
+  }
+
+  return { success: false, error: 'Invalid action' } as const
+}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -74,7 +153,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 }
 
-// Sample data for the preview table
+// Sample data for the preview table when no report is generated
 const sampleData = [
   {
     id: '1',
@@ -137,6 +216,41 @@ const datePresets = [
   { value: 'fiscal-year', label: 'Fiscal Year' },
 ]
 
+function getDateRangeFromPreset(preset: string): { from: Date; to: Date } {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  switch (preset) {
+    case 'today':
+      return { from: today, to: today }
+    case 'this-month':
+      return {
+        from: new Date(now.getFullYear(), now.getMonth(), 1),
+        to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+      }
+    case 'last-quarter': {
+      const quarterStart = new Date(
+        now.getFullYear(),
+        Math.floor(now.getMonth() / 3) * 3 - 3,
+        1
+      )
+      const quarterEnd = new Date(
+        now.getFullYear(),
+        Math.floor(now.getMonth() / 3) * 3,
+        0
+      )
+      return { from: quarterStart, to: quarterEnd }
+    }
+    case 'fiscal-year':
+      return {
+        from: new Date(now.getFullYear(), 0, 1),
+        to: new Date(now.getFullYear(), 11, 31),
+      }
+    default:
+      return { from: today, to: today }
+  }
+}
+
 export default function JournalReport({ loaderData }: Route.ComponentProps) {
   const {
     companies,
@@ -147,10 +261,75 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     datePreset,
   } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(2023, 9, 5), // Oct 5
-    to: new Date(2023, 9, 30), // Oct 30
+
+  const generateFetcher = useFetcher<ActionResult>()
+  const exportFetcher = useFetcher<ActionResult>()
+
+  // Initialize date range from preset
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const { from, to } = getDateRangeFromPreset(datePreset)
+    return { from, to }
   })
+
+  // Current page state for pagination
+  const [currentPage, setCurrentPage] = useState(1)
+
+  // Update date range when preset changes
+  useEffect(() => {
+    const { from, to } = getDateRangeFromPreset(datePreset)
+    setDateRange({ from, to })
+  }, [datePreset])
+
+  // Handle CSV download when export completes
+  useEffect(() => {
+    if (
+      exportFetcher.data &&
+      'export' in exportFetcher.data &&
+      exportFetcher.data.export
+    ) {
+      const { csvContent, filename } = exportFetcher.data.export
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }
+  }, [exportFetcher.data])
+
+  // Determine if we have live data
+  const hasLiveData =
+    generateFetcher.data &&
+    'data' in generateFetcher.data &&
+    generateFetcher.data.success
+
+  // Get display data
+  const displayData = hasLiveData
+    ? (generateFetcher.data as GenerateReportResult).data
+    : sampleData
+
+  // Get pagination info
+  const totalRows = hasLiveData
+    ? (generateFetcher.data as GenerateReportResult).total
+    : sampleData.length
+  const totalPages = hasLiveData
+    ? (generateFetcher.data as GenerateReportResult).totalPages
+    : 1
+  const pageSize = hasLiveData
+    ? (generateFetcher.data as GenerateReportResult).pageSize
+    : sampleData.length
+
+  // Calculate page totals (for current page)
+  const pageTotals = displayData.reduce(
+    (acc, row) => ({
+      debit: acc.debit + row.debit,
+      credit: acc.credit + row.credit,
+    }),
+    { debit: 0, credit: 0 }
+  )
 
   const companyOptions = companies.map((company) => ({
     value: company.id,
@@ -193,14 +372,42 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     updateSearchParam('reportType', value)
   }
 
-  // Calculate totals
-  const totals = sampleData.reduce(
-    (acc, row) => ({
-      debit: acc.debit + row.debit,
-      credit: acc.credit + row.credit,
-    }),
-    { debit: 0, credit: 0 }
-  )
+  const handleGenerateReport = (page = 1) => {
+    setCurrentPage(page)
+    const formData = new FormData()
+    formData.set('_action', 'generate')
+    formData.set('reportType', selectedReportType)
+    if (selectedCompanyId) formData.set('companyId', selectedCompanyId)
+    if (dateRange?.from) formData.set('dateFrom', dateRange.from.toISOString())
+    if (dateRange?.to) formData.set('dateTo', dateRange.to.toISOString())
+    formData.set('page', String(page))
+    formData.set('pageSize', '20')
+
+    generateFetcher.submit(formData, { method: 'post' })
+  }
+
+  const handleExport = () => {
+    const formData = new FormData()
+    formData.set('_action', 'export')
+    formData.set('reportType', selectedReportType)
+    if (selectedCompanyId) formData.set('companyId', selectedCompanyId)
+    if (dateRange?.from) formData.set('dateFrom', dateRange.from.toISOString())
+    if (dateRange?.to) formData.set('dateTo', dateRange.to.toISOString())
+
+    exportFetcher.submit(formData, { method: 'post' })
+  }
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      handleGenerateReport(currentPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handleGenerateReport(currentPage + 1)
+    }
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -228,6 +435,15 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     reportTypes.find((r) => r.value === selectedReportType)?.label ||
     'Financial Report'
 
+  const isGenerating = generateFetcher.state !== 'idle'
+  const isExporting = exportFetcher.state !== 'idle'
+
+  // Calculate row range for display
+  const startRow = hasLiveData ? (currentPage - 1) * pageSize + 1 : 1
+  const endRow = hasLiveData
+    ? Math.min(currentPage * pageSize, totalRows)
+    : sampleData.length
+
   return (
     <>
       <TitleAndActions
@@ -235,13 +451,20 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
         subtitle='Configure your multi-tenant financial reporting and preview data.'
       >
         <TitleAndActionsBody>
-          <Button variant='outline'>
+          <Button
+            variant='outline'
+            onClick={handleExport}
+            disabled={isExporting}
+          >
             <DownloadIcon />
-            Export
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
-          <Button>
+          <Button
+            onClick={() => handleGenerateReport(1)}
+            disabled={isGenerating}
+          >
             <PlayIcon />
-            Generate Report
+            {isGenerating ? 'Generating...' : 'Generate Report'}
           </Button>
         </TitleAndActionsBody>
       </TitleAndActions>
@@ -367,20 +590,38 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               <h3 className='text-lg font-semibold'>Live Preview</h3>
               <Badge
                 variant='secondary'
-                className='bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300'
+                className={
+                  hasLiveData
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                    : 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300'
+                }
               >
-                SAMPLE DATA
+                {hasLiveData ? 'LIVE DATA' : 'SAMPLE DATA'}
               </Badge>
             </div>
             <div className='flex items-center gap-3'>
               <span className='text-muted-foreground text-sm'>
-                Rows: 120 of 1,450
+                Rows: {startRow}-{endRow} of {totalRows.toLocaleString()}
               </span>
               <div className='flex gap-1'>
-                <Button variant='outline' size='icon' className='size-8'>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  className='size-8'
+                  onClick={handlePrevPage}
+                  disabled={!hasLiveData || currentPage <= 1 || isGenerating}
+                >
                   <ChevronLeftIcon className='size-4' />
                 </Button>
-                <Button variant='outline' size='icon' className='size-8'>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  className='size-8'
+                  onClick={handleNextPage}
+                  disabled={
+                    !hasLiveData || currentPage >= totalPages || isGenerating
+                  }
+                >
                   <ChevronRightIcon className='size-4' />
                 </Button>
               </div>
@@ -412,24 +653,33 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sampleData.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className='font-medium'>{row.date}</TableCell>
-                  <TableCell className='text-muted-foreground font-mono text-sm'>
-                    {row.refNo}
-                  </TableCell>
-                  <TableCell>{row.accountName}</TableCell>
-                  <TableCell className='max-w-[200px] truncate'>
-                    {row.description}
-                  </TableCell>
-                  <TableCell className='text-right'>
-                    {formatCurrency(row.debit)}
-                  </TableCell>
-                  <TableCell className='text-right'>
-                    {formatCurrency(row.credit)}
+              {displayData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className='h-24 text-center'>
+                    No data available. Click &quot;Generate Report&quot; to load
+                    data.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                displayData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className='font-medium'>{row.date}</TableCell>
+                    <TableCell className='text-muted-foreground font-mono text-sm'>
+                      {row.refNo}
+                    </TableCell>
+                    <TableCell>{row.accountName}</TableCell>
+                    <TableCell className='max-w-[200px] truncate'>
+                      {row.description}
+                    </TableCell>
+                    <TableCell className='text-right'>
+                      {formatCurrency(row.debit)}
+                    </TableCell>
+                    <TableCell className='text-right'>
+                      {formatCurrency(row.credit)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
             <TableFooter>
               <TableRow>
@@ -437,10 +687,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                   PAGE TOTALS
                 </TableCell>
                 <TableCell className='text-right font-bold text-teal-600'>
-                  {formatCurrency(totals.debit)}
+                  {formatCurrency(pageTotals.debit)}
                 </TableCell>
                 <TableCell className='text-right font-bold text-teal-600'>
-                  {formatCurrency(totals.credit)}
+                  {formatCurrency(pageTotals.credit)}
                 </TableCell>
               </TableRow>
             </TableFooter>

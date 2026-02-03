@@ -110,6 +110,10 @@ export default [
       route('/:id', './routes/accounts/show.tsx'),
       route('/:id/edit', './routes/accounts/edit.tsx'),
     ]),
+
+    // Report Routes
+    ...prefix('reports', [index('./routes/reports/index.tsx')]),
+
     route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

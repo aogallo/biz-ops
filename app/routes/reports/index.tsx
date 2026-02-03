@@ -36,14 +36,14 @@ import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import {
-  generateReportSchema,
   exportReportSchema,
+  generateReportSchema,
 } from '~/features/reports/schemas'
 import {
-  generateJournalReportAction,
   exportJournalReportAction,
-  type GenerateReportResult,
+  generateJournalReportAction,
   type ExportReportResult,
+  type GenerateReportResult,
 } from '~/features/reports/server/actions/journal.entry.action'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/index'
@@ -67,7 +67,10 @@ export async function action({ request }: Route.ActionArgs) {
   const actionType = formData.get('_action')
 
   console.log('[Reports Action] actionType:', actionType)
-  console.log('[Reports Action] formData entries:', Object.fromEntries(formData.entries()))
+  console.log(
+    '[Reports Action] formData entries:',
+    Object.fromEntries(formData.entries())
+  )
 
   if (actionType === 'generate') {
     const result = generateReportSchema.safeParse({
@@ -90,8 +93,14 @@ export async function action({ request }: Route.ActionArgs) {
     // Currently only journal-entry report is implemented
     if (result.data.reportType === 'journal-entry') {
       try {
-        const reportResult = await generateJournalReportAction(organizationId, result.data)
-        console.log('[Reports Action] Generate result:', { total: reportResult.total, dataLength: reportResult.data.length })
+        const reportResult = await generateJournalReportAction(
+          organizationId,
+          result.data
+        )
+        console.log('[Reports Action] Generate result:', {
+          total: reportResult.total,
+          dataLength: reportResult.data.length,
+        })
         return reportResult
       } catch (error) {
         console.error('[Reports Action] Generate error:', error)
@@ -121,8 +130,14 @@ export async function action({ request }: Route.ActionArgs) {
     // Currently only journal-entry report is implemented
     if (result.data.reportType === 'journal-entry') {
       try {
-        const exportResult = await exportJournalReportAction(organizationId, result.data)
-        console.log('[Reports Action] Export result:', { filename: exportResult.export.filename, contentLength: exportResult.export.pdfBase64.length })
+        const exportResult = await exportJournalReportAction(
+          organizationId,
+          result.data
+        )
+        console.log('[Reports Action] Export result:', {
+          filename: exportResult.export.filename,
+          contentLength: exportResult.export.pdfBase64.length,
+        })
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export error:', error)
@@ -171,55 +186,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     datePreset,
   }
 }
-
-// Sample data for the preview table when no report is generated
-const sampleData = [
-  {
-    id: '1',
-    date: 'Oct 12, 2023',
-    refNo: 'JRN-2023-0892',
-    accountName: 'Accounts Receivable',
-    description: 'Invoice #4521 - Service Provision',
-    debit: 1250.0,
-    credit: 0.0,
-  },
-  {
-    id: '2',
-    date: 'Oct 12, 2023',
-    refNo: 'JRN-2023-0892',
-    accountName: 'Sales Revenue',
-    description: 'Invoice #4521 - Service Provision',
-    debit: 0.0,
-    credit: 1250.0,
-  },
-  {
-    id: '3',
-    date: 'Oct 14, 2023',
-    refNo: 'JRN-2023-0895',
-    accountName: 'Office Supplies',
-    description: 'Stationery restock',
-    debit: 342.15,
-    credit: 0.0,
-  },
-  {
-    id: '4',
-    date: 'Oct 14, 2023',
-    refNo: 'JRN-2023-0895',
-    accountName: 'Petty Cash',
-    description: 'Stationery restock',
-    debit: 0.0,
-    credit: 342.15,
-  },
-  {
-    id: '5',
-    date: 'Oct 15, 2023',
-    refNo: 'JRN-2023-0901',
-    accountName: 'Consulting Fees',
-    description: 'Strategic Review - Project Alpha',
-    debit: 5000.0,
-    credit: 0.0,
-  },
-]
 
 const reportTypes = [
   { value: 'journal-entry', label: 'Journal Entry' },
@@ -317,7 +283,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       exportFetcher.data.export
     ) {
       const { pdfBase64, filename } = exportFetcher.data.export
-      console.log('[Reports UI] Downloading PDF:', { filename, contentLength: pdfBase64.length })
+      console.log('[Reports UI] Downloading PDF:', {
+        filename,
+        contentLength: pdfBase64.length,
+      })
 
       // Create a unique key for this export to prevent duplicate downloads
       const exportKey = `${filename}-${pdfBase64.length}`
@@ -347,27 +316,30 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     }
   }, [exportFetcher.state, exportFetcher.data])
 
-  // Determine if we have live data
-  const hasLiveData =
+  // Determine if we have generated data
+  const hasGeneratedData =
     generateFetcher.data &&
     'data' in generateFetcher.data &&
     generateFetcher.data.success
 
+  // Check if report has been generated (even with no results)
+  const hasRunReport = generateFetcher.data !== undefined
+
   // Get display data
-  const displayData = hasLiveData
+  const displayData = hasGeneratedData
     ? (generateFetcher.data as GenerateReportResult).data
-    : sampleData
+    : []
 
   // Get pagination info
-  const totalRows = hasLiveData
+  const totalRows = hasGeneratedData
     ? (generateFetcher.data as GenerateReportResult).total
-    : sampleData.length
-  const totalPages = hasLiveData
+    : 0
+  const totalPages = hasGeneratedData
     ? (generateFetcher.data as GenerateReportResult).totalPages
     : 1
-  const pageSize = hasLiveData
+  const pageSize = hasGeneratedData
     ? (generateFetcher.data as GenerateReportResult).pageSize
-    : sampleData.length
+    : 20
 
   // Calculate page totals (for current page)
   const pageTotals = displayData.reduce(
@@ -430,7 +402,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     formData.set('page', String(page))
     formData.set('pageSize', '20')
 
-    console.log('[Reports UI] Submitting generate with:', Object.fromEntries(formData.entries()))
+    console.log(
+      '[Reports UI] Submitting generate with:',
+      Object.fromEntries(formData.entries())
+    )
     generateFetcher.submit(formData, { method: 'post' })
   }
 
@@ -445,7 +420,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     if (dateRange?.from) formData.set('dateFrom', dateRange.from.toISOString())
     if (dateRange?.to) formData.set('dateTo', dateRange.to.toISOString())
 
-    console.log('[Reports UI] Submitting export with:', Object.fromEntries(formData.entries()))
+    console.log(
+      '[Reports UI] Submitting export with:',
+      Object.fromEntries(formData.entries())
+    )
     exportFetcher.submit(formData, { method: 'post' })
   }
 
@@ -501,10 +479,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       : null
 
   // Calculate row range for display
-  const startRow = hasLiveData ? (currentPage - 1) * pageSize + 1 : 1
-  const endRow = hasLiveData
+  const startRow = hasGeneratedData && totalRows > 0 ? (currentPage - 1) * pageSize + 1 : 0
+  const endRow = hasGeneratedData
     ? Math.min(currentPage * pageSize, totalRows)
-    : sampleData.length
+    : 0
 
   return (
     <>
@@ -652,50 +630,48 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
         </Card>
       </section>
 
-      {/* Live Preview Section */}
+      {/* Report Preview Section */}
       <Card>
         <CardHeader>
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <div className='flex items-center gap-3'>
-              <h3 className='text-lg font-semibold'>Live Preview</h3>
-              <Badge
-                variant='secondary'
-                className={
-                  hasLiveData
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                    : 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300'
-                }
-              >
-                {hasLiveData ? 'LIVE DATA' : 'SAMPLE DATA'}
-              </Badge>
+              <h3 className='text-lg font-semibold'>Report Preview</h3>
+              {hasGeneratedData && (
+                <Badge
+                  variant='secondary'
+                  className='bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                >
+                  {totalRows} RECORDS
+                </Badge>
+              )}
             </div>
-            <div className='flex items-center gap-3'>
-              <span className='text-muted-foreground text-sm'>
-                Rows: {startRow}-{endRow} of {totalRows.toLocaleString()}
-              </span>
-              <div className='flex gap-1'>
-                <Button
-                  variant='outline'
-                  size='icon'
-                  className='size-8'
-                  onClick={handlePrevPage}
-                  disabled={!hasLiveData || currentPage <= 1 || isGenerating}
-                >
-                  <ChevronLeftIcon className='size-4' />
-                </Button>
-                <Button
-                  variant='outline'
-                  size='icon'
-                  className='size-8'
-                  onClick={handleNextPage}
-                  disabled={
-                    !hasLiveData || currentPage >= totalPages || isGenerating
-                  }
-                >
-                  <ChevronRightIcon className='size-4' />
-                </Button>
+            {hasGeneratedData && totalRows > 0 && (
+              <div className='flex items-center gap-3'>
+                <span className='text-muted-foreground text-sm'>
+                  Rows: {startRow}-{endRow} of {totalRows.toLocaleString()}
+                </span>
+                <div className='flex gap-1'>
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    className='size-8'
+                    onClick={handlePrevPage}
+                    disabled={currentPage <= 1 || isGenerating}
+                  >
+                    <ChevronLeftIcon className='size-4' />
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    className='size-8'
+                    onClick={handleNextPage}
+                    disabled={currentPage >= totalPages || isGenerating}
+                  >
+                    <ChevronRightIcon className='size-4' />
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -725,9 +701,22 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             <TableBody>
               {displayData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className='h-24 text-center'>
-                    No data available. Click &quot;Generate Report&quot; to load
-                    data.
+                  <TableCell colSpan={6} className='h-32 text-center'>
+                    <div className='text-muted-foreground flex flex-col items-center gap-2'>
+                      {!hasRunReport ? (
+                        <>
+                          <PlayIcon className='size-8 opacity-50' />
+                          <p>Click &quot;Generate Report&quot; to load data</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className='text-lg font-medium'>No data found</p>
+                          <p className='text-sm'>
+                            No journal entries match the selected filters. Try adjusting the date range or company filter.
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -751,19 +740,21 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 ))
               )}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={4} className='text-right font-semibold'>
-                  PAGE TOTALS
-                </TableCell>
-                <TableCell className='text-right font-bold text-teal-600'>
-                  {formatCurrency(pageTotals.debit)}
-                </TableCell>
-                <TableCell className='text-right font-bold text-teal-600'>
-                  {formatCurrency(pageTotals.credit)}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
+            {displayData.length > 0 && (
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={4} className='text-right font-semibold'>
+                    PAGE TOTALS
+                  </TableCell>
+                  <TableCell className='text-right font-bold text-teal-600'>
+                    {formatCurrency(pageTotals.debit)}
+                  </TableCell>
+                  <TableCell className='text-right font-bold text-teal-600'>
+                    {formatCurrency(pageTotals.credit)}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
         </CardContent>
       </Card>

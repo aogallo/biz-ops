@@ -5,7 +5,7 @@ import {
   PlayIcon,
   SlidersHorizontalIcon,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DateRange } from 'react-day-picker'
 import { useFetcher, useSearchParams } from 'react-router'
 import TitleAndActions from '~/components/TitleAndActions'
@@ -57,12 +57,17 @@ export async function action({ request }: Route.ActionArgs) {
   const session = await requireAuth(request)
   const organizationId = session.session.activeOrganizationId
 
+  console.log('[Reports Action] organizationId:', organizationId)
+
   if (!organizationId) {
     return { success: false, error: 'No organization selected' } as const
   }
 
   const formData = await request.formData()
   const actionType = formData.get('_action')
+
+  console.log('[Reports Action] actionType:', actionType)
+  console.log('[Reports Action] formData entries:', Object.fromEntries(formData.entries()))
 
   if (actionType === 'generate') {
     const result = generateReportSchema.safeParse({
@@ -84,7 +89,14 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Currently only journal-entry report is implemented
     if (result.data.reportType === 'journal-entry') {
-      return await generateJournalReportAction(organizationId, result.data)
+      try {
+        const reportResult = await generateJournalReportAction(organizationId, result.data)
+        console.log('[Reports Action] Generate result:', { total: reportResult.total, dataLength: reportResult.data.length })
+        return reportResult
+      } catch (error) {
+        console.error('[Reports Action] Generate error:', error)
+        return { success: false, error: String(error) } as const
+      }
     }
 
     return { success: false, error: 'Report type not implemented' } as const
@@ -108,7 +120,14 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Currently only journal-entry report is implemented
     if (result.data.reportType === 'journal-entry') {
-      return await exportJournalReportAction(organizationId, result.data)
+      try {
+        const exportResult = await exportJournalReportAction(organizationId, result.data)
+        console.log('[Reports Action] Export result:', { filename: exportResult.export.filename, contentLength: exportResult.export.pdfBase64.length })
+        return exportResult
+      } catch (error) {
+        console.error('[Reports Action] Export error:', error)
+        return { success: false, error: String(error) } as const
+      }
     }
 
     return { success: false, error: 'Report type not implemented' } as const
@@ -274,21 +293,48 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   // Current page state for pagination
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Track last downloaded export to prevent duplicate downloads
+  const lastExportRef = useRef<string | null>(null)
+
   // Update date range when preset changes
   useEffect(() => {
     const { from, to } = getDateRangeFromPreset(datePreset)
     setDateRange({ from, to })
   }, [datePreset])
 
-  // Handle CSV download when export completes
+  // Handle PDF download when export completes
   useEffect(() => {
+    console.log('[Reports UI] Export effect triggered:', {
+      state: exportFetcher.state,
+      hasData: !!exportFetcher.data,
+      dataKeys: exportFetcher.data ? Object.keys(exportFetcher.data) : [],
+    })
+
     if (
+      exportFetcher.state === 'idle' &&
       exportFetcher.data &&
       'export' in exportFetcher.data &&
       exportFetcher.data.export
     ) {
-      const { csvContent, filename } = exportFetcher.data.export
-      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const { pdfBase64, filename } = exportFetcher.data.export
+      console.log('[Reports UI] Downloading PDF:', { filename, contentLength: pdfBase64.length })
+
+      // Create a unique key for this export to prevent duplicate downloads
+      const exportKey = `${filename}-${pdfBase64.length}`
+      if (lastExportRef.current === exportKey) {
+        console.log('[Reports UI] Already downloaded this export, skipping')
+        return // Already downloaded this export
+      }
+      lastExportRef.current = exportKey
+
+      // Decode base64 to binary
+      const binaryString = atob(pdfBase64)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+
+      const blob = new Blob([bytes], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -297,8 +343,9 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+      console.log('[Reports UI] PDF download triggered')
     }
-  }, [exportFetcher.data])
+  }, [exportFetcher.state, exportFetcher.data])
 
   // Determine if we have live data
   const hasLiveData =
@@ -383,10 +430,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     formData.set('page', String(page))
     formData.set('pageSize', '20')
 
+    console.log('[Reports UI] Submitting generate with:', Object.fromEntries(formData.entries()))
     generateFetcher.submit(formData, { method: 'post' })
   }
 
   const handleExport = () => {
+    // Reset the export ref so we can download a new export
+    lastExportRef.current = null
+
     const formData = new FormData()
     formData.set('_action', 'export')
     formData.set('reportType', selectedReportType)
@@ -394,6 +445,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     if (dateRange?.from) formData.set('dateFrom', dateRange.from.toISOString())
     if (dateRange?.to) formData.set('dateTo', dateRange.to.toISOString())
 
+    console.log('[Reports UI] Submitting export with:', Object.fromEntries(formData.entries()))
     exportFetcher.submit(formData, { method: 'post' })
   }
 
@@ -438,6 +490,16 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   const isGenerating = generateFetcher.state !== 'idle'
   const isExporting = exportFetcher.state !== 'idle'
 
+  // Get error messages
+  const generateError =
+    generateFetcher.data && 'error' in generateFetcher.data
+      ? generateFetcher.data.error
+      : null
+  const exportError =
+    exportFetcher.data && 'error' in exportFetcher.data
+      ? exportFetcher.data.error
+      : null
+
   // Calculate row range for display
   const startRow = hasLiveData ? (currentPage - 1) * pageSize + 1 : 1
   const endRow = hasLiveData
@@ -468,6 +530,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
           </Button>
         </TitleAndActionsBody>
       </TitleAndActions>
+
+      {/* Error Messages */}
+      {(generateError || exportError) && (
+        <div className='mb-4 rounded-md border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300'>
+          {generateError && <p>Generate Error: {generateError}</p>}
+          {exportError && <p>Export Error: {exportError}</p>}
+        </div>
+      )}
 
       {/* Configuration Section */}
       <section className='mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>

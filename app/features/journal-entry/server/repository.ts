@@ -1,15 +1,15 @@
 import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
-import {
-  journalEntryModel,
-  journalEntryLineModel,
-  type JournalEntry,
-  type JournalEntryLine,
-  type InsertJournalEntry,
-  type InsertJournalEntryLine,
-} from '~/server/db/schemas/journalEntry'
 import { accountingAccountModel } from '~/server/db/schemas/accounting'
 import { companyModel } from '~/server/db/schemas/company'
+import {
+  journalEntryLineModel,
+  journalEntryModel,
+  type InsertJournalEntry,
+  type InsertJournalEntryLine,
+  type JournalEntry,
+  type JournalEntryLine,
+} from '~/server/db/schemas/journalEntry'
 
 export interface JournalEntryWithLines extends JournalEntry {
   lines: (JournalEntryLine & {
@@ -40,6 +40,21 @@ export interface GetForReportOptions {
   offset?: number
 }
 
+export interface PdfExportEntry {
+  id: string
+  entryNumber: string
+  entryDate: Date
+  description: string
+  companyName: string
+  lines: {
+    accountNumber: string | null
+    accountName: string | null
+    description: string | null
+    debitAmount: string | null
+    creditAmount: string | null
+  }[]
+}
+
 export interface ReportLineItem {
   id: string
   date: string
@@ -60,7 +75,10 @@ export interface ReportResult {
 export class JournalEntryRepository {
   async create(
     data: Omit<InsertJournalEntry, 'id' | 'createdAt' | 'updatedAt'>,
-    lines: Omit<InsertJournalEntryLine, 'id' | 'journalEntryId' | 'createdAt' | 'updatedAt'>[]
+    lines: Omit<
+      InsertJournalEntryLine,
+      'id' | 'journalEntryId' | 'createdAt' | 'updatedAt'
+    >[]
   ): Promise<JournalEntry> {
     return await db.transaction(async (tx) => {
       // Calculate totals
@@ -175,7 +193,10 @@ export class JournalEntryRepository {
       .from(journalEntryModel)
       .leftJoin(companyModel, eq(journalEntryModel.companyId, companyModel.id))
       .where(and(...conditions))
-      .orderBy(desc(journalEntryModel.entryDate), desc(journalEntryModel.createdAt))
+      .orderBy(
+        desc(journalEntryModel.entryDate),
+        desc(journalEntryModel.createdAt)
+      )
 
     // Get lines for all entries
     const entryIds = entries.map((e) => e.entry.id)
@@ -269,7 +290,10 @@ export class JournalEntryRepository {
       .from(journalEntryModel)
       .leftJoin(companyModel, eq(journalEntryModel.companyId, companyModel.id))
       .where(and(...conditions))
-      .orderBy(desc(journalEntryModel.entryDate), desc(journalEntryModel.createdAt))
+      .orderBy(
+        desc(journalEntryModel.entryDate),
+        desc(journalEntryModel.createdAt)
+      )
       .limit(limit)
       .offset(offset)
 
@@ -382,7 +406,10 @@ export class JournalEntryRepository {
 
   async updateLines(
     journalEntryId: string,
-    lines: Omit<InsertJournalEntryLine, 'id' | 'journalEntryId' | 'createdAt' | 'updatedAt'>[]
+    lines: Omit<
+      InsertJournalEntryLine,
+      'id' | 'journalEntryId' | 'createdAt' | 'updatedAt'
+    >[]
   ): Promise<void> {
     await db.transaction(async (tx) => {
       // Delete existing lines
@@ -501,7 +528,11 @@ export class JournalEntryRepository {
         eq(journalEntryLineModel.accountingAccountId, accountingAccountModel.id)
       )
       .where(and(...conditions))
-      .orderBy(desc(journalEntryModel.entryDate), journalEntryLineModel.lineNumber)
+      .orderBy(
+        desc(journalEntryModel.entryDate),
+        journalEntryModel.entryNumber,
+        journalEntryLineModel.lineNumber
+      )
       .limit(limit)
       .offset(offset)
 
@@ -573,7 +604,10 @@ export class JournalEntryRepository {
         eq(journalEntryLineModel.accountingAccountId, accountingAccountModel.id)
       )
       .where(and(...conditions))
-      .orderBy(desc(journalEntryModel.entryDate), journalEntryLineModel.lineNumber)
+      .orderBy(
+        desc(journalEntryModel.entryDate),
+        journalEntryLineModel.lineNumber
+      )
 
     // Transform to report format
     return lines.map((line) => ({
@@ -591,6 +625,120 @@ export class JournalEntryRepository {
       debit: Number(line.debitAmount ?? 0),
       credit: Number(line.creditAmount ?? 0),
     }))
+  }
+
+  async getAllForPdfExport(
+    organizationId: string,
+    options: Omit<GetForReportOptions, 'limit' | 'offset'>
+  ): Promise<{ entries: PdfExportEntry[]; companyName: string }> {
+    const { companyId, dateFrom, dateTo } = options
+
+    // Build conditions for entries
+    const conditions = [eq(journalEntryModel.organizationId, organizationId)]
+
+    if (companyId) {
+      conditions.push(eq(journalEntryModel.companyId, companyId))
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(journalEntryModel.entryDate, dateFrom))
+    }
+
+    if (dateTo) {
+      conditions.push(lte(journalEntryModel.entryDate, dateTo))
+    }
+
+    // Get all entries with company info
+    const entries = await db
+      .select({
+        entry: journalEntryModel,
+        company: {
+          id: companyModel.id,
+          name: companyModel.name,
+        },
+      })
+      .from(journalEntryModel)
+      .leftJoin(companyModel, eq(journalEntryModel.companyId, companyModel.id))
+      .where(and(...conditions))
+      .orderBy(journalEntryModel.entryDate, journalEntryModel.entryNumber)
+
+    if (entries.length === 0) {
+      return {
+        entries: [],
+        companyName: '',
+      }
+    }
+
+    // Get lines for all entries
+    const entryIds = entries.map((e) => e.entry.id)
+    const allLines = await db
+      .select({
+        id: journalEntryLineModel.id,
+        journalEntryId: journalEntryLineModel.journalEntryId,
+        lineNumber: journalEntryLineModel.lineNumber,
+        description: journalEntryLineModel.description,
+        debitAmount: journalEntryLineModel.debitAmount,
+        creditAmount: journalEntryLineModel.creditAmount,
+        accountNumber: accountingAccountModel.accountNumber,
+        accountName: accountingAccountModel.name,
+      })
+      .from(journalEntryLineModel)
+      .leftJoin(
+        accountingAccountModel,
+        eq(journalEntryLineModel.accountingAccountId, accountingAccountModel.id)
+      )
+      .where(
+        sql`${journalEntryLineModel.journalEntryId} IN (${sql.join(
+          entryIds.map((id) => sql`${id}`),
+          sql`, `
+        )})`
+      )
+      .orderBy(journalEntryLineModel.lineNumber)
+
+    // Group lines by entry
+    const linesByEntry = allLines.reduce(
+      (acc, line) => {
+        if (!acc[line.journalEntryId]) {
+          acc[line.journalEntryId] = []
+        }
+        acc[line.journalEntryId].push({
+          accountNumber: line.accountNumber,
+          accountName: line.accountName,
+          description: line.description,
+          debitAmount: line.debitAmount,
+          creditAmount: line.creditAmount,
+        })
+        return acc
+      },
+      {} as Record<
+        string,
+        {
+          accountNumber: string | null
+          accountName: string | null
+          description: string | null
+          debitAmount: string | null
+          creditAmount: string | null
+        }[]
+      >
+    )
+
+    // Get company name from first entry
+    const companyName = entries[0]?.company?.name || 'Unknown Company'
+
+    // Transform to PDF export format
+    const pdfEntries: PdfExportEntry[] = entries.map((e) => ({
+      id: e.entry.id,
+      entryNumber: e.entry.entryNumber,
+      entryDate: e.entry.entryDate,
+      description: e.entry.description,
+      companyName: e.company?.name || 'Unknown',
+      lines: linesByEntry[e.entry.id] || [],
+    }))
+
+    return {
+      entries: pdfEntries,
+      companyName,
+    }
   }
 }
 

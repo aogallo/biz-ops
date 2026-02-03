@@ -3,6 +3,12 @@ import {
   type ReportLineItem,
 } from '~/features/journal-entry/server/repository'
 import type { GenerateReportInput, ExportReportInput } from '../../schemas'
+import { generateJournalPDF } from '../../lib/pdf-generator'
+import {
+  type PDFReportData,
+  type PDFJournalEntry,
+  parseEntryNumber,
+} from '../../lib/pdf-types'
 
 export interface GenerateReportResult {
   success: true
@@ -18,7 +24,7 @@ export interface GenerateReportResult {
 export interface ExportReportResult {
   success: true
   export: {
-    csvContent: string
+    pdfBase64: string
     filename: string
   }
 }
@@ -64,49 +70,88 @@ export async function exportJournalReportAction(
 ): Promise<ExportReportResult> {
   const { companyId, dateFrom, dateTo } = input
 
-  const data = await journalEntryRepository.getAllForExport(organizationId, {
-    companyId,
-    dateFrom: parseDate(dateFrom),
-    dateTo: parseDate(dateTo),
+  const parsedDateFrom = parseDate(dateFrom)
+  const parsedDateTo = parseDate(dateTo)
+
+  const { entries, companyName } = await journalEntryRepository.getAllForPdfExport(
+    organizationId,
+    {
+      companyId,
+      dateFrom: parsedDateFrom,
+      dateTo: parsedDateTo,
+    }
+  )
+
+  // Transform data to PDF format
+  let grandTotalDebit = 0
+  let grandTotalCredit = 0
+
+  const pdfEntries: PDFJournalEntry[] = entries.map((entry) => {
+    const { type, number } = parseEntryNumber(entry.entryNumber)
+
+    let subtotalDebit = 0
+    let subtotalCredit = 0
+
+    const lines = entry.lines.map((line) => {
+      const debit = Number(line.debitAmount || 0)
+      const credit = Number(line.creditAmount || 0)
+      subtotalDebit += debit
+      subtotalCredit += credit
+
+      return {
+        accountNumber: line.accountNumber || '',
+        accountName: line.accountName || 'Unknown Account',
+        description: line.description || '',
+        debit,
+        credit,
+      }
+    })
+
+    grandTotalDebit += subtotalDebit
+    grandTotalCredit += subtotalCredit
+
+    return {
+      type,
+      number,
+      date: new Date(entry.entryDate),
+      description: entry.description,
+      lines,
+      subtotalDebit,
+      subtotalCredit,
+    }
   })
 
-  // Calculate totals
-  const totalDebit = data.reduce((sum, row) => sum + row.debit, 0)
-  const totalCredit = data.reduce((sum, row) => sum + row.credit, 0)
-
-  // Generate CSV content
-  const headers = ['Date', 'Ref No', 'Account Name', 'Description', 'Debit', 'Credit']
-  const csvRows = [headers.join(',')]
-
-  for (const row of data) {
-    const escapedDescription = `"${(row.description || '').replace(/"/g, '""')}"`
-    const escapedAccountName = `"${(row.accountName || '').replace(/"/g, '""')}"`
-    csvRows.push(
-      [
-        row.date,
-        row.refNo,
-        escapedAccountName,
-        escapedDescription,
-        row.debit.toFixed(2),
-        row.credit.toFixed(2),
-      ].join(',')
-    )
+  // Determine the period from the date range
+  const periodDate = parsedDateFrom || parsedDateTo || new Date()
+  const period = {
+    month: periodDate.getMonth(),
+    year: periodDate.getFullYear(),
   }
 
-  // Add totals row
-  csvRows.push(['', '', '', 'TOTALS', totalDebit.toFixed(2), totalCredit.toFixed(2)].join(','))
+  const pdfData: PDFReportData = {
+    companyName: companyName || 'Unknown Company',
+    period,
+    entries: pdfEntries,
+    grandTotalDebit,
+    grandTotalCredit,
+    totalEntries: entries.length,
+  }
 
-  const csvContent = csvRows.join('\n')
+  // Generate PDF
+  const pdfBytes = await generateJournalPDF(pdfData)
+
+  // Convert to base64
+  const pdfBase64 = btoa(String.fromCharCode(...pdfBytes))
 
   // Generate filename with date range
   const fromStr = dateFrom ? new Date(dateFrom).toISOString().split('T')[0] : 'all'
   const toStr = dateTo ? new Date(dateTo).toISOString().split('T')[0] : 'all'
-  const filename = `journal-report-${fromStr}-to-${toStr}.csv`
+  const filename = `diario-general-${fromStr}-to-${toStr}.pdf`
 
   return {
     success: true,
     export: {
-      csvContent,
+      pdfBase64,
       filename,
     },
   }

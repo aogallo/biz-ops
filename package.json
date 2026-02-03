@@ -64,6 +64,7 @@
     "input-otp": "^1.4.2",
     "isbot": "^5.1.31",
     "lucide-react": "^0.562.0",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.16.3",
     "postgres": "^3.4.8",
     "radix-ui": "^1.4.3",

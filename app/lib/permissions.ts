@@ -10,14 +10,23 @@
 export const MENU_PERMISSIONS = {
   // Administrations
   '/dashboard': ['dashboard:read'],
+  // Organization
   '/organization': ['organization:read'],
+  // Users
   '/users': ['user:read'],
+  // Permissions
   '/permissions': ['permission:read'],
+  // Roles
   '/roles': ['role:read'],
+  // Accounts
   '/accounts': ['account:read'],
+  // Journal Entries
   '/journal-entries': ['journal-entry:read'],
+  // Business Partner
   '/business-partners': ['business-partner:read'],
+  // Company
   '/company': ['company:read'],
+  // Invitations
   '/invitations': ['invitation:read'],
   // Inventory
   '/products': ['product:read'],
@@ -30,6 +39,8 @@ export const MENU_PERMISSIONS = {
   '/appointments': ['appointments:read'],
   // Settings
   '/settings/accounting': ['settings:accounting'],
+  // Reprots
+  '/reports': ['reports:create'],
 } as const
 
 /**

@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
@@ -107,7 +108,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className='container mx-auto max-w-2xl py-6'>
+    <div className='container mx-auto max-w-4xl py-6'>
       <div className='mb-6'>
         <h1 className='text-3xl font-bold'>Invite User</h1>
         <p className='text-muted-foreground'>
@@ -123,67 +124,69 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
             account
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {actionData?.message && !actionData.success && (
-            <div className='bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm'>
-              {actionData.message}
-            </div>
-          )}
+        <Form method='post'>
+          <CardContent>
+            {actionData?.message && !actionData.success && (
+              <div className='bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm'>
+                {actionData.message}
+              </div>
+            )}
 
-          <Form method='post'>
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor='email'>Email *</FieldLabel>
-                <Input
-                  id='email'
-                  name='email'
-                  type='email'
-                  placeholder='user@example.com'
-                  required
-                  disabled={isSubmitting}
-                />
-                <FieldDescription>
-                  The email address where the invitation will be sent
-                </FieldDescription>
-                {actionData?.errors?.email && (
-                  <p className='text-destructive mt-1 text-sm'>
-                    {actionData.errors.email}
-                  </p>
-                )}
-              </Field>
-
-              {isSuperAdmin ? (
+              <div className='grid gap-6 sm:grid-cols-2'>
                 <Field>
-                  <FieldLabel htmlFor='organization'>Organization</FieldLabel>
-                  <Combobox
-                    name='organizationId'
-                    value={selectedOrganizationId}
-                    onValueChange={handleOrganizationChange}
+                  <FieldLabel htmlFor='email'>Email *</FieldLabel>
+                  <Input
+                    id='email'
+                    name='email'
+                    type='email'
+                    placeholder='user@example.com'
+                    required
                     disabled={isSubmitting}
-                    options={organizations.map((organization) => ({
-                      value: organization.id,
-                      label: organization.name,
-                    }))}
-                    placeholder='Select organization'
-                    searchPlaceholder='Search organizations...'
-                    emptyMessage='No organizations found.'
                   />
                   <FieldDescription>
-                    The organization the user will be invited to
+                    The email address where the invitation will be sent
                   </FieldDescription>
-                  {actionData?.errors?.organizationId && (
+                  {actionData?.errors?.email && (
                     <p className='text-destructive mt-1 text-sm'>
-                      {actionData.errors.organizationId}
+                      {actionData.errors.email}
                     </p>
                   )}
                 </Field>
-              ) : (
-                <input
-                  type='hidden'
-                  name='organizationId'
-                  value={selectedOrganizationId}
-                />
-              )}
+
+                {isSuperAdmin ? (
+                  <Field>
+                    <FieldLabel htmlFor='organization'>Organization</FieldLabel>
+                    <Combobox
+                      name='organizationId'
+                      value={selectedOrganizationId}
+                      onValueChange={handleOrganizationChange}
+                      disabled={isSubmitting}
+                      options={organizations.map((organization) => ({
+                        value: organization.id,
+                        label: organization.name,
+                      }))}
+                      placeholder='Select organization'
+                      searchPlaceholder='Search organizations...'
+                      emptyMessage='No organizations found.'
+                    />
+                    <FieldDescription>
+                      The organization the user will be invited to
+                    </FieldDescription>
+                    {actionData?.errors?.organizationId && (
+                      <p className='text-destructive mt-1 text-sm'>
+                        {actionData.errors.organizationId}
+                      </p>
+                    )}
+                  </Field>
+                ) : (
+                  <input
+                    type='hidden'
+                    name='organizationId'
+                    value={selectedOrganizationId}
+                  />
+                )}
+              </div>
 
               <Field>
                 <FieldLabel htmlFor='role'>Role</FieldLabel>
@@ -211,24 +214,23 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                   </p>
                 )}
               </Field>
-
-              <div className='flex gap-3'>
-                <Button type='submit' disabled={isSubmitting}>
-                  {isSubmitting ? 'Sending...' : 'Send Invitation'}
-                </Button>
-                <Link to='/users'>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                </Link>
-              </div>
             </FieldGroup>
-          </Form>
-        </CardContent>
+          </CardContent>
+          <CardFooter className='flex justify-end gap-3 border-t pt-6'>
+            <Link to='/users'>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+            </Link>
+            <Button type='submit' disabled={isSubmitting}>
+              {isSubmitting ? 'Sending...' : 'Send Invitation'}
+            </Button>
+          </CardFooter>
+        </Form>
       </Card>
     </div>
   )

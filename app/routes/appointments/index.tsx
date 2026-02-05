@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import {
+  AppointmentDetailsDrawer,
   CalendarDayView,
   CalendarHeader,
   CalendarMonthView,
@@ -115,6 +116,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   const { appointments } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Handle success toast from redirect
   useEffect(() => {
@@ -194,8 +197,22 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
 
   // Handle clicking on an appointment
   const handleAppointmentClick = (appointment: typeof appointments[0]) => {
-    console.log('Clicked appointment:', appointment)
-    // TODO: Navigate to appointment detail or open edit modal
+    setSelectedAppointment(appointment)
+    setDrawerOpen(true)
+  }
+
+  // Handle edit appointment
+  const handleEditAppointment = (appointment: Appointment) => {
+    // TODO: Navigate to edit page or open edit modal
+    console.log('Edit appointment:', appointment.id)
+    setDrawerOpen(false)
+  }
+
+  // Handle cancel appointment
+  const handleCancelAppointment = (appointment: Appointment) => {
+    // TODO: Implement cancel action with confirmation
+    console.log('Cancel appointment:', appointment.id)
+    toast.info('Cancel appointment functionality coming soon')
   }
 
   return (
@@ -231,6 +248,15 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
           onAppointmentClick={handleAppointmentClick}
         />
       )}
+
+      {/* Appointment Details Drawer */}
+      <AppointmentDetailsDrawer
+        appointment={selectedAppointment}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onEdit={handleEditAppointment}
+        onCancel={handleCancelAppointment}
+      />
     </div>
   )
 }

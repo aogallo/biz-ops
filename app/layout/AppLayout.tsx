@@ -79,7 +79,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         <div className='bg-background flex min-h-screen flex-1 flex-col'>
           <SiteHeader />
           <main
-            className='container mx-auto mt-1 gap-1 self-stretch p-6 px-4 py-6 lg:gap-2 lg:px-6'
+            className='page-container flex-1'
             aria-busy={isPageNavigation}
           >
             {isPageNavigation ? <PageSkeleton /> : <Outlet />}

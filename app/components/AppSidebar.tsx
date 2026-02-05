@@ -40,11 +40,12 @@ import {
   SidebarMenuSubItem,
 } from './ui/sidebar'
 
+// Domain-specific accent colors per system.md
 export const navigationItems = [
   {
     section: 'Admin',
     icon: Drumstick,
-    color: 'text-rose-500',
+    color: 'accent-admin', // stone/neutral for system pages
     items: [
       { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
       { name: 'Accounts', path: '/accounts', icon: BookOpenIcon },
@@ -64,7 +65,7 @@ export const navigationItems = [
   {
     section: 'Inventory',
     icon: Package,
-    color: 'text-amber-500',
+    color: 'accent-inventory', // amber for inventory domain
     items: [
       { name: 'Products', path: '/products', icon: Shapes },
       { name: 'Stock', path: '/stock', icon: PackageCheck },
@@ -74,7 +75,7 @@ export const navigationItems = [
   {
     section: 'Accounting',
     icon: Building2,
-    color: 'text-green-500',
+    color: 'accent-accounting', // emerald for accounting domain
     items: [
       { name: 'Journal Entries', path: '/journal-entries', icon: BookOpen },
       { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
@@ -85,7 +86,7 @@ export const navigationItems = [
   {
     section: 'Settings',
     icon: Settings,
-    color: 'text-gray-500',
+    color: 'accent-admin', // stone/neutral for settings
     items: [
       { name: 'Accounting', path: '/settings/accounting', icon: Settings },
     ],
@@ -93,7 +94,7 @@ export const navigationItems = [
   {
     section: 'Appointments',
     icon: CalendarDays,
-    color: 'text-blue-500',
+    color: 'accent-appointments', // blue for appointments domain
     items: [
       { name: 'Calendar', path: '/appointments', icon: Calendar1 },
       { name: 'Services', path: '/services', icon: Briefcase },
@@ -102,7 +103,7 @@ export const navigationItems = [
   {
     section: 'Reports',
     icon: NotebookPenIcon,
-    color: 'text-amber-500',
+    color: 'accent-accounting', // emerald for financial reports
     items: [
       {
         name: 'Financial Report',
@@ -137,7 +138,7 @@ const AppSidebar = () => {
                   name='organizationId'
                   value={activeOrgId || ''}
                   onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                  className='w-full rounded-md border px-3 py-2 text-sm'
+                  className='w-full rounded-md border border-border/50 bg-sidebar px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
                 >
                   <option value=''>Select Organization</option>
                   {availableOrganizations.map((org) => (
@@ -180,15 +181,18 @@ const AppSidebar = () => {
                   <SidebarMenuSubItem key={item.name}>
                     <NavLink
                       className={({ isActive }) =>
-                        isActive
-                          ? 'bg-blue-800 font-semibold text-blue-500'
-                          : ''
+                        cn(
+                          'rounded-md transition-colors',
+                          isActive
+                            ? 'bg-accent font-medium text-accent-foreground'
+                            : 'hover:bg-accent/50'
+                        )
                       }
                       to={item.path}
                     >
                       <SidebarMenuButton>
-                        <item.icon />
-                        <span> {item.name}</span>
+                        <item.icon className="size-4" />
+                        <span>{item.name}</span>
                       </SidebarMenuButton>
                     </NavLink>
                   </SidebarMenuSubItem>

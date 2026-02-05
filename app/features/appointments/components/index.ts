@@ -1,4 +1,5 @@
 export { AppointmentCard } from './AppointmentCard'
+export { AppointmentDetailsDrawer } from './AppointmentDetailsDrawer'
 export { CalendarDayView } from './CalendarDayView'
 export { CalendarGrid } from './CalendarGrid'
 export { CalendarHeader } from './CalendarHeader'

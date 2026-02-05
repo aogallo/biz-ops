@@ -132,17 +132,17 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                   roles.map((role) => (
                     <span
                       key={role.id}
-                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                         role.isSystem
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-primary/10 text-primary'
+                          ? 'status-info'
+                          : 'bg-primary/10 text-primary dark:bg-primary/20'
                       }`}
                     >
                       {role.name}
                     </span>
                   ))
                 ) : (
-                  <span className='bg-muted text-muted-foreground inline-flex items-center rounded-md px-2 py-1 text-xs font-medium'>
+                  <span className='status-muted inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium'>
                     {memberRole}
                   </span>
                 )}
@@ -165,9 +165,9 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => {
           const verified = row.getValue('emailVerified') as boolean
           return verified ? (
-            <span className='text-green-600'>Verified</span>
+            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-success'>Verified</span>
           ) : (
-            <span className='text-amber-600'>Pending</span>
+            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-warning'>Pending</span>
           )
         },
       },
@@ -196,7 +196,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         accessorKey: 'role',
         header: 'Role',
         cell: ({ row }) => (
-          <span className='inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800'>
+          <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-warning'>
             {row.getValue('role')}
           </span>
         ),
@@ -249,10 +249,11 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='section-gap'>
+      {/* Page Header */}
       <div className='flex items-center justify-between'>
         <div>
-          <h1 className='text-3xl font-bold'>User Management</h1>
+          <h1 className='text-page-title'>User Management</h1>
           <p className='text-muted-foreground'>
             {isSuperAdmin
               ? 'Manage users across all organizations'

@@ -78,7 +78,8 @@ These colors appear in:
 
 **Page layout:**
 ```
-Container: max-w-7xl mx-auto px-6 py-6
+Container: w-full px-6 py-6 (fluid width for better laptop screen utilization)
+Forms: max-w-4xl mx-auto (narrow layout for readability)
 Section gap: space-y-8
 Card gap: space-y-6
 Form field gap: space-y-4

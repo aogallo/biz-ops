@@ -315,9 +315,9 @@ body {
    ============================================================================= */
 
 @layer utilities {
-  /* Page container */
+  /* Page container - fluid width for better space utilization on laptop screens */
   .page-container {
-    @apply mx-auto max-w-7xl px-6 py-6;
+    @apply w-full px-6 py-6;
   }
 
   /* Section spacing */

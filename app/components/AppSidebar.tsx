@@ -2,6 +2,7 @@ import {
   Banknote,
   BookOpen,
   BookOpenIcon,
+  Briefcase,
   Building2,
   BuildingIcon,
   Calendar1,
@@ -93,7 +94,10 @@ export const navigationItems = [
     section: 'Appointments',
     icon: CalendarDays,
     color: 'text-blue-500',
-    items: [{ name: 'Calendar', path: '/appointments', icon: Calendar1 }],
+    items: [
+      { name: 'Calendar', path: '/appointments', icon: Calendar1 },
+      { name: 'Services', path: '/services', icon: Briefcase },
+    ],
   },
   {
     section: 'Reports',

@@ -90,6 +90,13 @@ export default [
       route('/new', './routes/appointments/new.tsx'),
     ]),
 
+    // Services Routes
+    ...prefix('services', [
+      index('./routes/services/index.tsx'),
+      route('/new', './routes/services/create.tsx'),
+      route('/:id/edit', './routes/services/edit.tsx'),
+    ]),
+
     // Company Routes
     ...prefix('company', [
       index('./routes/company/index.tsx'),

@@ -1,7 +1,7 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { ArrowLeft, Plus, Search, User } from 'lucide-react'
 import { useState } from 'react'
-import { Form, Link, redirect, useNavigation } from 'react-router'
+import { Form, Link, redirect, useActionData, useNavigation } from 'react-router'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -16,8 +16,10 @@ import {
 } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
 import { TimeSlotGrid } from '~/features/appointments/components'
-import { mockServices } from '~/features/appointments/mock-data'
+import { createAppointmentAction } from '~/features/appointments/server/actions/create.action'
 import type { Client, Staff } from '~/features/appointments/types'
+import { servicesRepository } from '~/features/services/server/repository'
+import { serviceColorMap, type ServiceColor } from '~/features/services/schemas'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import {
@@ -29,6 +31,13 @@ import type { Route } from './+types/new'
 
 const MAX_NOTES_LENGTH = 500
 
+interface ServiceWithColor {
+  id: string
+  name: string
+  duration: number
+  color: ServiceColor
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const organizationId = session.session.activeOrganizationId
@@ -37,12 +46,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     return {
       staff: [],
       clients: [],
-      services: mockServices,
+      services: [] as ServiceWithColor[],
     }
   }
 
   // Fetch real data from DB in parallel
-  const [membersWithUsers, businessPartners] = await Promise.all([
+  const [membersWithUsers, businessPartners, servicesData] = await Promise.all([
     db
       .select({
         memberId: memberModel.id,
@@ -67,6 +76,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           inArray(businessPartnerModel.type, ['client', 'both'])
         )
       ),
+    servicesRepository.getActiveByOrganization(organizationId),
   ])
 
   const staff: Staff[] = membersWithUsers.map((m) => ({
@@ -83,36 +93,29 @@ export async function loader({ request }: Route.LoaderArgs) {
     email: bp.email,
   }))
 
-  return { staff, clients, services: mockServices }
+  const services: ServiceWithColor[] = servicesData.map((s) => ({
+    id: s.id,
+    name: s.name,
+    duration: s.duration,
+    color: s.color as ServiceColor,
+  }))
+
+  return { staff, clients, services }
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await requireAuth(request)
-  const formData = await request.formData()
+  const response = await createAppointmentAction(request)
 
-  const clientId = formData.get('clientId') as string
-  const serviceId = formData.get('serviceId') as string
-  const staffId = formData.get('staffId') as string
-  const date = formData.get('date') as string
-  const time = formData.get('time') as string
-  const notes = formData.get('notes') as string
+  if (response.success && response.data) {
+    return redirect('/appointments?view=month&success=appointment_created')
+  }
 
-  // TODO: Validate and create appointment in database
-  console.log('Creating appointment:', {
-    clientId,
-    serviceId,
-    staffId,
-    date,
-    time,
-    notes,
-    organizationId: session.session.activeOrganizationId,
-  })
-
-  return redirect('/appointments')
+  return response
 }
 
 export default function NewAppointmentPage({ loaderData }: Route.ComponentProps) {
   const { staff, services, clients } = loaderData
+  const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
 
@@ -144,6 +147,12 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
     selectedDate &&
     selectedTimeSlot
 
+  // Get color styles for selected service
+  const getColorDot = (color: ServiceColor) => {
+    const styles = serviceColorMap[color]
+    return styles?.dot || 'bg-gray-500'
+  }
+
   return (
     <div className="mx-auto max-w-6xl p-6">
       {/* Header */}
@@ -158,6 +167,13 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
           <p className="text-muted-foreground">Schedule a new appointment with a client</p>
         </div>
       </div>
+
+      {/* Global error message */}
+      {actionData?.message && !actionData.success && (
+        <div className="bg-destructive/10 text-destructive rounded-md p-4 text-sm mb-6">
+          {actionData.message}
+        </div>
+      )}
 
       <Form method="post">
         {/* Hidden fields for form submission */}
@@ -177,6 +193,9 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                 <CardTitle className="text-base">Client Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {actionData?.errors?.clientId && (
+                  <p className="text-destructive text-xs">{actionData.errors.clientId}</p>
+                )}
                 {selectedClient ? (
                   <div className="flex items-center justify-between rounded-lg border p-3">
                     <div className="flex items-center gap-3">
@@ -289,22 +308,33 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="size-2 rounded-full"
-                                style={{ backgroundColor: service.color }}
-                              />
-                              <span>{service.name}</span>
-                              <span className="text-muted-foreground">
-                                ({service.duration}min)
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {services.length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground">
+                            No services available.{' '}
+                            <Link to="/services/new" className="text-primary underline">
+                              Create one
+                            </Link>
+                          </div>
+                        ) : (
+                          services.map((service) => (
+                            <SelectItem key={service.id} value={service.id}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`size-2 rounded-full ${getColorDot(service.color)}`}
+                                />
+                                <span>{service.name}</span>
+                                <span className="text-muted-foreground">
+                                  ({service.duration}min)
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
+                    {actionData?.errors?.serviceId && (
+                      <p className="text-destructive text-xs">{actionData.errors.serviceId}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -340,6 +370,9 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                         ))}
                       </SelectContent>
                     </Select>
+                    {actionData?.errors?.staffId && (
+                      <p className="text-destructive text-xs">{actionData.errors.staffId}</p>
+                    )}
                   </div>
                 </div>
 
@@ -367,6 +400,9 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                     onChange={(e) => setSelectedDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
                   />
+                  {actionData?.errors?.date && (
+                    <p className="text-destructive text-xs">{actionData.errors.date}</p>
+                  )}
                 </div>
 
                 {selectedDate && (
@@ -377,6 +413,9 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                       onSelectSlot={setSelectedTimeSlot}
                       unavailableSlots={['12:00', '12:30', '13:00']} // Mock unavailable slots
                     />
+                    {actionData?.errors?.startTime && (
+                      <p className="text-destructive text-xs">{actionData.errors.startTime}</p>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -400,6 +439,9 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                   <div className="text-xs text-muted-foreground text-right">
                     {notes.length}/{MAX_NOTES_LENGTH}
                   </div>
+                  {actionData?.errors?.notes && (
+                    <p className="text-destructive text-xs">{actionData.errors.notes}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -448,8 +490,7 @@ export default function NewAppointmentPage({ loaderData }: Route.ComponentProps)
                       {selectedService ? (
                         <div className="flex items-center gap-2">
                           <div
-                            className="size-2 rounded-full"
-                            style={{ backgroundColor: selectedService.color }}
+                            className={`size-2 rounded-full ${getColorDot(selectedService.color)}`}
                           />
                           <span>{selectedService.name}</span>
                           <span className="text-muted-foreground">

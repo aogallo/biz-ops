@@ -1,14 +1,15 @@
 import { and, eq, inArray } from 'drizzle-orm'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
+import { toast } from 'sonner'
 import {
   CalendarDayView,
   CalendarHeader,
   CalendarMonthView,
   CalendarWeekView,
 } from '~/features/appointments/components'
-import { generateMockAppointments, mockServices } from '~/features/appointments/mock-data'
-import type { CalendarView, Client, Staff } from '~/features/appointments/types'
+import { appointmentsRepository } from '~/features/appointments/server/repository'
+import type { CalendarView, Client, Staff, Appointment } from '~/features/appointments/types'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import {
@@ -26,13 +27,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     return {
       staff: [],
       clients: [],
-      services: mockServices,
-      appointments: generateMockAppointments(),
+      appointments: [] as Appointment[],
     }
   }
 
   // Fetch real data from DB in parallel
-  const [membersWithUsers, businessPartners] = await Promise.all([
+  const [membersWithUsers, businessPartners, appointmentsData] = await Promise.all([
     // Get members with user info (staff)
     db
       .select({
@@ -59,6 +59,8 @@ export async function loader({ request }: Route.LoaderArgs) {
           inArray(businessPartnerModel.type, ['client', 'both'])
         )
       ),
+    // Get real appointments
+    appointmentsRepository.getAllByOrganization(organizationId),
   ])
 
   // Transform members to Staff type
@@ -77,16 +79,54 @@ export async function loader({ request }: Route.LoaderArgs) {
     email: bp.email,
   }))
 
-  // Mock services and appointments for now
-  const services = mockServices
-  const appointments = generateMockAppointments()
+  // Transform appointments to the Appointment type used by calendar components
+  const appointments: Appointment[] = appointmentsData.map((apt) => {
+    // Map service color to valid appointment color
+    const colorMapping: Record<string, Appointment['color']> = {
+      blue: 'blue',
+      green: 'green',
+      orange: 'orange',
+      teal: 'teal',
+      purple: 'teal', // Map purple to teal as it's not in Appointment type
+      red: 'orange', // Map red to orange
+      yellow: 'orange', // Map yellow to orange
+    }
 
-  return { staff, clients, services, appointments }
+    return {
+      id: apt.id,
+      clientId: apt.clientId,
+      clientName: apt.clientName,
+      serviceId: apt.serviceId,
+      serviceName: apt.serviceName,
+      staffId: apt.staffId,
+      staffName: apt.staffName,
+      date: apt.date,
+      startTime: apt.startTime,
+      endTime: apt.endTime,
+      status: apt.status as Appointment['status'],
+      color: colorMapping[apt.serviceColor] || 'blue',
+      notes: apt.notes || undefined,
+    }
+  })
+
+  return { staff, clients, appointments }
 }
 
 export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   const { appointments } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
+
+  // Handle success toast from redirect
+  useEffect(() => {
+    const successParam = searchParams.get('success')
+    if (successParam === 'appointment_created') {
+      toast.success('Appointment created successfully')
+      // Remove the success param from URL
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('success')
+      setSearchParams(newParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   // Get view from URL or default to 'month'
   const viewParam = searchParams.get('view') as CalendarView | null

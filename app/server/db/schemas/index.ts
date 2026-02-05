@@ -45,6 +45,12 @@ import {
   organizationAccountingConfigModel,
   organizationAccountingConfigRelations,
 } from './organizationConfig'
+import { serviceModel, serviceRelations, serviceColorEnum } from './service'
+import {
+  appointmentModel,
+  appointmentRelations,
+  appointmentStatusEnum,
+} from './appointment'
 
 export const schema = {
   // Auth tables
@@ -79,6 +85,12 @@ export const schema = {
   // Config tables
   organizationAccountingConfig: organizationAccountingConfigModel,
 
+  // Service tables
+  service: serviceModel,
+
+  // Appointment tables
+  appointment: appointmentModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -92,6 +104,8 @@ export const schema = {
   journalEntryRelations,
   journalEntryLineRelations,
   organizationAccountingConfigRelations,
+  serviceRelations,
+  appointmentRelations,
 }
 
 // Re-export all schemas for easy access
@@ -104,6 +118,8 @@ export * from './sat-file'
 export * from './invoice'
 export * from './journalEntry'
 export * from './organizationConfig'
+export * from './service'
+export * from './appointment'
 export * from './common'
 
 // Re-export enums
@@ -113,4 +129,6 @@ export {
   ivaTypeEnum,
   journalEntrySourceEnum,
   journalEntryStatusEnum,
+  serviceColorEnum,
+  appointmentStatusEnum,
 }

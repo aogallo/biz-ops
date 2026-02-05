@@ -37,6 +37,8 @@ export const MENU_PERMISSIONS = {
   '/sat-processor': ['sat-processor:read'],
   // Appointments
   '/appointments': ['appointments:read'],
+  // Services
+  '/services': ['service:read'],
   // Settings
   '/settings/accounting': ['settings:accounting'],
   // Reprots
@@ -63,6 +65,9 @@ export const ACTION_PERMISSIONS = {
   'company.edit': ['company:update'],
   'company.delete': ['company:delete'],
   'settings.accounting': ['settings:accounting'],
+  'services.create': ['service:create'],
+  'services.edit': ['service:update'],
+  'services.delete': ['service:delete'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

@@ -72,13 +72,13 @@ export default function BusinessPartnersIndex({
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
       case 'client':
-        return 'bg-blue-100 text-blue-700'
+        return 'status-info' // Blue for clients
       case 'vendor':
-        return 'bg-green-100 text-green-700'
+        return 'status-success' // Green for vendors
       case 'both':
-        return 'bg-purple-100 text-purple-700'
+        return 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'
       default:
-        return 'bg-muted text-muted-foreground'
+        return 'status-muted'
     }
   }
 

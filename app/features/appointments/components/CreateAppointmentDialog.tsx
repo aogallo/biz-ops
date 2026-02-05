@@ -290,7 +290,6 @@ export function CreateAppointmentDialog({
                   <TimeSlotGrid
                     selectedSlot={selectedTimeSlot}
                     onSelectSlot={setSelectedTimeSlot}
-                    unavailableSlots={['12:00', '12:30', '13:00']} // Mock unavailable slots
                   />
                 </div>
               )}

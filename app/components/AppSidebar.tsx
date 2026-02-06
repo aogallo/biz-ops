@@ -138,6 +138,18 @@ export const navigationItems = [
       },
     ],
   },
+  {
+    section: 'Reports',
+    icon: NotebookPenIcon,
+    color: 'text-amber-500',
+    items: [
+      {
+        name: 'Journal Entry Report',
+        path: '/reports',
+        icon: Notebook,
+      },
+    ],
+  },
 ]
 
 const AppSidebar = () => {

@@ -1,5 +1,5 @@
 import { Check, AlertCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useFetcher } from 'react-router'
 import {
   AlertDialog,
@@ -30,9 +30,11 @@ export function PostInvoiceButton({
 }: PostInvoiceButtonProps) {
   const fetcher = useFetcher()
   const [isOpen, setIsOpen] = useState(false)
+  const lastDataRef = useRef<unknown>(null)
 
   useEffect(() => {
-    if (fetcher.data) {
+    if (fetcher.data && fetcher.data !== lastDataRef.current) {
+      lastDataRef.current = fetcher.data
       const data = fetcher.data as {
         success?: boolean
         error?: string

@@ -627,6 +627,64 @@ export class JournalEntryRepository {
     }))
   }
 
+  async getRecentAccounts(
+    organizationId: string,
+    limit: number = 10
+  ): Promise<
+    {
+      id: string
+      accountNumber: string | null
+      name: string | null
+      usageCount: number
+    }[]
+  > {
+    // Get accounts most frequently used in journal entry lines for this organization
+    const results = await db
+      .select({
+        id: accountingAccountModel.id,
+        accountNumber: accountingAccountModel.accountNumber,
+        name: accountingAccountModel.name,
+        usageCount: count(journalEntryLineModel.id),
+      })
+      .from(journalEntryLineModel)
+      .innerJoin(
+        journalEntryModel,
+        eq(journalEntryLineModel.journalEntryId, journalEntryModel.id)
+      )
+      .innerJoin(
+        accountingAccountModel,
+        eq(journalEntryLineModel.accountingAccountId, accountingAccountModel.id)
+      )
+      .where(eq(journalEntryModel.organizationId, organizationId))
+      .groupBy(
+        accountingAccountModel.id,
+        accountingAccountModel.accountNumber,
+        accountingAccountModel.name
+      )
+      .orderBy(desc(count(journalEntryLineModel.id)))
+      .limit(limit)
+
+    return results
+  }
+
+  async update(
+    id: string,
+    data: Partial<
+      Omit<InsertJournalEntry, 'id' | 'createdAt' | 'entryNumber'>
+    >
+  ): Promise<JournalEntry | null> {
+    const [updated] = await db
+      .update(journalEntryModel)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(journalEntryModel.id, id))
+      .returning()
+
+    return updated ?? null
+  }
+
   async getAllForPdfExport(
     organizationId: string,
     options: Omit<GetForReportOptions, 'limit' | 'offset'>

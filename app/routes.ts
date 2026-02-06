@@ -73,7 +73,9 @@ export default [
     ...prefix('sat-processor', [index('./routes/sat-processor/index.tsx')]),
     ...prefix('journal-entries', [
       index('./routes/journal-entries/index.tsx'),
+      route('/new', './routes/journal-entries/new.tsx'),
       route('/:id', './routes/journal-entries/show.tsx'),
+      route('/:id/edit', './routes/journal-entries/$id.edit.tsx'),
     ]),
 
     // Settings Routes

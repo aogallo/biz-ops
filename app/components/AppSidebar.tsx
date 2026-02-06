@@ -17,6 +17,7 @@ import {
   NotebookPenIcon,
   Package,
   PackageCheck,
+  PlusCircle,
   Settings,
   Shapes,
   ShieldXIcon,
@@ -78,6 +79,7 @@ export const navigationItems = [
     color: 'accent-accounting', // emerald for accounting domain
     items: [
       { name: 'Journal Entries', path: '/journal-entries', icon: BookOpen },
+      { name: 'New Entry', path: '/journal-entries/new', icon: PlusCircle },
       { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
       { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
       { name: 'Expenses', path: '/sat-processor', icon: Banknote },

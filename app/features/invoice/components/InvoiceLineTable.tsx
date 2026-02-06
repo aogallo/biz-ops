@@ -29,14 +29,13 @@ import {
   TableRow,
 } from '~/components/ui/table'
 import { toast } from 'sonner'
-import { InvoiceLineRow, type InvoiceLineData, type AccountOption } from './InvoiceLineRow'
+import { InvoiceLineRow, type InvoiceLineData } from './InvoiceLineRow'
 import type { ProductOption } from './ProductSearchCombobox'
 
 interface InvoiceLineTableProps {
   invoiceId: string
   lines: InvoiceLineData[]
   products: ProductOption[]
-  accounts: AccountOption[]
   isDraft: boolean
   onLinesChanged?: () => void
 }
@@ -45,7 +44,6 @@ export function InvoiceLineTable({
   invoiceId,
   lines,
   products,
-  accounts,
   isDraft,
   onLinesChanged,
 }: InvoiceLineTableProps) {
@@ -58,7 +56,6 @@ export function InvoiceLineTable({
   const [newQuantity, setNewQuantity] = useState('1')
   const [newUnitPrice, setNewUnitPrice] = useState('')
   const [newIvaType, setNewIvaType] = useState<'taxed' | 'exempt' | 'non_subject'>('taxed')
-  const [newAccountId, setNewAccountId] = useState('')
 
   // Ref to track processed fetcher data to prevent duplicate toasts
   const lastAddDataRef = useRef<unknown>(null)
@@ -83,7 +80,6 @@ export function InvoiceLineTable({
     setNewQuantity('1')
     setNewUnitPrice('')
     setNewIvaType('taxed')
-    setNewAccountId('')
     setShowAddForm(false)
   }, [])
 
@@ -106,10 +102,6 @@ export function InvoiceLineTable({
       toast.error('Description is required')
       return
     }
-    if (!newAccountId) {
-      toast.error('Account is required')
-      return
-    }
     if (!newUnitPrice || parseFloat(newUnitPrice) < 0) {
       toast.error('Valid unit price is required')
       return
@@ -124,7 +116,6 @@ export function InvoiceLineTable({
         unitPrice: newUnitPrice,
         ivaType: newIvaType,
         productId: newProductId || '',
-        accountingAccountId: newAccountId,
       },
       { method: 'post' }
     )
@@ -136,13 +127,7 @@ export function InvoiceLineTable({
     newUnitPrice,
     newIvaType,
     newProductId,
-    newAccountId,
   ])
-
-  const accountOptions: ComboboxOption[] = accounts.map((account) => ({
-    value: account.id,
-    label: `${account.accountNumber ?? ''} ${account.name ?? ''}`.trim(),
-  }))
 
   const productOptions: ComboboxOption[] = products.map((product) => ({
     value: product.id,
@@ -249,17 +234,6 @@ export function InvoiceLineTable({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label>Account *</Label>
-                <Combobox
-                  options={accountOptions}
-                  value={newAccountId}
-                  onValueChange={setNewAccountId}
-                  placeholder="Select account..."
-                  searchPlaceholder="Search accounts..."
-                  emptyMessage="No accounts found."
-                />
-              </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <Button
@@ -289,11 +263,10 @@ export function InvoiceLineTable({
                 <TableRow>
                   <TableHead className="w-[40px]">#</TableHead>
                   <TableHead className="w-[160px]">Product</TableHead>
-                  <TableHead className="min-w-[180px]">Description</TableHead>
+                  <TableHead className="min-w-[200px]">Description</TableHead>
                   <TableHead className="w-[80px] text-right">Qty</TableHead>
                   <TableHead className="w-[100px] text-right">Unit Price</TableHead>
                   <TableHead className="w-[100px]">IVA Type</TableHead>
-                  <TableHead className="w-[160px]">Account</TableHead>
                   <TableHead className="w-[100px] text-right">Subtotal</TableHead>
                   <TableHead className="w-[80px] text-right">IVA</TableHead>
                   <TableHead className="w-[100px] text-right">Total</TableHead>
@@ -308,7 +281,6 @@ export function InvoiceLineTable({
                     index={index}
                     invoiceId={invoiceId}
                     products={products}
-                    accounts={accounts}
                     isDraft={isDraft}
                     onLineUpdated={onLinesChanged}
                     onLineRemoved={onLinesChanged}
@@ -317,7 +289,7 @@ export function InvoiceLineTable({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-right font-semibold">
+                  <TableCell colSpan={6} className="text-right font-semibold">
                     Totals
                   </TableCell>
                   <TableCell className="text-right font-mono font-semibold">

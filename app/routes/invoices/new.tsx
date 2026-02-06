@@ -1,8 +1,10 @@
 import { redirect } from 'react-router'
+import { accountsRepository } from '~/features/accounts/server/repository'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import {
   InvoiceForm,
+  type AccountOption,
   type BusinessPartnerOption,
   type CompanyOption,
 } from '~/features/invoice/components'
@@ -19,9 +21,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     return redirect('/invoices')
   }
 
-  const [companies, businessPartners] = await Promise.all([
+  const [companies, businessPartners, accounts] = await Promise.all([
     companyRepository.getByOrganization(organizationId),
     businessPartnersRepository.getAllByOrganization(organizationId),
+    accountsRepository.getAllByOrganization(organizationId),
   ])
 
   return {
@@ -36,6 +39,13 @@ export async function loader({ request }: Route.LoaderArgs) {
         id: bp.id,
         name: bp.name,
         nit: bp.nit,
+      })
+    ),
+    accounts: accounts.map(
+      (a): AccountOption => ({
+        id: a.id,
+        accountNumber: a.accountNumber,
+        name: a.name,
       })
     ),
   }
@@ -55,6 +65,7 @@ export async function action({ request }: Route.ActionArgs) {
   const type = formData.get('type') as 'purchase' | 'sale'
   const companyId = formData.get('companyId') as string
   const businessPartnerId = formData.get('businessPartnerId') as string
+  const accountingAccountId = formData.get('accountingAccountId') as string
   const invoiceDateStr = formData.get('invoiceDate') as string
   const dueDateStr = formData.get('dueDate') as string
 
@@ -84,6 +95,7 @@ export async function action({ request }: Route.ActionArgs) {
     organizationId,
     companyId,
     businessPartnerId,
+    accountingAccountId,
     type,
     invoiceDate: new Date(invoiceDateStr),
     dueDate: dueDateStr ? new Date(dueDateStr) : null,
@@ -123,7 +135,7 @@ export default function NewInvoicePage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { companies, businessPartners } = loaderData
+  const { companies, businessPartners, accounts } = loaderData
 
   return (
     <div className="container mx-auto py-6">
@@ -131,6 +143,7 @@ export default function NewInvoicePage({
         mode="create"
         companies={companies}
         businessPartners={businessPartners}
+        accounts={accounts}
         actionData={actionData}
       />
     </div>

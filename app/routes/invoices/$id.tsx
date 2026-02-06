@@ -19,11 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
-import { accountsRepository } from '~/features/accounts/server/repository'
 import {
   InvoiceSummary,
   PostInvoiceButton,
-  type AccountOption,
   type ProductOption,
 } from '~/features/invoice/components'
 import { postInvoiceAction } from '~/features/invoice/server/actions/post-invoice.action'
@@ -50,11 +48,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   // Get linked journal entry if exists
   const journalEntry = await journalEntryRepository.getByInvoiceId(invoice.id)
 
-  // Get products and accounts for editing (if draft)
-  const [products, accounts] = await Promise.all([
-    productsRepository.getAllByOrganization(organizationId),
-    accountsRepository.getAllByOrganization(organizationId),
-  ])
+  // Get products for display
+  const products = await productsRepository.getAllByOrganization(organizationId)
 
   return {
     invoice,
@@ -65,13 +60,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         sku: p.sku,
         name: p.name,
         price: p.price,
-      })
-    ),
-    accounts: accounts.map(
-      (a): AccountOption => ({
-        id: a.id,
-        accountNumber: a.accountNumber,
-        name: a.name,
       })
     ),
   }
@@ -270,6 +258,16 @@ export default function InvoiceShowPage({
                   <p className="text-muted-foreground text-sm">Source</p>
                   <p className="font-medium capitalize">{invoice.source}</p>
                 </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">
+                    {invoice.type === 'sale' ? 'Revenue Account' : 'Expense Account'}
+                  </p>
+                  <p className="font-medium">
+                    {invoice.accountingAccount
+                      ? `${invoice.accountingAccount.accountNumber} - ${invoice.accountingAccount.name}`
+                      : '-'}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -317,12 +315,6 @@ export default function InvoiceShowPage({
                               {line.product && (
                                 <p className="text-muted-foreground text-xs">
                                   SKU: {line.product.sku}
-                                </p>
-                              )}
-                              {line.accountingAccount && (
-                                <p className="text-muted-foreground text-xs">
-                                  Account: {line.accountingAccount.accountNumber} -{' '}
-                                  {line.accountingAccount.name}
                                 </p>
                               )}
                             </div>

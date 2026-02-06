@@ -15,13 +15,7 @@ import { accountingAccountModel } from '~/server/db/schemas/accounting'
 import { productModel } from '~/server/db/schemas/products'
 
 export interface InvoiceWithLines extends Invoice {
-  lines: (InvoiceLine & {
-    accountingAccount: {
-      id: string
-      name: string | null
-      accountNumber: string | null
-    } | null
-  })[]
+  lines: InvoiceLine[]
   businessPartner?: {
     id: string
     name: string
@@ -29,6 +23,11 @@ export interface InvoiceWithLines extends Invoice {
   company?: {
     id: string
     name: string
+  } | null
+  accountingAccount?: {
+    id: string
+    name: string | null
+    accountNumber: string | null
   } | null
 }
 
@@ -75,33 +74,8 @@ export class InvoiceRepository {
     if (!invoice) return null
 
     const lines = await db
-      .select({
-        id: invoiceLineModel.id,
-        invoiceId: invoiceLineModel.invoiceId,
-        lineNumber: invoiceLineModel.lineNumber,
-        description: invoiceLineModel.description,
-        quantity: invoiceLineModel.quantity,
-        unitPrice: invoiceLineModel.unitPrice,
-        subtotal: invoiceLineModel.subtotal,
-        ivaType: invoiceLineModel.ivaType,
-        ivaRate: invoiceLineModel.ivaRate,
-        ivaAmount: invoiceLineModel.ivaAmount,
-        total: invoiceLineModel.total,
-        productId: invoiceLineModel.productId,
-        accountingAccountId: invoiceLineModel.accountingAccountId,
-        createdAt: invoiceLineModel.createdAt,
-        updatedAt: invoiceLineModel.updatedAt,
-        accountingAccount: {
-          id: accountingAccountModel.id,
-          name: accountingAccountModel.name,
-          accountNumber: accountingAccountModel.accountNumber,
-        },
-      })
+      .select()
       .from(invoiceLineModel)
-      .leftJoin(
-        accountingAccountModel,
-        eq(invoiceLineModel.accountingAccountId, accountingAccountModel.id)
-      )
       .where(eq(invoiceLineModel.invoiceId, id))
       .orderBy(invoiceLineModel.lineNumber)
 
@@ -123,11 +97,22 @@ export class InvoiceRepository {
       .where(eq(companyModel.id, invoice.companyId))
       .limit(1)
 
+    const [accountingAccount] = await db
+      .select({
+        id: accountingAccountModel.id,
+        name: accountingAccountModel.name,
+        accountNumber: accountingAccountModel.accountNumber,
+      })
+      .from(accountingAccountModel)
+      .where(eq(accountingAccountModel.id, invoice.accountingAccountId))
+      .limit(1)
+
     return {
       ...invoice,
       lines,
       businessPartner,
       company,
+      accountingAccount,
     }
   }
 
@@ -169,6 +154,11 @@ export class InvoiceRepository {
           id: companyModel.id,
           name: companyModel.name,
         },
+        accountingAccount: {
+          id: accountingAccountModel.id,
+          name: accountingAccountModel.name,
+          accountNumber: accountingAccountModel.accountNumber,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
@@ -176,6 +166,10 @@ export class InvoiceRepository {
         eq(invoiceModel.businessPartnerId, businessPartnerModel.id)
       )
       .leftJoin(companyModel, eq(invoiceModel.companyId, companyModel.id))
+      .leftJoin(
+        accountingAccountModel,
+        eq(invoiceModel.accountingAccountId, accountingAccountModel.id)
+      )
       .where(and(...conditions))
       .orderBy(desc(invoiceModel.invoiceDate), desc(invoiceModel.createdAt))
       .limit(limit)
@@ -186,33 +180,8 @@ export class InvoiceRepository {
     const allLines =
       invoiceIds.length > 0
         ? await db
-            .select({
-              id: invoiceLineModel.id,
-              invoiceId: invoiceLineModel.invoiceId,
-              lineNumber: invoiceLineModel.lineNumber,
-              description: invoiceLineModel.description,
-              quantity: invoiceLineModel.quantity,
-              unitPrice: invoiceLineModel.unitPrice,
-              subtotal: invoiceLineModel.subtotal,
-              ivaType: invoiceLineModel.ivaType,
-              ivaRate: invoiceLineModel.ivaRate,
-              ivaAmount: invoiceLineModel.ivaAmount,
-              total: invoiceLineModel.total,
-              productId: invoiceLineModel.productId,
-              accountingAccountId: invoiceLineModel.accountingAccountId,
-              createdAt: invoiceLineModel.createdAt,
-              updatedAt: invoiceLineModel.updatedAt,
-              accountingAccount: {
-                id: accountingAccountModel.id,
-                name: accountingAccountModel.name,
-                accountNumber: accountingAccountModel.accountNumber,
-              },
-            })
+            .select()
             .from(invoiceLineModel)
-            .leftJoin(
-              accountingAccountModel,
-              eq(invoiceLineModel.accountingAccountId, accountingAccountModel.id)
-            )
             .where(
               sql`${invoiceLineModel.invoiceId} IN (${sql.join(
                 invoiceIds.map((id) => sql`${id}`),
@@ -239,6 +208,7 @@ export class InvoiceRepository {
       lines: linesByInvoice[i.invoice.id] || [],
       businessPartner: i.businessPartner,
       company: i.company,
+      accountingAccount: i.accountingAccount,
     }))
 
     return {
@@ -255,19 +225,6 @@ export class InvoiceRepository {
       .limit(1)
 
     return invoice ?? null
-  }
-
-  async updateLineAccount(
-    invoiceId: string,
-    accountingAccountId: string
-  ): Promise<void> {
-    await db
-      .update(invoiceLineModel)
-      .set({
-        accountingAccountId,
-        updatedAt: new Date(),
-      })
-      .where(eq(invoiceLineModel.invoiceId, invoiceId))
   }
 
   /**
@@ -421,7 +378,6 @@ export class InvoiceRepository {
   async getLinesWithProducts(invoiceId: string): Promise<
     (InvoiceLine & {
       product: { id: string; sku: string; name: string; price: string | null } | null
-      accountingAccount: { id: string; name: string | null; accountNumber: string | null } | null
     })[]
   > {
     const lines = await db
@@ -438,7 +394,6 @@ export class InvoiceRepository {
         ivaAmount: invoiceLineModel.ivaAmount,
         total: invoiceLineModel.total,
         productId: invoiceLineModel.productId,
-        accountingAccountId: invoiceLineModel.accountingAccountId,
         createdAt: invoiceLineModel.createdAt,
         updatedAt: invoiceLineModel.updatedAt,
         product: {
@@ -447,18 +402,9 @@ export class InvoiceRepository {
           name: productModel.name,
           price: productModel.price,
         },
-        accountingAccount: {
-          id: accountingAccountModel.id,
-          name: accountingAccountModel.name,
-          accountNumber: accountingAccountModel.accountNumber,
-        },
       })
       .from(invoiceLineModel)
       .leftJoin(productModel, eq(invoiceLineModel.productId, productModel.id))
-      .leftJoin(
-        accountingAccountModel,
-        eq(invoiceLineModel.accountingAccountId, accountingAccountModel.id)
-      )
       .where(eq(invoiceLineModel.invoiceId, invoiceId))
       .orderBy(invoiceLineModel.lineNumber)
 
@@ -472,10 +418,10 @@ export class InvoiceRepository {
     | (Invoice & {
         lines: (InvoiceLine & {
           product: { id: string; sku: string; name: string; price: string | null } | null
-          accountingAccount: { id: string; name: string | null; accountNumber: string | null } | null
         })[]
         businessPartner: { id: string; name: string; nit: string | null } | null
         company: { id: string; name: string } | null
+        accountingAccount: { id: string; name: string | null; accountNumber: string | null } | null
       })
     | null
   > {
@@ -508,11 +454,22 @@ export class InvoiceRepository {
       .where(eq(companyModel.id, invoice.companyId))
       .limit(1)
 
+    const [accountingAccount] = await db
+      .select({
+        id: accountingAccountModel.id,
+        name: accountingAccountModel.name,
+        accountNumber: accountingAccountModel.accountNumber,
+      })
+      .from(accountingAccountModel)
+      .where(eq(accountingAccountModel.id, invoice.accountingAccountId))
+      .limit(1)
+
     return {
       ...invoice,
       lines,
       businessPartner: businessPartner ?? null,
       company: company ?? null,
+      accountingAccount: accountingAccount ?? null,
     }
   }
 

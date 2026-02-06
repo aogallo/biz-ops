@@ -184,7 +184,6 @@ function buildJournalEntryLines(
   description: string | null
   debitAmount: number
   creditAmount: number
-  invoiceLineId?: string
 }> {
   const lines: Array<{
     lineNumber: number
@@ -192,7 +191,6 @@ function buildJournalEntryLines(
     description: string | null
     debitAmount: number
     creditAmount: number
-    invoiceLineId?: string
   }> = []
 
   let lineNumber = 1
@@ -207,17 +205,14 @@ function buildJournalEntryLines(
       creditAmount: 0,
     })
 
-    // Credit: Revenue accounts for each line subtotal
-    for (const line of invoice.lines) {
-      lines.push({
-        lineNumber: lineNumber++,
-        accountingAccountId: line.accountingAccountId,
-        description: line.description,
-        debitAmount: 0,
-        creditAmount: Number(line.subtotal),
-        invoiceLineId: line.id,
-      })
-    }
+    // Credit: Revenue account for subtotal (using invoice-level account)
+    lines.push({
+      lineNumber: lineNumber++,
+      accountingAccountId: invoice.accountingAccountId,
+      description: `Ingresos - ${invoice.businessPartner?.name}`,
+      debitAmount: 0,
+      creditAmount: Number(invoice.subtotal),
+    })
 
     // Credit: IVA Débito Fiscal for total IVA (if any)
     const totalIva = Number(invoice.ivaAmount)
@@ -232,17 +227,14 @@ function buildJournalEntryLines(
     }
   } else {
     // purchase
-    // Debit: Expense accounts for each line subtotal
-    for (const line of invoice.lines) {
-      lines.push({
-        lineNumber: lineNumber++,
-        accountingAccountId: line.accountingAccountId,
-        description: line.description,
-        debitAmount: Number(line.subtotal),
-        creditAmount: 0,
-        invoiceLineId: line.id,
-      })
-    }
+    // Debit: Expense account for subtotal (using invoice-level account)
+    lines.push({
+      lineNumber: lineNumber++,
+      accountingAccountId: invoice.accountingAccountId,
+      description: `Gastos - ${invoice.businessPartner?.name}`,
+      debitAmount: Number(invoice.subtotal),
+      creditAmount: 0,
+    })
 
     // Debit: IVA Crédito Fiscal for total IVA (if any)
     const totalIva = Number(invoice.ivaAmount)

@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '../ui/table'
 import { DataTablePagination } from './DataTablePagination'
+import { DataTableSearch } from './DataTableSearch'
 import { DataTableViewOptions } from './DataTableViewOptions'
 
 interface DataTableProps<TData, TValue> {
@@ -27,6 +28,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   onRowSelectionChange?: (selectedRows: TData[]) => void
   enableRowSelection?: boolean
+  enableSearch?: boolean
+  searchPlaceholder?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -34,10 +37,13 @@ export function DataTable<TData, TValue>({
   data,
   onRowSelectionChange,
   enableRowSelection = false,
+  enableSearch = false,
+  searchPlaceholder = "Search...",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [globalFilter, setGlobalFilter] = useState('')
 
   const table = useReactTable({
     columns: columns,
@@ -49,11 +55,13 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     enableRowSelection,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   })
 
@@ -69,7 +77,16 @@ export function DataTable<TData, TValue>({
   return (
     <>
       <div>
-        <DataTableViewOptions table={table} />
+        <div className="flex items-center justify-between py-4">
+          {enableSearch && (
+            <DataTableSearch
+              value={globalFilter}
+              onChange={setGlobalFilter}
+              placeholder={searchPlaceholder}
+            />
+          )}
+          <DataTableViewOptions table={table} />
+        </div>
         <Table className='rounded-lg border'>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -2,6 +2,14 @@ import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { Checkbox } from '~/components/ui/checkbox'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
@@ -111,92 +119,98 @@ export default function CreateRole() {
   const isSubmitting = navigation.state === 'submitting'
 
   return (
-    <div className='mx-auto max-w-3xl p-6'>
-      <h1 className='mb-2 text-2xl font-bold'>Create New Role</h1>
-      <p className='text-muted-foreground mb-6'>
-        Define a custom role with specific permissions for your organization
-      </p>
+    <div className='mx-auto max-w-4xl p-6'>
+      <Card>
+        <CardHeader>
+          <CardTitle>Create New Role</CardTitle>
+          <CardDescription>
+            Define a custom role with specific permissions for your organization
+          </CardDescription>
+        </CardHeader>
+        <Form method='post'>
+          <CardContent className='space-y-6'>
+            {actionData?.message && !actionData.success && (
+              <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
+                {actionData.message}
+              </div>
+            )}
 
-      <Form method='post' className='space-y-6'>
-        {actionData?.message && !actionData.success && (
-          <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
-            {actionData.message}
-          </div>
-        )}
+            <div className='grid gap-6 sm:grid-cols-2'>
+              <div>
+                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                  Role Name *
+                </label>
+                <input
+                  type='text'
+                  id='name'
+                  name='name'
+                  required
+                  placeholder='project-manager'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                />
+                {actionData?.errors?.name && (
+                  <p className='text-destructive mt-1 text-xs'>
+                    {actionData.errors.name[0]}
+                  </p>
+                )}
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  Use lowercase letters and hyphens only (e.g., project-manager)
+                </p>
+              </div>
 
-        <div>
-          <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-            Role Name *
-          </label>
-          <input
-            type='text'
-            id='name'
-            name='name'
-            required
-            placeholder='project-manager'
-            className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
-          />
-          {actionData?.errors?.name && (
-            <p className='text-destructive mt-1 text-xs'>
-              {actionData.errors.name[0]}
-            </p>
-          )}
-          <p className='text-muted-foreground mt-1 text-xs'>
-            Use lowercase letters and hyphens only (e.g., project-manager)
-          </p>
-        </div>
+              <div>
+                <label
+                  htmlFor='description'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  Description *
+                </label>
+                <textarea
+                  id='description'
+                  name='description'
+                  required
+                  rows={3}
+                  placeholder='Describe what this role can do...'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                />
+                {actionData?.errors?.description && (
+                  <p className='text-destructive mt-1 text-xs'>
+                    {actionData.errors.description[0]}
+                  </p>
+                )}
+              </div>
+            </div>
 
-        <div>
-          <label
-            htmlFor='description'
-            className='mb-2 block text-sm font-medium'
-          >
-            Description *
-          </label>
-          <textarea
-            id='description'
-            name='description'
-            required
-            rows={3}
-            placeholder='Describe what this role can do...'
-            className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
-          />
-          {actionData?.errors?.description && (
-            <p className='text-destructive mt-1 text-xs'>
-              {actionData.errors.description[0]}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className='mb-3 block text-sm font-medium'>
-            Permissions * (Select at least one)
-          </label>
-          {actionData?.errors?.permissionIds && (
-            <p className='text-destructive mb-2 text-xs'>
-              {actionData.errors.permissionIds[0]}
-            </p>
-          )}
-          <div className='rounded-lg border'>
-            {Object.entries(permissionsByResource).map(([resource, perms]) => (
-              <PermissionSection
-                key={resource}
-                resource={resource}
-                perms={perms}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className='flex gap-3'>
-          <Button type='submit' disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Role'}
-          </Button>
-          <Button type='button' variant='outline' asChild>
-            <a href='/roles'>Cancel</a>
-          </Button>
-        </div>
-      </Form>
+            <div>
+              <label className='mb-3 block text-sm font-medium'>
+                Permissions * (Select at least one)
+              </label>
+              {actionData?.errors?.permissionIds && (
+                <p className='text-destructive mb-2 text-xs'>
+                  {actionData.errors.permissionIds[0]}
+                </p>
+              )}
+              <div className='rounded-lg border'>
+                {Object.entries(permissionsByResource).map(([resource, perms]) => (
+                  <PermissionSection
+                    key={resource}
+                    resource={resource}
+                    perms={perms}
+                  />
+                ))}
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className='flex justify-end gap-3 border-t pt-6'>
+            <Button type='button' variant='outline' asChild>
+              <a href='/roles'>Cancel</a>
+            </Button>
+            <Button type='submit' disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create Role'}
+            </Button>
+          </CardFooter>
+        </Form>
+      </Card>
     </div>
   )
 }

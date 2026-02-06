@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Pencil, XCircle } from 'lucide-react'
 import { Form, Link, redirect, useNavigation } from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -179,18 +179,26 @@ export default function JournalEntryShow({ loaderData, actionData }: Route.Compo
             {/* Actions */}
             <div className='flex gap-2'>
               {entry.status === 'draft' && (
-                <Form method='post'>
-                  <input type='hidden' name='_action' value='post' />
-                  <Button
-                    type='submit'
-                    variant='default'
-                    className='bg-green-600 hover:bg-green-700'
-                    disabled={isSubmitting}
-                  >
-                    <CheckCircle className='mr-2 h-4 w-4' />
-                    Post Entry
+                <>
+                  <Button variant='outline' asChild>
+                    <Link to={`/journal-entries/${entry.id}/edit`}>
+                      <Pencil className='mr-2 h-4 w-4' />
+                      Edit
+                    </Link>
                   </Button>
-                </Form>
+                  <Form method='post'>
+                    <input type='hidden' name='_action' value='post' />
+                    <Button
+                      type='submit'
+                      variant='default'
+                      className='bg-green-600 hover:bg-green-700'
+                      disabled={isSubmitting}
+                    >
+                      <CheckCircle className='mr-2 h-4 w-4' />
+                      Post Entry
+                    </Button>
+                  </Form>
+                </>
               )}
               {entry.status === 'posted' && (
                 <Form method='post'>

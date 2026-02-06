@@ -44,7 +44,12 @@ const CompanyIndex = ({ loaderData }: Route.ComponentProps) => {
           </p>
         </div>
       ) : (
-        <DataTable columns={CompanyColumns} data={companies} />
+        <DataTable
+          columns={CompanyColumns}
+          data={companies}
+          enableSearch
+          searchPlaceholder="Search companies..."
+        />
       )}
     </div>
   )

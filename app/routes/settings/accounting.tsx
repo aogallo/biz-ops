@@ -11,13 +11,7 @@ import {
 } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import { accountsRepository } from '~/features/accounts/server/repository'
 import { updateAccountingConfigSchema } from '~/features/organization-config/schemas'
 import { updateAccountingConfigAction } from '~/features/organization-config/server/actions/update.action'
@@ -119,23 +113,27 @@ function AccountSelect({
   value,
   accounts,
 }: AccountSelectProps) {
+  const options = [
+    { value: 'none', label: 'Not configured' },
+    ...accounts.map((account) => ({
+      value: account.id,
+      label: account.accountNumber
+        ? `${account.accountNumber} - ${account.name}`
+        : account.name || '',
+    })),
+  ]
+
   return (
     <div className='space-y-2'>
       <Label htmlFor={name}>{label}</Label>
-      <Select name={name} defaultValue={value || 'none'}>
-        <SelectTrigger id={name}>
-          <SelectValue placeholder='Select an account' />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='none'>Not configured</SelectItem>
-          {accounts.map((account) => (
-            <SelectItem key={account.id} value={account.id}>
-              {account.accountNumber ? `${account.accountNumber} - ` : ''}
-              {account.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Combobox
+        name={name}
+        options={options}
+        defaultValue={value || 'none'}
+        placeholder='Select an account'
+        searchPlaceholder='Search accounts...'
+        emptyMessage='No accounts found.'
+      />
       <p className='text-muted-foreground text-sm'>{description}</p>
     </div>
   )

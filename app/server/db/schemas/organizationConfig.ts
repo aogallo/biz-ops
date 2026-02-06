@@ -45,6 +45,11 @@ export const organizationAccountingConfigModel = pgTable(
     nextJournalEntryNumber: integer('next_journal_entry_number')
       .notNull()
       .default(1),
+    // Manual invoice settings
+    manualInvoicePrefix: text('manual_invoice_prefix').notNull().default('M'),
+    nextManualInvoiceNumber: integer('next_manual_invoice_number')
+      .notNull()
+      .default(1),
     ...timestamps,
   }
 )

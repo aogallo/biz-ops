@@ -157,3 +157,181 @@ body {
     --sidebar-ring: oklch(0.439 0 0);
   }
 }
+
+/* =============================================================================
+   ELEVATION SYSTEM
+   Three levels of depth using subtle shadows (no borders on primary cards)
+   ============================================================================= */
+
+@layer utilities {
+  /* Ground level — page background, no lift */
+  .elevation-ground {
+    background: var(--background);
+  }
+
+  /* Raised level — cards, primary containers */
+  .elevation-raised {
+    background: var(--card);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  }
+
+  .dark .elevation-raised {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  }
+
+  /* Floating level — dialogs, sheets, dropdowns */
+  .elevation-floating {
+    background: var(--popover);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  }
+
+  .dark .elevation-floating {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  }
+
+  /* Subtle card shadow (replaces border-based cards) */
+  .shadow-card {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  }
+
+  .dark .shadow-card {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  }
+}
+
+/* =============================================================================
+   STATUS COLORS (SEMANTIC)
+   Consistent status indication across the app
+   ============================================================================= */
+
+@layer utilities {
+  /* Success / Confirmed / Active */
+  .status-success {
+    @apply bg-green-500/10 text-green-700 dark:bg-green-500/20 dark:text-green-400;
+  }
+
+  /* Pending / Warning / Due */
+  .status-warning {
+    @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400;
+  }
+
+  /* Error / Cancelled / Overdue */
+  .status-error {
+    @apply bg-red-500/10 text-red-700 dark:bg-red-500/20 dark:text-red-400;
+  }
+
+  /* Info / In Progress */
+  .status-info {
+    @apply bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400;
+  }
+
+  /* Draft / Inactive / Muted */
+  .status-muted {
+    @apply bg-muted text-muted-foreground;
+  }
+}
+
+/* =============================================================================
+   DOMAIN ACCENT COLORS
+   Each section carries its accent through headers, badges, buttons
+   ============================================================================= */
+
+@layer utilities {
+  /* Accounting domain — emerald */
+  .accent-accounting {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+
+  .accent-accounting-bg {
+    @apply bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400;
+  }
+
+  /* Appointments domain — blue */
+  .accent-appointments {
+    @apply text-blue-500 dark:text-blue-400;
+  }
+
+  .accent-appointments-bg {
+    @apply bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400;
+  }
+
+  /* Inventory domain — amber */
+  .accent-inventory {
+    @apply text-amber-500 dark:text-amber-400;
+  }
+
+  .accent-inventory-bg {
+    @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400;
+  }
+
+  /* Admin domain — stone/neutral */
+  .accent-admin {
+    @apply text-stone-500 dark:text-stone-400;
+  }
+
+  .accent-admin-bg {
+    @apply bg-stone-500/10 text-stone-700 dark:bg-stone-500/20 dark:text-stone-400;
+  }
+}
+
+/* =============================================================================
+   TYPOGRAPHY UTILITIES
+   Consistent text hierarchy
+   ============================================================================= */
+
+@layer utilities {
+  .text-page-title {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  .text-section-header {
+    @apply text-lg font-medium;
+  }
+
+  .text-card-title {
+    @apply text-base font-semibold;
+  }
+
+  .text-label {
+    @apply text-sm font-medium;
+  }
+
+  .text-body {
+    @apply text-sm;
+  }
+
+  .text-caption {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .text-data {
+    @apply font-mono tabular-nums;
+  }
+}
+
+/* =============================================================================
+   SPACING PATTERNS
+   Consistent gaps and padding
+   ============================================================================= */
+
+@layer utilities {
+  /* Page container - fluid width for better space utilization on laptop screens */
+  .page-container {
+    @apply w-full px-6 py-6;
+  }
+
+  /* Section spacing */
+  .section-gap {
+    @apply space-y-8;
+  }
+
+  /* Card spacing */
+  .card-gap {
+    @apply space-y-6;
+  }
+
+  /* Form field spacing */
+  .form-gap {
+    @apply space-y-4;
+  }
+}

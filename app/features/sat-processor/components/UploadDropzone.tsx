@@ -3,13 +3,7 @@ import { useEffect, useState } from 'react'
 import { Form, useActionData, useNavigation } from 'react-router'
 import { Label } from '~/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import { cn } from '~/lib/utils'
 import type { InvoiceType } from '../schemas'
 
@@ -20,9 +14,10 @@ interface Company {
 
 interface UploadDropzoneProps {
   companies: Company[]
+  onSuccess?: () => void
 }
 
-export function UploadDropzone({ companies }: UploadDropzoneProps) {
+export function UploadDropzone({ companies, onSuccess }: UploadDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('')
@@ -49,8 +44,10 @@ export function UploadDropzone({ companies }: UploadDropzoneProps) {
       if (fileInput) {
         fileInput.value = ''
       }
+      // Call onSuccess callback if provided (e.g., to close dialog)
+      onSuccess?.()
     }
-  }, [actionData])
+  }, [actionData, onSuccess])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -85,27 +82,21 @@ export function UploadDropzone({ companies }: UploadDropzoneProps) {
       <input type='hidden' name='companyId' value={selectedCompanyId} />
       <input type='hidden' name='invoiceType' value={selectedInvoiceType} />
 
-      <div className='bg-card space-y-4 rounded-lg border p-4'>
-        <h3 className='text-base font-semibold'>Upload SAT Export</h3>
-
+      <div className='space-y-4'>
         <div className='grid gap-4 sm:grid-cols-2'>
           <div className='space-y-2'>
             <Label htmlFor='company-select'>Company</Label>
-            <Select
+            <Combobox
               value={selectedCompanyId}
               onValueChange={setSelectedCompanyId}
-            >
-              <SelectTrigger id='company-select' className='w-full'>
-                <SelectValue placeholder='Select company...' />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.id}>
-                    {company.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={companies.map((company) => ({
+                value: company.id,
+                label: company.name,
+              }))}
+              placeholder='Select company...'
+              searchPlaceholder='Search companies...'
+              emptyMessage='No companies found.'
+            />
           </div>
 
           <div className='space-y-2'>

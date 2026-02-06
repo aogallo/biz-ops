@@ -2,13 +2,7 @@ import { Building2, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useFetcher } from 'react-router'
 import { Label } from '~/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Combobox } from '~/components/ui/combobox'
 import { useInvitationWizard } from '../hooks/useInvitationWizard'
 import type { OrganizationData, PermissionData, RoleData } from '../types'
 import { PermissionsStep } from './steps/PermissionsStep'
@@ -122,22 +116,18 @@ export function InvitationWizard({
           </Label>
         </div>
         {isSuperAdmin ? (
-          <Select
+          <Combobox
             value={state.organizationId || defaultOrganizationId || ''}
             onValueChange={handleOrganizationChange}
             disabled={isLoadingRoles}
-          >
-            <SelectTrigger id='organization-select' className='w-full'>
-              <SelectValue placeholder='Select organization' />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            options={organizations.map((org) => ({
+              value: org.id,
+              label: org.name,
+            }))}
+            placeholder='Select organization'
+            searchPlaceholder='Search organizations...'
+            emptyMessage='No organizations found.'
+          />
         ) : (
           <div>
             <div className='bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2 text-sm'>

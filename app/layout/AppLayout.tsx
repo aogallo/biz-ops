@@ -1,10 +1,12 @@
-import { Outlet, redirect, useNavigation } from 'react-router'
+import { Outlet, redirect, useLocation, useNavigation } from 'react-router'
 import AppSidebar from '~/components/AppSidebar'
-import { PageSkeleton } from '~/components/skeleton/PageSkeleton'
 import SiteHeader from '~/components/SiteHeader'
+import { PageSkeleton } from '~/components/skeleton/PageSkeleton'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AuthProvider } from '~/contexts/AuthContext'
 import type { Organization } from '~/features/organization/schemas'
+import { organizationRepository } from '~/features/organization/server/repository'
+import { getUserOrganizations } from '~/server/auth/organization.server'
 import { getUserPermissions } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isSuperAdmin } from '~/server/permissions'
@@ -28,13 +30,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   let organizations: Organization[] = []
   if (isSuperAdminUser) {
     // Super admin sees ALL organizations
-    const { db } = await import('~/server/db')
-    const { organizationModel } = await import('~/server/db/schemas/auth')
-    organizations = await db.select().from(organizationModel)
+    organizations = await organizationRepository.getAll()
   } else {
     // Regular users see only their member organizations
-    const { getUserOrganizations } =
-      await import('~/server/auth/organization.server')
     const userOrgs = await getUserOrganizations(userId)
     organizations = userOrgs.map((org) => ({
       id: org.organization.id,
@@ -62,8 +60,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
+  const location = useLocation()
   const navigation = useNavigation()
   const isNavigating = navigation.state === 'loading'
+  const isPageNavigation =
+    isNavigating && navigation.location.pathname !== location.pathname
 
   return (
     <AuthProvider
@@ -75,13 +76,13 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     >
       <SidebarProvider>
         <AppSidebar />
-        <div className='flex min-h-screen flex-1 flex-col bg-background'>
+        <div className='bg-background flex min-h-screen flex-1 flex-col'>
           <SiteHeader />
           <main
-            className='container mx-auto mt-1 gap-1 self-stretch p-6 px-4 py-6 lg:gap-2 lg:px-6'
-            aria-busy={isNavigating}
+            className='page-container flex-1'
+            aria-busy={isPageNavigation}
           >
-            {isNavigating ? <PageSkeleton /> : <Outlet />}
+            {isPageNavigation ? <PageSkeleton /> : <Outlet />}
           </main>
         </div>
       </SidebarProvider>

@@ -25,13 +25,6 @@ export async function processPermissionFile(request: Request) {
     roleName: 'super-admin',
   })
 
-  if (!isValidateRole) {
-    return {
-      success: false,
-      message: 'You don"t have permission to perform this action.',
-    }
-  }
-
   // Validate permissions permissions:bulk
   const isValidatePermissions = await hasPermission(
     user.id,

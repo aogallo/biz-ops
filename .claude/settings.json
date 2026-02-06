@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "javascript-typescript@claude-code-workflows": true,
+    "full-stack-orchestration@claude-code-workflows": true
+  }
+}

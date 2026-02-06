@@ -2,6 +2,7 @@ import {
   Banknote,
   BookOpen,
   BookOpenIcon,
+  Briefcase,
   Building2,
   BuildingIcon,
   Calendar1,
@@ -10,11 +11,13 @@ import {
   Drumstick,
   FolderTreeIcon,
   HandshakeIcon,
-  LogOut,
   Mail,
   NewspaperIcon,
+  Notebook,
+  NotebookPenIcon,
   Package,
   PackageCheck,
+  PlusCircle,
   Settings,
   Shapes,
   ShieldXIcon,
@@ -22,14 +25,13 @@ import {
   Users,
   UserStarIcon,
 } from 'lucide-react'
-import { Form, Link, NavLink, useFetcher } from 'react-router'
-import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
+import { Link, NavLink, useFetcher } from 'react-router'
+import { useAuth } from '~/contexts/AuthContext'
 import { useFilteredNavigation } from '~/hooks/usePermissions'
 import { cn } from '~/lib/utils'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
@@ -39,11 +41,12 @@ import {
   SidebarMenuSubItem,
 } from './ui/sidebar'
 
+// Domain-specific accent colors per system.md
 export const navigationItems = [
   {
     section: 'Admin',
     icon: Drumstick,
-    color: 'text-rose-500',
+    color: 'accent-admin', // stone/neutral for system pages
     items: [
       { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
       { name: 'Accounts', path: '/accounts', icon: BookOpenIcon },
@@ -63,7 +66,7 @@ export const navigationItems = [
   {
     section: 'Inventory',
     icon: Package,
-    color: 'text-amber-500',
+    color: 'accent-inventory', // amber for inventory domain
     items: [
       { name: 'Products', path: '/products', icon: Shapes },
       { name: 'Stock', path: '/stock', icon: PackageCheck },
@@ -73,9 +76,10 @@ export const navigationItems = [
   {
     section: 'Accounting',
     icon: Building2,
-    color: 'text-green-500',
+    color: 'accent-accounting', // emerald for accounting domain
     items: [
       { name: 'Journal Entries', path: '/journal-entries', icon: BookOpen },
+      { name: 'New Entry', path: '/journal-entries/new', icon: PlusCircle },
       { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
       { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
       { name: 'Expenses', path: '/sat-processor', icon: Banknote },
@@ -84,7 +88,7 @@ export const navigationItems = [
   {
     section: 'Settings',
     icon: Settings,
-    color: 'text-gray-500',
+    color: 'accent-admin', // stone/neutral for settings
     items: [
       { name: 'Accounting', path: '/settings/accounting', icon: Settings },
     ],
@@ -92,14 +96,28 @@ export const navigationItems = [
   {
     section: 'Appointments',
     icon: CalendarDays,
-    color: 'text-blue-500',
-    items: [{ name: 'Calendar', path: '/appointments', icon: Calendar1 }],
+    color: 'accent-appointments', // blue for appointments domain
+    items: [
+      { name: 'Calendar', path: '/appointments', icon: Calendar1 },
+      { name: 'Services', path: '/services', icon: Briefcase },
+    ],
+  },
+  {
+    section: 'Reports',
+    icon: NotebookPenIcon,
+    color: 'accent-accounting', // emerald for financial reports
+    items: [
+      {
+        name: 'Financial Report',
+        path: '/reports',
+        icon: Notebook,
+      },
+    ],
   },
 ]
 
 const AppSidebar = () => {
   const { session, permissions, availableOrganizations } = useAuth()
-  const organization = useOptionalOrganization()
   const fetcher = useFetcher()
 
   // Filter navigation items based on user permissions
@@ -122,7 +140,7 @@ const AppSidebar = () => {
                   name='organizationId'
                   value={activeOrgId || ''}
                   onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                  className='w-full rounded-md border px-3 py-2 text-sm'
+                  className='w-full rounded-md border border-border/50 bg-sidebar px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
                 >
                   <option value=''>Select Organization</option>
                   {availableOrganizations.map((org) => (
@@ -136,17 +154,12 @@ const AppSidebar = () => {
               // Regular user organization display
               <SidebarMenuButton asChild>
                 <Link to='/organization'>
-                  {organization ? (
+                  {availableOrganizations && (
                     <div className='flex flex-col items-start'>
                       <span className='font-semibold'>
-                        {organization.data.name}
-                      </span>
-                      <span className='text-muted-foreground text-xs'>
-                        {organization.membership.role}
+                        {availableOrganizations[0].name}
                       </span>
                     </div>
-                  ) : (
-                    <span>ERP System</span>
                   )}
                 </Link>
               </SidebarMenuButton>
@@ -170,15 +183,18 @@ const AppSidebar = () => {
                   <SidebarMenuSubItem key={item.name}>
                     <NavLink
                       className={({ isActive }) =>
-                        isActive
-                          ? 'bg-blue-800 font-semibold text-blue-500'
-                          : ''
+                        cn(
+                          'rounded-md transition-colors',
+                          isActive
+                            ? 'bg-accent font-medium text-accent-foreground'
+                            : 'hover:bg-accent/50'
+                        )
                       }
                       to={item.path}
                     >
                       <SidebarMenuButton>
-                        <item.icon />
-                        <span> {item.name}</span>
+                        <item.icon className="size-4" />
+                        <span>{item.name}</span>
                       </SidebarMenuButton>
                     </NavLink>
                   </SidebarMenuSubItem>
@@ -190,31 +206,6 @@ const AppSidebar = () => {
 
         <SidebarGroup />
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className='flex flex-col gap-2 px-2 py-3'>
-              <p className='text-foreground text-sm font-medium'>
-                {session.user.name || session.user.email}
-              </p>
-              {session.user.name && (
-                <p className='text-muted-foreground text-xs'>
-                  {session.user.email}
-                </p>
-              )}
-              <Form method='post' action='/logout'>
-                <button
-                  type='submit'
-                  className='text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors'
-                >
-                  <LogOut className='h-4 w-4' />
-                  Sign Out
-                </button>
-              </Form>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   )
 }

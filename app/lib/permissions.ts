@@ -10,12 +10,24 @@
 export const MENU_PERMISSIONS = {
   // Administrations
   '/dashboard': ['dashboard:read'],
+  // Organization
   '/organization': ['organization:read'],
+  // Users
   '/users': ['user:read'],
+  // Permissions
   '/permissions': ['permission:read'],
+  // Roles
   '/roles': ['role:read'],
+  // Accounts
+  '/accounts': ['account:read'],
+  // Journal Entries
+  '/journal-entries': ['journal-entry:read'],
+  '/journal-entries/new': ['journal-entry:create'],
+  // Business Partner
   '/business-partners': ['business-partner:read'],
+  // Company
   '/company': ['company:read'],
+  // Invitations
   '/invitations': ['invitation:read'],
   // Inventory
   '/products': ['product:read'],
@@ -26,6 +38,12 @@ export const MENU_PERMISSIONS = {
   '/sat-processor': ['sat-processor:read'],
   // Appointments
   '/appointments': ['appointments:read'],
+  // Services
+  '/services': ['service:read'],
+  // Settings
+  '/settings/accounting': ['settings:accounting'],
+  // Reprots
+  '/reports': ['reports:create'],
 } as const
 
 /**
@@ -47,6 +65,12 @@ export const ACTION_PERMISSIONS = {
   'company.create': ['company:create'],
   'company.edit': ['company:update'],
   'company.delete': ['company:delete'],
+  'settings.accounting': ['settings:accounting'],
+  'services.create': ['service:create'],
+  'services.edit': ['service:update'],
+  'services.delete': ['service:delete'],
+  'journal-entries.create': ['journal-entry:create'],
+  'journal-entries.update': ['journal-entry:update'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

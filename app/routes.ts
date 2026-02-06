@@ -73,7 +73,9 @@ export default [
     ...prefix('sat-processor', [index('./routes/sat-processor/index.tsx')]),
     ...prefix('journal-entries', [
       index('./routes/journal-entries/index.tsx'),
+      route('/new', './routes/journal-entries/new.tsx'),
       route('/:id', './routes/journal-entries/show.tsx'),
+      route('/:id/edit', './routes/journal-entries/$id.edit.tsx'),
     ]),
 
     // Settings Routes
@@ -83,6 +85,19 @@ export default [
 
     // Dashboard Routes
     ...prefix('dashboard', [index('./routes/dashboard/index.tsx')]),
+
+    // Appointments Routes
+    ...prefix('appointments', [
+      index('./routes/appointments/index.tsx'),
+      route('/new', './routes/appointments/new.tsx'),
+    ]),
+
+    // Services Routes
+    ...prefix('services', [
+      index('./routes/services/index.tsx'),
+      route('/new', './routes/services/create.tsx'),
+      route('/:id/edit', './routes/services/edit.tsx'),
+    ]),
 
     // Company Routes
     ...prefix('company', [
@@ -104,6 +119,18 @@ export default [
       route('/:id', './routes/accounts/show.tsx'),
       route('/:id/edit', './routes/accounts/edit.tsx'),
     ]),
+
+    // Report Routes
+    ...prefix('reports', [index('./routes/reports/index.tsx')]),
+
+    // Invoice Routes
+    ...prefix('invoices', [
+      index('./routes/invoices/index.tsx'),
+      route('/new', './routes/invoices/new.tsx'),
+      route('/:id', './routes/invoices/$id.tsx'),
+      route('/:id/edit', './routes/invoices/$id.edit.tsx'),
+    ]),
+
     route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

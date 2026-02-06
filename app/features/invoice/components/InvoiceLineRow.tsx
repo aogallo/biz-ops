@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react'
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { useFetcher } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Combobox, type ComboboxOption } from '~/components/ui/combobox'
@@ -82,6 +82,10 @@ export function InvoiceLineRow({
   // Track if there are pending changes
   const [hasChanges, setHasChanges] = useState(false)
 
+  // Refs to track processed fetcher data to prevent duplicate toasts
+  const lastUpdateDataRef = useRef<unknown>(null)
+  const lastRemoveDataRef = useRef<unknown>(null)
+
   useEffect(() => {
     // Check if any field has changed
     const changed =
@@ -95,9 +99,10 @@ export function InvoiceLineRow({
     setHasChanges(changed)
   }, [description, quantity, unitPrice, ivaType, productId, accountId, line])
 
-  // Handle fetcher responses
+  // Handle update fetcher response
   useEffect(() => {
-    if (updateFetcher.data) {
+    if (updateFetcher.data && updateFetcher.data !== lastUpdateDataRef.current) {
+      lastUpdateDataRef.current = updateFetcher.data
       if ((updateFetcher.data as { success?: boolean }).success) {
         toast.success('Line updated')
         setHasChanges(false)
@@ -108,8 +113,10 @@ export function InvoiceLineRow({
     }
   }, [updateFetcher.data, onLineUpdated])
 
+  // Handle remove fetcher response
   useEffect(() => {
-    if (removeFetcher.data) {
+    if (removeFetcher.data && removeFetcher.data !== lastRemoveDataRef.current) {
+      lastRemoveDataRef.current = removeFetcher.data
       if ((removeFetcher.data as { success?: boolean }).success) {
         toast.success('Line removed')
         onLineRemoved?.()

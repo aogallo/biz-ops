@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { useFetcher } from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
@@ -31,7 +31,6 @@ import {
 import { toast } from 'sonner'
 import { InvoiceLineRow, type InvoiceLineData, type AccountOption } from './InvoiceLineRow'
 import type { ProductOption } from './ProductSearchCombobox'
-import { useEffect } from 'react'
 
 interface InvoiceLineTableProps {
   invoiceId: string
@@ -61,9 +60,13 @@ export function InvoiceLineTable({
   const [newIvaType, setNewIvaType] = useState<'taxed' | 'exempt' | 'non_subject'>('taxed')
   const [newAccountId, setNewAccountId] = useState('')
 
+  // Ref to track processed fetcher data to prevent duplicate toasts
+  const lastAddDataRef = useRef<unknown>(null)
+
   // Handle add line response
   useEffect(() => {
-    if (addLineFetcher.data) {
+    if (addLineFetcher.data && addLineFetcher.data !== lastAddDataRef.current) {
+      lastAddDataRef.current = addLineFetcher.data
       if ((addLineFetcher.data as { success?: boolean }).success) {
         toast.success('Line added')
         resetAddForm()

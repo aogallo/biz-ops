@@ -212,9 +212,9 @@ export default function InvoiceShowPage({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="space-y-6">
         {/* Invoice Details */}
-        <div className="lg:col-span-2">
+        <div>
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>
@@ -368,39 +368,40 @@ export default function InvoiceShowPage({
           </Card>
         </div>
 
-        {/* Summary Sidebar */}
-        <div>
-          <InvoiceSummary
-            subtotal={totals.subtotal}
-            ivaAmount={totals.ivaAmount}
-            total={totals.total}
-          />
+        {/* Summary - Inline at full width */}
+        <InvoiceSummary
+          subtotal={totals.subtotal}
+          ivaAmount={totals.ivaAmount}
+          total={totals.total}
+          lineCount={invoice.lines.length}
+          variant="inline"
+        />
 
-          {journalEntry && (
-            <Card className="mt-6">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Linked Journal Entry</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Entry Number</span>
-                    <Link
-                      to={`/journal-entries/${journalEntry.id}`}
-                      className="font-medium text-blue-600 hover:underline"
-                    >
-                      {journalEntry.entryNumber}
-                    </Link>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Status</span>
-                    <span>{getStatusBadge(journalEntry.status)}</span>
-                  </div>
+        {/* Linked Journal Entry */}
+        {journalEntry && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Linked Journal Entry</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Entry Number:</span>
+                  <Link
+                    to={`/journal-entries/${journalEntry.id}`}
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {journalEntry.entryNumber}
+                  </Link>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Status:</span>
+                  <span>{getStatusBadge(journalEntry.status)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

@@ -329,11 +329,9 @@ export default function InvoiceEditPage({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Header Details */}
-          <Card>
+      <div className="space-y-6">
+        {/* Header Details */}
+        <Card>
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>
               <CardDescription>
@@ -425,38 +423,24 @@ export default function InvoiceEditPage({
             </CardContent>
           </Card>
 
-          {/* Invoice Lines */}
-          <InvoiceLineTable
-            invoiceId={invoice.id}
-            lines={lines}
-            products={products}
-            accounts={accounts}
-            isDraft={true}
-            onLinesChanged={handleLinesChanged}
-          />
-        </div>
+        {/* Invoice Lines */}
+        <InvoiceLineTable
+          invoiceId={invoice.id}
+          lines={lines}
+          products={products}
+          accounts={accounts}
+          isDraft={true}
+          onLinesChanged={handleLinesChanged}
+        />
 
-        {/* Summary Sidebar */}
-        <div>
-          <InvoiceSummary
-            subtotal={totals.subtotal}
-            ivaAmount={totals.ivaAmount}
-            total={totals.total}
-          />
-
-          {lines.length === 0 && (
-            <Card className="mt-6">
-              <CardContent className="py-6">
-                <div className="text-center text-muted-foreground">
-                  <p className="font-medium">No lines added yet</p>
-                  <p className="text-sm mt-1">
-                    Add items to this invoice using the form above.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {/* Summary - Inline at full width */}
+        <InvoiceSummary
+          subtotal={totals.subtotal}
+          ivaAmount={totals.ivaAmount}
+          total={totals.total}
+          lineCount={lines.length}
+          variant="inline"
+        />
       </div>
     </div>
   )

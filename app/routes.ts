@@ -123,6 +123,14 @@ export default [
     // Report Routes
     ...prefix('reports', [index('./routes/reports/index.tsx')]),
 
+    // Invoice Routes
+    ...prefix('invoices', [
+      index('./routes/invoices/index.tsx'),
+      route('/new', './routes/invoices/new.tsx'),
+      route('/:id', './routes/invoices/$id.tsx'),
+      route('/:id/edit', './routes/invoices/$id.edit.tsx'),
+    ]),
+
     route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

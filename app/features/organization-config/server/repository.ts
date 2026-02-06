@@ -116,6 +116,38 @@ export class OrganizationConfigRepository {
       formatted,
     }
   }
+
+  /**
+   * Get and increment the manual invoice number atomically
+   */
+  async getNextManualInvoiceNumber(organizationId: string): Promise<{
+    prefix: string
+    number: number
+    formatted: string
+  }> {
+    // Atomically increment and return the number
+    const [result] = await db
+      .update(organizationAccountingConfigModel)
+      .set({
+        nextManualInvoiceNumber: sql`${organizationAccountingConfigModel.nextManualInvoiceNumber} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(
+        eq(organizationAccountingConfigModel.organizationId, organizationId)
+      )
+      .returning()
+
+    // The number returned is the NEW value (after increment), so we need to subtract 1
+    const currentNumber = result.nextManualInvoiceNumber - 1
+    const prefix = result.manualInvoicePrefix
+    const formatted = `${prefix}-${String(currentNumber).padStart(6, '0')}`
+
+    return {
+      prefix,
+      number: currentNumber,
+      formatted,
+    }
+  }
 }
 
 export const organizationConfigRepository = new OrganizationConfigRepository()

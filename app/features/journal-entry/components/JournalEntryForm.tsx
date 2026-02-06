@@ -100,7 +100,7 @@ export function JournalEntryForm({
   // Form state
   const [companyId, setCompanyId] = useState(initialData?.companyId ?? '')
   const [entryDate, setEntryDate] = useState<Date | undefined>(
-    initialData?.entryDate
+    initialData?.entryDate ?? new Date()
   )
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [notes, setNotes] = useState(initialData?.notes ?? '')

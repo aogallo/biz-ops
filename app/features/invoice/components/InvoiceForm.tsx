@@ -40,14 +40,22 @@ export interface BusinessPartnerOption {
   nit: string | null
 }
 
+export interface AccountOption {
+  id: string
+  accountNumber: string | null
+  name: string | null
+}
+
 interface InvoiceFormProps {
   mode: 'create' | 'view'
   companies: CompanyOption[]
   businessPartners: BusinessPartnerOption[]
+  accounts: AccountOption[]
   initialData?: {
     type: 'purchase' | 'sale'
     companyId: string
     businessPartnerId: string
+    accountingAccountId?: string
     invoiceDate: Date
     dueDate?: Date | null
     serie?: string | null
@@ -84,6 +92,7 @@ export function InvoiceForm({
   mode,
   companies,
   businessPartners,
+  accounts,
   initialData,
   actionData,
 }: InvoiceFormProps) {
@@ -97,6 +106,9 @@ export function InvoiceForm({
   const [companyId, setCompanyId] = useState(initialData?.companyId ?? '')
   const [businessPartnerId, setBusinessPartnerId] = useState(
     initialData?.businessPartnerId ?? ''
+  )
+  const [accountingAccountId, setAccountingAccountId] = useState(
+    initialData?.accountingAccountId ?? ''
   )
   const [invoiceDate, setInvoiceDate] = useState<Date | undefined>(
     initialData?.invoiceDate ?? new Date()
@@ -118,6 +130,11 @@ export function InvoiceForm({
     value: partner.id,
     label: partner.name,
     description: partner.nit || undefined,
+  }))
+
+  const accountOptions: ComboboxOption[] = accounts.map((account) => ({
+    value: account.id,
+    label: `${account.accountNumber ?? ''} ${account.name ?? ''}`.trim(),
   }))
 
   const isViewMode = mode === 'view'
@@ -156,6 +173,7 @@ export function InvoiceForm({
           <input type="hidden" name="type" value={type} />
           <input type="hidden" name="companyId" value={companyId} />
           <input type="hidden" name="businessPartnerId" value={businessPartnerId} />
+          <input type="hidden" name="accountingAccountId" value={accountingAccountId} />
           <input
             type="hidden"
             name="invoiceDate"
@@ -227,6 +245,27 @@ export function InvoiceForm({
               {actionData?.fieldErrors?.businessPartnerId && (
                 <p className="text-destructive text-xs">
                   {actionData.fieldErrors.businessPartnerId[0]}
+                </p>
+              )}
+            </div>
+
+            {/* Accounting Account */}
+            <div className="space-y-2">
+              <Label>
+                {type === 'sale' ? 'Revenue Account' : 'Expense Account'} *
+              </Label>
+              <Combobox
+                options={accountOptions}
+                value={accountingAccountId}
+                onValueChange={setAccountingAccountId}
+                placeholder="Select account..."
+                searchPlaceholder="Search accounts..."
+                emptyMessage="No accounts found."
+                disabled={isViewMode}
+              />
+              {actionData?.fieldErrors?.accountingAccountId && (
+                <p className="text-destructive text-xs">
+                  {actionData.fieldErrors.accountingAccountId[0]}
                 </p>
               )}
             </div>
@@ -324,7 +363,7 @@ export function InvoiceForm({
               <Button
                 type="submit"
                 disabled={
-                  isSubmitting || !companyId || !businessPartnerId || !invoiceDate
+                  isSubmitting || !companyId || !businessPartnerId || !accountingAccountId || !invoiceDate
                 }
               >
                 {isSubmitting ? 'Creating...' : 'Create Draft Invoice'}

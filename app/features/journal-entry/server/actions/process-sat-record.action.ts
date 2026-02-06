@@ -147,6 +147,7 @@ async function createNewJournalEntry(
         organizationId: satFile.organizationId,
         companyId: satFile.companyId,
         businessPartnerId: satFile.businessPartnerId!,
+        accountingAccountId,
         satFileId: satFile.id,
         type: isPurchase ? 'purchase' : 'sale',
         number: satFile.dteNumber,
@@ -177,7 +178,6 @@ async function createNewJournalEntry(
         ivaRate: '12.00',
         ivaAmount: iva.toFixed(2),
         total: total.toFixed(2),
-        accountingAccountId,
       })
       .returning()
 
@@ -336,15 +336,15 @@ async function updateExistingJournalEntry(
     const iva = satFile.iva
     const subtotal = total - iva
 
-    // Update invoice line with new account
+    // Update invoice with new account
     if (satFile.invoiceId) {
       await tx
-        .update(invoiceLineModel)
+        .update(invoiceModel)
         .set({
           accountingAccountId,
           updatedAt: new Date(),
         })
-        .where(eq(invoiceLineModel.invoiceId, satFile.invoiceId))
+        .where(eq(invoiceModel.id, satFile.invoiceId))
     }
 
     // Update the specific journal entry line (expense/revenue line, not IVA or A/P, A/R)

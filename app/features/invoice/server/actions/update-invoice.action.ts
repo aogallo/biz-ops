@@ -46,6 +46,9 @@ export async function updateInvoiceAction(
     if (input.businessPartnerId !== undefined) {
       updateData.businessPartnerId = input.businessPartnerId
     }
+    if (input.accountingAccountId !== undefined) {
+      updateData.accountingAccountId = input.accountingAccountId
+    }
     if (input.serie !== undefined) {
       updateData.serie = input.serie
     }

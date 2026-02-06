@@ -1,6 +1,6 @@
-export { InvoiceForm, type CompanyOption, type BusinessPartnerOption } from './InvoiceForm'
+export { InvoiceForm, type CompanyOption, type BusinessPartnerOption, type AccountOption } from './InvoiceForm'
 export { InvoiceLineTable } from './InvoiceLineTable'
-export { InvoiceLineRow, type InvoiceLineData, type AccountOption } from './InvoiceLineRow'
+export { InvoiceLineRow, type InvoiceLineData } from './InvoiceLineRow'
 export { InvoiceSummary } from './InvoiceSummary'
 export { PostInvoiceButton } from './PostInvoiceButton'
 export { ProductSearchCombobox, type ProductOption } from './ProductSearchCombobox'

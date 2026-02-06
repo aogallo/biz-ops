@@ -45,6 +45,7 @@ export const createDraftInvoiceSchema = z.object({
   organizationId: z.string().uuid(),
   companyId: z.string().uuid(),
   businessPartnerId: z.string().uuid(),
+  accountingAccountId: z.string().uuid(),
   type: z.enum(['purchase', 'sale']),
   invoiceDate: z.coerce.date(),
   dueDate: z.coerce.date().optional().nullable(),
@@ -55,6 +56,7 @@ export const updateInvoiceSchema = z.object({
   invoiceDate: z.coerce.date().optional(),
   dueDate: z.coerce.date().optional().nullable(),
   businessPartnerId: z.string().uuid().optional(),
+  accountingAccountId: z.string().uuid().optional(),
   serie: z.string().max(20).optional().nullable(),
   authorizationNumber: z.string().max(50).optional().nullable(),
 })
@@ -68,7 +70,6 @@ export const addInvoiceLineSchema = z.object({
   ivaType: z.enum(['taxed', 'exempt', 'non_subject']).default('taxed'),
   ivaRate: z.coerce.number().min(0).max(100).default(12),
   productId: z.string().uuid().optional().nullable(),
-  accountingAccountId: z.string().uuid(),
 })
 
 // Schema for updating an invoice line
@@ -80,7 +81,6 @@ export const updateInvoiceLineSchema = z.object({
   ivaType: z.enum(['taxed', 'exempt', 'non_subject']).optional(),
   ivaRate: z.coerce.number().min(0).max(100).optional(),
   productId: z.string().uuid().optional().nullable(),
-  accountingAccountId: z.string().uuid().optional(),
 })
 
 // Schema for posting an invoice

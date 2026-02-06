@@ -129,11 +129,13 @@ export async function action({ request, params }: Route.ActionArgs) {
       const invoiceDateStr = formData.get('invoiceDate') as string
       const dueDateStr = formData.get('dueDate') as string
       const businessPartnerId = formData.get('businessPartnerId') as string
+      const accountingAccountId = formData.get('accountingAccountId') as string
 
       const result = await updateInvoiceAction(params.id, {
         invoiceDate: invoiceDateStr ? new Date(invoiceDateStr) : undefined,
         dueDate: dueDateStr ? new Date(dueDateStr) : null,
         businessPartnerId: businessPartnerId || undefined,
+        accountingAccountId: accountingAccountId || undefined,
       })
 
       return result
@@ -148,7 +150,6 @@ export async function action({ request, params }: Route.ActionArgs) {
         ivaType: (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject') || 'taxed',
         ivaRate: 12,
         productId: (formData.get('productId') as string) || null,
-        accountingAccountId: formData.get('accountingAccountId') as string,
       }
 
       const validation = addInvoiceLineSchema.safeParse(input)
@@ -172,7 +173,6 @@ export async function action({ request, params }: Route.ActionArgs) {
         ivaType: (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject'),
         ivaRate: 12,
         productId: (formData.get('productId') as string) || null,
-        accountingAccountId: formData.get('accountingAccountId') as string,
       }
 
       const validation = updateInvoiceLineSchema.safeParse(input)
@@ -241,6 +241,9 @@ export default function InvoiceEditPage({
   const [businessPartnerId, setBusinessPartnerId] = useState(
     invoice.businessPartnerId
   )
+  const [accountingAccountId, setAccountingAccountId] = useState(
+    invoice.accountingAccountId
+  )
   const [invoiceDate, setInvoiceDate] = useState<Date | undefined>(
     invoice.invoiceDate ? new Date(invoice.invoiceDate) : undefined
   )
@@ -252,6 +255,11 @@ export default function InvoiceEditPage({
     value: partner.id,
     label: partner.name,
     description: partner.nit || undefined,
+  }))
+
+  const accountOptions: ComboboxOption[] = accounts.map((account) => ({
+    value: account.id,
+    label: `${account.accountNumber ?? ''} ${account.name ?? ''}`.trim(),
   }))
 
   // Convert invoice lines to the format expected by InvoiceLineTable
@@ -267,9 +275,7 @@ export default function InvoiceEditPage({
     ivaAmount: Number(line.ivaAmount),
     total: Number(line.total),
     productId: line.productId,
-    accountingAccountId: line.accountingAccountId,
     product: line.product,
-    accountingAccount: line.accountingAccount,
   }))
 
   // Calculate totals
@@ -292,12 +298,13 @@ export default function InvoiceEditPage({
       {
         _action: 'updateHeader',
         businessPartnerId,
+        accountingAccountId,
         invoiceDate: invoiceDate?.toISOString() || '',
         dueDate: dueDate?.toISOString() || '',
       },
       { method: 'post' }
     )
-  }, [headerFetcher, businessPartnerId, invoiceDate, dueDate])
+  }, [headerFetcher, businessPartnerId, accountingAccountId, invoiceDate, dueDate])
 
   return (
     <div className="container mx-auto py-6">
@@ -359,6 +366,23 @@ export default function InvoiceEditPage({
                     placeholder="Select business partner..."
                     searchPlaceholder="Search by name or NIT..."
                     emptyMessage="No business partners found."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {invoice.type === 'sale' ? 'Revenue Account' : 'Expense Account'}
+                  </Label>
+                  <Combobox
+                    options={accountOptions}
+                    value={accountingAccountId}
+                    onValueChange={(value) => {
+                      setAccountingAccountId(value)
+                      setTimeout(saveHeaderChanges, 0)
+                    }}
+                    placeholder="Select account..."
+                    searchPlaceholder="Search accounts..."
+                    emptyMessage="No accounts found."
                   />
                 </div>
 
@@ -428,7 +452,6 @@ export default function InvoiceEditPage({
           invoiceId={invoice.id}
           lines={lines}
           products={products}
-          accounts={accounts}
           isDraft={true}
           onLinesChanged={handleLinesChanged}
         />

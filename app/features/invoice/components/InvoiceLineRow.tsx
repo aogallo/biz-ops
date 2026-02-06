@@ -27,24 +27,12 @@ export interface InvoiceLineData {
   ivaAmount: number
   total: number
   productId: string | null
-  accountingAccountId: string
   product?: {
     id: string
     sku: string
     name: string
     price: string | null
   } | null
-  accountingAccount?: {
-    id: string
-    name: string | null
-    accountNumber: string | null
-  } | null
-}
-
-export interface AccountOption {
-  id: string
-  accountNumber: string | null
-  name: string | null
 }
 
 interface InvoiceLineRowProps {
@@ -52,7 +40,6 @@ interface InvoiceLineRowProps {
   index: number
   invoiceId: string
   products: ProductOption[]
-  accounts: AccountOption[]
   isDraft: boolean
   onLineUpdated?: () => void
   onLineRemoved?: () => void
@@ -63,7 +50,6 @@ export function InvoiceLineRow({
   index,
   invoiceId,
   products,
-  accounts,
   isDraft,
   onLineUpdated,
   onLineRemoved,
@@ -77,7 +63,6 @@ export function InvoiceLineRow({
   const [unitPrice, setUnitPrice] = useState(String(line.unitPrice))
   const [ivaType, setIvaType] = useState(line.ivaType)
   const [productId, setProductId] = useState(line.productId || '')
-  const [accountId, setAccountId] = useState(line.accountingAccountId)
 
   // Track if there are pending changes
   const [hasChanges, setHasChanges] = useState(false)
@@ -93,11 +78,10 @@ export function InvoiceLineRow({
       quantity !== String(line.quantity) ||
       unitPrice !== String(line.unitPrice) ||
       ivaType !== line.ivaType ||
-      productId !== (line.productId || '') ||
-      accountId !== line.accountingAccountId
+      productId !== (line.productId || '')
 
     setHasChanges(changed)
-  }, [description, quantity, unitPrice, ivaType, productId, accountId, line])
+  }, [description, quantity, unitPrice, ivaType, productId, line])
 
   // Handle update fetcher response
   useEffect(() => {
@@ -125,11 +109,6 @@ export function InvoiceLineRow({
       }
     }
   }, [removeFetcher.data, onLineRemoved])
-
-  const accountOptions: ComboboxOption[] = accounts.map((account) => ({
-    value: account.id,
-    label: `${account.accountNumber ?? ''} ${account.name ?? ''}`.trim(),
-  }))
 
   const productOptions: ComboboxOption[] = products.map((product) => ({
     value: product.id,
@@ -163,7 +142,6 @@ export function InvoiceLineRow({
         unitPrice,
         ivaType,
         productId: productId || '',
-        accountingAccountId: accountId,
       },
       { method: 'post' }
     )
@@ -177,7 +155,6 @@ export function InvoiceLineRow({
     unitPrice,
     ivaType,
     productId,
-    accountId,
   ])
 
   const handleRemove = useCallback(() => {
@@ -268,22 +245,6 @@ export function InvoiceLineRow({
             <SelectItem value="non_subject">Non-subject</SelectItem>
           </SelectContent>
         </Select>
-      </TableCell>
-      <TableCell>
-        <Combobox
-          options={accountOptions}
-          value={accountId}
-          onValueChange={(value) => {
-            setAccountId(value)
-            // Trigger save after state update
-            setTimeout(saveChanges, 0)
-          }}
-          placeholder="Select account..."
-          searchPlaceholder="Search accounts..."
-          emptyMessage="No accounts found."
-          disabled={!isDraft}
-          size="sm"
-        />
       </TableCell>
       <TableCell className="text-right font-mono">
         Q {Number(line.subtotal).toFixed(2)}

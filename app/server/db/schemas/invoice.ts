@@ -51,6 +51,9 @@ export const invoiceModel = pgTable('invoice', {
   businessPartnerId: uuid('business_partner_id')
     .notNull()
     .references(() => businessPartnerModel.id),
+  accountingAccountId: uuid('accounting_account_id')
+    .notNull()
+    .references(() => accountingAccountModel.id),
   satFileId: uuid('sat_file_id').references(() => satFileModel.id),
   type: invoiceTypeEnum('type').notNull(),
   number: text('number').notNull(),
@@ -97,9 +100,6 @@ export const invoiceLineModel = pgTable('invoice_line', {
     .default('0'),
   total: numeric('total', { precision: 12, scale: 2 }).notNull().default('0'),
   productId: uuid('product_id').references(() => productModel.id),
-  accountingAccountId: uuid('accounting_account_id')
-    .notNull()
-    .references(() => accountingAccountModel.id),
   ...timestamps,
 })
 
@@ -117,6 +117,10 @@ export const invoiceRelations = relations(invoiceModel, ({ one, many }) => ({
     fields: [invoiceModel.businessPartnerId],
     references: [businessPartnerModel.id],
   }),
+  accountingAccount: one(accountingAccountModel, {
+    fields: [invoiceModel.accountingAccountId],
+    references: [accountingAccountModel.id],
+  }),
   satFile: one(satFileModel, {
     fields: [invoiceModel.satFileId],
     references: [satFileModel.id],
@@ -132,10 +136,6 @@ export const invoiceLineRelations = relations(invoiceLineModel, ({ one }) => ({
   product: one(productModel, {
     fields: [invoiceLineModel.productId],
     references: [productModel.id],
-  }),
-  accountingAccount: one(accountingAccountModel, {
-    fields: [invoiceLineModel.accountingAccountId],
-    references: [accountingAccountModel.id],
   }),
 }))
 

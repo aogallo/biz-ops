@@ -24,6 +24,7 @@ import { satFileModel } from './sat-file'
 
 // Enums
 export const invoiceTypeEnum = pgEnum('invoice_type', ['purchase', 'sale'])
+export const invoiceSourceEnum = pgEnum('invoice_source', ['manual', 'sat'])
 
 export const invoiceStatusEnum = pgEnum('invoice_status', [
   'draft',
@@ -66,6 +67,7 @@ export const invoiceModel = pgTable('invoice', {
   total: numeric('total', { precision: 12, scale: 2 }).notNull(),
   currency: text('currency').notNull().default('GTQ'),
   status: invoiceStatusEnum('status').notNull().default('draft'),
+  source: invoiceSourceEnum('source').notNull().default('manual'),
   ...timestamps,
 })
 
@@ -154,3 +156,4 @@ export type InsertInvoiceLine = z.infer<typeof insertInvoiceLineSchema>
 export type InvoiceType = 'purchase' | 'sale'
 export type InvoiceStatus = 'draft' | 'pending' | 'posted' | 'voided'
 export type IvaType = 'taxed' | 'exempt' | 'non_subject'
+export type InvoiceSource = 'manual' | 'sat'

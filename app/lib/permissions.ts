@@ -22,6 +22,7 @@ export const MENU_PERMISSIONS = {
   '/accounts': ['account:read'],
   // Journal Entries
   '/journal-entries': ['journal-entry:read'],
+  '/journal-entries/new': ['journal-entry:create'],
   // Business Partner
   '/business-partners': ['business-partner:read'],
   // Company
@@ -68,6 +69,8 @@ export const ACTION_PERMISSIONS = {
   'services.create': ['service:create'],
   'services.edit': ['service:update'],
   'services.delete': ['service:delete'],
+  'journal-entries.create': ['journal-entry:create'],
+  'journal-entries.update': ['journal-entry:update'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

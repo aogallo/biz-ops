@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
-import { Eye } from 'lucide-react'
+import { Eye, Plus } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
@@ -186,6 +186,12 @@ export default function JournalEntriesIndex({
                 View and manage accounting journal entries
               </CardDescription>
             </div>
+            <Button asChild>
+              <Link to='/journal-entries/new'>
+                <Plus className='mr-2 h-4 w-4' />
+                New Entry
+              </Link>
+            </Button>
           </div>
         </CardHeader>
         <CardContent>

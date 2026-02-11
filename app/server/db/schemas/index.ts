@@ -22,7 +22,12 @@ import {
 import { accountingAccountModel } from './accounting'
 import { businessPartnerModel } from './businessPartner'
 import { companyModel } from './company'
-import { productModel } from './products'
+import { productModel, productRelations } from './products'
+import {
+  productCategoryModel,
+  productCategoryRelations,
+  productCategoryColorEnum,
+} from './productCategory'
 import { satFileModel } from './sat-file'
 import {
   invoiceModel,
@@ -51,6 +56,11 @@ import {
   appointmentRelations,
   appointmentStatusEnum,
 } from './appointment'
+import {
+  stockMovementModel,
+  stockMovementRelations,
+  stockMovementTypeEnum,
+} from './stockMovement'
 
 export const schema = {
   // Auth tables
@@ -72,6 +82,7 @@ export const schema = {
   businessPartner: businessPartnerModel,
   company: companyModel,
   product: productModel,
+  productCategory: productCategoryModel,
   satFile: satFileModel,
 
   // Invoice tables
@@ -91,6 +102,9 @@ export const schema = {
   // Appointment tables
   appointment: appointmentModel,
 
+  // Stock movement tables
+  stockMovement: stockMovementModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -106,6 +120,9 @@ export const schema = {
   organizationAccountingConfigRelations,
   serviceRelations,
   appointmentRelations,
+  productRelations,
+  productCategoryRelations,
+  stockMovementRelations,
 }
 
 // Re-export all schemas for easy access
@@ -114,12 +131,14 @@ export * from './accounting'
 export * from './businessPartner'
 export * from './company'
 export * from './products'
+export * from './productCategory'
 export * from './sat-file'
 export * from './invoice'
 export * from './journalEntry'
 export * from './organizationConfig'
 export * from './service'
 export * from './appointment'
+export * from './stockMovement'
 export * from './common'
 
 // Re-export enums
@@ -131,4 +150,6 @@ export {
   journalEntryStatusEnum,
   serviceColorEnum,
   appointmentStatusEnum,
+  productCategoryColorEnum,
+  stockMovementTypeEnum,
 }

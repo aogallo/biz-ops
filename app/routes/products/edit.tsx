@@ -8,11 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { categoriesRepository } from '~/features/categories/server/repository'
+import { PRODUCT_MESSAGES } from '~/features/products/messages'
+import { updateProduct } from '~/features/products/server/actions/update.action'
+import { productsRepository } from '~/features/products/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
-import { PRODUCT_MESSAGES } from '../../features/products/messages'
-import { updateProduct } from '../../features/products/server/actions/update.action'
-import { productsRepository } from '../../features/products/server/repository'
 import type { Route } from './+types/edit'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -27,7 +28,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     })
   }
 
-  const product = await productsRepository.getBySku(organizationId, sku)
+  const [product, categories] = await Promise.all([
+    productsRepository.getBySku(organizationId, sku),
+    categoriesRepository.getAllByOrganization(organizationId),
+  ])
 
   if (!product) {
     return redirectWithFlash('/products', {
@@ -36,7 +40,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     })
   }
 
-  return { product }
+  return { product, categories }
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -48,27 +52,26 @@ export async function action({ request, params }: Route.ActionArgs) {
     return { success: false, message: 'No active organization' }
   }
 
-  // Get product to find ID
   const product = await productsRepository.getBySku(organizationId, sku)
   if (!product) {
     return { success: false, message: 'Product not found' }
   }
 
   const response = await updateProduct(request, product.id)
-
-  // Redirect on success (use updated SKU in case it changed)
   if (response.success && response.data) {
     return redirect(`/products/${response.data.sku}`)
   }
-
   return response
 }
 
 export default function EditProduct({ loaderData }: Route.ComponentProps) {
-  const { product } = loaderData
+  const { product, categories } = loaderData
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+
+  const inputClass =
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
 
   return (
     <div className='mx-auto max-w-4xl p-6'>
@@ -99,20 +102,22 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   required
                   defaultValue={product.sku}
                   placeholder='PROD-001'
-                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  className={inputClass}
                 />
-                {actionData && 'errors' in actionData && actionData.errors?.sku && (
-                  <p className='text-destructive mt-1 text-xs'>
-                    {actionData.errors.sku}
-                  </p>
-                )}
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  Unique identifier for this product in your organization
-                </p>
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors?.sku && (
+                    <p className='text-destructive mt-1 text-xs'>
+                      {actionData.errors.sku}
+                    </p>
+                  )}
               </div>
 
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Product Name *
                 </label>
                 <input
@@ -122,19 +127,24 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   required
                   defaultValue={product.name}
                   placeholder='Premium Widget'
-                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  className={inputClass}
                 />
-                {actionData && 'errors' in actionData && actionData.errors?.name && (
-                  <p className='text-destructive mt-1 text-xs'>
-                    {actionData.errors.name}
-                  </p>
-                )}
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors?.name && (
+                    <p className='text-destructive mt-1 text-xs'>
+                      {actionData.errors.name}
+                    </p>
+                  )}
               </div>
             </div>
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='price' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='price'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Price *
                 </label>
                 <input
@@ -146,7 +156,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   min='0'
                   defaultValue={product.price.toString()}
                   placeholder='99.99'
-                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  className={inputClass}
                 />
                 {actionData &&
                   'errors' in actionData &&
@@ -158,7 +168,34 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='stock' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='categoryId'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  Category
+                </label>
+                <select
+                  id='categoryId'
+                  name='categoryId'
+                  defaultValue={product.categoryId || ''}
+                  className={inputClass}
+                >
+                  <option value=''>No category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className='grid gap-6 sm:grid-cols-2'>
+              <div>
+                <label
+                  htmlFor='stock'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Stock
                 </label>
                 <input
@@ -168,7 +205,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   min='0'
                   defaultValue={product.stock ?? 0}
                   placeholder='0'
-                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  className={inputClass}
                 />
                 {actionData &&
                   'errors' in actionData &&
@@ -178,6 +215,65 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                     </p>
                   )}
               </div>
+
+              <div>
+                <label
+                  htmlFor='minStock'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  Minimum Stock (Alert Threshold)
+                </label>
+                <input
+                  type='number'
+                  id='minStock'
+                  name='minStock'
+                  min='0'
+                  defaultValue={product.minStock ?? 0}
+                  placeholder='10'
+                  className={inputClass}
+                />
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors?.minStock && (
+                    <p className='text-destructive mt-1 text-xs'>
+                      {actionData.errors.minStock}
+                    </p>
+                  )}
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor='description'
+                className='mb-2 block text-sm font-medium'
+              >
+                Description
+              </label>
+              <textarea
+                id='description'
+                name='description'
+                rows={3}
+                defaultValue={product.description || ''}
+                placeholder='Product description...'
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor='imageUrl'
+                className='mb-2 block text-sm font-medium'
+              >
+                Image URL
+              </label>
+              <input
+                type='url'
+                id='imageUrl'
+                name='imageUrl'
+                defaultValue={product.imageUrl || ''}
+                placeholder='https://example.com/image.jpg'
+                className={inputClass}
+              />
             </div>
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>

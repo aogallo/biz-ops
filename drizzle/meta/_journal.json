@@ -36,6 +36,20 @@
       "when": 1770783380635,
       "tag": "0004_jittery_landau",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770839003284,
+      "tag": "0005_narrow_selene",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770839470616,
+      "tag": "0006_clean_gwen_stacy",
+      "breakpoints": true
     }
   ]
 }

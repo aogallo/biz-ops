@@ -1,6 +1,7 @@
 import { invoiceRepository } from '../repository'
 import { organizationConfigRepository } from '~/features/organization-config/server/repository'
 import { createJournalEntryAction } from '~/features/journal-entry/server/actions/create.action'
+import { stockMovementRepository } from '~/features/stock/server/repository'
 import type { Invoice } from '~/server/db/schemas/invoice'
 import type { JournalEntry } from '~/server/db/schemas/journalEntry'
 
@@ -145,6 +146,37 @@ export async function postInvoiceAction(
         success: false,
         error: journalEntryResult.error || 'Failed to create journal entry',
       }
+    }
+
+    // Create stock movements for invoice lines with products
+    // Sale → exit (stock out), Purchase → entry (stock in)
+    // If stock movements fail, do NOT rollback the invoice (accounting is priority)
+    try {
+      const movementType = invoice.type === 'sale' ? 'exit' : 'entry'
+      const linesWithProducts = invoice.lines.filter(
+        (line) => line.productId && Number(line.quantity) > 0
+      )
+
+      for (const line of linesWithProducts) {
+        await stockMovementRepository.create({
+          organizationId: invoice.organizationId,
+          productId: line.productId!,
+          type: movementType as 'entry' | 'exit',
+          quantity: Number(line.quantity),
+          reason: `Factura #${invoiceNumber}`,
+          referenceType: 'invoice',
+          referenceId: invoiceId,
+          notes: line.description || null,
+          createdById: null,
+          movementDate: new Date(invoice.invoiceDate),
+        })
+      }
+    } catch (stockError) {
+      console.error(
+        'Error creating stock movements for invoice:',
+        stockError
+      )
+      // Continue — accounting entry was already created successfully
     }
 
     return {

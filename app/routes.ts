@@ -35,8 +35,22 @@ export default [
     ...prefix('products', [
       index('./routes/products/index.tsx'),
       route('/new', './routes/products/create.tsx'),
+      route('/scan', './routes/products/scan.tsx'),
       route('/:sku', './routes/products/show.tsx'),
       route('/:sku/edit', './routes/products/edit.tsx'),
+    ]),
+
+    // Stock Movement Routes
+    ...prefix('stock', [
+      index('./routes/stock/index.tsx'),
+      route('/new', './routes/stock/new.tsx'),
+    ]),
+
+    // Categories Routes
+    ...prefix('categories', [
+      index('./routes/categories/index.tsx'),
+      route('/new', './routes/categories/create.tsx'),
+      route('/:id/edit', './routes/categories/edit.tsx'),
     ]),
 
     // Pertner Routes
@@ -123,7 +137,10 @@ export default [
     ]),
 
     // Report Routes
-    ...prefix('reports', [index('./routes/reports/index.tsx')]),
+    ...prefix('reports', [
+      index('./routes/reports/index.tsx'),
+      route('/inventory', './routes/reports/inventory.tsx'),
+    ]),
 
     // Invoice Routes
     ...prefix('invoices', [

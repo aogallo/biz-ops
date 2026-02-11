@@ -18,9 +18,11 @@ import {
     Package,
     PackageCheck,
     PlusCircle,
+    ScanLine,
     Settings,
     Shapes,
     ShieldXIcon,
+    Tag,
     Truck,
     Users,
     UserStarIcon,
@@ -69,7 +71,9 @@ export const navigationItems = [
     color: 'accent-inventory', // amber for inventory domain
     items: [
       { name: 'Products', path: '/products', icon: Shapes },
+      { name: 'Categories', path: '/categories', icon: Tag },
       { name: 'Stock', path: '/stock', icon: PackageCheck },
+      { name: 'Scan QR', path: '/products/scan', icon: ScanLine },
       { name: 'Suppliers', path: '/suppliers', icon: Truck },
     ],
   },
@@ -112,11 +116,20 @@ export const navigationItems = [
         path: '/reports',
         icon: Notebook,
       },
+      {
+        name: 'Inventory Report',
+        path: '/reports/inventory',
+        icon: Package,
+      },
     ],
   },
 ]
 
-const AppSidebar = () => {
+interface AppSidebarProps {
+  lowStockCount?: number
+}
+
+const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
   const { session, permissions, availableOrganizations } = useAuth()
   const fetcher = useFetcher()
 
@@ -176,6 +189,11 @@ const AppSidebar = () => {
                 <div className='group/menu-item relative'>
                   <section.icon className={cn(section.color)} />
                   <span>{section.section}</span>
+                  {section.section === 'Inventory' && lowStockCount > 0 && (
+                    <span className='ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white'>
+                      {lowStockCount}
+                    </span>
+                  )}
                 </div>
               </SidebarMenuButton>
               <SidebarMenuSub>

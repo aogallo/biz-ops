@@ -1,4 +1,6 @@
 import { Link, useSubmit } from 'react-router'
+import { ProductQRCode } from '~/features/products/components/ProductQRCode'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -7,11 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import {
+  categoryColorMap,
+  type CategoryColor,
+} from '~/features/categories/schemas'
+import { PRODUCT_MESSAGES } from '~/features/products/messages'
+import { deleteProduct } from '~/features/products/server/actions/delete.action'
+import { productsRepository } from '~/features/products/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
-import { PRODUCT_MESSAGES } from '../../features/products/messages'
-import { deleteProduct } from '../../features/products/server/actions/delete.action'
-import { productsRepository } from '../../features/products/server/repository'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -26,7 +32,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     })
   }
 
-  const product = await productsRepository.getBySku(organizationId, sku)
+  const product = await productsRepository.getBySkuWithCategory(
+    organizationId,
+    sku
+  )
 
   if (!product) {
     return redirectWithFlash('/products', {
@@ -47,27 +56,29 @@ export async function action({ request, params }: Route.ActionArgs) {
     return { success: false, message: 'No active organization' }
   }
 
-  // Get product to find ID
   const product = await productsRepository.getBySku(organizationId, sku)
   if (!product) {
     return { success: false, message: 'Product not found' }
   }
 
   const result = await deleteProduct(request, product.id)
-
   if (result.success) {
     return redirectWithFlash('/products', {
       type: 'success',
       message: PRODUCT_MESSAGES.deleted,
     })
   }
-
   return result
 }
 
 export default function ShowProduct({ loaderData }: Route.ComponentProps) {
   const { product } = loaderData
   const submit = useSubmit()
+
+  const stock = product.stock ?? 0
+  const minStock = product.minStock ?? 0
+  const isLow = stock > 0 && stock <= minStock && minStock > 0
+  const isOut = stock === 0
 
   const handleDelete = () => {
     if (
@@ -101,7 +112,7 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
 
-      <div className='grid gap-6 md:grid-cols-2'>
+      <div className='grid gap-6 md:grid-cols-3'>
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
@@ -130,6 +141,29 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
                 ${Number(product.price).toFixed(2)}
               </p>
             </div>
+            {product.categoryName && product.categoryColor && (
+              <div>
+                <label className='text-muted-foreground text-sm font-medium'>
+                  Category
+                </label>
+                <div className='mt-1'>
+                  <Badge
+                    variant='outline'
+                    className={`${categoryColorMap[product.categoryColor as CategoryColor].bg} ${categoryColorMap[product.categoryColor as CategoryColor].text}`}
+                  >
+                    {product.categoryName}
+                  </Badge>
+                </div>
+              </div>
+            )}
+            {product.description && (
+              <div>
+                <label className='text-muted-foreground text-sm font-medium'>
+                  Description
+                </label>
+                <p className='text-sm'>{product.description}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -146,28 +180,69 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
               <p className='text-2xl font-bold'>
                 <span
                   className={
-                    (product.stock ?? 0) === 0
+                    isOut
                       ? 'text-destructive'
-                      : (product.stock ?? 0) < 10
+                      : isLow
                         ? 'text-amber-600'
                         : 'text-green-600'
                   }
                 >
-                  {product.stock ?? 0}
+                  {stock}
                 </span>
               </p>
               <p className='text-muted-foreground mt-1 text-sm'>
-                {(product.stock ?? 0) === 0
-                  ? 'Out of stock'
-                  : (product.stock ?? 0) < 10
-                    ? 'Low stock'
-                    : 'In stock'}
+                {isOut ? 'Out of stock' : isLow ? 'Low stock' : 'In stock'}
               </p>
             </div>
+            {minStock > 0 && (
+              <div>
+                <label className='text-muted-foreground text-sm font-medium'>
+                  Minimum Stock Threshold
+                </label>
+                <p className='text-lg font-medium'>{minStock}</p>
+                {stock > 0 && minStock > 0 && (
+                  <div className='mt-2'>
+                    <div className='bg-muted h-2 w-full overflow-hidden rounded-full'>
+                      <div
+                        className={`h-full rounded-full ${isOut ? 'bg-red-500' : isLow ? 'bg-amber-500' : 'bg-green-500'}`}
+                        style={{
+                          width: `${Math.min(100, (stock / minStock) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <p className='text-muted-foreground mt-1 text-xs'>
+                      {Math.round((stock / minStock) * 100)}% of minimum
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            {product.imageUrl && (
+              <div>
+                <label className='text-muted-foreground text-sm font-medium'>
+                  Product Image
+                </label>
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className='mt-2 max-h-48 rounded-md object-cover'
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <Card className='md:col-span-2'>
+        <Card>
+          <CardHeader>
+            <CardTitle>QR Code</CardTitle>
+            <CardDescription>Scan to access this product</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProductQRCode productName={product.name} sku={product.sku} />
+          </CardContent>
+        </Card>
+
+        <Card className='md:col-span-3'>
           <CardHeader>
             <CardTitle>Metadata</CardTitle>
             <CardDescription>Tracking information</CardDescription>

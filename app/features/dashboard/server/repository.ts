@@ -1,7 +1,9 @@
-import { and, count, eq, gte, lte, sql, sum } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, sql, sum } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { appointmentModel } from '~/server/db/schemas/appointment'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
+import { productModel } from '~/server/db/schemas/products'
+import { stockMovementModel } from '~/server/db/schemas/stockMovement'
 import { serviceModel } from '~/server/db/schemas/service'
 import { memberModel, userModel } from '~/server/db/schemas/auth'
 
@@ -163,6 +165,71 @@ export class DashboardStatsRepository {
     if (availableMinutes === 0) return 0
 
     return Math.round((bookedMinutes / availableMinutes) * 100)
+  }
+  /**
+   * Get inventory summary stats for dashboard
+   */
+  async getInventoryStats(organizationId: string) {
+    const [stats] = await db
+      .select({
+        totalProducts: count(),
+        totalStockValue: sql<number>`COALESCE(SUM(${productModel.stock} * ${productModel.price}), 0)`.as('total_stock_value'),
+        lowStockCount: sql<number>`COUNT(*) FILTER (WHERE ${productModel.stock} > 0 AND ${productModel.stock} <= ${productModel.minStock} AND ${productModel.minStock} > 0)`.as('low_stock'),
+        outOfStockCount: sql<number>`COUNT(*) FILTER (WHERE ${productModel.stock} = 0 OR ${productModel.stock} IS NULL)`.as('out_of_stock'),
+      })
+      .from(productModel)
+      .where(eq(productModel.organizationId, organizationId))
+
+    return {
+      totalProducts: stats?.totalProducts ?? 0,
+      totalStockValue: Number(stats?.totalStockValue ?? 0),
+      lowStockCount: Number(stats?.lowStockCount ?? 0),
+      outOfStockCount: Number(stats?.outOfStockCount ?? 0),
+    }
+  }
+
+  /**
+   * Get products with low stock for dashboard alerts
+   */
+  async getLowStockProducts(organizationId: string, limit = 5) {
+    return await db
+      .select({
+        id: productModel.id,
+        name: productModel.name,
+        sku: productModel.sku,
+        stock: productModel.stock,
+        minStock: productModel.minStock,
+      })
+      .from(productModel)
+      .where(
+        and(
+          eq(productModel.organizationId, organizationId),
+          sql`${productModel.minStock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
+        )
+      )
+      .orderBy(sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`)
+      .limit(limit)
+  }
+
+  /**
+   * Get recent stock movements for dashboard activity feed
+   */
+  async getRecentMovements(organizationId: string, limit = 5) {
+    return await db
+      .select({
+        id: stockMovementModel.id,
+        type: stockMovementModel.type,
+        quantity: stockMovementModel.quantity,
+        reason: stockMovementModel.reason,
+        movementDate: stockMovementModel.movementDate,
+        productName: productModel.name,
+        productSku: productModel.sku,
+      })
+      .from(stockMovementModel)
+      .innerJoin(productModel, eq(stockMovementModel.productId, productModel.id))
+      .where(eq(stockMovementModel.organizationId, organizationId))
+      .orderBy(desc(stockMovementModel.movementDate))
+      .limit(limit)
   }
 }
 

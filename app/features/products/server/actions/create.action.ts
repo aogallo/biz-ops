@@ -3,29 +3,26 @@ import { createProductSchema } from '../../schemas'
 import { productsRepository } from '../repository'
 
 export async function createProduct(request: Request) {
-  // Authenticate user
   const session = await requireAuth(request)
-
-  // Get active organization from session
   const organizationId = session.session.activeOrganizationId
+
   if (!organizationId) {
-    return {
-      success: false,
-      message: 'No active organization selected',
-    }
+    return { success: false, message: 'No active organization selected' }
   }
 
-  // Parse form data
   const formData = await request.formData()
   const inputValues = {
     name: formData.get('name'),
     sku: formData.get('sku'),
     price: formData.get('price'),
     stock: formData.get('stock') ? Number(formData.get('stock')) : 0,
+    minStock: formData.get('minStock') ? Number(formData.get('minStock')) : 0,
+    description: formData.get('description') || null,
+    imageUrl: formData.get('imageUrl') || null,
+    categoryId: formData.get('categoryId') || null,
     organizationId,
   }
 
-  // Validate input
   const result = createProductSchema.safeParse(inputValues)
   if (!result.success) {
     return {
@@ -40,7 +37,6 @@ export async function createProduct(request: Request) {
     organizationId,
     result.data.sku
   )
-
   if (existingProduct) {
     return {
       success: false,
@@ -48,13 +44,9 @@ export async function createProduct(request: Request) {
     }
   }
 
-  // Create product
   try {
     const product = await productsRepository.create(result.data)
-    return {
-      success: true,
-      data: product,
-    }
+    return { success: true, data: product }
   } catch (error) {
     return {
       success: false,

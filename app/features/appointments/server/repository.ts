@@ -1,4 +1,4 @@
-import { and, eq, gte, lte } from 'drizzle-orm'
+import { and, desc, eq, gte, lte } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { appointmentModel } from '~/server/db/schemas/appointment'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
@@ -96,6 +96,35 @@ export class AppointmentsRepository {
         )
       )
       .orderBy(appointmentModel.date, appointmentModel.startTime)
+  }
+
+  /**
+   * Get appointments for a specific client (visit history)
+   */
+  async getByClient(organizationId: string, clientId: string) {
+    return await db
+      .select({
+        id: appointmentModel.id,
+        date: appointmentModel.date,
+        startTime: appointmentModel.startTime,
+        endTime: appointmentModel.endTime,
+        status: appointmentModel.status,
+        notes: appointmentModel.notes,
+        serviceName: serviceModel.name,
+        serviceColor: serviceModel.color,
+        staffName: userModel.name,
+      })
+      .from(appointmentModel)
+      .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
+      .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
+      .innerJoin(userModel, eq(memberModel.userId, userModel.id))
+      .where(
+        and(
+          eq(appointmentModel.organizationId, organizationId),
+          eq(appointmentModel.clientId, clientId)
+        )
+      )
+      .orderBy(desc(appointmentModel.date), desc(appointmentModel.startTime))
   }
 
   /**

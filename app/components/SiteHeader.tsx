@@ -1,6 +1,7 @@
-import { Bell, Building2, LogOut, Settings, User } from 'lucide-react'
-import { Form, Link, useMatches } from 'react-router'
+import { Bell, Building2, Globe, LogOut, Settings, User } from 'lucide-react'
+import { Form, Link, useFetcher, useMatches } from 'react-router'
 import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
+import { useLocale } from '~/i18n/context'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -185,6 +186,38 @@ function UserProfileDropdown() {
   )
 }
 
+function LocaleToggle() {
+  const locale = useLocale()
+  const fetcher = useFetcher()
+  const nextLocale = locale === 'en' ? 'es' : 'en'
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <fetcher.Form method='post' action='/action/set-locale'>
+            <input type='hidden' name='locale' value={nextLocale} />
+            <Button
+              type='submit'
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8'
+            >
+              <Globe className='h-4 w-4' />
+              <span className='sr-only'>
+                Switch to {nextLocale === 'es' ? 'Spanish' : 'English'}
+              </span>
+            </Button>
+          </fetcher.Form>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{locale === 'en' ? 'Cambiar a Español' : 'Switch to English'}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
+
 const SiteHeader = () => {
   const matches = useMatches()
   const pageTitle = getPageTitle(matches)
@@ -205,6 +238,7 @@ const SiteHeader = () => {
             orientation='vertical'
             className='mx-1 hidden data-[orientation=vertical]:h-4 md:block'
           />
+          <LocaleToggle />
           <ModeToggle />
           <NotificationBell />
           <UserProfileDropdown />

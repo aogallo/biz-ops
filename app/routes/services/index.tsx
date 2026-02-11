@@ -113,6 +113,22 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
         },
       },
       {
+        accessorKey: 'price',
+        header: 'Price',
+        cell: ({ row }) => {
+          const price = row.getValue('price') as string | null
+          if (!price) return <span className="text-muted-foreground">-</span>
+          return (
+            <span>
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              }).format(Number(price))}
+            </span>
+          )
+        },
+      },
+      {
         accessorKey: 'color',
         header: 'Color',
         cell: ({ row }) => {

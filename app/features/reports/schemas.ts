@@ -5,6 +5,7 @@ export const reportTypeSchema = z.enum([
   'sales-ledger',
   'purchase-ledger',
   'general-ledger',
+  'appointment-occupancy',
 ])
 
 export const generateReportSchema = z.object({

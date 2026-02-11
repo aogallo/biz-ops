@@ -14,6 +14,7 @@ export const insertServiceSchema = createInsertSchema(serviceModel, {
     .min(5, 'Duration must be at least 5 minutes')
     .max(480, 'Duration must not exceed 8 hours'),
   color: z.enum(['blue', 'green', 'orange', 'teal', 'purple', 'red', 'yellow']),
+  price: z.string().optional(),
   description: z.string().max(500, 'Description must not exceed 500 characters').optional(),
 })
 

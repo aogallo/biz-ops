@@ -1,4 +1,5 @@
 import { Link, useSubmit } from 'react-router'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -7,6 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
+import { appointmentStatusConfig, type AppointmentStatus } from '~/features/appointments/schemas'
+import { appointmentsRepository } from '~/features/appointments/server/repository'
 import { BUSINESS_PARTNER_MESSAGES } from '~/features/business-partners/messages'
 import { deleteBusinessPartner } from '~/features/business-partners/server/actions/delete.action'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
@@ -38,7 +49,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     })
   }
 
-  return { partner }
+  // Fetch visit history if partner is a client or both
+  const showVisitHistory = partner.type === 'client' || partner.type === 'both'
+  const visitHistory = showVisitHistory
+    ? await appointmentsRepository.getByClient(organizationId, id)
+    : []
+
+  return { partner, visitHistory, showVisitHistory }
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -58,7 +75,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 export default function ShowBusinessPartner({
   loaderData,
 }: Route.ComponentProps) {
-  const { partner } = loaderData
+  const { partner, visitHistory, showVisitHistory } = loaderData
   const submit = useSubmit()
 
   const handleDelete = () => {
@@ -128,7 +145,7 @@ export default function ShowBusinessPartner({
               <label className='text-muted-foreground text-sm font-medium'>
                 Partner NIT
               </label>
-              <p className='text-xl font-semibold'>{partner.nit}</p>
+              <p className='text-xl font-semibold'>{partner.nit || '-'}</p>
             </div>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
@@ -156,6 +173,29 @@ export default function ShowBusinessPartner({
                 <p className='text-muted-foreground'>No email provided</p>
               )}
             </div>
+            <div>
+              <label className='text-muted-foreground text-sm font-medium'>
+                Phone Number
+              </label>
+              {partner.phone ? (
+                <a
+                  href={`tel:${partner.phone}`}
+                  className='text-primary block text-lg hover:underline'
+                >
+                  {partner.phone}
+                </a>
+              ) : (
+                <p className='text-muted-foreground'>No phone provided</p>
+              )}
+            </div>
+            {partner.notes && (
+              <div>
+                <label className='text-muted-foreground text-sm font-medium'>
+                  Notes
+                </label>
+                <p className='text-sm whitespace-pre-wrap'>{partner.notes}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -190,6 +230,64 @@ export default function ShowBusinessPartner({
           </CardContent>
         </Card>
       </div>
+
+      {showVisitHistory && (
+        <Card className='mt-6'>
+          <CardHeader>
+            <CardTitle>Visit History</CardTitle>
+            <CardDescription>
+              Past and upcoming appointments for this client
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {visitHistory.length === 0 ? (
+              <div className='rounded-lg border border-dashed p-8 text-center'>
+                <p className='text-muted-foreground'>
+                  No appointments found for this client.
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Staff</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visitHistory.map((visit) => {
+                    const statusConfig = appointmentStatusConfig[visit.status as AppointmentStatus]
+                    return (
+                      <TableRow key={visit.id}>
+                        <TableCell className='font-medium'>
+                          {new Date(visit.date + 'T00:00:00').toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {visit.startTime} - {visit.endTime}
+                        </TableCell>
+                        <TableCell>{visit.serviceName}</TableCell>
+                        <TableCell>{visit.staffName}</TableCell>
+                        <TableCell>
+                          <Badge variant={statusConfig?.variant || 'outline'}>
+                            {statusConfig?.label || visit.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className='max-w-[200px] truncate text-muted-foreground'>
+                          {visit.notes || '-'}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

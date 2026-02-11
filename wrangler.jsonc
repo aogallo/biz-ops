@@ -13,6 +13,9 @@
 	"observability": {
 		"enabled": true,
 	},
+	"triggers": {
+		"crons": ["0 14 * * *"]
+	},
 	/**
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

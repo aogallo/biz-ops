@@ -4,6 +4,8 @@ import SiteHeader from '~/components/SiteHeader'
 import { PageSkeleton } from '~/components/skeleton/PageSkeleton'
 import { SidebarProvider } from '~/components/ui/sidebar'
 import { AuthProvider } from '~/contexts/AuthContext'
+import { I18nProvider } from '~/i18n/context'
+import type { Locale } from '~/i18n/types'
 import type { Organization } from '~/features/organization/schemas'
 import { organizationRepository } from '~/features/organization/server/repository'
 import { getUserOrganizations } from '~/server/auth/organization.server'
@@ -49,6 +51,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect('/welcome')
   }
 
+  // Read locale from cookie
+  const cookieHeader = request.headers.get('Cookie') || ''
+  const localeMatch = cookieHeader.match(/locale=(en|es)/)
+  const locale: Locale = (localeMatch?.[1] as Locale) || 'en'
+
   return {
     session,
     permissions: {
@@ -56,6 +63,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       isSuperAdmin: isSuperAdminUser,
     },
     organizations,
+    locale,
   }
 }
 
@@ -67,25 +75,27 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     isNavigating && navigation.location.pathname !== location.pathname
 
   return (
-    <AuthProvider
-      value={{
-        session: loaderData.session,
-        permissions: loaderData.permissions,
-        availableOrganizations: loaderData.organizations,
-      }}
-    >
-      <SidebarProvider>
-        <AppSidebar />
-        <div className='bg-background flex min-h-screen flex-1 flex-col'>
-          <SiteHeader />
-          <main
-            className='page-container flex-1'
-            aria-busy={isPageNavigation}
-          >
-            {isPageNavigation ? <PageSkeleton /> : <Outlet />}
-          </main>
-        </div>
-      </SidebarProvider>
-    </AuthProvider>
+    <I18nProvider locale={loaderData.locale}>
+      <AuthProvider
+        value={{
+          session: loaderData.session,
+          permissions: loaderData.permissions,
+          availableOrganizations: loaderData.organizations,
+        }}
+      >
+        <SidebarProvider>
+          <AppSidebar />
+          <div className='bg-background flex min-h-screen flex-1 flex-col'>
+            <SiteHeader />
+            <main
+              className='page-container flex-1'
+              aria-busy={isPageNavigation}
+            >
+              {isPageNavigation ? <PageSkeleton /> : <Outlet />}
+            </main>
+          </div>
+        </SidebarProvider>
+      </AuthProvider>
+    </I18nProvider>
   )
 }

@@ -102,6 +102,26 @@ export default function CreateService() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="price">Price</Label>
+              <Input
+                type="number"
+                id="price"
+                name="price"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+              {actionData?.errors?.price && (
+                <p className="text-destructive text-xs">
+                  {actionData.errors.price}
+                </p>
+              )}
+              <p className="text-muted-foreground text-xs">
+                Optional - service price for billing and reports
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="color">Color *</Label>
               <Select name="color" defaultValue="blue">
                 <SelectTrigger id="color">

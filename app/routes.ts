@@ -16,6 +16,7 @@ export default [
 
   // Action routes
   route('/action/set-theme', 'routes/action.set-theme.tsx'),
+  route('/action/set-locale', 'routes/action.set-locale.tsx'),
   route('/action/switch-organization', 'routes/action.switch-organization.tsx'),
 
   // Public invitation acceptance
@@ -90,6 +91,7 @@ export default [
     ...prefix('appointments', [
       index('./routes/appointments/index.tsx'),
       route('/new', './routes/appointments/new.tsx'),
+      route('/send-reminders', './routes/appointments/send-reminders.tsx'),
     ]),
 
     // Services Routes

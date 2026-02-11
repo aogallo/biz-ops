@@ -46,7 +46,7 @@ export const navigationItems = [
   {
     section: 'Admin',
     icon: Drumstick,
-    color: 'accent-admin', // stone/neutral for system pages
+    color: 'accent-admin', // indigo/brand for system pages
     items: [
       { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
       { name: 'Accounts', path: '/accounts', icon: BookOpenIcon },
@@ -88,7 +88,7 @@ export const navigationItems = [
   {
     section: 'Settings',
     icon: Settings,
-    color: 'accent-admin', // stone/neutral for settings
+    color: 'accent-admin', // indigo/brand for settings
     items: [
       { name: 'Accounting', path: '/settings/accounting', icon: Settings },
     ],
@@ -186,8 +186,8 @@ const AppSidebar = () => {
                         cn(
                           'rounded-md transition-colors',
                           isActive
-                            ? 'bg-accent font-medium text-accent-foreground'
-                            : 'hover:bg-accent/50'
+                            ? 'bg-primary/10 font-medium text-primary'
+                            : 'hover:bg-primary/5'
                         )
                       }
                       to={item.path}

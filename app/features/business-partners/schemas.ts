@@ -24,6 +24,16 @@ export const insertBusinessPartnerSchema = createInsertSchema(
       .max(20, 'NIT must not exceed 20 characters')
       .optional()
       .or(z.literal('')),
+    phone: z
+      .string()
+      .max(20, 'Phone must not exceed 20 characters')
+      .optional()
+      .or(z.literal('')),
+    notes: z
+      .string()
+      .max(1000, 'Notes must not exceed 1000 characters')
+      .optional()
+      .or(z.literal('')),
   }
 )
 

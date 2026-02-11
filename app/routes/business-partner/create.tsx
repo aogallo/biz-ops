@@ -104,24 +104,68 @@ export default function CreateBusinessPartner() {
               </div>
             </div>
 
+            <div className='grid gap-6 sm:grid-cols-2'>
+              <div>
+                <label htmlFor='email' className='mb-2 block text-sm font-medium'>
+                  Email Address
+                </label>
+                <input
+                  type='email'
+                  id='email'
+                  name='email'
+                  placeholder='contact@example.com'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                />
+                {actionData?.errors?.email && (
+                  <p className='text-destructive mt-1 text-xs'>
+                    {actionData.errors.email}
+                  </p>
+                )}
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  Optional - Primary contact email
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor='phone' className='mb-2 block text-sm font-medium'>
+                  Phone Number
+                </label>
+                <input
+                  type='tel'
+                  id='phone'
+                  name='phone'
+                  placeholder='+502 1234-5678'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                />
+                {actionData?.errors?.phone && (
+                  <p className='text-destructive mt-1 text-xs'>
+                    {actionData.errors.phone}
+                  </p>
+                )}
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  Optional - Contact phone number
+                </p>
+              </div>
+            </div>
+
             <div>
-              <label htmlFor='email' className='mb-2 block text-sm font-medium'>
-                Email Address
+              <label htmlFor='notes' className='mb-2 block text-sm font-medium'>
+                Notes
               </label>
-              <input
-                type='email'
-                id='email'
-                name='email'
-                placeholder='contact@example.com'
-                className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:max-w-md'
+              <textarea
+                id='notes'
+                name='notes'
+                rows={3}
+                placeholder='Additional notes about this partner...'
+                className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
               />
-              {actionData?.errors?.email && (
+              {actionData?.errors?.notes && (
                 <p className='text-destructive mt-1 text-xs'>
-                  {actionData.errors.email}
+                  {actionData.errors.notes}
                 </p>
               )}
               <p className='text-muted-foreground mt-1 text-xs'>
-                Optional - Primary contact email for this partner
+                Optional - Internal notes (max 1000 characters)
               </p>
             </div>
           </CardContent>

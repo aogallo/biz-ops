@@ -40,6 +40,8 @@ export async function updateBusinessPartner(
     name: formData.get("name"),
     type: formData.get("type"),
     email: formData.get("email") || "",
+    phone: formData.get("phone") || "",
+    notes: formData.get("notes") || "",
     organizationId,
   };
 

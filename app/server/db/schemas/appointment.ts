@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { date, pgEnum, pgTable, text, time, uuid } from 'drizzle-orm/pg-core'
+import { date, pgEnum, pgTable, text, time, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { organizationModel, memberModel } from './auth'
 import { businessPartnerModel } from './businessPartner'
 import { serviceModel } from './service'
@@ -33,6 +33,7 @@ export const appointmentModel = pgTable('appointment', {
   endTime: time('end_time').notNull(),
   status: appointmentStatusEnum('status').notNull().default('pending'),
   notes: text('notes'),
+  reminderSentAt: timestamp('reminder_sent_at'),
   ...timestamps,
 })
 

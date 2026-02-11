@@ -21,6 +21,8 @@ export async function createBusinessPartner(request: Request) {
     name: formData.get("name"),
     type: formData.get("type"),
     email: formData.get("email") || "",
+    phone: formData.get("phone") || "",
+    notes: formData.get("notes") || "",
     organizationId,
   };
 

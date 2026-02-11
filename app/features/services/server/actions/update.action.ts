@@ -37,6 +37,7 @@ export async function updateServiceAction(request: Request) {
     name: formData.get('name') || undefined,
     duration: formData.get('duration') ? Number(formData.get('duration')) : undefined,
     color: formData.get('color') || undefined,
+    price: formData.get('price') || undefined,
     description: formData.get('description') || undefined,
     isActive: formData.has('isActive') ? formData.get('isActive') === 'true' : undefined,
     organizationId,

@@ -20,4 +20,20 @@ export default {
       cloudflare: { env, ctx },
     });
   },
+
+  async scheduled(event, env, ctx) {
+    console.log(`⏰ Cron triggered: ${event.cron} at ${new Date().toISOString()}`);
+    const { sendUpcomingReminders } = await import(
+      "../app/features/appointments/server/actions/send-reminders.action"
+    );
+    ctx.waitUntil(
+      sendUpcomingReminders()
+        .then((result) => {
+          console.log(`✅ Reminders complete: ${result.sent} sent, ${result.failed} failed`);
+        })
+        .catch((error) => {
+          console.error("❌ Reminder cron failed:", error);
+        })
+    );
+  },
 } satisfies ExportedHandler<Env>;

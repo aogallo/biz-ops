@@ -45,12 +45,23 @@ import {
   type ExportReportResult,
   type GenerateReportResult,
 } from '~/features/reports/server/actions/journal.entry.action'
+import {
+  exportAppointmentReportAction,
+  generateAppointmentReportAction,
+  type AppointmentReportResult,
+  type AppointmentExportResult,
+} from '~/features/reports/server/actions/appointment.report.action'
+import { eq } from 'drizzle-orm'
+import { db } from '~/server/db'
+import { memberModel, userModel } from '~/server/db/schemas/auth'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/index'
 
 type ActionResult =
   | GenerateReportResult
   | ExportReportResult
+  | AppointmentReportResult
+  | AppointmentExportResult
   | { success: false; error: string }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -90,7 +101,6 @@ export async function action({ request }: Route.ActionArgs) {
       } as const
     }
 
-    // Currently only journal-entry report is implemented
     if (result.data.reportType === 'journal-entry') {
       try {
         const reportResult = await generateJournalReportAction(
@@ -104,6 +114,26 @@ export async function action({ request }: Route.ActionArgs) {
         return reportResult
       } catch (error) {
         console.error('[Reports Action] Generate error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
+    if (result.data.reportType === 'appointment-occupancy') {
+      try {
+        const staffId = formData.get('staffId') as string | null
+        const reportResult = await generateAppointmentReportAction(
+          organizationId,
+          {
+            dateFrom: result.data.dateFrom,
+            dateTo: result.data.dateTo,
+            staffId: staffId || undefined,
+            page: result.data.page,
+            pageSize: result.data.pageSize,
+          }
+        )
+        return reportResult
+      } catch (error) {
+        console.error('[Reports Action] Generate appointment error:', error)
         return { success: false, error: String(error) } as const
       }
     }
@@ -127,7 +157,6 @@ export async function action({ request }: Route.ActionArgs) {
       } as const
     }
 
-    // Currently only journal-entry report is implemented
     if (result.data.reportType === 'journal-entry') {
       try {
         const exportResult = await exportJournalReportAction(
@@ -141,6 +170,24 @@ export async function action({ request }: Route.ActionArgs) {
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
+    if (result.data.reportType === 'appointment-occupancy') {
+      try {
+        const staffId = formData.get('staffId') as string | null
+        const exportResult = await exportAppointmentReportAction(
+          organizationId,
+          {
+            dateFrom: result.data.dateFrom,
+            dateTo: result.data.dateTo,
+            staffId: staffId || undefined,
+          }
+        )
+        return exportResult
+      } catch (error) {
+        console.error('[Reports Action] Export appointment error:', error)
         return { success: false, error: String(error) } as const
       }
     }
@@ -159,8 +206,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     return {
       companies: [],
       businessPartners: [],
+      staff: [],
       selectedCompanyId: undefined,
       selectedPartnerId: undefined,
+      selectedStaffId: undefined,
       selectedReportType: 'journal-entry',
       datePreset: 'today',
     }
@@ -169,19 +218,27 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const companyId = url.searchParams.get('companyId') || undefined
   const partnerId = url.searchParams.get('partnerId') || undefined
+  const staffId = url.searchParams.get('staffId') || undefined
   const reportType = url.searchParams.get('reportType') || 'journal-entry'
   const datePreset = url.searchParams.get('datePreset') || 'today'
 
-  const [companies, businessPartners] = await Promise.all([
+  const [companies, businessPartners, staff] = await Promise.all([
     companyRepository.getByOrganization(organizationId),
     businessPartnersRepository.getAllByOrganization(organizationId),
+    db
+      .select({ id: memberModel.id, name: userModel.name })
+      .from(memberModel)
+      .innerJoin(userModel, eq(memberModel.userId, userModel.id))
+      .where(eq(memberModel.organizationId, organizationId)),
   ])
 
   return {
     companies,
     businessPartners,
+    staff,
     selectedCompanyId: companyId,
     selectedPartnerId: partnerId,
+    selectedStaffId: staffId,
     selectedReportType: reportType,
     datePreset,
   }
@@ -192,6 +249,7 @@ const reportTypes = [
   { value: 'sales-ledger', label: 'Sales Ledger' },
   { value: 'purchase-ledger', label: 'Purchase Ledger' },
   { value: 'general-ledger', label: 'General Ledger' },
+  { value: 'appointment-occupancy', label: 'Appointment & Occupancy' },
 ]
 
 const datePresets = [
@@ -240,8 +298,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   const {
     companies,
     businessPartners,
+    staff,
     selectedCompanyId,
     selectedPartnerId,
+    selectedStaffId,
     selectedReportType,
     datePreset,
   } = loaderData
@@ -268,42 +328,33 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     setDateRange({ from, to })
   }, [datePreset])
 
-  // Handle PDF download when export completes
+  // Handle file download when export completes
   useEffect(() => {
-    console.log('[Reports UI] Export effect triggered:', {
-      state: exportFetcher.state,
-      hasData: !!exportFetcher.data,
-      dataKeys: exportFetcher.data ? Object.keys(exportFetcher.data) : [],
-    })
-
     if (
       exportFetcher.state === 'idle' &&
       exportFetcher.data &&
       'export' in exportFetcher.data &&
       exportFetcher.data.export
     ) {
-      const { pdfBase64, filename } = exportFetcher.data.export
-      console.log('[Reports UI] Downloading PDF:', {
-        filename,
-        contentLength: pdfBase64.length,
-      })
+      const exportData = exportFetcher.data.export as { pdfBase64?: string; csvBase64?: string; filename: string }
+      const base64Content = exportData.pdfBase64 || exportData.csvBase64
+      if (!base64Content) return
 
-      // Create a unique key for this export to prevent duplicate downloads
-      const exportKey = `${filename}-${pdfBase64.length}`
-      if (lastExportRef.current === exportKey) {
-        console.log('[Reports UI] Already downloaded this export, skipping')
-        return // Already downloaded this export
-      }
+      const { filename } = exportData
+      const exportKey = `${filename}-${base64Content.length}`
+      if (lastExportRef.current === exportKey) return
       lastExportRef.current = exportKey
 
-      // Decode base64 to binary
-      const binaryString = atob(pdfBase64)
+      const isCSV = !!exportData.csvBase64
+      const mimeType = isCSV ? 'text/csv' : 'application/pdf'
+
+      const binaryString = atob(base64Content)
       const bytes = new Uint8Array(binaryString.length)
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i)
       }
 
-      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const blob = new Blob([bytes], { type: mimeType })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -312,7 +363,6 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      console.log('[Reports UI] PDF download triggered')
     }
   }, [exportFetcher.state, exportFetcher.data])
 
@@ -363,6 +413,19 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     })),
   ]
 
+  const staffOptions = [
+    { value: 'all', label: 'All Staff' },
+    ...staff.map((s) => ({
+      value: s.id,
+      label: s.name ?? 'Unknown',
+    })),
+  ]
+
+  // Appointment report data
+  const appointmentData = hasGeneratedData && 'summary' in (generateFetcher.data as object)
+    ? (generateFetcher.data as AppointmentReportResult)
+    : null
+
   const updateSearchParam = (key: string, value: string | undefined) => {
     const params = new URLSearchParams(searchParams)
     if (value) {
@@ -391,39 +454,38 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     updateSearchParam('reportType', value)
   }
 
+  const handleStaffChange = (value: string) => {
+    updateSearchParam('staffId', value === 'all' ? undefined : value)
+  }
+
+  const isAppointmentReport = selectedReportType === 'appointment-occupancy'
+
   const handleGenerateReport = (page = 1) => {
     setCurrentPage(page)
     const formData = new FormData()
     formData.set('_action', 'generate')
     formData.set('reportType', selectedReportType)
     if (selectedCompanyId) formData.set('companyId', selectedCompanyId)
+    if (selectedStaffId) formData.set('staffId', selectedStaffId)
     if (dateRange?.from) formData.set('dateFrom', dateRange.from.toISOString())
     if (dateRange?.to) formData.set('dateTo', dateRange.to.toISOString())
     formData.set('page', String(page))
     formData.set('pageSize', '20')
 
-    console.log(
-      '[Reports UI] Submitting generate with:',
-      Object.fromEntries(formData.entries())
-    )
     generateFetcher.submit(formData, { method: 'post' })
   }
 
   const handleExport = () => {
-    // Reset the export ref so we can download a new export
     lastExportRef.current = null
 
     const formData = new FormData()
     formData.set('_action', 'export')
     formData.set('reportType', selectedReportType)
     if (selectedCompanyId) formData.set('companyId', selectedCompanyId)
+    if (selectedStaffId) formData.set('staffId', selectedStaffId)
     if (dateRange?.from) formData.set('dateFrom', dateRange.from.toISOString())
     if (dateRange?.to) formData.set('dateTo', dateRange.to.toISOString())
 
-    console.log(
-      '[Reports UI] Submitting export with:',
-      Object.fromEntries(formData.entries())
-    )
     exportFetcher.submit(formData, { method: 'post' })
   }
 
@@ -573,43 +635,71 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 </ToggleGroup>
               </div>
 
-              {/* Company / Branch */}
-              <div className='space-y-3'>
-                <Label className='text-primary font-medium'>
-                  Company / Branch
-                </Label>
-                <Combobox
-                  options={companyOptions}
-                  value={selectedCompanyId}
-                  onValueChange={handleCompanyChange}
-                  placeholder='Select a company...'
-                  searchPlaceholder='Search companies...'
-                  emptyMessage='No companies found.'
-                />
-              </div>
+              {/* Company / Branch (hidden for appointment reports) */}
+              {!isAppointmentReport && (
+                <div className='space-y-3'>
+                  <Label className='text-primary font-medium'>
+                    Company / Branch
+                  </Label>
+                  <Combobox
+                    options={companyOptions}
+                    value={selectedCompanyId}
+                    onValueChange={handleCompanyChange}
+                    placeholder='Select a company...'
+                    searchPlaceholder='Search companies...'
+                    emptyMessage='No companies found.'
+                  />
+                </div>
+              )}
+
+              {/* Staff Filter (only for appointment reports) */}
+              {isAppointmentReport && (
+                <div className='space-y-3'>
+                  <Label className='text-primary font-medium'>
+                    Staff Member
+                  </Label>
+                  <Select
+                    value={selectedStaffId || 'all'}
+                    onValueChange={handleStaffChange}
+                  >
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='All Staff' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {staffOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
-            {/* Business Partner Filter */}
-            <div className='space-y-3'>
-              <Label className='text-primary font-medium'>
-                Business Partner Filter
-              </Label>
-              <Select
-                value={selectedPartnerId || 'all'}
-                onValueChange={handlePartnerChange}
-              >
-                <SelectTrigger className='w-full sm:w-[300px]'>
-                  <SelectValue placeholder='All Partners' />
-                </SelectTrigger>
-                <SelectContent>
-                  {partnerOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Business Partner Filter (hidden for appointment reports) */}
+            {!isAppointmentReport && (
+              <div className='space-y-3'>
+                <Label className='text-primary font-medium'>
+                  Business Partner Filter
+                </Label>
+                <Select
+                  value={selectedPartnerId || 'all'}
+                  onValueChange={handlePartnerChange}
+                >
+                  <SelectTrigger className='w-full sm:w-[300px]'>
+                    <SelectValue placeholder='All Partners' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {partnerOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -675,33 +765,60 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Appointment Summary Stats */}
+          {appointmentData && (
+            <div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4'>
+              <div className='rounded-lg border p-3 text-center'>
+                <p className='text-2xl font-bold'>{appointmentData.summary.totalAppointments}</p>
+                <p className='text-xs text-muted-foreground'>Total</p>
+              </div>
+              <div className='rounded-lg border p-3 text-center'>
+                <p className='text-2xl font-bold text-green-600'>{appointmentData.summary.completed}</p>
+                <p className='text-xs text-muted-foreground'>Completed</p>
+              </div>
+              <div className='rounded-lg border p-3 text-center'>
+                <p className='text-2xl font-bold text-red-600'>{appointmentData.summary.cancelled}</p>
+                <p className='text-xs text-muted-foreground'>Cancelled</p>
+              </div>
+              <div className='rounded-lg border p-3 text-center'>
+                <p className='text-2xl font-bold text-teal-600'>
+                  {formatCurrency(appointmentData.summary.totalRevenue)}
+                </p>
+                <p className='text-xs text-muted-foreground'>Revenue</p>
+              </div>
+            </div>
+          )}
+
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className='text-primary font-semibold'>
-                  DATE
-                </TableHead>
-                <TableHead className='text-primary font-semibold'>
-                  REF NO
-                </TableHead>
-                <TableHead className='text-primary font-semibold'>
-                  ACCOUNT NAME
-                </TableHead>
-                <TableHead className='text-primary font-semibold'>
-                  DESCRIPTION
-                </TableHead>
-                <TableHead className='text-primary text-right font-semibold'>
-                  DEBIT
-                </TableHead>
-                <TableHead className='text-primary text-right font-semibold'>
-                  CREDIT
-                </TableHead>
+                {isAppointmentReport ? (
+                  <>
+                    <TableHead className='text-primary font-semibold'>DATE</TableHead>
+                    <TableHead className='text-primary font-semibold'>TIME</TableHead>
+                    <TableHead className='text-primary font-semibold'>STAFF</TableHead>
+                    <TableHead className='text-primary font-semibold'>SERVICE</TableHead>
+                    <TableHead className='text-primary font-semibold'>CLIENT</TableHead>
+                    <TableHead className='text-primary font-semibold'>DURATION</TableHead>
+                    <TableHead className='text-primary text-right font-semibold'>PRICE</TableHead>
+                    <TableHead className='text-primary font-semibold'>STATUS</TableHead>
+                  </>
+                ) : (
+                  <>
+                    <TableHead className='text-primary font-semibold'>DATE</TableHead>
+                    <TableHead className='text-primary font-semibold'>REF NO</TableHead>
+                    <TableHead className='text-primary font-semibold'>ACCOUNT NAME</TableHead>
+                    <TableHead className='text-primary font-semibold'>DESCRIPTION</TableHead>
+                    <TableHead className='text-primary text-right font-semibold'>DEBIT</TableHead>
+                    <TableHead className='text-primary text-right font-semibold'>CREDIT</TableHead>
+                  </>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className='h-32 text-center'>
+                  <TableCell colSpan={isAppointmentReport ? 8 : 6} className='h-32 text-center'>
                     <div className='text-muted-foreground flex flex-col items-center gap-2'>
                       {!hasRunReport ? (
                         <>
@@ -712,13 +829,36 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                         <>
                           <p className='text-lg font-medium'>No data found</p>
                           <p className='text-sm'>
-                            No journal entries match the selected filters. Try adjusting the date range or company filter.
+                            No records match the selected filters. Try adjusting the date range.
                           </p>
                         </>
                       )}
                     </div>
                   </TableCell>
                 </TableRow>
+              ) : isAppointmentReport ? (
+                (displayData as unknown as AppointmentReportResult['data']).map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className='font-medium'>{row.date}</TableCell>
+                    <TableCell>{row.startTime} - {row.endTime}</TableCell>
+                    <TableCell>{row.staffName}</TableCell>
+                    <TableCell>{row.serviceName}</TableCell>
+                    <TableCell>{row.clientName}</TableCell>
+                    <TableCell>{row.duration} min</TableCell>
+                    <TableCell className='text-right'>
+                      {row.price ? formatCurrency(Number(row.price)) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        row.status === 'completed' ? 'secondary' :
+                        row.status === 'cancelled' ? 'destructive' :
+                        row.status === 'confirmed' ? 'default' : 'outline'
+                      }>
+                        {row.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 displayData.map((row) => (
                   <TableRow key={row.id}>
@@ -740,7 +880,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 ))
               )}
             </TableBody>
-            {displayData.length > 0 && (
+            {displayData.length > 0 && !isAppointmentReport && (
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={4} className='text-right font-semibold'>

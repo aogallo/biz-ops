@@ -18,6 +18,7 @@ export async function createServiceAction(request: Request) {
     name: formData.get('name'),
     duration: formData.get('duration') ? Number(formData.get('duration')) : undefined,
     color: formData.get('color'),
+    price: formData.get('price') || undefined,
     description: formData.get('description') || undefined,
     isActive: formData.get('isActive') !== 'false',
     organizationId,

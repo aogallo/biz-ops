@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { boolean, integer, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import { boolean, integer, numeric, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core'
 import { organizationModel } from './auth'
 import { timestamps } from './common'
 
@@ -23,6 +23,7 @@ export const serviceModel = pgTable('service', {
   name: text('name').notNull(),
   duration: integer('duration').notNull(), // in minutes
   color: serviceColorEnum('color').notNull().default('blue'),
+  price: numeric('price', { precision: 12, scale: 2 }),
   description: text('description'),
   isActive: boolean('is_active').notNull().default(true),
   ...timestamps,

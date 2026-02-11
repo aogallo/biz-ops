@@ -14,6 +14,8 @@ export const businessPartnerModel = pgTable(
     type: text("type").notNull(), // 'client', 'vendor', 'both'
     email: text("email"),
     nit: text("nit"),
+    phone: text("phone"),
+    notes: text("notes"),
     ...timestamps,
   },
   (table) => [

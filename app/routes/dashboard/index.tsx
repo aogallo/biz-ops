@@ -20,6 +20,9 @@ export async function loader({ request }: Route.LoaderArgs) {
       monthlyStats: { total: 0, completed: 0, cancelled: 0, revenue: 0 },
       occupancyRate: 0,
       todayDate: new Date().toISOString().split('T')[0],
+      inventoryStats: { totalProducts: 0, totalStockValue: 0, lowStockCount: 0, outOfStockCount: 0 },
+      lowStockProducts: [],
+      recentMovements: [],
     }
   }
 
@@ -39,13 +42,23 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const staffCount = staffCountResult?.count ?? 1
 
-  const [todayAppointments, nextAppointment, monthlyStats, occupancyRate] =
-    await Promise.all([
-      dashboardStatsRepository.getTodayAppointments(organizationId, today),
-      dashboardStatsRepository.getNextAppointment(organizationId, today, currentTime),
-      dashboardStatsRepository.getMonthlyStats(organizationId, monthStart, monthEnd),
-      dashboardStatsRepository.getOccupancyRate(organizationId, monthStart, monthEnd, staffCount),
-    ])
+  const [
+    todayAppointments,
+    nextAppointment,
+    monthlyStats,
+    occupancyRate,
+    inventoryStats,
+    lowStockProducts,
+    recentMovements,
+  ] = await Promise.all([
+    dashboardStatsRepository.getTodayAppointments(organizationId, today),
+    dashboardStatsRepository.getNextAppointment(organizationId, today, currentTime),
+    dashboardStatsRepository.getMonthlyStats(organizationId, monthStart, monthEnd),
+    dashboardStatsRepository.getOccupancyRate(organizationId, monthStart, monthEnd, staffCount),
+    dashboardStatsRepository.getInventoryStats(organizationId),
+    dashboardStatsRepository.getLowStockProducts(organizationId),
+    dashboardStatsRepository.getRecentMovements(organizationId),
+  ])
 
   return {
     todayAppointments,
@@ -53,6 +66,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     monthlyStats,
     occupancyRate,
     todayDate: today,
+    inventoryStats,
+    lowStockProducts,
+    recentMovements,
   }
 }
 
@@ -63,6 +79,9 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
     monthlyStats,
     occupancyRate,
     todayDate,
+    inventoryStats,
+    lowStockProducts,
+    recentMovements,
   } = loaderData
 
   return (
@@ -77,7 +96,11 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
           monthlyRevenue={monthlyStats.revenue}
           occupancyRate={occupancyRate}
         />
-        <InventorySummary />
+        <InventorySummary
+          stats={inventoryStats}
+          lowStockProducts={lowStockProducts}
+          recentMovements={recentMovements}
+        />
       </div>
     </div>
   )

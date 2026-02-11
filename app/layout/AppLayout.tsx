@@ -9,6 +9,7 @@ import type { Locale } from '~/i18n/types'
 import type { Organization } from '~/features/organization/schemas'
 import { organizationRepository } from '~/features/organization/server/repository'
 import { getUserOrganizations } from '~/server/auth/organization.server'
+import { productsRepository } from '~/features/products/server/repository'
 import { getUserPermissions } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isSuperAdmin } from '~/server/permissions'
@@ -20,12 +21,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   const userId = session.user.id
   const organizationId = session.session.activeOrganizationId
 
-  // Fetch permissions and super admin status in parallel
-  const [permissions, isSuperAdminUser] = await Promise.all([
+  // Fetch permissions, super admin status, and low stock count in parallel
+  const [permissions, isSuperAdminUser, lowStockCount] = await Promise.all([
     organizationId
       ? getUserPermissions(userId, organizationId)
       : Promise.resolve([]),
     isSuperAdmin(userId),
+    organizationId
+      ? productsRepository.countLowStock(organizationId)
+      : Promise.resolve(0),
   ])
 
   // Fetch all organizations for super admin, or just user's organizations
@@ -64,6 +68,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     organizations,
     locale,
+    lowStockCount,
   }
 }
 
@@ -84,7 +89,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         }}
       >
         <SidebarProvider>
-          <AppSidebar />
+          <AppSidebar lowStockCount={loaderData.lowStockCount} />
           <div className='bg-background flex min-h-screen flex-1 flex-col'>
             <SiteHeader />
             <main

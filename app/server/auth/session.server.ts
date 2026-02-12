@@ -29,7 +29,7 @@ export async function requireAuth(request: Request): Promise<SessionData> {
   })
 
   if (!session?.session || !session?.user) {
-    throw redirect('/', {
+    throw redirect('/login', {
       headers: {
         'Set-Cookie': 'redirectTo=' + new URL(request.url).pathname,
       },
@@ -81,7 +81,7 @@ export async function getOptionalAuth(
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function logout(request: Request) {
   // Better Auth handles cookie clearing
-  return redirect('/', {
+  return redirect('/login', {
     headers: {
       'Set-Cookie': 'better-auth.session_token=; Max-Age=0; Path=/',
     },

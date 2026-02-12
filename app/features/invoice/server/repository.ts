@@ -394,6 +394,7 @@ export class InvoiceRepository {
         ivaAmount: invoiceLineModel.ivaAmount,
         total: invoiceLineModel.total,
         productId: invoiceLineModel.productId,
+        lineType: invoiceLineModel.lineType,
         createdAt: invoiceLineModel.createdAt,
         updatedAt: invoiceLineModel.updatedAt,
         product: {

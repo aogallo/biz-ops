@@ -49,6 +49,11 @@ export const createDraftInvoiceSchema = z.object({
   type: z.enum(['purchase', 'sale']),
   invoiceDate: z.coerce.date(),
   dueDate: z.coerce.date().optional().nullable(),
+  documentType: z
+    .enum(['FCE', 'FAUCI', 'FPE', 'NC', 'DA', 'RCE', 'FCAM', 'NABN', 'OTRO'])
+    .optional()
+    .nullable(),
+  transactionType: z.enum(['L', 'I', 'D']).optional().nullable(),
 })
 
 // Schema for updating an invoice
@@ -59,6 +64,11 @@ export const updateInvoiceSchema = z.object({
   accountingAccountId: z.string().uuid().optional(),
   serie: z.string().max(20).optional().nullable(),
   authorizationNumber: z.string().max(50).optional().nullable(),
+  documentType: z
+    .enum(['FCE', 'FAUCI', 'FPE', 'NC', 'DA', 'RCE', 'FCAM', 'NABN', 'OTRO'])
+    .optional()
+    .nullable(),
+  transactionType: z.enum(['L', 'I', 'D']).optional().nullable(),
 })
 
 // Schema for adding a line to an invoice
@@ -70,6 +80,7 @@ export const addInvoiceLineSchema = z.object({
   ivaType: z.enum(['taxed', 'exempt', 'non_subject']).default('taxed'),
   ivaRate: z.coerce.number().min(0).max(100).default(12),
   productId: z.string().uuid().optional().nullable(),
+  lineType: z.enum(['goods', 'services']).optional().nullable(),
 })
 
 // Schema for updating an invoice line
@@ -81,6 +92,7 @@ export const updateInvoiceLineSchema = z.object({
   ivaType: z.enum(['taxed', 'exempt', 'non_subject']).optional(),
   ivaRate: z.coerce.number().min(0).max(100).optional(),
   productId: z.string().uuid().optional().nullable(),
+  lineType: z.enum(['goods', 'services']).optional().nullable(),
 })
 
 // Schema for posting an invoice

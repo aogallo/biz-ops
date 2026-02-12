@@ -39,6 +39,29 @@ export const ivaTypeEnum = pgEnum('iva_type', [
   'non_subject',
 ])
 
+export const documentTypeEnum = pgEnum('document_type', [
+  'FCE',
+  'FAUCI',
+  'FPE',
+  'NC',
+  'DA',
+  'RCE',
+  'FCAM',
+  'NABN',
+  'OTRO',
+])
+
+export const transactionTypeEnum = pgEnum('transaction_type', [
+  'L', // Local
+  'I', // Import
+  'D', // Devolucion
+])
+
+export const invoiceLineTypeEnum = pgEnum('invoice_line_type', [
+  'goods',
+  'services',
+])
+
 // Invoice Model
 export const invoiceModel = pgTable('invoice', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -71,6 +94,8 @@ export const invoiceModel = pgTable('invoice', {
   currency: text('currency').notNull().default('GTQ'),
   status: invoiceStatusEnum('status').notNull().default('draft'),
   source: invoiceSourceEnum('source').notNull().default('manual'),
+  documentType: documentTypeEnum('document_type').default('FCE'),
+  transactionType: transactionTypeEnum('transaction_type').default('L'),
   ...timestamps,
 })
 
@@ -100,6 +125,7 @@ export const invoiceLineModel = pgTable('invoice_line', {
     .default('0'),
   total: numeric('total', { precision: 12, scale: 2 }).notNull().default('0'),
   productId: uuid('product_id').references(() => productModel.id),
+  lineType: invoiceLineTypeEnum('line_type').default('goods'),
   ...timestamps,
 })
 
@@ -157,3 +183,6 @@ export type InvoiceType = 'purchase' | 'sale'
 export type InvoiceStatus = 'draft' | 'pending' | 'posted' | 'voided'
 export type IvaType = 'taxed' | 'exempt' | 'non_subject'
 export type InvoiceSource = 'manual' | 'sat'
+export type DocumentType = 'FCE' | 'FAUCI' | 'FPE' | 'NC' | 'DA' | 'RCE' | 'FCAM' | 'NABN' | 'OTRO'
+export type TransactionType = 'L' | 'I' | 'D'
+export type InvoiceLineType = 'goods' | 'services'

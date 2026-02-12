@@ -51,6 +51,17 @@ import {
   type AppointmentReportResult,
   type AppointmentExportResult,
 } from '~/features/reports/server/actions/appointment.report.action'
+import {
+  generateSalesLedgerAction,
+  generatePurchaseLedgerAction,
+  exportSalesLedgerAction,
+  exportPurchaseLedgerAction,
+} from '~/features/reports/server/actions/ledger.report.action'
+import type {
+  GenerateLedgerReportResult,
+  ExportLedgerReportResult,
+} from '~/features/reports/lib/ledger-pdf-types'
+import { LedgerReportTable } from '~/features/reports/components/LedgerReportTable'
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { memberModel, userModel } from '~/server/db/schemas/auth'
@@ -62,6 +73,8 @@ type ActionResult =
   | ExportReportResult
   | AppointmentReportResult
   | AppointmentExportResult
+  | GenerateLedgerReportResult
+  | ExportLedgerReportResult
   | { success: false; error: string }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -118,6 +131,26 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
+    if (result.data.reportType === 'sales-ledger') {
+      try {
+        const reportResult = await generateSalesLedgerAction(organizationId, result.data)
+        return reportResult
+      } catch (error) {
+        console.error('[Reports Action] Generate sales ledger error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
+    if (result.data.reportType === 'purchase-ledger') {
+      try {
+        const reportResult = await generatePurchaseLedgerAction(organizationId, result.data)
+        return reportResult
+      } catch (error) {
+        console.error('[Reports Action] Generate purchase ledger error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
     if (result.data.reportType === 'appointment-occupancy') {
       try {
         const staffId = formData.get('staffId') as string | null
@@ -170,6 +203,26 @@ export async function action({ request }: Route.ActionArgs) {
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
+    if (result.data.reportType === 'sales-ledger') {
+      try {
+        const exportResult = await exportSalesLedgerAction(organizationId, result.data)
+        return exportResult
+      } catch (error) {
+        console.error('[Reports Action] Export sales ledger error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
+    if (result.data.reportType === 'purchase-ledger') {
+      try {
+        const exportResult = await exportPurchaseLedgerAction(organizationId, result.data)
+        return exportResult
+      } catch (error) {
+        console.error('[Reports Action] Export purchase ledger error:', error)
         return { success: false, error: String(error) } as const
       }
     }
@@ -366,6 +419,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
     }
   }, [exportFetcher.state, exportFetcher.data])
 
+  // Report type flags
+  const isAppointmentReport = selectedReportType === 'appointment-occupancy'
+  const isLedgerReport = selectedReportType === 'sales-ledger' || selectedReportType === 'purchase-ledger'
+
   // Determine if we have generated data
   const hasGeneratedData =
     generateFetcher.data &&
@@ -375,30 +432,30 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   // Check if report has been generated (even with no results)
   const hasRunReport = generateFetcher.data !== undefined
 
-  // Get display data
-  const displayData = hasGeneratedData
+  // Ledger report data
+  const ledgerData = hasGeneratedData && 'grandTotals' in (generateFetcher.data as object)
+    ? (generateFetcher.data as GenerateLedgerReportResult)
+    : null
+
+  // Get display data (journal or appointment — ledger uses its own component)
+  const displayData = hasGeneratedData && !ledgerData
     ? (generateFetcher.data as GenerateReportResult).data
     : []
 
-  // Get pagination info
-  const totalRows = hasGeneratedData
-    ? (generateFetcher.data as GenerateReportResult).total
-    : 0
-  const totalPages = hasGeneratedData
-    ? (generateFetcher.data as GenerateReportResult).totalPages
-    : 1
-  const pageSize = hasGeneratedData
-    ? (generateFetcher.data as GenerateReportResult).pageSize
-    : 20
+  // Get pagination info (works for all report types with total/totalPages/pageSize)
+  const paginationSource = hasGeneratedData ? (generateFetcher.data as { total?: number; totalPages?: number; pageSize?: number }) : null
+  const totalRows = paginationSource?.total ?? 0
+  const totalPages = paginationSource?.totalPages ?? 1
+  const pageSize = paginationSource?.pageSize ?? 20
 
-  // Calculate page totals (for current page)
-  const pageTotals = displayData.reduce(
+  // Calculate page totals (for journal entry reports only)
+  const pageTotals = !isLedgerReport ? displayData.reduce(
     (acc, row) => ({
       debit: acc.debit + row.debit,
       credit: acc.credit + row.credit,
     }),
     { debit: 0, credit: 0 }
-  )
+  ) : { debit: 0, credit: 0 }
 
   const companyOptions = companies.map((company) => ({
     value: company.id,
@@ -457,8 +514,6 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   const handleStaffChange = (value: string) => {
     updateSearchParam('staffId', value === 'all' ? undefined : value)
   }
-
-  const isAppointmentReport = selectedReportType === 'appointment-occupancy'
 
   const handleGenerateReport = (page = 1) => {
     setCurrentPage(page)
@@ -789,6 +844,21 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             </div>
           )}
 
+          {isLedgerReport ? (
+            <LedgerReportTable
+              data={ledgerData?.data ?? []}
+              grandTotals={ledgerData?.grandTotals ?? {
+                localGravadosBienes: 0, localGravadosServicios: 0,
+                localExentosBienes: 0, localExentosServicios: 0,
+                importGravadosBienes: 0, importGravadosServicios: 0,
+                importExentosBienes: 0, importExentosServicios: 0,
+                ivaAmount: 0, totalDocumento: 0,
+              }}
+              totalDocuments={ledgerData?.totalDocuments ?? 0}
+              reportType={selectedReportType as 'sales-ledger' | 'purchase-ledger'}
+              hasRunReport={hasRunReport}
+            />
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -896,6 +966,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               </TableFooter>
             )}
           </Table>
+          )}
         </CardContent>
       </Card>
     </>

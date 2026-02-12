@@ -133,6 +133,29 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Sidebar scrollbar — blends with sidebar background in both themes */
+  [data-slot="sidebar-content"] {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-border) var(--sidebar);
+  }
+
+  [data-slot="sidebar-content"]::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  [data-slot="sidebar-content"]::-webkit-scrollbar-track {
+    background: var(--sidebar);
+  }
+
+  [data-slot="sidebar-content"]::-webkit-scrollbar-thumb {
+    background: var(--sidebar-border);
+    border-radius: 3px;
+  }
+
+  [data-slot="sidebar-content"]::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
 }
 
 /* =============================================================================

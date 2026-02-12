@@ -144,7 +144,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (result.data.reportType === 'sales-ledger') {
       try {
-        const reportResult = await generateSalesLedgerAction(organizationId, result.data)
+        const reportResult = await generateSalesLedgerAction(
+          organizationId,
+          result.data
+        )
         return reportResult
       } catch (error) {
         console.error('[Reports Action] Generate sales ledger error:', error)
@@ -154,7 +157,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (result.data.reportType === 'purchase-ledger') {
       try {
-        const reportResult = await generatePurchaseLedgerAction(organizationId, result.data)
+        const reportResult = await generatePurchaseLedgerAction(
+          organizationId,
+          result.data
+        )
         return reportResult
       } catch (error) {
         console.error('[Reports Action] Generate purchase ledger error:', error)
@@ -164,7 +170,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (result.data.reportType === 'general-ledger') {
       try {
-        const reportResult = await generateGeneralLedgerAction(organizationId, result.data)
+        const reportResult = await generateGeneralLedgerAction(
+          organizationId,
+          result.data
+        )
         return reportResult
       } catch (error) {
         console.error('[Reports Action] Generate general ledger error:', error)
@@ -230,7 +239,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (result.data.reportType === 'sales-ledger') {
       try {
-        const exportResult = await exportSalesLedgerAction(organizationId, result.data)
+        const exportResult = await exportSalesLedgerAction(
+          organizationId,
+          result.data
+        )
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export sales ledger error:', error)
@@ -240,7 +252,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (result.data.reportType === 'purchase-ledger') {
       try {
-        const exportResult = await exportPurchaseLedgerAction(organizationId, result.data)
+        const exportResult = await exportPurchaseLedgerAction(
+          organizationId,
+          result.data
+        )
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export purchase ledger error:', error)
@@ -250,7 +265,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     if (result.data.reportType === 'general-ledger') {
       try {
-        const exportResult = await exportGeneralLedgerAction(organizationId, result.data)
+        const exportResult = await exportGeneralLedgerAction(
+          organizationId,
+          result.data
+        )
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export general ledger error:', error)
@@ -420,7 +438,11 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       'export' in exportFetcher.data &&
       exportFetcher.data.export
     ) {
-      const exportData = exportFetcher.data.export as { pdfBase64?: string; csvBase64?: string; filename: string }
+      const exportData = exportFetcher.data.export as {
+        pdfBase64?: string
+        csvBase64?: string
+        filename: string
+      }
       const base64Content = exportData.pdfBase64 || exportData.csvBase64
       if (!base64Content) return
 
@@ -452,7 +474,9 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
 
   // Report type flags
   const isAppointmentReport = selectedReportType === 'appointment-occupancy'
-  const isLedgerReport = selectedReportType === 'sales-ledger' || selectedReportType === 'purchase-ledger'
+  const isLedgerReport =
+    selectedReportType === 'sales-ledger' ||
+    selectedReportType === 'purchase-ledger'
   const isGeneralLedger = selectedReportType === 'general-ledger'
 
   // Determine if we have generated data
@@ -465,34 +489,48 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   const hasRunReport = generateFetcher.data !== undefined
 
   // General ledger report data (detect via reportMonth field)
-  const generalLedgerData = hasGeneratedData && 'reportMonth' in (generateFetcher.data as object)
-    ? (generateFetcher.data as GenerateGeneralLedgerResult)
-    : null
+  const generalLedgerData =
+    hasGeneratedData && 'reportMonth' in (generateFetcher.data as object)
+      ? (generateFetcher.data as GenerateGeneralLedgerResult)
+      : null
 
   // Ledger report data (has grandTotals but NOT reportMonth)
-  const ledgerData = hasGeneratedData && !generalLedgerData && 'grandTotals' in (generateFetcher.data as object)
-    ? (generateFetcher.data as GenerateLedgerReportResult)
-    : null
+  const ledgerData =
+    hasGeneratedData &&
+    !generalLedgerData &&
+    'grandTotals' in (generateFetcher.data as object)
+      ? (generateFetcher.data as GenerateLedgerReportResult)
+      : null
 
   // Get display data (journal or appointment — ledger/general-ledger use their own components)
-  const displayData = hasGeneratedData && !ledgerData && !generalLedgerData
-    ? (generateFetcher.data as GenerateReportResult).data
-    : []
+  const displayData =
+    hasGeneratedData && !ledgerData && !generalLedgerData
+      ? (generateFetcher.data as GenerateReportResult).data
+      : []
 
   // Get pagination info (works for all report types with total/totalPages/pageSize)
-  const paginationSource = hasGeneratedData ? (generateFetcher.data as { total?: number; totalPages?: number; pageSize?: number }) : null
+  const paginationSource = hasGeneratedData
+    ? (generateFetcher.data as {
+        total?: number
+        totalPages?: number
+        pageSize?: number
+      })
+    : null
   const totalRows = paginationSource?.total ?? 0
   const totalPages = paginationSource?.totalPages ?? 1
   const pageSize = paginationSource?.pageSize ?? 20
 
   // Calculate page totals (for journal entry reports only)
-  const pageTotals = !isLedgerReport && !isGeneralLedger ? displayData.reduce(
-    (acc, row) => ({
-      debit: acc.debit + row.debit,
-      credit: acc.credit + row.credit,
-    }),
-    { debit: 0, credit: 0 }
-  ) : { debit: 0, credit: 0 }
+  const pageTotals =
+    !isLedgerReport && !isGeneralLedger
+      ? displayData.reduce(
+          (acc, row) => ({
+            debit: acc.debit + row.debit,
+            credit: acc.credit + row.credit,
+          }),
+          { debit: 0, credit: 0 }
+        )
+      : { debit: 0, credit: 0 }
 
   const companyOptions = companies.map((company) => ({
     value: company.id,
@@ -516,9 +554,10 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   ]
 
   // Appointment report data
-  const appointmentData = hasGeneratedData && 'summary' in (generateFetcher.data as object)
-    ? (generateFetcher.data as AppointmentReportResult)
-    : null
+  const appointmentData =
+    hasGeneratedData && 'summary' in (generateFetcher.data as object)
+      ? (generateFetcher.data as AppointmentReportResult)
+      : null
 
   const updateSearchParam = (key: string, value: string | undefined) => {
     const params = new URLSearchParams(searchParams)
@@ -633,7 +672,8 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       : null
 
   // Calculate row range for display
-  const startRow = hasGeneratedData && totalRows > 0 ? (currentPage - 1) * pageSize + 1 : 0
+  const startRow =
+    hasGeneratedData && totalRows > 0 ? (currentPage - 1) * pageSize + 1 : 0
   const endRow = hasGeneratedData
     ? Math.min(currentPage * pageSize, totalRows)
     : 0
@@ -689,7 +729,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 value={selectedReportType}
                 onValueChange={handleReportTypeChange}
               >
-                <SelectTrigger className='w-full sm:w-[300px]'>
+                <SelectTrigger className='w-full sm:w-75'>
                   <SelectValue placeholder='Select report type' />
                 </SelectTrigger>
                 <SelectContent>
@@ -861,22 +901,28 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
           {appointmentData && (
             <div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4'>
               <div className='rounded-lg border p-3 text-center'>
-                <p className='text-2xl font-bold'>{appointmentData.summary.totalAppointments}</p>
-                <p className='text-xs text-muted-foreground'>Total</p>
+                <p className='text-2xl font-bold'>
+                  {appointmentData.summary.totalAppointments}
+                </p>
+                <p className='text-muted-foreground text-xs'>Total</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
-                <p className='text-2xl font-bold text-green-600'>{appointmentData.summary.completed}</p>
-                <p className='text-xs text-muted-foreground'>Completed</p>
+                <p className='text-2xl font-bold text-green-600'>
+                  {appointmentData.summary.completed}
+                </p>
+                <p className='text-muted-foreground text-xs'>Completed</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
-                <p className='text-2xl font-bold text-red-600'>{appointmentData.summary.cancelled}</p>
-                <p className='text-xs text-muted-foreground'>Cancelled</p>
+                <p className='text-2xl font-bold text-red-600'>
+                  {appointmentData.summary.cancelled}
+                </p>
+                <p className='text-muted-foreground text-xs'>Cancelled</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
                 <p className='text-2xl font-bold text-teal-600'>
                   {formatCurrency(appointmentData.summary.totalRevenue)}
                 </p>
-                <p className='text-xs text-muted-foreground'>Revenue</p>
+                <p className='text-muted-foreground text-xs'>Revenue</p>
               </div>
             </div>
           )}
@@ -884,135 +930,192 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
           {isGeneralLedger ? (
             <GeneralLedgerTable
               data={generalLedgerData?.data ?? []}
-              grandTotals={generalLedgerData?.grandTotals ?? {
-                totalDebit: 0, totalCredit: 0,
-                totalOpeningBalance: 0, totalClosingBalance: 0,
-              }}
+              grandTotals={
+                generalLedgerData?.grandTotals ?? {
+                  totalDebit: 0,
+                  totalCredit: 0,
+                  totalOpeningBalance: 0,
+                  totalClosingBalance: 0,
+                }
+              }
               reportMonth={generalLedgerData?.reportMonth ?? ''}
               hasRunReport={hasRunReport}
             />
           ) : isLedgerReport ? (
             <LedgerReportTable
               data={ledgerData?.data ?? []}
-              grandTotals={ledgerData?.grandTotals ?? {
-                localGravadosBienes: 0, localGravadosServicios: 0,
-                localExentosBienes: 0, localExentosServicios: 0,
-                importGravadosBienes: 0, importGravadosServicios: 0,
-                importExentosBienes: 0, importExentosServicios: 0,
-                ivaAmount: 0, totalDocumento: 0,
-              }}
+              grandTotals={
+                ledgerData?.grandTotals ?? {
+                  localGravadosBienes: 0,
+                  localGravadosServicios: 0,
+                  localExentosBienes: 0,
+                  localExentosServicios: 0,
+                  importGravadosBienes: 0,
+                  importGravadosServicios: 0,
+                  importExentosBienes: 0,
+                  importExentosServicios: 0,
+                  ivaAmount: 0,
+                  totalDocumento: 0,
+                }
+              }
               totalDocuments={ledgerData?.totalDocuments ?? 0}
-              reportType={selectedReportType as 'sales-ledger' | 'purchase-ledger'}
+              reportType={
+                selectedReportType as 'sales-ledger' | 'purchase-ledger'
+              }
               hasRunReport={hasRunReport}
             />
           ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {isAppointmentReport ? (
-                  <>
-                    <TableHead className='text-primary font-semibold'>DATE</TableHead>
-                    <TableHead className='text-primary font-semibold'>TIME</TableHead>
-                    <TableHead className='text-primary font-semibold'>STAFF</TableHead>
-                    <TableHead className='text-primary font-semibold'>SERVICE</TableHead>
-                    <TableHead className='text-primary font-semibold'>CLIENT</TableHead>
-                    <TableHead className='text-primary font-semibold'>DURATION</TableHead>
-                    <TableHead className='text-primary text-right font-semibold'>PRICE</TableHead>
-                    <TableHead className='text-primary font-semibold'>STATUS</TableHead>
-                  </>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {isAppointmentReport ? (
+                    <>
+                      <TableHead className='text-primary font-semibold'>
+                        DATE
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        TIME
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        STAFF
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        SERVICE
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        CLIENT
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        DURATION
+                      </TableHead>
+                      <TableHead className='text-primary text-right font-semibold'>
+                        PRICE
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        STATUS
+                      </TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <TableHead className='text-primary font-semibold'>
+                        DATE
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        REF NO
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        ACCOUNT NAME
+                      </TableHead>
+                      <TableHead className='text-primary font-semibold'>
+                        DESCRIPTION
+                      </TableHead>
+                      <TableHead className='text-primary text-right font-semibold'>
+                        DEBIT
+                      </TableHead>
+                      <TableHead className='text-primary text-right font-semibold'>
+                        CREDIT
+                      </TableHead>
+                    </>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayData.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={isAppointmentReport ? 8 : 6}
+                      className='h-32 text-center'
+                    >
+                      <div className='text-muted-foreground flex flex-col items-center gap-2'>
+                        {!hasRunReport ? (
+                          <>
+                            <PlayIcon className='size-8 opacity-50' />
+                            <p>
+                              Click &quot;Generate Report&quot; to load data
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className='text-lg font-medium'>No data found</p>
+                            <p className='text-sm'>
+                              No records match the selected filters. Try
+                              adjusting the date range.
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : isAppointmentReport ? (
+                  (
+                    displayData as unknown as AppointmentReportResult['data']
+                  ).map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className='font-medium'>{row.date}</TableCell>
+                      <TableCell>
+                        {row.startTime} - {row.endTime}
+                      </TableCell>
+                      <TableCell>{row.staffName}</TableCell>
+                      <TableCell>{row.serviceName}</TableCell>
+                      <TableCell>{row.clientName}</TableCell>
+                      <TableCell>{row.duration} min</TableCell>
+                      <TableCell className='text-right'>
+                        {row.price ? formatCurrency(Number(row.price)) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            row.status === 'completed'
+                              ? 'secondary'
+                              : row.status === 'cancelled'
+                                ? 'destructive'
+                                : row.status === 'confirmed'
+                                  ? 'default'
+                                  : 'outline'
+                          }
+                        >
+                          {row.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : (
-                  <>
-                    <TableHead className='text-primary font-semibold'>DATE</TableHead>
-                    <TableHead className='text-primary font-semibold'>REF NO</TableHead>
-                    <TableHead className='text-primary font-semibold'>ACCOUNT NAME</TableHead>
-                    <TableHead className='text-primary font-semibold'>DESCRIPTION</TableHead>
-                    <TableHead className='text-primary text-right font-semibold'>DEBIT</TableHead>
-                    <TableHead className='text-primary text-right font-semibold'>CREDIT</TableHead>
-                  </>
+                  displayData.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className='font-medium'>{row.date}</TableCell>
+                      <TableCell className='text-muted-foreground font-mono text-sm'>
+                        {row.refNo}
+                      </TableCell>
+                      <TableCell>{row.accountName}</TableCell>
+                      <TableCell className='max-w-[200px] truncate'>
+                        {row.description}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {formatCurrency(row.debit)}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {formatCurrency(row.credit)}
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={isAppointmentReport ? 8 : 6} className='h-32 text-center'>
-                    <div className='text-muted-foreground flex flex-col items-center gap-2'>
-                      {!hasRunReport ? (
-                        <>
-                          <PlayIcon className='size-8 opacity-50' />
-                          <p>Click &quot;Generate Report&quot; to load data</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className='text-lg font-medium'>No data found</p>
-                          <p className='text-sm'>
-                            No records match the selected filters. Try adjusting the date range.
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : isAppointmentReport ? (
-                (displayData as unknown as AppointmentReportResult['data']).map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className='font-medium'>{row.date}</TableCell>
-                    <TableCell>{row.startTime} - {row.endTime}</TableCell>
-                    <TableCell>{row.staffName}</TableCell>
-                    <TableCell>{row.serviceName}</TableCell>
-                    <TableCell>{row.clientName}</TableCell>
-                    <TableCell>{row.duration} min</TableCell>
-                    <TableCell className='text-right'>
-                      {row.price ? formatCurrency(Number(row.price)) : '-'}
+              </TableBody>
+              {displayData.length > 0 && !isAppointmentReport && (
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={4} className='text-right font-semibold'>
+                      PAGE TOTALS
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        row.status === 'completed' ? 'secondary' :
-                        row.status === 'cancelled' ? 'destructive' :
-                        row.status === 'confirmed' ? 'default' : 'outline'
-                      }>
-                        {row.status}
-                      </Badge>
+                    <TableCell className='text-right font-bold text-teal-600'>
+                      {formatCurrency(pageTotals.debit)}
+                    </TableCell>
+                    <TableCell className='text-right font-bold text-teal-600'>
+                      {formatCurrency(pageTotals.credit)}
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                displayData.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className='font-medium'>{row.date}</TableCell>
-                    <TableCell className='text-muted-foreground font-mono text-sm'>
-                      {row.refNo}
-                    </TableCell>
-                    <TableCell>{row.accountName}</TableCell>
-                    <TableCell className='max-w-[200px] truncate'>
-                      {row.description}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {formatCurrency(row.debit)}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {formatCurrency(row.credit)}
-                    </TableCell>
-                  </TableRow>
-                ))
+                </TableFooter>
               )}
-            </TableBody>
-            {displayData.length > 0 && !isAppointmentReport && (
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={4} className='text-right font-semibold'>
-                    PAGE TOTALS
-                  </TableCell>
-                  <TableCell className='text-right font-bold text-teal-600'>
-                    {formatCurrency(pageTotals.debit)}
-                  </TableCell>
-                  <TableCell className='text-right font-bold text-teal-600'>
-                    {formatCurrency(pageTotals.credit)}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            )}
-          </Table>
+            </Table>
           )}
         </CardContent>
       </Card>

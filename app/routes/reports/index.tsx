@@ -62,6 +62,15 @@ import type {
   ExportLedgerReportResult,
 } from '~/features/reports/lib/ledger-pdf-types'
 import { LedgerReportTable } from '~/features/reports/components/LedgerReportTable'
+import {
+  generateGeneralLedgerAction,
+  exportGeneralLedgerAction,
+} from '~/features/reports/server/actions/general-ledger.report.action'
+import type {
+  GenerateGeneralLedgerResult,
+  ExportGeneralLedgerResult,
+} from '~/features/reports/lib/general-ledger-types'
+import { GeneralLedgerTable } from '~/features/reports/components/GeneralLedgerTable'
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { memberModel, userModel } from '~/server/db/schemas/auth'
@@ -75,6 +84,8 @@ type ActionResult =
   | AppointmentExportResult
   | GenerateLedgerReportResult
   | ExportLedgerReportResult
+  | GenerateGeneralLedgerResult
+  | ExportGeneralLedgerResult
   | { success: false; error: string }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -151,6 +162,16 @@ export async function action({ request }: Route.ActionArgs) {
       }
     }
 
+    if (result.data.reportType === 'general-ledger') {
+      try {
+        const reportResult = await generateGeneralLedgerAction(organizationId, result.data)
+        return reportResult
+      } catch (error) {
+        console.error('[Reports Action] Generate general ledger error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
     if (result.data.reportType === 'appointment-occupancy') {
       try {
         const staffId = formData.get('staffId') as string | null
@@ -223,6 +244,16 @@ export async function action({ request }: Route.ActionArgs) {
         return exportResult
       } catch (error) {
         console.error('[Reports Action] Export purchase ledger error:', error)
+        return { success: false, error: String(error) } as const
+      }
+    }
+
+    if (result.data.reportType === 'general-ledger') {
+      try {
+        const exportResult = await exportGeneralLedgerAction(organizationId, result.data)
+        return exportResult
+      } catch (error) {
+        console.error('[Reports Action] Export general ledger error:', error)
         return { success: false, error: String(error) } as const
       }
     }
@@ -422,6 +453,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   // Report type flags
   const isAppointmentReport = selectedReportType === 'appointment-occupancy'
   const isLedgerReport = selectedReportType === 'sales-ledger' || selectedReportType === 'purchase-ledger'
+  const isGeneralLedger = selectedReportType === 'general-ledger'
 
   // Determine if we have generated data
   const hasGeneratedData =
@@ -432,13 +464,18 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   // Check if report has been generated (even with no results)
   const hasRunReport = generateFetcher.data !== undefined
 
-  // Ledger report data
-  const ledgerData = hasGeneratedData && 'grandTotals' in (generateFetcher.data as object)
+  // General ledger report data (detect via reportMonth field)
+  const generalLedgerData = hasGeneratedData && 'reportMonth' in (generateFetcher.data as object)
+    ? (generateFetcher.data as GenerateGeneralLedgerResult)
+    : null
+
+  // Ledger report data (has grandTotals but NOT reportMonth)
+  const ledgerData = hasGeneratedData && !generalLedgerData && 'grandTotals' in (generateFetcher.data as object)
     ? (generateFetcher.data as GenerateLedgerReportResult)
     : null
 
-  // Get display data (journal or appointment — ledger uses its own component)
-  const displayData = hasGeneratedData && !ledgerData
+  // Get display data (journal or appointment — ledger/general-ledger use their own components)
+  const displayData = hasGeneratedData && !ledgerData && !generalLedgerData
     ? (generateFetcher.data as GenerateReportResult).data
     : []
 
@@ -449,7 +486,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   const pageSize = paginationSource?.pageSize ?? 20
 
   // Calculate page totals (for journal entry reports only)
-  const pageTotals = !isLedgerReport ? displayData.reduce(
+  const pageTotals = !isLedgerReport && !isGeneralLedger ? displayData.reduce(
     (acc, row) => ({
       debit: acc.debit + row.debit,
       credit: acc.credit + row.credit,
@@ -844,7 +881,17 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             </div>
           )}
 
-          {isLedgerReport ? (
+          {isGeneralLedger ? (
+            <GeneralLedgerTable
+              data={generalLedgerData?.data ?? []}
+              grandTotals={generalLedgerData?.grandTotals ?? {
+                totalDebit: 0, totalCredit: 0,
+                totalOpeningBalance: 0, totalClosingBalance: 0,
+              }}
+              reportMonth={generalLedgerData?.reportMonth ?? ''}
+              hasRunReport={hasRunReport}
+            />
+          ) : isLedgerReport ? (
             <LedgerReportTable
               data={ledgerData?.data ?? []}
               grandTotals={ledgerData?.grandTotals ?? {

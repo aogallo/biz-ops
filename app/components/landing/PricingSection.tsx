@@ -28,7 +28,7 @@ const features: Feature[] = [
   },
   {
     label: 'Contabilidad',
-    starter: 'Basica',
+    starter: 'Básica',
     pro: 'Completa',
     enterprise: 'Completa + reportes',
   },
@@ -46,7 +46,7 @@ const features: Feature[] = [
     enterprise: 'Ilimitadas',
   },
   {
-    label: 'Facturacion',
+    label: 'Facturación',
     starter: '10/mes',
     pro: 'Ilimitadas',
     enterprise: 'Ilimitadas',
@@ -94,7 +94,7 @@ function PricingTier({
       <CardHeader>
         <div className='flex items-center gap-2'>
           <CardTitle className='text-xl'>{name}</CardTitle>
-          {highlighted && <Badge>Mas popular</Badge>}
+          {highlighted && <Badge>Más popular</Badge>}
         </div>
         <CardDescription>{description}</CardDescription>
         <p className='mt-2 text-3xl font-bold tracking-tight'>{price}</p>
@@ -137,14 +137,14 @@ export function PricingSection() {
             Planes para cada etapa de tu negocio
           </h2>
           <p className='text-muted-foreground mt-3 text-lg'>
-            Comenza gratis y escala cuando lo necesites
+            Comenzá gratis y escalá cuando lo necesites
           </p>
         </div>
         <div className='grid items-stretch gap-6 md:grid-cols-3'>
           <PricingTier
             name='Starter'
             price='Gratis'
-            description='Para emprendedores que estan comenzando'
+            description='Para emprendedores que están comenzando'
             featureKey='starter'
             cta='Comenzar gratis'
           />

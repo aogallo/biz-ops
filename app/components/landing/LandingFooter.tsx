@@ -48,12 +48,12 @@ export function LandingFooter() {
             <ul className='space-y-2'>
               <li>
                 <span className='text-muted-foreground text-sm'>
-                  Terminos de servicio
+                  Términos de servicio
                 </span>
               </li>
               <li>
                 <span className='text-muted-foreground text-sm'>
-                  Politica de privacidad
+                  Política de privacidad
                 </span>
               </li>
             </ul>

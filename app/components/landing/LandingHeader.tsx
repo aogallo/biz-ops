@@ -94,7 +94,7 @@ export function LandingHeader({ isAuthenticated }: LandingHeaderProps) {
                 ) : (
                   <>
                     <Button variant='outline' asChild>
-                      <Link to='/login'>Iniciar Sesion</Link>
+                      <Link to='/login'>Iniciar Sesión</Link>
                     </Button>
                     <Button asChild>
                       <Link to='/login'>Comenzar</Link>

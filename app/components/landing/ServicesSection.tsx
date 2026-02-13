@@ -23,28 +23,28 @@ const services = [
   {
     title: 'Procesamiento SAT',
     description:
-      'Procesa tus archivos de la SAT automaticamente. Genera libros de compras y ventas listos para presentar.',
+      'Procesa tus archivos de la SAT automáticamente. Genera libros de compras y ventas listos para presentar.',
     icon: FileText,
     accent: 'accent-admin-bg',
   },
   {
     title: 'Inventario',
     description:
-      'Control de productos, categorias, movimientos de stock y codigos QR. Reportes de inventario en tiempo real.',
+      'Control de productos, categorías, movimientos de stock y códigos QR. Reportes de inventario en tiempo real.',
     icon: Package,
     accent: 'accent-inventory-bg',
   },
   {
     title: 'Agenda de Citas',
     description:
-      'Gestiona citas con tus clientes, envia recordatorios automaticos y optimiza tu agenda diaria.',
+      'Gestiona citas con tus clientes, envía recordatorios automáticos y optimiza tu agenda diaria.',
     icon: CalendarDays,
     accent: 'accent-appointments-bg',
   },
   {
-    title: 'Facturacion',
+    title: 'Facturación',
     description:
-      'Crea y gestiona facturas profesionales. Control de pagos, estados y exportacion a PDF.',
+      'Crea y gestiona facturas profesionales. Control de pagos, estados y exportación a PDF.',
     icon: Receipt,
     accent:
       'bg-rose-500/10 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400',
@@ -60,7 +60,7 @@ export function ServicesSection() {
             Todo lo que necesitas para operar
           </h2>
           <p className='text-muted-foreground mt-3 text-lg'>
-            Cinco modulos integrados que cubren cada aspecto de tu negocio
+            Cinco módulos integrados que cubren cada aspecto de tu negocio
           </p>
         </div>
         <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>

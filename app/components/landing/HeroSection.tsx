@@ -23,7 +23,7 @@ export function HeroSection() {
         </h1>
         <p className='text-muted-foreground max-w-lg text-lg'>
           Contabilidad, procesamiento SAT, inventario, agenda de citas y
-          facturacion. Todo lo que necesitas para operar tu negocio en un solo
+          facturación. Todo lo que necesitas para operar tu negocio en un solo
           lugar.
         </p>
         <div className='flex flex-wrap gap-3'>
@@ -61,7 +61,7 @@ export function HeroSection() {
           />
           <ServiceIcon
             icon={<Receipt className='size-8' />}
-            label='Facturacion'
+            label='Facturación'
             className='bg-rose-500/10 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
           />
         </div>

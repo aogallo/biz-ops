@@ -91,7 +91,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
           <div className='bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md'>
             <GalleryVerticalEnd className='size-4' />
           </div>
-          Acme Inc.
+          Business Operations
         </a>
         <Card>
           <CardHeader className='text-center'>

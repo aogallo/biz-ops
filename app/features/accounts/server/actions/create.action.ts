@@ -1,21 +1,20 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { createAccountSchema } from '../../schemas'
 import { accountsRepository } from '../repository'
 
 export async function createAccount(request: Request) {
-  // Authenticate user
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
-  // Get active organization from session
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return {
       success: false,
-      message: 'No active organization selected',
+      message: translateServer(locale, 'messages.accounts.noOrganization'),
     }
   }
 
-  // Parse form data
   const formData = await request.formData()
   const inputValues = {
     accountNumber: formData.get('accountNumber'),
@@ -23,7 +22,6 @@ export async function createAccount(request: Request) {
     organizationId,
   }
 
-  // Validate input
   const result = createAccountSchema.safeParse(inputValues)
   if (!result.success) {
     return {
@@ -33,7 +31,6 @@ export async function createAccount(request: Request) {
     }
   }
 
-  // Check account number uniqueness within organization
   const existingAccount = await accountsRepository.getByAccountNumber(
     organizationId,
     result.data.accountNumber!
@@ -42,11 +39,10 @@ export async function createAccount(request: Request) {
   if (existingAccount) {
     return {
       success: false,
-      message: `Account with number "${result.data.accountNumber}" already exists in your organization`,
+      message: translateServer(locale, 'messages.accounts.duplicateAccountNumber'),
     }
   }
 
-  // Create account
   try {
     const account = await accountsRepository.create(result.data)
     return {
@@ -56,8 +52,7 @@ export async function createAccount(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : 'Failed to create account',
+      message: error instanceof Error ? error.message : 'Failed to create account',
     }
   }
 }

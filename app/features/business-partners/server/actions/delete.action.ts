@@ -1,58 +1,50 @@
-import { requireAuth } from "~/server/auth/session.server";
-import { businessPartnersRepository } from "../repository";
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
+import { requireAuth } from '~/server/auth/session.server'
+import { businessPartnersRepository } from '../repository'
 
-export async function deleteBusinessPartner(
-  request: Request,
-  partnerId: string,
-) {
-  // Authenticate user
-  const session = await requireAuth(request);
+export async function deleteBusinessPartner(request: Request, partnerId: string) {
+  const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
-  // Get active organization from session
-  const organizationId = session.session.activeOrganizationId;
+  const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return {
       success: false,
-      message: "No active organization selected",
-    };
+      message: translateServer(locale, 'messages.partners.noOrganization'),
+    }
   }
 
-  // Verify partner exists and belongs to organization
-  const existingPartner = await businessPartnersRepository.getById(partnerId);
+  const existingPartner = await businessPartnersRepository.getById(partnerId)
   if (!existingPartner) {
     return {
       success: false,
-      message: "Business partner not found",
-    };
+      message: translateServer(locale, 'messages.partners.notFound'),
+    }
   }
 
   if (existingPartner.organizationId !== organizationId) {
     return {
       success: false,
-      message: "You don't have permission to delete this business partner",
-    };
+      message: translateServer(locale, 'messages.common.noPermission'),
+    }
   }
 
-  // Delete business partner
   try {
-    const deleted = await businessPartnersRepository.delete(partnerId);
+    const deleted = await businessPartnersRepository.delete(partnerId)
     if (!deleted) {
       return {
         success: false,
-        message: "Failed to delete business partner",
-      };
+        message: translateServer(locale, 'messages.partners.notFound'),
+      }
     }
     return {
       success: true,
-      message: "Business partner deleted successfully",
-    };
+      message: translateServer(locale, 'messages.partners.deleted'),
+    }
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to delete business partner",
-    };
+      message: error instanceof Error ? error.message : 'Failed to delete business partner',
+    }
   }
 }

@@ -13,22 +13,24 @@ import {
   categoryColorMap,
   type CategoryColor,
 } from '~/features/categories/schemas'
-import { PRODUCT_MESSAGES } from '~/features/products/messages'
 import { deleteProduct } from '~/features/products/server/actions/delete.action'
 import { productsRepository } from '~/features/products/server/repository'
+import { useTranslation } from '~/i18n/context'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const { sku } = params
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return redirectWithFlash('/products', {
       type: 'error',
-      message: PRODUCT_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.products.noOrganization'),
     })
   }
 
@@ -40,7 +42,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!product) {
     return redirectWithFlash('/products', {
       type: 'error',
-      message: PRODUCT_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.products.notFound'),
     })
   }
 
@@ -50,22 +52,23 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const { sku } = params
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { success: false, message: 'No active organization' }
+    return { success: false, message: translateServer(locale, 'messages.products.noOrganization') }
   }
 
   const product = await productsRepository.getBySku(organizationId, sku)
   if (!product) {
-    return { success: false, message: 'Product not found' }
+    return { success: false, message: translateServer(locale, 'messages.products.notFound') }
   }
 
   const result = await deleteProduct(request, product.id)
   if (result.success) {
     return redirectWithFlash('/products', {
       type: 'success',
-      message: PRODUCT_MESSAGES.deleted,
+      message: translateServer(locale, 'messages.products.deleted'),
     })
   }
   return result
@@ -74,6 +77,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 export default function ShowProduct({ loaderData }: Route.ComponentProps) {
   const { product } = loaderData
   const submit = useSubmit()
+  const { t } = useTranslation()
 
   const stock = product.stock ?? 0
   const minStock = product.minStock ?? 0
@@ -94,20 +98,20 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
     <div className='p-6'>
       <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>Product Details</h1>
+          <h1 className='text-2xl font-bold'>{t('products.details')}</h1>
           <p className='text-muted-foreground'>
-            View and manage product information
+            {t('products.detailsDescription')}
           </p>
         </div>
         <div className='flex gap-2'>
           <Link to={`/products/${product.sku}/edit`}>
-            <Button variant='outline'>Edit</Button>
+            <Button variant='outline'>{t('common.edit')}</Button>
           </Link>
           <Button variant='destructive' onClick={handleDelete}>
-            Delete
+            {t('common.delete')}
           </Button>
           <Link to='/products'>
-            <Button variant='outline'>Back to Products</Button>
+            <Button variant='outline'>{t('products.backToProducts')}</Button>
           </Link>
         </div>
       </div>
@@ -115,27 +119,27 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
       <div className='grid gap-6 md:grid-cols-3'>
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t('products.basicInfo')}</CardTitle>
             <CardDescription>
-              Product identification and pricing
+              {t('products.basicInfoDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                SKU
+                {t('products.sku')}
               </label>
               <p className='font-mono text-lg'>{product.sku}</p>
             </div>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Product Name
+                {t('products.name')}
               </label>
               <p className='text-lg font-semibold'>{product.name}</p>
             </div>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Price
+                {t('products.price')}
               </label>
               <p className='text-primary text-2xl font-bold'>
                 ${Number(product.price).toFixed(2)}
@@ -144,7 +148,7 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
             {product.categoryName && product.categoryColor && (
               <div>
                 <label className='text-muted-foreground text-sm font-medium'>
-                  Category
+                  {t('products.category')}
                 </label>
                 <div className='mt-1'>
                   <Badge
@@ -159,7 +163,7 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
             {product.description && (
               <div>
                 <label className='text-muted-foreground text-sm font-medium'>
-                  Description
+                  {t('products.description')}
                 </label>
                 <p className='text-sm'>{product.description}</p>
               </div>
@@ -169,13 +173,13 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Inventory</CardTitle>
-            <CardDescription>Stock levels and availability</CardDescription>
+            <CardTitle>{t('products.inventorySection')}</CardTitle>
+            <CardDescription>{t('products.inventoryDescription')}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Current Stock
+                {t('products.stock')}
               </label>
               <p className='text-2xl font-bold'>
                 <span
@@ -191,13 +195,17 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
                 </span>
               </p>
               <p className='text-muted-foreground mt-1 text-sm'>
-                {isOut ? 'Out of stock' : isLow ? 'Low stock' : 'In stock'}
+                {isOut
+                  ? t('products.stockStatus.outOfStock')
+                  : isLow
+                    ? t('products.stockStatus.lowStock')
+                    : t('products.stockStatus.inStock')}
               </p>
             </div>
             {minStock > 0 && (
               <div>
                 <label className='text-muted-foreground text-sm font-medium'>
-                  Minimum Stock Threshold
+                  {t('products.minStockThreshold')}
                 </label>
                 <p className='text-lg font-medium'>{minStock}</p>
                 {stock > 0 && minStock > 0 && (
@@ -220,7 +228,7 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
             {product.imageUrl && (
               <div>
                 <label className='text-muted-foreground text-sm font-medium'>
-                  Product Image
+                  {t('products.productImage')}
                 </label>
                 <img
                   src={product.imageUrl}
@@ -234,8 +242,8 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>QR Code</CardTitle>
-            <CardDescription>Scan to access this product</CardDescription>
+            <CardTitle>{t('products.qrCode')}</CardTitle>
+            <CardDescription>{t('products.qrDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ProductQRCode productName={product.name} sku={product.sku} />
@@ -244,19 +252,19 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
 
         <Card className='md:col-span-3'>
           <CardHeader>
-            <CardTitle>Metadata</CardTitle>
-            <CardDescription>Tracking information</CardDescription>
+            <CardTitle>{t('products.metadata')}</CardTitle>
+            <CardDescription>{t('products.metadataDescription')}</CardDescription>
           </CardHeader>
           <CardContent className='grid gap-4 md:grid-cols-3'>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Product ID
+                {t('products.productId')}
               </label>
               <p className='font-mono text-sm'>{product.id}</p>
             </div>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Created
+                {t('products.created')}
               </label>
               <p className='text-sm'>
                 {new Date(product.createdAt).toLocaleString()}
@@ -264,7 +272,7 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
             </div>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Last Updated
+                {t('products.lastUpdated')}
               </label>
               <p className='text-sm'>
                 {new Date(product.updatedAt).toLocaleString()}

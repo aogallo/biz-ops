@@ -3,16 +3,18 @@ import { useState } from 'react'
 import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
+import { useTranslation } from '~/i18n/context'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../../features/roles/messages'
 import { updateRole } from '../../features/roles/server/actions/update.action'
 import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/edit'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   const roleId = params.id
   const role = await rolesRepository.getById(roleId)
@@ -20,7 +22,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!role) {
     return redirectWithFlash('/roles', {
       type: 'error',
-      message: ROLE_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.roles.notFound'),
     })
   }
 
@@ -29,7 +31,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (role.isSystem && !isSuperAdminUser) {
     return redirectWithFlash('/roles', {
       type: 'error',
-      message: ROLE_MESSAGES.systemRoleProtected,
+      message: translateServer(locale, 'messages.roles.systemRoleProtected'),
     })
   }
 
@@ -61,12 +63,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const roleId = params.id
+  const locale = getLocaleFromRequest(request)
   const response = await updateRole(request, roleId)
 
   if (response.success && response.data) {
     return redirectWithFlash(`/roles/${roleId}`, {
       type: 'success',
-      message: ROLE_MESSAGES.updated,
+      message: translateServer(locale, 'messages.roles.updated'),
     })
   }
 
@@ -132,12 +135,13 @@ export default function EditRole() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   return (
     <div className='mx-auto max-w-3xl p-6'>
-      <h1 className='mb-2 text-2xl font-bold'>Edit Role</h1>
+      <h1 className='mb-2 text-2xl font-bold'>{t('roles.editTitle')}</h1>
       <p className='text-muted-foreground mb-6'>
-        Update role details and permissions
+        {t('roles.editDescription')}
       </p>
 
       <Form method='post' className='space-y-6'>
@@ -149,7 +153,7 @@ export default function EditRole() {
 
         <div>
           <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-            Role Name *
+            {t('roles.nameLabel')}
           </label>
           <input
             type='text'
@@ -157,7 +161,7 @@ export default function EditRole() {
             name='name'
             required
             defaultValue={role.name}
-            placeholder='project-manager'
+            placeholder={t('roles.namePlaceholder')}
             className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
           />
           {actionData?.errors?.name && (
@@ -166,7 +170,7 @@ export default function EditRole() {
             </p>
           )}
           <p className='text-muted-foreground mt-1 text-xs'>
-            Use lowercase letters and hyphens only (e.g., project-manager)
+            {t('roles.nameHelper')}
           </p>
         </div>
 
@@ -175,7 +179,7 @@ export default function EditRole() {
             htmlFor='description'
             className='mb-2 block text-sm font-medium'
           >
-            Description *
+            {t('roles.descriptionLabel')}
           </label>
           <textarea
             id='description'
@@ -183,7 +187,7 @@ export default function EditRole() {
             required
             rows={3}
             defaultValue={role.description || ''}
-            placeholder='Describe what this role can do...'
+            placeholder={t('roles.descriptionPlaceholder')}
             className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
           />
           {actionData?.errors?.description && (
@@ -195,7 +199,7 @@ export default function EditRole() {
 
         <div>
           <label className='mb-3 block text-sm font-medium'>
-            Permissions * (Select at least one)
+            {t('roles.permissionsLabel')}
           </label>
           {actionData?.errors?.permissionIds && (
             <p className='text-destructive mb-2 text-xs'>
@@ -216,10 +220,10 @@ export default function EditRole() {
 
         <div className='flex gap-3'>
           <Button type='submit' disabled={isSubmitting}>
-            {isSubmitting ? 'Updating...' : 'Update Role'}
+            {isSubmitting ? t('roles.updating') : t('roles.updateRole')}
           </Button>
           <Button type='button' variant='outline' asChild>
-            <a href={`/roles/${role.id}`}>Cancel</a>
+            <a href={`/roles/${role.id}`}>{t('common.cancel')}</a>
           </Button>
         </div>
       </Form>

@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { useTranslation } from '~/i18n/context'
 import { createCompany } from '~/features/company/server/actions/create.action.server'
 import type { Route } from './+types/create'
 
@@ -31,6 +32,7 @@ export default function CreateCompany() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (actionData?.message && !actionData.success) {
@@ -42,9 +44,9 @@ export default function CreateCompany() {
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Add Company</CardTitle>
+          <CardTitle>{t('company.createTitle')}</CardTitle>
           <CardDescription>
-            Create a new company for your organization
+            {t('company.createDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -52,7 +54,7 @@ export default function CreateCompany() {
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
                 <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-                  Company Name *
+                  {t('company.nameLabel')}
                 </label>
                 <input
                   type='text'
@@ -71,7 +73,7 @@ export default function CreateCompany() {
 
               <div>
                 <label htmlFor='nit' className='mb-2 block text-sm font-medium'>
-                  NIT *
+                  {t('company.nitLabel')}
                 </label>
                 <input
                   type='text'
@@ -91,13 +93,13 @@ export default function CreateCompany() {
 
             <div>
               <label htmlFor='email' className='mb-2 block text-sm font-medium'>
-                Email Address
+                {t('company.emailLabel')}
               </label>
               <input
                 type='email'
                 id='email'
                 name='email'
-                placeholder='contact@example.com'
+                placeholder={t('company.emailPlaceholder')}
                 className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:max-w-md'
               />
               {actionData?.errors?.email && (
@@ -106,16 +108,16 @@ export default function CreateCompany() {
                 </p>
               )}
               <p className='text-muted-foreground mt-1 text-xs'>
-                Optional - Primary contact email for this company
+                {t('company.emailHelper')}
               </p>
             </div>
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <Link to='/company'>Cancel</Link>
+              <Link to='/company'>{t('common.cancel')}</Link>
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Company'}
+              {isSubmitting ? t('common.creating') : t('company.createButton')}
             </Button>
           </CardFooter>
         </Form>

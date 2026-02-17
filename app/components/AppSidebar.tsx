@@ -30,6 +30,8 @@ import {
 import { Link, NavLink, useFetcher } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
 import { useFilteredNavigation } from '~/hooks/usePermissions'
+import { useTranslation } from '~/i18n/context'
+import type { TranslationKey } from '~/i18n/types'
 import { cn } from '~/lib/utils'
 import {
     Sidebar,
@@ -47,77 +49,86 @@ import {
 export const navigationItems = [
   {
     section: 'Admin',
+    sectionKey: 'sidebar.sections.admin' as TranslationKey,
     icon: Drumstick,
     color: 'accent-admin', // indigo/brand for system pages
     items: [
-      { name: 'Dashboard', path: '/dashboard', icon: ChartColumnBig },
-      { name: 'Accounts', path: '/accounts', icon: BookOpenIcon },
-      { name: 'Organization', path: '/organization', icon: Building2 },
-      { name: 'Users', path: '/users', icon: Users },
-      { name: 'Permissions', path: '/permissions', icon: ShieldXIcon },
-      { name: 'Roles', path: '/roles', icon: HandshakeIcon },
+      { name: 'Dashboard', nameKey: 'sidebar.items.dashboard' as TranslationKey, path: '/dashboard', icon: ChartColumnBig },
+      { name: 'Accounts', nameKey: 'sidebar.items.accounts' as TranslationKey, path: '/accounts', icon: BookOpenIcon },
+      { name: 'Organization', nameKey: 'sidebar.items.organization' as TranslationKey, path: '/organization', icon: Building2 },
+      { name: 'Users', nameKey: 'sidebar.items.users' as TranslationKey, path: '/users', icon: Users },
+      { name: 'Permissions', nameKey: 'sidebar.items.permissions' as TranslationKey, path: '/permissions', icon: ShieldXIcon },
+      { name: 'Roles', nameKey: 'sidebar.items.roles' as TranslationKey, path: '/roles', icon: HandshakeIcon },
       {
         name: 'Business Partners',
+        nameKey: 'sidebar.items.businessPartners' as TranslationKey,
         path: '/business-partners',
         icon: UserStarIcon,
       },
-      { name: 'Companies', path: '/company', icon: BuildingIcon },
-      { name: 'Invitations', path: '/invitations', icon: Mail },
+      { name: 'Companies', nameKey: 'sidebar.items.companies' as TranslationKey, path: '/company', icon: BuildingIcon },
+      { name: 'Invitations', nameKey: 'sidebar.items.invitations' as TranslationKey, path: '/invitations', icon: Mail },
     ],
   },
   {
     section: 'Inventory',
+    sectionKey: 'sidebar.sections.inventory' as TranslationKey,
     icon: Package,
     color: 'accent-inventory', // amber for inventory domain
     items: [
-      { name: 'Products', path: '/products', icon: Shapes },
-      { name: 'Categories', path: '/categories', icon: Tag },
-      { name: 'Stock', path: '/stock', icon: PackageCheck },
-      { name: 'Scan QR', path: '/products/scan', icon: ScanLine },
-      { name: 'Suppliers', path: '/suppliers', icon: Truck },
+      { name: 'Products', nameKey: 'sidebar.items.products' as TranslationKey, path: '/products', icon: Shapes },
+      { name: 'Categories', nameKey: 'sidebar.items.categories' as TranslationKey, path: '/categories', icon: Tag },
+      { name: 'Stock', nameKey: 'sidebar.items.stock' as TranslationKey, path: '/stock', icon: PackageCheck },
+      { name: 'Scan QR', nameKey: 'sidebar.items.scanQr' as TranslationKey, path: '/products/scan', icon: ScanLine },
+      { name: 'Suppliers', nameKey: 'sidebar.items.suppliers' as TranslationKey, path: '/suppliers', icon: Truck },
     ],
   },
   {
     section: 'Accounting',
+    sectionKey: 'sidebar.sections.accounting' as TranslationKey,
     icon: Building2,
     color: 'accent-accounting', // emerald for accounting domain
     items: [
-      { name: 'Journal Entries', path: '/journal-entries', icon: BookOpen },
-      { name: 'New Entry', path: '/journal-entries/new', icon: PlusCircle },
-      { name: 'SAT Processor', path: '/sat-processor', icon: FolderTreeIcon },
-      { name: 'Invoices', path: '/invoices', icon: NewspaperIcon },
-      { name: 'Expenses', path: '/sat-processor', icon: Banknote },
+      { name: 'Journal Entries', nameKey: 'sidebar.items.journalEntries' as TranslationKey, path: '/journal-entries', icon: BookOpen },
+      { name: 'New Entry', nameKey: 'sidebar.items.newEntry' as TranslationKey, path: '/journal-entries/new', icon: PlusCircle },
+      { name: 'SAT Processor', nameKey: 'sidebar.items.satProcessor' as TranslationKey, path: '/sat-processor', icon: FolderTreeIcon },
+      { name: 'Invoices', nameKey: 'sidebar.items.invoices' as TranslationKey, path: '/invoices', icon: NewspaperIcon },
+      { name: 'Expenses', nameKey: 'sidebar.items.expenses' as TranslationKey, path: '/sat-processor', icon: Banknote },
     ],
   },
   {
     section: 'Settings',
+    sectionKey: 'sidebar.sections.settings' as TranslationKey,
     icon: Settings,
     color: 'accent-admin', // indigo/brand for settings
     items: [
-      { name: 'Accounting', path: '/settings/accounting', icon: Settings },
+      { name: 'Accounting', nameKey: 'sidebar.items.accountingSettings' as TranslationKey, path: '/settings/accounting', icon: Settings },
     ],
   },
   {
     section: 'Appointments',
+    sectionKey: 'sidebar.sections.appointments' as TranslationKey,
     icon: CalendarDays,
     color: 'accent-appointments', // blue for appointments domain
     items: [
-      { name: 'Calendar', path: '/appointments', icon: Calendar1 },
-      { name: 'Services', path: '/services', icon: Briefcase },
+      { name: 'Calendar', nameKey: 'sidebar.items.calendar' as TranslationKey, path: '/appointments', icon: Calendar1 },
+      { name: 'Services', nameKey: 'sidebar.items.services' as TranslationKey, path: '/services', icon: Briefcase },
     ],
   },
   {
     section: 'Reports',
+    sectionKey: 'sidebar.sections.reports' as TranslationKey,
     icon: NotebookPenIcon,
     color: 'accent-accounting', // emerald for financial reports
     items: [
       {
         name: 'Financial Report',
+        nameKey: 'sidebar.items.financialReport' as TranslationKey,
         path: '/reports',
         icon: Notebook,
       },
       {
         name: 'Inventory Report',
+        nameKey: 'sidebar.items.inventoryReport' as TranslationKey,
         path: '/reports/inventory',
         icon: Package,
       },
@@ -132,6 +143,7 @@ interface AppSidebarProps {
 const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
   const { session, permissions, availableOrganizations } = useAuth()
   const fetcher = useFetcher()
+  const { t } = useTranslation()
 
   // Filter navigation items based on user permissions
   const visibleMenus = useFilteredNavigation(navigationItems)
@@ -155,7 +167,7 @@ const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
                   onChange={(e) => e.currentTarget.form?.requestSubmit()}
                   className='w-full rounded-md border border-border/50 bg-sidebar px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
                 >
-                  <option value=''>Select Organization</option>
+                  <option value=''>{t('sidebar.selectOrganization')}</option>
                   {availableOrganizations.map((org) => (
                     <option key={org.id} value={org.id}>
                       {org.name} {org.isAdmin ? '(Admin)' : ''}
@@ -188,7 +200,7 @@ const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
               <SidebarMenuButton asChild>
                 <div className='group/menu-item relative'>
                   <section.icon className={cn(section.color)} />
-                  <span>{section.section}</span>
+                  <span>{t(section.sectionKey)}</span>
                   {section.section === 'Inventory' && lowStockCount > 0 && (
                     <span className='ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white'>
                       {lowStockCount}
@@ -212,7 +224,7 @@ const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
                     >
                       <SidebarMenuButton>
                         <item.icon className="size-4" />
-                        <span>{item.name}</span>
+                        <span>{t(item.nameKey)}</span>
                       </SidebarMenuButton>
                     </NavLink>
                   </SidebarMenuSubItem>

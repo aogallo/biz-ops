@@ -2,8 +2,7 @@ import { desc, eq } from 'drizzle-orm'
 import { Link } from 'react-router'
 import { InvitationList } from '~/features/invitation/components/InvitationList'
 import { resendInvitationSchema } from '~/features/invitation/schemas'
-import { ORGANIZATION_MESSAGES } from '~/features/organization/messages'
-import { COMMON_MESSAGES } from '~/lib/messages'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import auth from '~/server/auth-server'
 import { hasPermission } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
@@ -19,6 +18,7 @@ import type { Route } from './+types/index'
 
 export async function action({ request }: Route.ActionArgs) {
   const { user } = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const formData = await request.formData()
   const intent = formData.get('intent')
 
@@ -47,7 +47,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (!user.isSuperAdmin && !canResend) {
       return {
         success: false,
-        error: COMMON_MESSAGES.notPermission,
+        error: translateServer(locale, 'messages.common.noPermission'),
       }
     }
 
@@ -87,8 +87,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     session: { activeOrganizationId = null },
   } = await requireAuth(request)
 
+  const locale = getLocaleFromRequest(request)
+
   if (!activeOrganizationId) {
-    return { success: false, message: ORGANIZATION_MESSAGES.notFound }
+    return { success: false, message: translateServer(locale, 'messages.organization.notFound') }
   }
 
   // Validate permissions permissions:bulk
@@ -99,7 +101,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   )
 
   if (!user.isSuperAdmin && isValidatePermissions) {
-    return { success: false, message: COMMON_MESSAGES.notPermission }
+    return { success: false, message: translateServer(locale, 'messages.common.noPermission') }
   }
 
   const [organization] = await db

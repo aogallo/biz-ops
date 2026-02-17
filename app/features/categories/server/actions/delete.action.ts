@@ -1,9 +1,10 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
-import { CATEGORY_MESSAGES } from '../../messages'
 import { categoriesRepository } from '../repository'
 
 export async function deleteCategory(request: Request, categoryId: string) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
@@ -12,21 +13,30 @@ export async function deleteCategory(request: Request, categoryId: string) {
 
   const existing = await categoriesRepository.getById(categoryId)
   if (!existing) {
-    return { success: false, message: CATEGORY_MESSAGES.notFound }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.categories.notFound'),
+    }
   }
   if (existing.organizationId !== organizationId) {
     return {
       success: false,
-      message: "You don't have permission to delete this category",
+      message: translateServer(locale, 'messages.common.noPermission'),
     }
   }
 
   try {
     const result = await categoriesRepository.delete(categoryId)
     if (!result.success) {
-      return { success: false, message: CATEGORY_MESSAGES.hasProducts }
+      return {
+        success: false,
+        message: translateServer(locale, 'messages.categories.hasProducts'),
+      }
     }
-    return { success: true, message: CATEGORY_MESSAGES.deleted }
+    return {
+      success: true,
+      message: translateServer(locale, 'messages.categories.deleted'),
+    }
   } catch (error) {
     return {
       success: false,

@@ -22,12 +22,13 @@ import {
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 import { Combobox } from '~/components/ui/combobox'
+import { useTranslation } from '~/i18n/context'
 import { organizationRepository } from '~/features/organization/server/repository'
 import { getRolesByOrganization } from '~/server/auth/roles.server'
 import { requireAuth } from '~/server/auth/session.server'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
-import { USER_MESSAGES } from '../../features/users/messages'
 import { inviteUser } from '../../features/users/server/actions/invite.action'
 import type { Route } from './+types/invite'
 
@@ -57,10 +58,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     selectedOrganizationId = activeOrgId
   }
 
+  const locale = getLocaleFromRequest(request)
+
   if (!selectedOrganizationId) {
     return redirectWithFlash('/users', {
       type: 'error',
-      message: USER_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.users.noOrganization'),
     })
   }
 
@@ -76,12 +79,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const locale = getLocaleFromRequest(request)
   const response = await inviteUser(request)
 
   if (response.success) {
     return redirectWithFlash('/users', {
       type: 'success',
-      message: USER_MESSAGES.invited,
+      message: translateServer(locale, 'messages.users.invited'),
     })
   }
 
@@ -95,6 +99,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   // Get default member role if available
   const memberRole = roles.find((r) => r.name === 'member')
@@ -110,18 +115,17 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
   return (
     <div className='container mx-auto max-w-4xl py-6'>
       <div className='mb-6'>
-        <h1 className='text-3xl font-bold'>Invite User</h1>
+        <h1 className='text-3xl font-bold'>{t('users.inviteUser')}</h1>
         <p className='text-muted-foreground'>
-          Send an invitation email to add a new user to your organization
+          {t('users.inviteDescription')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>User Invitation</CardTitle>
+          <CardTitle>{t('users.inviteTitle')}</CardTitle>
           <CardDescription>
-            The user will receive an email with instructions to create their
-            account
+            {t('users.inviteNote')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -135,17 +139,17 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
             <FieldGroup>
               <div className='grid gap-6 sm:grid-cols-2'>
                 <Field>
-                  <FieldLabel htmlFor='email'>Email *</FieldLabel>
+                  <FieldLabel htmlFor='email'>{t('users.emailLabel')}</FieldLabel>
                   <Input
                     id='email'
                     name='email'
                     type='email'
-                    placeholder='user@example.com'
+                    placeholder={t('users.emailPlaceholder')}
                     required
                     disabled={isSubmitting}
                   />
                   <FieldDescription>
-                    The email address where the invitation will be sent
+                    {t('users.emailHelper')}
                   </FieldDescription>
                   {actionData?.errors?.email && (
                     <p className='text-destructive mt-1 text-sm'>
@@ -156,7 +160,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
 
                 {isSuperAdmin ? (
                   <Field>
-                    <FieldLabel htmlFor='organization'>Organization</FieldLabel>
+                    <FieldLabel htmlFor='organization'>{t('users.organizationLabel')}</FieldLabel>
                     <Combobox
                       name='organizationId'
                       value={selectedOrganizationId}
@@ -166,12 +170,12 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                         value: organization.id,
                         label: organization.name,
                       }))}
-                      placeholder='Select organization'
-                      searchPlaceholder='Search organizations...'
-                      emptyMessage='No organizations found.'
+                      placeholder={t('users.selectOrganization')}
+                      searchPlaceholder={t('users.searchOrganizations')}
+                      emptyMessage={t('users.noOrganizationsFound')}
                     />
                     <FieldDescription>
-                      The organization the user will be invited to
+                      {t('users.organizationHelper')}
                     </FieldDescription>
                     {actionData?.errors?.organizationId && (
                       <p className='text-destructive mt-1 text-sm'>
@@ -189,7 +193,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
               </div>
 
               <Field>
-                <FieldLabel htmlFor='role'>Role</FieldLabel>
+                <FieldLabel htmlFor='role'>{t('users.roleLabel')}</FieldLabel>
                 <Combobox
                   key={selectedOrganizationId}
                   name='roleId'
@@ -200,13 +204,12 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                     label: role.name,
                     description: role.description || undefined,
                   }))}
-                  placeholder='Select role (defaults to member)'
+                  placeholder={t('users.rolePlaceholder')}
                   searchPlaceholder='Search roles...'
                   emptyMessage='No roles found.'
                 />
                 <FieldDescription>
-                  The role that will be assigned to the user in your
-                  organization
+                  {t('users.roleHelper')}
                 </FieldDescription>
                 {actionData?.errors?.roleId && (
                   <p className='text-destructive mt-1 text-sm'>
@@ -223,11 +226,11 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                 variant='outline'
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </Link>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Send Invitation'}
+              {isSubmitting ? t('users.sending') : t('users.sendInvitation')}
             </Button>
           </CardFooter>
         </Form>

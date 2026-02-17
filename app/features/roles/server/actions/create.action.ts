@@ -1,6 +1,6 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isOrgAdmin, isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../../messages'
 import { createRoleSchema } from '../../schemas'
 import { rolesRepository } from '../repository'
 
@@ -8,6 +8,7 @@ const RESERVED_NAMES = ['owner', 'admin', 'member', 'super-admin']
 
 export async function createRole(request: Request) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const formData = await request.formData()
 
   // Get organization ID from session
@@ -15,7 +16,7 @@ export async function createRole(request: Request) {
   if (!organizationId) {
     return {
       success: false,
-      message: ROLE_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.roles.noOrganization'),
     }
   }
 
@@ -46,7 +47,7 @@ export async function createRole(request: Request) {
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
       success: false,
-      message: ROLE_MESSAGES.systemRoleProtected,
+      message: translateServer(locale, 'messages.roles.systemRoleProtected'),
     }
   }
 
@@ -54,7 +55,7 @@ export async function createRole(request: Request) {
   if (RESERVED_NAMES.includes(name)) {
     return {
       success: false,
-      message: ROLE_MESSAGES.reservedName,
+      message: translateServer(locale, 'messages.roles.reservedName'),
     }
   }
 
@@ -63,7 +64,7 @@ export async function createRole(request: Request) {
   if (exists) {
     return {
       success: false,
-      message: ROLE_MESSAGES.nameExists,
+      message: translateServer(locale, 'messages.roles.nameExists'),
     }
   }
 

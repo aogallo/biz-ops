@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { useTranslation } from '~/i18n/context'
 import { getPostLoginRedirect } from '~/server/auth/access.server'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/welcome'
@@ -32,6 +33,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function WelcomePage({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData
+  const { t } = useTranslation()
 
   return (
     <div className='flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10'>
@@ -43,7 +45,7 @@ export default function WelcomePage({ loaderData }: Route.ComponentProps) {
           <div className='flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground'>
             <GalleryVerticalEnd className='size-4' />
           </div>
-          Acme Inc.
+          {t('welcome.brandName')}
         </a>
 
         <Card>
@@ -52,22 +54,20 @@ export default function WelcomePage({ loaderData }: Route.ComponentProps) {
               <Users className='size-8 text-muted-foreground' />
             </div>
             <CardTitle className='text-xl'>
-              Welcome, {user.name || 'User'}!
+              {t('welcome.title', { name: user.name || 'User' })}
             </CardTitle>
             <CardDescription className='text-base'>
-              You don&apos;t have access to any organizations yet.
+              {t('welcome.noAccess')}
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <p className='text-center text-sm text-muted-foreground'>
-              Please wait for an administrator to grant you access to an
-              organization. Once you have been added, refresh this page to
-              continue.
+              {t('welcome.waitForAdmin')}
             </p>
 
             <div className='rounded-md bg-muted p-4'>
               <p className='text-sm'>
-                <span className='font-medium'>Signed in as:</span>
+                <span className='font-medium'>{t('welcome.signedInAs')}</span>
                 <br />
                 {user.email}
               </p>
@@ -79,7 +79,7 @@ export default function WelcomePage({ loaderData }: Route.ComponentProps) {
                 onClick={() => window.location.reload()}
                 className='w-full'
               >
-                Check for Access
+                {t('welcome.checkAccess')}
               </Button>
 
               <Form method='post' action='/logout'>
@@ -89,7 +89,7 @@ export default function WelcomePage({ loaderData }: Route.ComponentProps) {
                   className='w-full text-muted-foreground'
                 >
                   <LogOut className='mr-2 size-4' />
-                  Sign Out
+                  {t('welcome.signOut')}
                 </Button>
               </Form>
             </div>

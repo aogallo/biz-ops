@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { useTranslation } from '~/i18n/context'
 import { requirePermission } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
@@ -93,6 +94,7 @@ export default function ManageMemberRoles({
   actionData,
 }: Route.ComponentProps) {
   const { member, memberRoles, availableRoles, organizationId } = loaderData
+  const { t } = useTranslation()
 
   const memberRoleIds = memberRoles.map((r) => r.id)
 
@@ -103,13 +105,13 @@ export default function ManageMemberRoles({
           to={`/users?organizationId=${organizationId}`}
           className='text-muted-foreground hover:text-foreground'
         >
-          &larr; Back to Users
+          &larr; {t('common.back')}
         </Link>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Manage Roles for {member.userName}</CardTitle>
+          <CardTitle>{t('users.manageRoles')} - {member.userName}</CardTitle>
           <CardDescription>
             Select the roles to assign to {member.userEmail}. The user will have
             combined permissions from all selected roles.
@@ -145,7 +147,7 @@ export default function ManageMemberRoles({
                       <span className='font-medium'>{role.name}</span>
                       {role.isSystem && (
                         <span className='rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800'>
-                          System
+                          {t('common.system')}
                         </span>
                       )}
                     </div>
@@ -160,7 +162,7 @@ export default function ManageMemberRoles({
 
               {availableRoles.length === 0 && (
                 <div className='text-muted-foreground py-4 text-center'>
-                  No roles available for this organization
+                  {t('roles.noRoles')}
                 </div>
               )}
             </div>
@@ -168,10 +170,10 @@ export default function ManageMemberRoles({
             <div className='mt-6 flex gap-3'>
               <Link to={`/users?organizationId=${organizationId}`}>
                 <Button type='button' variant='outline'>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
               </Link>
-              <Button type='submit'>Save Roles</Button>
+              <Button type='submit'>{t('common.save')}</Button>
             </div>
           </Form>
         </CardContent>

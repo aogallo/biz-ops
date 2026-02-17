@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { eq } from 'drizzle-orm'
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { useTranslation } from '~/i18n/context'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { Button } from '~/components/ui/button'
 import {
@@ -101,6 +102,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
     toast,
   } = loaderData
   const [, setSearchParams] = useSearchParams()
+  const { t } = useTranslation()
   const canInviteUser = useCanPerformAction('users.invite')
   const canUpdateUser = useCanPerformAction('users.invite')
 
@@ -110,18 +112,18 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('common.name'),
         cell: ({ row }) => (
           <span className='font-medium'>{row.getValue('name')}</span>
         ),
       },
       {
         accessorKey: 'email',
-        header: 'Email',
+        header: t('common.email'),
       },
       {
         accessorKey: 'roles',
-        header: 'Role',
+        header: t('users.manageRoles'),
         cell: ({ row }) => {
           const roles = row.original.roles
           const memberRole = row.original.memberRole
@@ -152,7 +154,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
                   to={`/users/${row.original.memberId}/roles?organizationId=${selectedOrganizationId}`}
                   className='text-primary mt-1 block text-xs hover:underline'
                 >
-                  Manage roles
+                  {t('users.manageRoles')}
                 </Link>
               )}
             </div>
@@ -161,19 +163,19 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'emailVerified',
-        header: 'Email Verified',
+        header: t('users.emailVerified'),
         cell: ({ row }) => {
           const verified = row.getValue('emailVerified') as boolean
           return verified ? (
-            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-success'>Verified</span>
+            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-success'>{t('users.verified')}</span>
           ) : (
-            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-warning'>Pending</span>
+            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-warning'>{t('users.pending')}</span>
           )
         },
       },
       {
         accessorKey: 'createdAt',
-        header: 'Created',
+        header: t('common.created'),
         cell: ({ row }) => {
           const date = row.getValue('createdAt') as Date
           return <div>{new Date(date).toLocaleDateString()}</div>

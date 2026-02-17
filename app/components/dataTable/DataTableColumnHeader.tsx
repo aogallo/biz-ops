@@ -2,6 +2,7 @@ import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import type { Column } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from "lucide-react";
 import type { HTMLAttributes } from "react";
+import { useTranslation } from "~/i18n/context";
 import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import {
@@ -23,6 +24,8 @@ export default function DataTableColumnHeader<TData, TValue>({
   title,
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
+  const { t } = useTranslation();
+
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }
@@ -49,16 +52,16 @@ export default function DataTableColumnHeader<TData, TValue>({
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
             <ArrowUp />
-            Asc
+            {t('common.sortAsc')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
             <ArrowDown />
-            Desc
+            {t('common.sortDesc')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
             <EyeOff />
-            Hide
+            {t('common.hide')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -151,7 +151,7 @@ export const navigationItems = [
   },
   {
     section: 'Purchase',
-    sectionKey: 'sidebar.sections.purchase',
+    sectionKey: 'sidebar.sections.purchase' as TranslationKey,
     icon: TicketsPlane,
     color: '',
     items: [

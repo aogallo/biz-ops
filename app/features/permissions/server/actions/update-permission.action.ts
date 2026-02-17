@@ -1,16 +1,17 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
-import { PERMISSION_MESSAGES } from '../../messages'
 import { updatePermissionSchema } from '../../schemas'
 import { permissionsRepository } from '../repository'
 
 export async function updatePermission(request: Request, permissionId: string) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   // Check super admin
   if (!session.user.isSuperAdmin) {
     return {
       success: false,
-      message: PERMISSION_MESSAGES.notSuperAdmin,
+      message: translateServer(locale, 'messages.permissions.notSuperAdmin'),
     }
   }
 
@@ -19,7 +20,7 @@ export async function updatePermission(request: Request, permissionId: string) {
   if (!permission) {
     return {
       success: false,
-      message: PERMISSION_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.permissions.notFound'),
     }
   }
 
@@ -27,7 +28,7 @@ export async function updatePermission(request: Request, permissionId: string) {
   if (permission.isSystem) {
     return {
       success: false,
-      message: PERMISSION_MESSAGES.systemPermissionProtected,
+      message: translateServer(locale, 'messages.permissions.systemPermissionProtected'),
     }
   }
 
@@ -59,7 +60,7 @@ export async function updatePermission(request: Request, permissionId: string) {
     if (exists) {
       return {
         success: false,
-        message: PERMISSION_MESSAGES.duplicateResourceAction,
+        message: translateServer(locale, 'messages.permissions.duplicateResourceAction'),
       }
     }
   }

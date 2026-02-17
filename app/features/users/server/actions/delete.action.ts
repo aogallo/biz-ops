@@ -1,6 +1,6 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isOrgAdmin, isSuperAdmin } from '~/server/permissions'
-import { USER_MESSAGES } from '../../messages'
 import { usersRepository } from '../repository'
 
 export async function deleteUser(
@@ -9,6 +9,7 @@ export async function deleteUser(
   organizationId: string
 ) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   // Check permissions
   const isSuperAdminUser = await isSuperAdmin(session.user.id)
@@ -17,7 +18,7 @@ export async function deleteUser(
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
       success: false,
-      message: USER_MESSAGES.noPermission,
+      message: translateServer(locale, 'messages.users.noPermission'),
     }
   }
 

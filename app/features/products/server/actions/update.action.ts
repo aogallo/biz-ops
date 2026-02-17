@@ -1,23 +1,32 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { createProductSchema } from '../../schemas'
 import { productsRepository } from '../repository'
 
 export async function updateProduct(request: Request, productId: string) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { success: false, message: 'No active organization selected' }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.products.noOrganization'),
+    }
   }
 
   const existingProduct = await productsRepository.getById(productId)
   if (!existingProduct) {
-    return { success: false, message: 'Product not found' }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.products.notFound'),
+    }
   }
+
   if (existingProduct.organizationId !== organizationId) {
     return {
       success: false,
-      message: "You don't have permission to update this product",
+      message: translateServer(locale, 'messages.common.noPermission'),
     }
   }
 
@@ -43,7 +52,6 @@ export async function updateProduct(request: Request, productId: string) {
     }
   }
 
-  // Check SKU uniqueness (excluding current product)
   const skuExists = await productsRepository.existsBySku(
     organizationId,
     result.data.sku,
@@ -52,21 +60,23 @@ export async function updateProduct(request: Request, productId: string) {
   if (skuExists) {
     return {
       success: false,
-      message: `Product with SKU "${result.data.sku}" already exists in your organization`,
+      message: translateServer(locale, 'messages.products.duplicateSku'),
     }
   }
 
   try {
     const product = await productsRepository.update(productId, result.data)
     if (!product) {
-      return { success: false, message: 'Failed to update product' }
+      return {
+        success: false,
+        message: translateServer(locale, 'messages.products.notFound'),
+      }
     }
     return { success: true, data: product }
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : 'Failed to update product',
+      message: error instanceof Error ? error.message : 'Failed to update product',
     }
   }
 }

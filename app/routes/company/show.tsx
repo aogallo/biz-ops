@@ -9,6 +9,7 @@ import {
 import { useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { useTranslation } from '~/i18n/context'
 import AccountHealthCard from '~/features/company/components/AccountHealthCard'
 import BranchDistribution from '~/features/company/components/BranchDistribution'
 import ContactCard from '~/features/company/components/ContactCard'
@@ -39,6 +40,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
   const company = loaderData.company
   const navigation = useNavigation()
+  const { t } = useTranslation()
   return (
     <div className='flex-1 space-y-8 overflow-y-auto'>
       <div className='bg-card flex flex-col items-start justify-between gap-6 rounded-xl border p-8 shadow-sm md:flex-row md:items-end'>
@@ -56,13 +58,13 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
               </h2>
               <span className='flex items-center gap-1.5 rounded-full bg-green-100 px-3 text-xs font-bold tracking-widest text-green-700 uppercase dark:bg-green-900/30 dark:text-green-400'>
                 <span className='size-2 rounded-full bg-green-500'></span>
-                Active
+                {t('company.active')}
               </span>
             </div>
             <div className='flex gap-4 font-medium text-[#508a95]'>
               <span className='flex items-center gap-1'>
                 <MapPinCheck />
-                Guatemala, Guatemala
+                {t('company.location')}
               </span>
               <span className='flex items-center gap-1'>
                 <Hash />
@@ -72,7 +74,7 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
           </div>
         </div>
         <div className='flex w-full gap-3 md:w-auto'>
-          <Button variant='outline'>Edit Details</Button>
+          <Button variant='outline'>{t('company.editDetails')}</Button>
         </div>
       </div>
 
@@ -81,19 +83,19 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
         <TabsList>
           <TabsTrigger value='overview' className='gap-1.5'>
             <Info className='size-4' />
-            Overview
+            {t('company.overview')}
           </TabsTrigger>
           <TabsTrigger value='financials' className='gap-1.5'>
             <Landmark className='size-4' />
-            Financials
+            {t('company.financials')}
           </TabsTrigger>
           <TabsTrigger value='documents' className='gap-1.5'>
             <FolderClosed className='size-4' />
-            Documents
+            {t('company.documents')}
           </TabsTrigger>
           <TabsTrigger value='activity' className='gap-1.5'>
             <Clock className='size-4' />
-            Activity Log
+            {t('company.activityLog')}
           </TabsTrigger>
         </TabsList>
 
@@ -105,28 +107,28 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
             <div className='space-y-8'>
               <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                 <StatCard
-                  title='Total Invoices'
+                  title={t('company.totalInvoices')}
                   variant='default'
                   size='sm'
                   progress={10}
                   value={1200}
                 />
                 <StatCard
-                  title='Cuentas por Pagar'
+                  title={t('company.accountsPayable')}
                   variant='purple'
                   size='sm'
                   value={999999}
                   trendDirection='down'
                 />
                 <StatCard
-                  title='Cuentas por Cobrar'
+                  title={t('company.accountsReceivable')}
                   variant='warning'
                   size='sm'
                   value={29291}
                   trendDirection='up'
                 />
                 <StatCard
-                  title='Overdue Invoices'
+                  title={t('company.overdueInvoices')}
                   variant='success'
                   size='sm'
                   progress={40}
@@ -160,19 +162,19 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
 
         <TabsContent value='financials' className='mt-6'>
           <div className='text-muted-foreground'>
-            Financial information will be displayed here.
+            {t('company.financialsPlaceholder')}
           </div>
         </TabsContent>
 
         <TabsContent value='documents' className='mt-6'>
           <div className='text-muted-foreground'>
-            Documents will be displayed here.
+            {t('company.documentsPlaceholder')}
           </div>
         </TabsContent>
 
         <TabsContent value='activity' className='mt-6'>
           <div className='text-muted-foreground'>
-            Activity log will be displayed here.
+            {t('company.activityPlaceholder')}
           </div>
         </TabsContent>
       </Tabs>

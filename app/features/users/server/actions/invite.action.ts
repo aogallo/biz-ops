@@ -4,13 +4,14 @@ import { getRoleByName } from '~/server/auth/roles.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import { invitationModel, invitationRoleModel, roleModel } from '~/server/db/schemas/auth'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { isOrgAdmin, isSuperAdmin } from '~/server/permissions'
-import { USER_MESSAGES } from '../../messages'
 import { inviteUserSchema } from '../../schemas'
 import { usersRepository } from '../repository'
 
 export async function inviteUser(request: Request) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const formData = await request.formData()
 
   // Parse and validate input
@@ -38,7 +39,7 @@ export async function inviteUser(request: Request) {
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
       success: false,
-      message: USER_MESSAGES.noPermission,
+      message: translateServer(locale, 'messages.users.noPermission'),
     }
   }
 
@@ -53,12 +54,12 @@ export async function inviteUser(request: Request) {
     if (existingMember) {
       return {
         success: false,
-        message: USER_MESSAGES.alreadyMember,
+        message: translateServer(locale, 'messages.users.alreadyMember'),
       }
     }
     return {
       success: false,
-      message: USER_MESSAGES.alreadyExists,
+      message: translateServer(locale, 'messages.users.alreadyExists'),
     }
   }
 

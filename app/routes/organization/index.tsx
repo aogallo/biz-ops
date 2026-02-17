@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
+import { useTranslation } from '~/i18n/context'
 import { getUserOrganizations } from '~/server/auth/organization.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
@@ -18,27 +19,28 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Organization({ loaderData }: Route.ComponentProps) {
   const { organizations, toast } = loaderData
+  const { t } = useTranslation()
   useToastFromLoader(toast)
 
   return (
     <div className=''>
       <div className='mb-6 flex items-center justify-between'>
-        <h1 className='text-2xl font-bold'>Your Organizations</h1>
+        <h1 className='text-2xl font-bold'>{t('organization.title')}</h1>
         <Link to='/organization/new'>
-          <Button>Create Organization</Button>
+          <Button>{t('organization.createOrg')}</Button>
         </Link>
       </div>
 
       {organizations.length === 0 ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            You are not a member of any organizations yet.
+            {t('organization.noMember')}
           </p>
           <Link
             to='/organization/new'
             className='bg-primary text-primary-foreground hover:bg-primary/90 inline-flex rounded-md px-4 py-2 text-sm font-medium'
           >
-            Create Your First Organization
+            {t('organization.createFirst')}
           </Link>
         </div>
       ) : (
@@ -62,7 +64,7 @@ export default function Organization({ loaderData }: Route.ComponentProps) {
                   to={`/organization/${organization.slug}`}
                   className='text-primary text-sm font-medium hover:underline'
                 >
-                  Open →
+                  {t('organization.open')}
                 </Link>
               </div>
             </div>

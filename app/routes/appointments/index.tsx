@@ -2,6 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
+import { useTranslation } from '~/i18n/context'
 import {
   AppointmentDetailsDrawer,
   CalendarDayView,
@@ -115,6 +116,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   const { appointments } = loaderData
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -123,7 +125,7 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   useEffect(() => {
     const successParam = searchParams.get('success')
     if (successParam === 'appointment_created') {
-      toast.success('Appointment created successfully')
+      toast.success(t('appointments.created'))
       // Remove the success param from URL
       const newParams = new URLSearchParams(searchParams)
       newParams.delete('success')
@@ -212,7 +214,7 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   const handleCancelAppointment = (appointment: Appointment) => {
     // TODO: Implement cancel action with confirmation
     console.log('Cancel appointment:', appointment.id)
-    toast.info('Cancel appointment functionality coming soon')
+    toast.info(t('appointments.cancelSoon'))
   }
 
   return (

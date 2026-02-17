@@ -1,4 +1,5 @@
 import { Link, useSubmit } from 'react-router'
+import { useTranslation } from '~/i18n/context'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -7,22 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
-import { ACCOUNT_MESSAGES } from '~/features/accounts/messages'
 import { deleteAccount } from '~/features/accounts/server/actions/delete.action'
 import { accountsRepository } from '~/features/accounts/server/repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const { id } = params
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return redirectWithFlash('/accounts', {
       type: 'error',
-      message: ACCOUNT_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.accounts.noOrganization'),
     })
   }
 
@@ -34,7 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!account) {
     return redirectWithFlash('/accounts', {
       type: 'error',
-      message: ACCOUNT_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.accounts.notFound'),
     })
   }
 
@@ -50,12 +52,13 @@ export async function action({ request, params }: Route.ActionArgs) {
     return { success: false, message: 'No active organization' }
   }
 
+  const locale = getLocaleFromRequest(request)
   const result = await deleteAccount(request, id)
 
   if (result.success) {
     return redirectWithFlash('/accounts', {
       type: 'success',
-      message: ACCOUNT_MESSAGES.deleted,
+      message: translateServer(locale, 'messages.accounts.deleted'),
     })
   }
 
@@ -64,14 +67,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function ShowAccount({ loaderData }: Route.ComponentProps) {
   const { account } = loaderData
+  const { t } = useTranslation()
   const submit = useSubmit()
 
   const handleDelete = () => {
-    if (
-      confirm(
-        `Are you sure you want to delete "${account.name}"? This action cannot be undone.`
-      )
-    ) {
+    if (confirm(`${t('accounts.details')}: "${account.name}"`)) {
       submit({}, { method: 'post' })
     }
   }
@@ -80,20 +80,20 @@ export default function ShowAccount({ loaderData }: Route.ComponentProps) {
     <div className='p-6'>
       <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>Account Details</h1>
+          <h1 className='text-2xl font-bold'>{t('accounts.details')}</h1>
           <p className='text-muted-foreground'>
-            View and manage account information
+            {t('accounts.detailsDescription')}
           </p>
         </div>
         <div className='flex gap-2'>
           <Link to={`/accounts/${account.id}/edit`}>
-            <Button variant='outline'>Edit</Button>
+            <Button variant='outline'>{t('common.edit')}</Button>
           </Link>
           <Button variant='destructive' onClick={handleDelete}>
-            Delete
+            {t('common.delete')}
           </Button>
           <Link to='/accounts'>
-            <Button variant='outline'>Back to Accounts</Button>
+            <Button variant='outline'>{t('accounts.backToAccounts')}</Button>
           </Link>
         </div>
       </div>
@@ -101,21 +101,21 @@ export default function ShowAccount({ loaderData }: Route.ComponentProps) {
       <div className='grid gap-6 md:grid-cols-2'>
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <CardTitle>{t('accounts.information')}</CardTitle>
             <CardDescription>
-              Basic account details
+              {t('accounts.infoDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Account Number
+                {t('accounts.number')}
               </label>
               <p className='font-mono text-lg'>{account.accountNumber}</p>
             </div>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Account Name
+                {t('accounts.name')}
               </label>
               <p className='text-lg font-semibold'>{account.name}</p>
             </div>
@@ -124,13 +124,13 @@ export default function ShowAccount({ loaderData }: Route.ComponentProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Metadata</CardTitle>
-            <CardDescription>System information</CardDescription>
+            <CardTitle>{t('products.metadata')}</CardTitle>
+            <CardDescription>{t('accounts.system')}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>
               <label className='text-muted-foreground text-sm font-medium'>
-                Account ID
+                {t('accounts.accountId')}
               </label>
               <p className='font-mono text-sm'>{account.id}</p>
             </div>

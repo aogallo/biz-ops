@@ -1,5 +1,5 @@
-import { GalleryVerticalEnd } from 'lucide-react'
-import { Form, redirect, useActionData, useNavigation } from 'react-router'
+import { GalleryVerticalEnd, Globe } from 'lucide-react'
+import { Form, redirect, useActionData, useFetcher, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -15,6 +15,11 @@ import {
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
+import { useLocale, useTranslation } from '~/i18n/context'
+import {
+  getLocaleFromRequest,
+  translateServer,
+} from '~/i18n/translate.server'
 import { getPostLoginRedirect } from '~/server/auth/access.server'
 import auth from '~/server/auth-server'
 import { getOptionalAuth } from '~/server/auth/session.server'
@@ -38,12 +43,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const locale = getLocaleFromRequest(request)
   const formData = await request.formData()
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    return { error: 'Email and password are required' }
+    return { error: translateServer(locale, 'auth.emailRequired') }
   }
 
   try {
@@ -71,11 +77,15 @@ export async function action({ request }: Route.ActionArgs) {
     // Sign in failed
     const errorData = await response.json().catch(() => ({}))
     return {
-      error: (errorData as Error)?.message || 'Invalid email or password',
+      error:
+        (errorData as Error)?.message ||
+        translateServer(locale, 'auth.invalidCredentials'),
     }
   } catch (error) {
     console.error('Login error:', error)
-    return { error: 'Invalid email or password' }
+    return {
+      error: translateServer(locale, 'auth.invalidCredentials'),
+    }
   }
 }
 
@@ -83,21 +93,34 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
+  const locale = useLocale()
+  const localeFetcher = useFetcher()
+  const nextLocale = locale === 'en' ? 'es' : 'en'
 
   return (
     <div className='bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10'>
+      <div className='absolute top-4 right-4'>
+        <localeFetcher.Form method='post' action='/action/set-locale'>
+          <input type='hidden' name='locale' value={nextLocale} />
+          <Button type='submit' variant='ghost' size='sm' className='gap-1.5'>
+            <Globe className='size-4' />
+            <span className='text-xs font-medium uppercase'>{locale}</span>
+          </Button>
+        </localeFetcher.Form>
+      </div>
       <div className='flex w-full max-w-sm flex-col gap-6'>
-        <a href='#' className='flex items-center gap-2 self-center font-medium'>
+        <a href='/' className='flex items-center gap-2 self-center font-medium'>
           <div className='bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md'>
             <GalleryVerticalEnd className='size-4' />
           </div>
-          Acme Inc.
+          Business Operations
         </a>
         <Card>
           <CardHeader className='text-center'>
-            <CardTitle className='text-xl'>Welcome back</CardTitle>
+            <CardTitle className='text-xl'>{t('auth.welcomeBack')}</CardTitle>
             <CardDescription>
-              Login with your Email and Password
+              {t('auth.loginDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -114,18 +137,18 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
             <Form method='post'>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor='email'>Email</FieldLabel>
+                  <FieldLabel htmlFor='email'>{t('auth.email')}</FieldLabel>
                   <Input
                     id='email'
                     name='email'
                     type='email'
-                    placeholder='m@example.com'
+                    placeholder={t('auth.emailPlaceholder')}
                     required
                     disabled={isSubmitting}
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor='password'>Password</FieldLabel>
+                  <FieldLabel htmlFor='password'>{t('auth.password')}</FieldLabel>
                   <Input
                     id='password'
                     name='password'
@@ -136,10 +159,10 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
                 </Field>
                 <Field>
                   <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? 'Signing in...' : 'Login'}
+                    {isSubmitting ? t('auth.signingIn') : t('auth.login')}
                   </Button>
                   <FieldDescription className='text-center'>
-                    Don&apos;t have an account? Contact the administrator
+                    {t('auth.noAccount')}
                   </FieldDescription>
                 </Field>
               </FieldGroup>

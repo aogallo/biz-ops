@@ -11,21 +11,23 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { Checkbox } from '~/components/ui/checkbox'
+import { useTranslation } from '~/i18n/context'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
-import { ROLE_MESSAGES } from '../../features/roles/messages'
 import { createRole } from '../../features/roles/server/actions/create.action'
 import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/create'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return redirectWithFlash('/organization', {
       type: 'error',
-      message: ROLE_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.roles.noOrganization'),
     })
   }
 
@@ -50,12 +52,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const locale = getLocaleFromRequest(request)
   const response = await createRole(request)
 
   if (response.success && response.data) {
     return redirectWithFlash(`/roles/${response.data.id}`, {
       type: 'success',
-      message: ROLE_MESSAGES.created,
+      message: translateServer(locale, 'messages.roles.created'),
     })
   }
 
@@ -117,14 +120,15 @@ export default function CreateRole() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   return (
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Create New Role</CardTitle>
+          <CardTitle>{t('roles.createNew')}</CardTitle>
           <CardDescription>
-            Define a custom role with specific permissions for your organization
+            {t('roles.createDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -138,14 +142,14 @@ export default function CreateRole() {
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
                 <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-                  Role Name *
+                  {t('roles.nameLabel')}
                 </label>
                 <input
                   type='text'
                   id='name'
                   name='name'
                   required
-                  placeholder='project-manager'
+                  placeholder={t('roles.namePlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData?.errors?.name && (
@@ -154,7 +158,7 @@ export default function CreateRole() {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Use lowercase letters and hyphens only (e.g., project-manager)
+                  {t('roles.nameHelper')}
                 </p>
               </div>
 
@@ -163,14 +167,14 @@ export default function CreateRole() {
                   htmlFor='description'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Description *
+                  {t('roles.descriptionLabel')}
                 </label>
                 <textarea
                   id='description'
                   name='description'
                   required
                   rows={3}
-                  placeholder='Describe what this role can do...'
+                  placeholder={t('roles.descriptionPlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData?.errors?.description && (
@@ -183,7 +187,7 @@ export default function CreateRole() {
 
             <div>
               <label className='mb-3 block text-sm font-medium'>
-                Permissions * (Select at least one)
+                {t('roles.permissionsLabel')}
               </label>
               {actionData?.errors?.permissionIds && (
                 <p className='text-destructive mb-2 text-xs'>
@@ -203,10 +207,10 @@ export default function CreateRole() {
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href='/roles'>Cancel</a>
+              <a href='/roles'>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Role'}
+              {isSubmitting ? t('common.creating') : t('roles.create')}
             </Button>
           </CardFooter>
         </Form>

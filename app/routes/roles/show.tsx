@@ -21,18 +21,20 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { useCanPerformAction } from '~/hooks/usePermissions'
+import { useTranslation } from '~/i18n/context'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import { memberRoleModel } from '~/server/db/schemas/auth'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import { isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../../features/roles/messages'
 import { deleteRole } from '../../features/roles/server/actions/delete.action'
 import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   const roleId = params.id
   const role = await rolesRepository.getById(roleId)
@@ -40,7 +42,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!role) {
     return redirectWithFlash('/roles', {
       type: 'error',
-      message: ROLE_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.roles.notFound'),
     })
   }
 
@@ -76,12 +78,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const roleId = params.id
+  const locale = getLocaleFromRequest(request)
   const response = await deleteRole(request, roleId)
 
   if (response.success) {
     return redirectWithFlash('/roles', {
       type: 'success',
-      message: ROLE_MESSAGES.deleted,
+      message: translateServer(locale, 'messages.roles.deleted'),
     })
   }
 
@@ -94,6 +97,7 @@ export default function ShowRole() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isDeleting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   const canEditRole = useCanPerformAction('roles.edit')
   const canDeleteRole = useCanPerformAction('roles.delete')
@@ -109,11 +113,11 @@ export default function ShowRole() {
           <div className='mb-2 flex items-center gap-3'>
             <h1 className='text-2xl font-bold'>{role.name}</h1>
             <Badge variant={role.isSystem ? 'secondary' : 'default'}>
-              {role.isSystem ? 'System' : 'Custom'}
+              {role.isSystem ? t('common.system') : t('common.custom')}
             </Badge>
           </div>
           <p className='text-muted-foreground'>
-            {role.description || 'No description'}
+            {role.description || t('common.noDescription')}
           </p>
         </div>
         {(canEdit || canDelete) && (
@@ -122,7 +126,7 @@ export default function ShowRole() {
               <Button asChild variant='outline'>
                 <Link to={`/roles/${role.id}/edit`}>
                   <Edit className='mr-2 h-4 w-4' />
-                  Edit
+                  {t('common.edit')}
                 </Link>
               </Button>
             )}
@@ -134,31 +138,31 @@ export default function ShowRole() {
                     disabled={!canDelete}
                     title={
                       !canDelete && memberCount > 0
-                        ? `Cannot delete: ${memberCount} member(s) assigned`
+                        ? t('roles.reassignMembers')
                         : undefined
                     }
                   >
                     <Trash2 className='mr-2 h-4 w-4' />
-                    Delete
+                    {t('common.delete')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Role?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('roles.deleteConfirm')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete the role &quot;{role.name}
-                      &quot;. This action cannot be undone.
+                      {t('roles.deleteWarning')} &quot;{role.name}
+                      &quot;. {t('roles.deleteIrreversible')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                     <Form method='post'>
                       <AlertDialogAction
                         type='submit'
                         disabled={isDeleting}
                         className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
                       >
-                        {isDeleting ? 'Deleting...' : 'Delete'}
+                        {isDeleting ? t('roles.deleting') : t('common.delete')}
                       </AlertDialogAction>
                     </Form>
                   </AlertDialogFooter>
@@ -180,13 +184,13 @@ export default function ShowRole() {
         <div className='flex items-center justify-between'>
           <div>
             <h2 className='text-muted-foreground text-sm font-medium'>
-              Members with this role
+              {t('roles.members')}
             </h2>
             <p className='text-2xl font-bold'>{memberCount}</p>
           </div>
           {memberCount > 0 && !role.isSystem && (
             <p className='text-muted-foreground text-xs'>
-              Reassign members before deleting this role
+              {t('roles.reassignMembers')}
             </p>
           )}
         </div>
@@ -194,11 +198,11 @@ export default function ShowRole() {
 
       {/* Permissions */}
       <div>
-        <h2 className='mb-4 text-lg font-semibold'>Permissions</h2>
+        <h2 className='mb-4 text-lg font-semibold'>{t('roles.permissions')}</h2>
         {Object.keys(permissionsByResource).length === 0 ? (
           <div className='rounded-lg border border-dashed p-8 text-center'>
             <p className='text-muted-foreground'>
-              No permissions assigned to this role
+              {t('roles.noPermissions')}
             </p>
           </div>
         ) : (

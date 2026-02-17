@@ -9,11 +9,11 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { createAccount } from '~/features/accounts/server/actions/create.action'
+import { useTranslation } from '~/i18n/context'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/create'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // Action handles auth, but loader ensures page is protected
   await requireAuth(request)
   return {}
 }
@@ -21,7 +21,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const response = await createAccount(request)
 
-  // Redirect on success
   if (response.success && response.data) {
     return redirect(`/accounts/${response.data.id}`)
   }
@@ -30,6 +29,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function CreateAccount() {
+  const { t } = useTranslation()
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
@@ -38,9 +38,9 @@ export default function CreateAccount() {
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Create New Account</CardTitle>
+          <CardTitle>{t('accounts.createNew')}</CardTitle>
           <CardDescription>
-            Add a new account to your chart of accounts
+            {t('accounts.createDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -57,14 +57,14 @@ export default function CreateAccount() {
                   htmlFor='accountNumber'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Account Number *
+                  {t('accounts.numberLabel')}
                 </label>
                 <input
                   type='text'
                   id='accountNumber'
                   name='accountNumber'
                   required
-                  placeholder='1000'
+                  placeholder={t('accounts.numberPlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData?.errors?.accountNumber && (
@@ -73,20 +73,20 @@ export default function CreateAccount() {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Unique identifier for this account in your chart of accounts
+                  {t('accounts.numberHelper')}
                 </p>
               </div>
 
               <div>
                 <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-                  Account Name *
+                  {t('accounts.nameLabel')}
                 </label>
                 <input
                   type='text'
                   id='name'
                   name='name'
                   required
-                  placeholder='Cash'
+                  placeholder={t('accounts.namePlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData?.errors?.name && (
@@ -99,10 +99,10 @@ export default function CreateAccount() {
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href='/accounts'>Cancel</a>
+              <a href='/accounts'>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Account'}
+              {isSubmitting ? t('common.creating') : t('accounts.addAccount')}
             </Button>
           </CardFooter>
         </Form>

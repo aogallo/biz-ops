@@ -14,19 +14,21 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import { processPermissionFile } from '~/features/permissions/actions.server'
-import { PERMISSION_MESSAGES } from '~/features/permissions/messages'
 import { createPermission } from '~/features/permissions/server/actions/create-permission.action'
+import { useTranslation } from '~/i18n/context'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/create'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   if (!session.user.isSuperAdmin) {
     return redirectWithFlash('/permissions', {
       type: 'error',
-      message: PERMISSION_MESSAGES.notSuperAdmin,
+      message: translateServer(locale, 'messages.permissions.notSuperAdmin'),
     })
   }
 
@@ -49,11 +51,12 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   // Default: single permission creation
+  const locale = getLocaleFromRequest(request)
   const result = await createPermission(request)
   if (result.success) {
     return redirectWithFlash('/permissions', {
       type: 'success',
-      message: PERMISSION_MESSAGES.created,
+      message: translateServer(locale, 'messages.permissions.created'),
     })
   }
 
@@ -65,6 +68,7 @@ export default function PermissionCreatePage({
 }: Route.ComponentProps) {
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   const bulkFetcher = useFetcher()
   const bulkBusy = bulkFetcher.state !== 'idle'
@@ -77,13 +81,13 @@ export default function PermissionCreatePage({
   return (
     <>
       <TitleAndActions
-        title='Create Permission'
+        title={t('permissions.createTitle')}
         subtitle='Add a single permission or bulk upload from CSV'
       >
         <Link to='/permissions'>
           <Button variant='outline'>
             <ArrowLeft className='mr-2 h-4 w-4' />
-            Back to permissions
+            {t('common.back')}
           </Button>
         </Link>
       </TitleAndActions>
@@ -92,7 +96,7 @@ export default function PermissionCreatePage({
         {/* Single Permission Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Single Permission</CardTitle>
+            <CardTitle>{t('permissions.createTitle')}</CardTitle>
             <CardDescription>
               Create a new permission by specifying a resource and action
             </CardDescription>
@@ -107,7 +111,7 @@ export default function PermissionCreatePage({
 
               <div className='grid gap-4 sm:grid-cols-2'>
                 <div className='space-y-2'>
-                  <Label htmlFor='resource'>Resource *</Label>
+                  <Label htmlFor='resource'>{t('permissions.resource')} *</Label>
                   <Input
                     type='text'
                     id='resource'
@@ -126,7 +130,7 @@ export default function PermissionCreatePage({
                 </div>
 
                 <div className='space-y-2'>
-                  <Label htmlFor='action'>Action *</Label>
+                  <Label htmlFor='action'>{t('permissions.action')} *</Label>
                   <Input
                     type='text'
                     id='action'
@@ -146,7 +150,7 @@ export default function PermissionCreatePage({
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='description'>Description</Label>
+                <Label htmlFor='description'>{t('common.description')}</Label>
                 <Textarea
                   id='description'
                   name='description'
@@ -161,7 +165,7 @@ export default function PermissionCreatePage({
               </div>
 
               <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Permission'}
+                {isSubmitting ? t('common.creating') : t('permissions.create')}
               </Button>
             </Form>
           </CardContent>

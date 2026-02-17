@@ -1,11 +1,13 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { parseFile } from '../../lib/file-parser'
-import { ACCOUNT_MESSAGES } from '../../messages'
 import { accountsRepository } from '../repository'
 
 export async function bulkUploadAccounts(
+  request: Request,
   organizationId: string,
   formData: FormData
 ) {
+  const locale = getLocaleFromRequest(request)
   const file = formData.get('file') as File | null
 
   if (!file) {
@@ -22,7 +24,7 @@ export async function bulkUploadAccounts(
   if (parseResult.errors.length > 0 && parseResult.data.length === 0) {
     return {
       success: false,
-      message: ACCOUNT_MESSAGES.invalidFile,
+      message: translateServer(locale, 'messages.accounts.invalidFile'),
       errors: parseResult.errors,
     }
   }
@@ -31,7 +33,7 @@ export async function bulkUploadAccounts(
   if (parseResult.data.length === 0) {
     return {
       success: false,
-      message: ACCOUNT_MESSAGES.noValidRows,
+      message: translateServer(locale, 'messages.accounts.noValidRows'),
     }
   }
 
@@ -44,7 +46,10 @@ export async function bulkUploadAccounts(
 
     return {
       success: true,
-      message: ACCOUNT_MESSAGES.bulkUploadSuccess(result.inserted, result.updated),
+      message: translateServer(locale, 'messages.accounts.bulkUploadSuccess', {
+        inserted: String(result.inserted),
+        updated: String(result.updated),
+      }),
       data: result,
       parseErrors: parseResult.errors,
     }
@@ -52,7 +57,7 @@ export async function bulkUploadAccounts(
     return {
       success: false,
       message:
-        error instanceof Error ? error.message : ACCOUNT_MESSAGES.bulkUploadError,
+        error instanceof Error ? error.message : translateServer(locale, 'messages.accounts.bulkUploadError'),
     }
   }
 }

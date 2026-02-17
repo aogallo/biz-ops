@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { createBusinessPartner } from '~/features/business-partners/server/actions/create.action'
+import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/create'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -40,14 +41,15 @@ export default function CreateBusinessPartner() {
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
   const [partnerType, setPartnerType] = useState<string>('')
+  const { t } = useTranslation()
 
   return (
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Add Business Partner</CardTitle>
+          <CardTitle>{t('partners.createTitle')}</CardTitle>
           <CardDescription>
-            Create a new client, vendor, or both for your organization
+            {t('partners.createDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -61,7 +63,7 @@ export default function CreateBusinessPartner() {
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
                 <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-                  Partner Name *
+                  {t('partners.nameLabel')}
                 </label>
                 <input
                   type='text'
@@ -80,17 +82,17 @@ export default function CreateBusinessPartner() {
 
               <div>
                 <label htmlFor='type' className='mb-2 block text-sm font-medium'>
-                  Partner Type *
+                  {t('partners.typeLabel')}
                 </label>
                 <input type='hidden' name='type' value={partnerType} />
                 <Select value={partnerType} onValueChange={setPartnerType} required>
                   <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='Select partner type' />
+                    <SelectValue placeholder={t('partners.typePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='client'>Client (Customer)</SelectItem>
-                    <SelectItem value='vendor'>Vendor (Supplier)</SelectItem>
-                    <SelectItem value='both'>Both Client & Vendor</SelectItem>
+                    <SelectItem value='client'>{t('partners.type.client')}</SelectItem>
+                    <SelectItem value='vendor'>{t('partners.type.vendor')}</SelectItem>
+                    <SelectItem value='both'>{t('partners.type.both')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {actionData?.errors?.type && (
@@ -99,7 +101,7 @@ export default function CreateBusinessPartner() {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Choose how you do business with this partner
+                  {t('partners.typeHelper')}
                 </p>
               </div>
             </div>
@@ -107,7 +109,7 @@ export default function CreateBusinessPartner() {
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
                 <label htmlFor='email' className='mb-2 block text-sm font-medium'>
-                  Email Address
+                  {t('partners.email')}
                 </label>
                 <input
                   type='email'
@@ -122,19 +124,19 @@ export default function CreateBusinessPartner() {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Optional - Primary contact email
+                  {t('partners.emailOptional')}
                 </p>
               </div>
 
               <div>
                 <label htmlFor='phone' className='mb-2 block text-sm font-medium'>
-                  Phone Number
+                  {t('partners.phone')}
                 </label>
                 <input
                   type='tel'
                   id='phone'
                   name='phone'
-                  placeholder='+502 1234-5678'
+                  placeholder={t('partners.phonePlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData?.errors?.phone && (
@@ -143,20 +145,20 @@ export default function CreateBusinessPartner() {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Optional - Contact phone number
+                  {t('partners.phoneOptional')}
                 </p>
               </div>
             </div>
 
             <div>
               <label htmlFor='notes' className='mb-2 block text-sm font-medium'>
-                Notes
+                {t('partners.notes')}
               </label>
               <textarea
                 id='notes'
                 name='notes'
                 rows={3}
-                placeholder='Additional notes about this partner...'
+                placeholder={t('partners.notesPlaceholder')}
                 className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
               />
               {actionData?.errors?.notes && (
@@ -165,16 +167,16 @@ export default function CreateBusinessPartner() {
                 </p>
               )}
               <p className='text-muted-foreground mt-1 text-xs'>
-                Optional - Internal notes (max 1000 characters)
+                {t('partners.notesHelper')}
               </p>
             </div>
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href='/business-partners'>Cancel</a>
+              <a href='/business-partners'>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting || !partnerType}>
-              {isSubmitting ? 'Creating...' : 'Create Partner'}
+              {isSubmitting ? t('partners.creating') : t('partners.createButton')}
             </Button>
           </CardFooter>
         </Form>

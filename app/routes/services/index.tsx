@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { useTranslation } from '~/i18n/context'
 import { servicesRepository } from '~/features/services/server/repository'
 import { serviceColorMap, type ServiceColor } from '~/features/services/schemas'
 import { deleteServiceAction } from '~/features/services/server/actions/delete.action'
@@ -58,6 +59,7 @@ export async function action({ request }: Route.ActionArgs) {
 
 function DeleteServiceButton({ serviceId }: { serviceId: string }) {
   const fetcher = useFetcher()
+  const { t } = useTranslation()
   const isDeleting = fetcher.state !== 'idle'
 
   return (
@@ -70,7 +72,7 @@ function DeleteServiceButton({ serviceId }: { serviceId: string }) {
         className="flex w-full items-center text-destructive"
       >
         <Trash2 className="mr-2 size-4" />
-        {isDeleting ? 'Deleting...' : 'Delete'}
+        {isDeleting ? t('common.deleting') : t('common.delete')}
       </button>
     </fetcher.Form>
   )
@@ -78,6 +80,7 @@ function DeleteServiceButton({ serviceId }: { serviceId: string }) {
 
 export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
   const { services, noOrganization, toast } = loaderData
+  const { t } = useTranslation()
 
   useToastFromLoader(toast)
 
@@ -85,7 +88,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('services.name'),
         cell: ({ row }) => {
           const color = row.original.color as ServiceColor
           const colorStyles = serviceColorMap[color]
@@ -99,7 +102,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'duration',
-        header: 'Duration',
+        header: t('services.duration'),
         cell: ({ row }) => {
           const duration = row.getValue('duration') as number
           const hours = Math.floor(duration / 60)
@@ -114,7 +117,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'price',
-        header: 'Price',
+        header: t('services.price'),
         cell: ({ row }) => {
           const price = row.getValue('price') as string | null
           if (!price) return <span className="text-muted-foreground">-</span>
@@ -130,7 +133,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'color',
-        header: 'Color',
+        header: t('services.color'),
         cell: ({ row }) => {
           const color = row.getValue('color') as ServiceColor
           const colorStyles = serviceColorMap[color]
@@ -143,19 +146,19 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: t('common.status'),
         cell: ({ row }) => {
           const isActive = row.getValue('isActive') as boolean
           return (
             <Badge variant={isActive ? 'default' : 'secondary'}>
-              {isActive ? 'Active' : 'Inactive'}
+              {isActive ? t('common.active') : t('common.inactive')}
             </Badge>
           )
         },
       },
       {
         accessorKey: 'description',
-        header: 'Description',
+        header: t('services.description'),
         cell: ({ row }) => {
           const description = row.getValue('description') as string | null
           return (
@@ -179,7 +182,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
               <DropdownMenuItem asChild>
                 <Link to={`/services/${row.original.id}/edit`}>
                   <Pencil className="mr-2 size-4" />
-                  Edit
+                  {t('common.edit')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
@@ -190,7 +193,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
         ),
       },
     ],
-    []
+    [t]
   )
 
   if (noOrganization) {
@@ -198,10 +201,10 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
       <div className="p-6">
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-muted-foreground mb-4">
-            Please select an organization to view services.
+            {t('sidebar.selectOrganization')}
           </p>
           <Link to="/organization">
-            <Button>Select Organization</Button>
+            <Button>{t('sidebar.selectOrganization')}</Button>
           </Link>
         </div>
       </div>
@@ -212,23 +215,23 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Services</h1>
+          <h1 className="text-2xl font-bold">{t('services.title')}</h1>
           <p className="text-muted-foreground">
-            Manage services that can be booked for appointments
+            {t('services.searchPlaceholder')}
           </p>
         </div>
         <Link to="/services/new">
-          <Button>Add Service</Button>
+          <Button>{t('services.new')}</Button>
         </Link>
       </div>
 
       {services.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-muted-foreground mb-4">
-            No services found. Create your first service to get started.
+            {t('common.noData')}
           </p>
           <Link to="/services/new">
-            <Button>Create Service</Button>
+            <Button>{t('services.new')}</Button>
           </Link>
         </div>
       ) : (
@@ -236,7 +239,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
           columns={columns}
           data={services}
           enableSearch
-          searchPlaceholder="Search services..."
+          searchPlaceholder={t('services.searchPlaceholder')}
         />
       )}
     </div>

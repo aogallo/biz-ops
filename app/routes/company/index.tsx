@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
 import TitleAndActions from '~/components/TitleAndActions'
 import { Button } from '~/components/ui/button'
+import { useTranslation } from '~/i18n/context'
 import { listCompanies } from '~/features/company/server/loader.server'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { CompanyColumns } from '../../features/company/components/Columns'
@@ -27,20 +28,21 @@ export async function loader({ request }: Route.LoaderArgs) {
 const CompanyIndex = ({ loaderData }: Route.ComponentProps) => {
   const companies = loaderData
   const canCreateCompany = useCanPerformAction('company.create')
+  const { t } = useTranslation()
 
   return (
     <div className='flex-1 p-6'>
-      <TitleAndActions title='Companies'>
+      <TitleAndActions title={t('company.title')}>
         {canCreateCompany && (
           <Link to='/company/new'>
-            <Button>Add Company</Button>
+            <Button>{t('company.addCompany')}</Button>
           </Link>
         )}
       </TitleAndActions>
       {companies?.length === 0 ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            No companies found. Add your first company to get started.
+            {t('company.noCompanies')}
           </p>
         </div>
       ) : (
@@ -48,7 +50,7 @@ const CompanyIndex = ({ loaderData }: Route.ComponentProps) => {
           columns={CompanyColumns}
           data={companies}
           enableSearch
-          searchPlaceholder="Search companies..."
+          searchPlaceholder={t('company.searchPlaceholder')}
         />
       )}
     </div>

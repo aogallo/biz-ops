@@ -1,13 +1,18 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { createProductSchema } from '../../schemas'
 import { productsRepository } from '../repository'
 
 export async function createProduct(request: Request) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { success: false, message: 'No active organization selected' }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.products.noOrganization'),
+    }
   }
 
   const formData = await request.formData()
@@ -32,7 +37,6 @@ export async function createProduct(request: Request) {
     }
   }
 
-  // Check SKU uniqueness within organization
   const existingProduct = await productsRepository.getBySku(
     organizationId,
     result.data.sku
@@ -40,7 +44,7 @@ export async function createProduct(request: Request) {
   if (existingProduct) {
     return {
       success: false,
-      message: `Product with SKU "${result.data.sku}" already exists in your organization`,
+      message: translateServer(locale, 'messages.products.duplicateSku'),
     }
   }
 
@@ -50,8 +54,7 @@ export async function createProduct(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : 'Failed to create product',
+      message: error instanceof Error ? error.message : 'Failed to create product',
     }
   }
 }

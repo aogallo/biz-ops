@@ -4,6 +4,7 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
+import { useTranslation } from '~/i18n/context'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import { permissionsRepository } from '../../features/permissions/server/repository'
@@ -32,38 +33,39 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function PermissionsIndex({ loaderData }: Route.ComponentProps) {
   const { permissions, isSuperAdmin, toast } = loaderData
+  const { t } = useTranslation()
 
   useToastFromLoader(toast)
 
   const columns: ColumnDef<Permission>[] = [
     {
       accessorKey: 'resource',
-      header: 'Resource',
+      header: t('permissions.resource'),
       cell: ({ row }) => (
         <span className='font-medium'>{row.getValue('resource')}</span>
       ),
     },
     {
       accessorKey: 'action',
-      header: 'Action',
+      header: t('permissions.action'),
     },
     {
       accessorKey: 'description',
-      header: 'Description',
+      header: t('common.description'),
       cell: ({ row }) => (
         <span className='text-muted-foreground'>
-          {row.getValue('description') || 'No description'}
+          {row.getValue('description') || t('common.noDescription')}
         </span>
       ),
     },
     {
       accessorKey: 'isSystem',
-      header: 'Type',
+      header: t('common.type'),
       cell: ({ row }) => (
         row.getValue('isSystem') ? (
-          <Badge variant='secondary'>System</Badge>
+          <Badge variant='secondary'>{t('common.system')}</Badge>
         ) : (
-          <Badge>Custom</Badge>
+          <Badge>{t('common.custom')}</Badge>
         )
       ),
       filterFn: (row, id, value) => {
@@ -82,14 +84,14 @@ export default function PermissionsIndex({ loaderData }: Route.ComponentProps) {
                 to={`/permissions/${permission.id}/edit`}
                 className='text-primary text-sm font-medium hover:underline'
               >
-                Edit
+                {t('common.edit')}
               </Link>
             )}
             <Link
               to={`/permissions/${permission.id}`}
               className='text-primary text-sm font-medium hover:underline'
             >
-              View
+              {t('common.view')}
             </Link>
           </div>
         )
@@ -101,15 +103,14 @@ export default function PermissionsIndex({ loaderData }: Route.ComponentProps) {
     <div className='p-6'>
       <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>Permissions Management</h1>
+          <h1 className='text-2xl font-bold'>{t('permissions.title')}</h1>
           <p className='text-muted-foreground'>
-            Configure granular access control lists. Define resources and
-            actions.
+            {t('permissions.manage')}
           </p>
         </div>
         {isSuperAdmin && (
           <Link to='/permissions/new'>
-            <Button>Create Permission</Button>
+            <Button>{t('permissions.create')}</Button>
           </Link>
         )}
       </div>
@@ -119,16 +120,16 @@ export default function PermissionsIndex({ loaderData }: Route.ComponentProps) {
           columns={columns}
           data={permissions}
           enableSearch
-          searchPlaceholder='Search permissions...'
+          searchPlaceholder={t('permissions.searchPlaceholder')}
         />
       ) : (
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            No permissions found. Create your first permission to get started.
+            {t('permissions.noPermissions')}
           </p>
           {isSuperAdmin && (
             <Link to='/permissions/new'>
-              <Button>Create Permission</Button>
+              <Button>{t('permissions.create')}</Button>
             </Link>
           )}
         </div>

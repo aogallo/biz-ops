@@ -1,5 +1,5 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
-import { PERMISSION_MESSAGES } from '../../messages'
 import { permissionsRepository } from '../repository'
 
 export async function deletePermission(
@@ -7,12 +7,13 @@ export async function deletePermission(
   permissionId: string
 ) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   // Check super admin
   if (!session.user.isSuperAdmin) {
     return {
       success: false,
-      message: PERMISSION_MESSAGES.notSuperAdmin,
+      message: translateServer(locale, 'messages.permissions.notSuperAdmin'),
     }
   }
 
@@ -21,7 +22,7 @@ export async function deletePermission(
   if (!permission) {
     return {
       success: false,
-      message: PERMISSION_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.permissions.notFound'),
     }
   }
 
@@ -33,7 +34,7 @@ export async function deletePermission(
   if (!canDelete) {
     return {
       success: false,
-      message: reason || PERMISSION_MESSAGES.systemPermissionProtected,
+      message: reason || translateServer(locale, 'messages.permissions.systemPermissionProtected'),
     }
   }
 

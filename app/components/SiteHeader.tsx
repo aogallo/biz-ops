@@ -1,7 +1,7 @@
 import { Bell, Building2, Globe, LogOut, Settings, User } from 'lucide-react'
 import { Form, Link, useFetcher, useMatches } from 'react-router'
 import { useAuth, useOptionalOrganization } from '~/contexts/AuthContext'
-import { useLocale } from '~/i18n/context'
+import { useLocale, useTranslation } from '~/i18n/context'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -113,17 +113,19 @@ function OrganizationIndicator() {
 }
 
 function NotificationBell() {
+  const { t } = useTranslation()
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button variant='ghost' size='icon' className='h-8 w-8'>
             <Bell className='h-4 w-4' />
-            <span className='sr-only'>Notifications</span>
+            <span className='sr-only'>{t('common.notifications')}</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Notifications</p>
+          <p>{t('common.notifications')}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -132,6 +134,7 @@ function NotificationBell() {
 
 function UserProfileDropdown() {
   const { session } = useAuth()
+  const { t } = useTranslation()
   const user = session.user
   const initials = getInitials(user.name, user.email)
 
@@ -149,7 +152,7 @@ function UserProfileDropdown() {
         <DropdownMenuLabel className='font-normal'>
           <div className='flex flex-col space-y-1'>
             <p className='text-sm leading-none font-medium'>
-              {user.name || 'User'}
+              {user.name || t('common.user')}
             </p>
             <p className='text-muted-foreground text-xs leading-none'>
               {user.email}
@@ -160,13 +163,13 @@ function UserProfileDropdown() {
         <DropdownMenuItem asChild>
           <Link to='/profile' className='flex cursor-pointer items-center'>
             <User className='mr-2 h-4 w-4' />
-            <span>Profile</span>
+            <span>{t('common.profile')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to='/settings' className='flex cursor-pointer items-center'>
             <Settings className='mr-2 h-4 w-4' />
-            <span>Settings</span>
+            <span>{t('common.settings')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -177,7 +180,7 @@ function UserProfileDropdown() {
               className='flex w-full cursor-pointer items-center'
             >
               <LogOut className='mr-2 h-4 w-4' />
-              <span>Sign out</span>
+              <span>{t('common.signOut')}</span>
             </button>
           </Form>
         </DropdownMenuItem>

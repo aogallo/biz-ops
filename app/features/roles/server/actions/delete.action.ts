@@ -1,17 +1,18 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isOrgAdmin, isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../../messages'
 import { rolesRepository } from '../repository'
 
 export async function deleteRole(request: Request, roleId: string) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   // Get role
   const role = await rolesRepository.getById(roleId)
   if (!role) {
     return {
       success: false,
-      message: ROLE_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.roles.notFound'),
     }
   }
 
@@ -22,7 +23,7 @@ export async function deleteRole(request: Request, roleId: string) {
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
       success: false,
-      message: ROLE_MESSAGES.systemRoleProtected,
+      message: translateServer(locale, 'messages.roles.systemRoleProtected'),
     }
   }
 
@@ -31,7 +32,7 @@ export async function deleteRole(request: Request, roleId: string) {
   if (!canDelete) {
     return {
       success: false,
-      message: reason || ROLE_MESSAGES.systemRoleProtected,
+      message: reason || translateServer(locale, 'messages.roles.systemRoleProtected'),
     }
   }
 

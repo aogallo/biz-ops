@@ -10,6 +10,7 @@ import {
 } from '~/components/ui/card'
 import { categoriesRepository } from '~/features/categories/server/repository'
 import { createProduct } from '~/features/products/server/actions/create.action'
+import { useTranslation } from '~/i18n/context'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/create'
 
@@ -35,6 +36,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   const inputClass =
     'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
@@ -43,9 +45,9 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Create New Product</CardTitle>
+          <CardTitle>{t('products.createNew')}</CardTitle>
           <CardDescription>
-            Add a new product to your inventory
+            {t('products.createDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -59,14 +61,14 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
                 <label htmlFor='sku' className='mb-2 block text-sm font-medium'>
-                  SKU (Stock Keeping Unit) *
+                  {t('products.skuLabel')}
                 </label>
                 <input
                   type='text'
                   id='sku'
                   name='sku'
                   required
-                  placeholder='PROD-001'
+                  placeholder={t('products.skuPlaceholder')}
                   className={inputClass}
                 />
                 {actionData?.errors?.sku && (
@@ -75,7 +77,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Unique identifier for this product in your organization
+                  {t('products.skuHelper')}
                 </p>
               </div>
 
@@ -84,14 +86,14 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='name'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Product Name *
+                  {t('products.nameLabel')}
                 </label>
                 <input
                   type='text'
                   id='name'
                   name='name'
                   required
-                  placeholder='Premium Widget'
+                  placeholder={t('products.namePlaceholder')}
                   className={inputClass}
                 />
                 {actionData?.errors?.name && (
@@ -108,7 +110,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='price'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Price *
+                  {t('products.price')} *
                 </label>
                 <input
                   type='number'
@@ -117,7 +119,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   required
                   step='0.01'
                   min='0'
-                  placeholder='99.99'
+                  placeholder={t('products.pricePlaceholder')}
                   className={inputClass}
                 />
                 {actionData?.errors?.price && (
@@ -132,14 +134,14 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='categoryId'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Category
+                  {t('products.category')}
                 </label>
                 <select
                   id='categoryId'
                   name='categoryId'
                   className={inputClass}
                 >
-                  <option value=''>No category</option>
+                  <option value=''>{t('products.noCategory')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
@@ -155,7 +157,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='stock'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Initial Stock
+                  {t('products.initialStock')}
                 </label>
                 <input
                   type='number'
@@ -178,7 +180,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='minStock'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Minimum Stock (Alert Threshold)
+                  {t('products.minStock')}
                 </label>
                 <input
                   type='number'
@@ -186,7 +188,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   name='minStock'
                   min='0'
                   defaultValue='0'
-                  placeholder='10'
+                  placeholder={t('products.minStockPlaceholder')}
                   className={inputClass}
                 />
                 {actionData?.errors?.minStock && (
@@ -195,7 +197,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                   </p>
                 )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  You&apos;ll get alerts when stock falls below this level
+                  {t('products.minStockHelper')}
                 </p>
               </div>
             </div>
@@ -205,13 +207,13 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                 htmlFor='description'
                 className='mb-2 block text-sm font-medium'
               >
-                Description
+                {t('products.description')}
               </label>
               <textarea
                 id='description'
                 name='description'
                 rows={3}
-                placeholder='Product description...'
+                placeholder={t('products.descriptionPlaceholder')}
                 className={inputClass}
               />
             </div>
@@ -221,23 +223,23 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                 htmlFor='imageUrl'
                 className='mb-2 block text-sm font-medium'
               >
-                Image URL
+                {t('products.imageUrl')}
               </label>
               <input
                 type='url'
                 id='imageUrl'
                 name='imageUrl'
-                placeholder='https://example.com/image.jpg'
+                placeholder={t('products.imageUrlPlaceholder')}
                 className={inputClass}
               />
             </div>
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href='/products'>Cancel</a>
+              <a href='/products'>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Product'}
+              {isSubmitting ? t('common.creating') : t('products.createTitle')}
             </Button>
           </CardFooter>
         </Form>

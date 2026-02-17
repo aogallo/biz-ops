@@ -6,6 +6,7 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
+import { useTranslation } from '~/i18n/context'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import { rolesRepository } from '../../features/roles/server/repository'
@@ -40,6 +41,7 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
   const { roles, noOrganization, toast } = loaderData
   const canCreateRole = useCanPerformAction('roles.create')
   const canEditRole = useCanPerformAction('roles.edit')
+  const { t } = useTranslation()
 
   useToastFromLoader(toast)
 
@@ -47,29 +49,29 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('common.name'),
         cell: ({ row }) => (
           <span className="font-medium">{row.getValue('name')}</span>
         ),
       },
       {
         accessorKey: 'description',
-        header: 'Description',
+        header: t('common.description'),
         cell: ({ row }) => (
           <span className="text-muted-foreground">
-            {row.getValue('description') || 'No description'}
+            {row.getValue('description') || t('common.noDescription')}
           </span>
         ),
       },
       {
         accessorKey: 'isSystem',
-        header: 'Type',
+        header: t('common.type'),
         cell: ({ row }) => {
           const isSystem = row.getValue('isSystem') as boolean
           return isSystem ? (
-            <Badge variant="secondary">System</Badge>
+            <Badge variant="secondary">{t('common.system')}</Badge>
           ) : (
-            <Badge>Custom</Badge>
+            <Badge>{t('common.custom')}</Badge>
           )
         },
       },
@@ -85,21 +87,21 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
                   to={`/roles/${row.original.id}/edit`}
                   className="text-primary text-sm font-medium hover:underline"
                 >
-                  Edit
+                  {t('common.edit')}
                 </Link>
               )}
               <Link
                 to={`/roles/${row.original.id}`}
                 className="text-primary text-sm font-medium hover:underline"
               >
-                View
+                {t('common.view')}
               </Link>
             </div>
           )
         },
       },
     ],
-    [canEditRole]
+    [canEditRole, t]
   )
 
   if (noOrganization) {
@@ -107,10 +109,10 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
       <div className='p-6'>
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            Please select an organization to view roles.
+            {t('messages.roles.noOrganization')}
           </p>
           <Link to='/organization'>
-            <Button>Select Organization</Button>
+            <Button>{t('sidebar.selectOrganization')}</Button>
           </Link>
         </div>
       </div>
@@ -121,20 +123,20 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
     <div className='p-6'>
       <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>Roles & Permissions</h1>
+          <h1 className='text-2xl font-bold'>{t('roles.title')}</h1>
           <p className='text-muted-foreground'>
-            Manage roles and their associated permissions
+            {t('roles.manage')}
           </p>
         </div>
         <div className='flex gap-2'>
           {canCreateRole && (
             <Link to='/roles/new'>
-              <Button className='cursor-pointer'>Create Role</Button>
+              <Button className='cursor-pointer'>{t('roles.create')}</Button>
             </Link>
           )}
           <Link to='/roles/assign'>
             <Button className='cursor-pointer' variant='ghost'>
-              Assign Role
+              {t('roles.assign')}
             </Button>
           </Link>
         </div>
@@ -143,11 +145,11 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
       {roles.length === 0 ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            No roles found. Create your first role to get started.
+            {t('roles.noRoles')}
           </p>
           {canCreateRole && (
             <Link to='/roles/new'>
-              <Button>Create Role</Button>
+              <Button>{t('roles.create')}</Button>
             </Link>
           )}
         </div>
@@ -156,7 +158,7 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
           columns={columns}
           data={roles}
           enableSearch
-          searchPlaceholder="Search roles..."
+          searchPlaceholder={t('roles.searchPlaceholder')}
         />
       )}
     </div>

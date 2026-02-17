@@ -9,22 +9,24 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { categoriesRepository } from '~/features/categories/server/repository'
-import { PRODUCT_MESSAGES } from '~/features/products/messages'
 import { updateProduct } from '~/features/products/server/actions/update.action'
 import { productsRepository } from '~/features/products/server/repository'
+import { useTranslation } from '~/i18n/context'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/edit'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const { sku } = params
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return redirectWithFlash('/products', {
       type: 'error',
-      message: PRODUCT_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.products.noOrganization'),
     })
   }
 
@@ -36,7 +38,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!product) {
     return redirectWithFlash('/products', {
       type: 'error',
-      message: PRODUCT_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.products.notFound'),
     })
   }
 
@@ -46,15 +48,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const { sku } = params
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { success: false, message: 'No active organization' }
+    return { success: false, message: translateServer(locale, 'messages.products.noOrganization') }
   }
 
   const product = await productsRepository.getBySku(organizationId, sku)
   if (!product) {
-    return { success: false, message: 'Product not found' }
+    return { success: false, message: translateServer(locale, 'messages.products.notFound') }
   }
 
   const response = await updateProduct(request, product.id)
@@ -69,6 +72,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   const inputClass =
     'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
@@ -77,9 +81,9 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Edit Product</CardTitle>
+          <CardTitle>{t('products.editTitle')}</CardTitle>
           <CardDescription>
-            Update the details for this product
+            {t('products.editDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -93,7 +97,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
                 <label htmlFor='sku' className='mb-2 block text-sm font-medium'>
-                  SKU (Stock Keeping Unit) *
+                  {t('products.skuLabel')}
                 </label>
                 <input
                   type='text'
@@ -101,7 +105,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   name='sku'
                   required
                   defaultValue={product.sku}
-                  placeholder='PROD-001'
+                  placeholder={t('products.skuPlaceholder')}
                   className={inputClass}
                 />
                 {actionData &&
@@ -118,7 +122,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='name'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Product Name *
+                  {t('products.nameLabel')}
                 </label>
                 <input
                   type='text'
@@ -126,7 +130,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   name='name'
                   required
                   defaultValue={product.name}
-                  placeholder='Premium Widget'
+                  placeholder={t('products.namePlaceholder')}
                   className={inputClass}
                 />
                 {actionData &&
@@ -145,7 +149,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='price'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Price *
+                  {t('products.price')} *
                 </label>
                 <input
                   type='number'
@@ -155,7 +159,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   step='0.01'
                   min='0'
                   defaultValue={product.price.toString()}
-                  placeholder='99.99'
+                  placeholder={t('products.pricePlaceholder')}
                   className={inputClass}
                 />
                 {actionData &&
@@ -172,7 +176,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='categoryId'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Category
+                  {t('products.category')}
                 </label>
                 <select
                   id='categoryId'
@@ -180,7 +184,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   defaultValue={product.categoryId || ''}
                   className={inputClass}
                 >
-                  <option value=''>No category</option>
+                  <option value=''>{t('products.noCategory')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
@@ -196,7 +200,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='stock'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Stock
+                  {t('products.stock')}
                 </label>
                 <input
                   type='number'
@@ -221,7 +225,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   htmlFor='minStock'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Minimum Stock (Alert Threshold)
+                  {t('products.minStock')}
                 </label>
                 <input
                   type='number'
@@ -229,7 +233,7 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                   name='minStock'
                   min='0'
                   defaultValue={product.minStock ?? 0}
-                  placeholder='10'
+                  placeholder={t('products.minStockPlaceholder')}
                   className={inputClass}
                 />
                 {actionData &&
@@ -247,14 +251,14 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                 htmlFor='description'
                 className='mb-2 block text-sm font-medium'
               >
-                Description
+                {t('products.description')}
               </label>
               <textarea
                 id='description'
                 name='description'
                 rows={3}
                 defaultValue={product.description || ''}
-                placeholder='Product description...'
+                placeholder={t('products.descriptionPlaceholder')}
                 className={inputClass}
               />
             </div>
@@ -264,24 +268,24 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                 htmlFor='imageUrl'
                 className='mb-2 block text-sm font-medium'
               >
-                Image URL
+                {t('products.imageUrl')}
               </label>
               <input
                 type='url'
                 id='imageUrl'
                 name='imageUrl'
                 defaultValue={product.imageUrl || ''}
-                placeholder='https://example.com/image.jpg'
+                placeholder={t('products.imageUrlPlaceholder')}
                 className={inputClass}
               />
             </div>
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href={`/products/${product.sku}`}>Cancel</a>
+              <a href={`/products/${product.sku}`}>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('common.saving') : t('products.saveChanges')}
             </Button>
           </CardFooter>
         </Form>

@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from 'react-router'
+import { useTranslation } from '~/i18n/context'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -8,22 +9,23 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
-import { ACCOUNT_MESSAGES } from '~/features/accounts/messages'
 import { updateAccount } from '~/features/accounts/server/actions/update.action'
 import { accountsRepository } from '~/features/accounts/server/repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/edit'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const { id } = params
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return redirectWithFlash('/accounts', {
       type: 'error',
-      message: ACCOUNT_MESSAGES.noOrganization,
+      message: translateServer(locale, 'messages.accounts.noOrganization'),
     })
   }
 
@@ -35,7 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!account) {
     return redirectWithFlash('/accounts', {
       type: 'error',
-      message: ACCOUNT_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.accounts.notFound'),
     })
   }
 
@@ -63,6 +65,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function EditAccount({ loaderData }: Route.ComponentProps) {
   const { account } = loaderData
+  const { t } = useTranslation()
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
@@ -71,9 +74,9 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
-          <CardTitle>Edit Account</CardTitle>
+          <CardTitle>{t('accounts.editTitle')}</CardTitle>
           <CardDescription>
-            Update the details for this account
+            {t('accounts.editDescription')}
           </CardDescription>
         </CardHeader>
         <Form method='post'>
@@ -90,7 +93,7 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
                   htmlFor='accountNumber'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Account Number *
+                  {t('accounts.numberLabel')}
                 </label>
                 <input
                   type='text'
@@ -98,7 +101,7 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
                   name='accountNumber'
                   required
                   defaultValue={account.accountNumber ?? ''}
-                  placeholder='1000'
+                  placeholder={t('accounts.numberPlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData &&
@@ -109,13 +112,13 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
                     </p>
                   )}
                 <p className='text-muted-foreground mt-1 text-xs'>
-                  Unique identifier for this account in your chart of accounts
+                  {t('accounts.numberHelper')}
                 </p>
               </div>
 
               <div>
                 <label htmlFor='name' className='mb-2 block text-sm font-medium'>
-                  Account Name *
+                  {t('accounts.nameLabel')}
                 </label>
                 <input
                   type='text'
@@ -123,7 +126,7 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
                   name='name'
                   required
                   defaultValue={account.name ?? ''}
-                  placeholder='Cash'
+                  placeholder={t('accounts.namePlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {actionData && 'errors' in actionData && actionData.errors?.name && (
@@ -136,10 +139,10 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href={`/accounts/${account.id}`}>Cancel</a>
+              <a href={`/accounts/${account.id}`}>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('common.saving') : t('accounts.saveChanges')}
             </Button>
           </CardFooter>
         </Form>

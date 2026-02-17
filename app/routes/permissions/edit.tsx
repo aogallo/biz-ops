@@ -3,21 +3,22 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
-import { PERMISSION_MESSAGES } from '~/features/permissions/messages'
 import { updatePermission } from '~/features/permissions/server/actions/update-permission.action'
 import { permissionsRepository } from '~/features/permissions/server/repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/edit'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   // Check super admin
   if (!session.user.isSuperAdmin) {
     return redirectWithFlash('/permissions', {
       type: 'error',
-      message: PERMISSION_MESSAGES.notSuperAdmin,
+      message: translateServer(locale, 'messages.permissions.notSuperAdmin'),
     })
   }
 
@@ -27,7 +28,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!permission) {
     return redirectWithFlash('/permissions', {
       type: 'error',
-      message: PERMISSION_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.permissions.notFound'),
     })
   }
 
@@ -35,7 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (permission.isSystem) {
     return redirectWithFlash('/permissions', {
       type: 'error',
-      message: PERMISSION_MESSAGES.systemPermissionProtected,
+      message: translateServer(locale, 'messages.permissions.systemPermissionProtected'),
     })
   }
 
@@ -44,12 +45,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const permissionId = params.id
+  const locale = getLocaleFromRequest(request)
   const response = await updatePermission(request, permissionId)
 
   if (response.success && response.data) {
     return redirectWithFlash(`/permissions/${permissionId}`, {
       type: 'success',
-      message: PERMISSION_MESSAGES.updated,
+      message: translateServer(locale, 'messages.permissions.updated'),
     })
   }
 

@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { Eye, Plus } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { useTranslation } from '~/i18n/context'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -63,47 +64,48 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 }
 
-function getTypeBadge(type: string) {
-  switch (type) {
-    case 'sale':
-      return (
-        <Badge variant="outline" className="border-blue-500 text-blue-600">
-          Sale
-        </Badge>
-      )
-    case 'purchase':
-      return (
-        <Badge variant="outline" className="border-orange-500 text-orange-600">
-          Purchase
-        </Badge>
-      )
-    default:
-      return <Badge variant="outline">{type}</Badge>
-  }
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'draft':
-      return <Badge variant="secondary">Draft</Badge>
-    case 'pending':
-      return <Badge variant="outline">Pending</Badge>
-    case 'posted':
-      return (
-        <Badge variant="default" className="bg-green-600">
-          Posted
-        </Badge>
-      )
-    case 'voided':
-      return <Badge variant="destructive">Voided</Badge>
-    default:
-      return <Badge variant="outline">{status}</Badge>
-  }
-}
-
 export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
   const { invoices, companies } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
+  const { t } = useTranslation()
+
+  function getTypeBadge(type: string) {
+    switch (type) {
+      case 'sale':
+        return (
+          <Badge variant="outline" className="border-blue-500 text-blue-600">
+            {t('invoices.sale')}
+          </Badge>
+        )
+      case 'purchase':
+        return (
+          <Badge variant="outline" className="border-orange-500 text-orange-600">
+            {t('invoices.purchase')}
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{type}</Badge>
+    }
+  }
+
+  function getStatusBadge(status: string) {
+    switch (status) {
+      case 'draft':
+        return <Badge variant="secondary">{t('invoices.draft')}</Badge>
+      case 'pending':
+        return <Badge variant="outline">{t('invoices.pending')}</Badge>
+      case 'posted':
+        return (
+          <Badge variant="default" className="bg-green-600">
+            {t('invoices.posted')}
+          </Badge>
+        )
+      case 'voided':
+        return <Badge variant="destructive">{t('invoices.voided')}</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
 
   const handleCompanyChange = (value: string) => {
     const params = new URLSearchParams(searchParams)
@@ -139,19 +141,19 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
     () => [
       {
         accessorKey: 'number',
-        header: 'Invoice #',
+        header: t('invoices.number'),
         cell: ({ row }) => (
           <span className="font-medium">{row.getValue('number')}</span>
         ),
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        header: t('invoices.type'),
         cell: ({ row }) => getTypeBadge(row.getValue('type')),
       },
       {
         accessorKey: 'invoiceDate',
-        header: 'Date',
+        header: t('invoices.date'),
         cell: ({ row }) => {
           const date = row.getValue('invoiceDate') as Date
           return <div>{format(new Date(date), 'dd/MM/yyyy')}</div>
@@ -159,7 +161,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'businessPartner',
-        header: 'Business Partner',
+        header: t('invoices.businessPartner'),
         cell: ({ row }) => {
           const partner = row.original.businessPartner
           return <div className="max-w-40 truncate">{partner?.name || '-'}</div>
@@ -167,7 +169,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'company',
-        header: 'Company',
+        header: t('invoices.company'),
         cell: ({ row }) => {
           const company = row.original.company
           return <div>{company?.name || '-'}</div>
@@ -175,7 +177,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'total',
-        header: () => <div className="text-right">Total</div>,
+        header: () => <div className="text-right">{t('invoices.total')}</div>,
         cell: ({ row }) => {
           const total = row.getValue('total') as string | number
           return (
@@ -187,12 +189,12 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'status',
-        header: 'Status',
+        header: t('common.status'),
         cell: ({ row }) => getStatusBadge(row.getValue('status')),
       },
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('common.actions'),
         cell: ({ row }) => (
           <Button variant="ghost" size="icon" asChild>
             <Link to={`/invoices/${row.original.id}`}>
@@ -202,7 +204,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         ),
       },
     ],
-    []
+    [t]
   )
 
   return (
@@ -211,15 +213,15 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Invoices</CardTitle>
+              <CardTitle>{t('invoices.title')}</CardTitle>
               <CardDescription>
-                View and manage invoices
+                {t('invoices.viewManage')}
               </CardDescription>
             </div>
             <Button asChild>
               <Link to="/invoices/new">
                 <Plus className="mr-2 h-4 w-4" />
-                New Invoice
+                {t('invoices.new')}
               </Link>
             </Button>
           </div>
@@ -231,14 +233,14 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
               value={searchParams.get('companyId') || 'all'}
               onValueChange={handleCompanyChange}
               options={[
-                { value: 'all', label: 'All Companies' },
+                { value: 'all', label: t('invoices.allCompanies') },
                 ...companies.map((company) => ({
                   value: company.id,
                   label: company.name,
                 })),
               ]}
-              placeholder="All Companies"
-              searchPlaceholder="Search companies..."
+              placeholder={t('invoices.allCompanies')}
+              searchPlaceholder={t('invoices.searchPlaceholder')}
               emptyMessage="No companies found."
               className="w-48"
             />
@@ -248,12 +250,12 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
               onValueChange={handleTypeChange}
             >
               <SelectTrigger className="w-36">
-                <SelectValue placeholder="All Types" />
+                <SelectValue placeholder={t('invoices.allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="sale">Sales</SelectItem>
-                <SelectItem value="purchase">Purchases</SelectItem>
+                <SelectItem value="all">{t('invoices.allTypes')}</SelectItem>
+                <SelectItem value="sale">{t('invoices.sales')}</SelectItem>
+                <SelectItem value="purchase">{t('invoices.purchases')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -262,28 +264,28 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
               onValueChange={handleStatusChange}
             >
               <SelectTrigger className="w-36">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={t('invoices.allStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="posted">Posted</SelectItem>
-                <SelectItem value="voided">Voided</SelectItem>
+                <SelectItem value="all">{t('invoices.allStatus')}</SelectItem>
+                <SelectItem value="draft">{t('invoices.draft')}</SelectItem>
+                <SelectItem value="pending">{t('invoices.pending')}</SelectItem>
+                <SelectItem value="posted">{t('invoices.posted')}</SelectItem>
+                <SelectItem value="voided">{t('invoices.voided')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {invoices.length === 0 ? (
             <div className="text-muted-foreground py-8 text-center">
-              No invoices found
+              {t('invoices.noInvoices')}
             </div>
           ) : (
             <DataTable
               columns={columns}
               data={invoices}
               enableSearch
-              searchPlaceholder="Search invoices..."
+              searchPlaceholder={t('invoices.searchPlaceholder')}
             />
           )}
         </CardContent>

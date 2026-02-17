@@ -15,6 +15,8 @@ import type { PartnerType } from '~/features/business-partners/schemas'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
+import { useTranslation } from '~/i18n/context'
+import type { TranslationKey } from '~/i18n/types'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import type { Route } from './+types/index'
@@ -65,6 +67,7 @@ export default function BusinessPartnersIndex({
   } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
   const canCreatePartner = useCanPerformAction('business-partners.create')
+  const { t } = useTranslation()
 
   // Show toast if present in loader data
   useToastFromLoader(toastData)
@@ -82,41 +85,44 @@ export default function BusinessPartnersIndex({
     }
   }
 
+  const getTypeLabel = (type: string) => {
+    const typeKey = `partners.type.${type}` as TranslationKey
+    return t(typeKey)
+  }
+
   const columns = useMemo<ColumnDef<BusinessPartner>[]>(
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('partners.name'),
         cell: ({ row }) => (
           <span className="font-medium">{row.getValue('name')}</span>
         ),
       },
       {
         accessorKey: 'nit',
-        header: 'NIT',
+        header: t('partners.nit'),
         cell: ({ row }) => (
           <span className="font-medium">{row.getValue('nit')}</span>
         ),
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        header: t('partners.type'),
         cell: ({ row }) => {
           const type = row.getValue('type') as string
           return (
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getTypeBadgeColor(type)}`}
             >
-              {type === 'both'
-                ? 'Client & Vendor'
-                : type.charAt(0).toUpperCase() + type.slice(1)}
+              {getTypeLabel(type)}
             </span>
           )
         },
       },
       {
         accessorKey: 'email',
-        header: 'Email',
+        header: t('partners.email'),
         cell: ({ row }) => {
           const email = row.getValue('email') as string | null
           return email ? (
@@ -130,7 +136,7 @@ export default function BusinessPartnersIndex({
       },
       {
         accessorKey: 'createdAt',
-        header: 'Created',
+        header: t('common.created'),
         cell: ({ row }) => {
           const date = row.getValue('createdAt') as Date
           return <div>{new Date(date).toLocaleDateString()}</div>
@@ -144,12 +150,12 @@ export default function BusinessPartnersIndex({
             to={`/business-partners/${row.original.id}`}
             className="text-primary text-sm font-medium hover:underline"
           >
-            View
+            {t('common.view')}
           </Link>
         ),
       },
     ],
-    []
+    [t]
   )
 
   if (noOrganization) {
@@ -157,10 +163,10 @@ export default function BusinessPartnersIndex({
       <div className='p-6'>
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            Please select an organization to view business partners.
+            {t('messages.partners.noOrganization')}
           </p>
           <Link to='/organization'>
-            <Button>Select Organization</Button>
+            <Button>{t('sidebar.selectOrganization')}</Button>
           </Link>
         </div>
       </div>
@@ -170,12 +176,12 @@ export default function BusinessPartnersIndex({
   return (
     <div className='p-6'>
       <TitleAndActions
-        title='Business Partners'
-        subtitle='Manage your clients and vendors'
+        title={t('partners.title')}
+        subtitle={t('partners.manage')}
       >
         {canCreatePartner && (
           <Link to='/business-partners/new'>
-            <Button>Add Partner</Button>
+            <Button>{t('partners.new')}</Button>
           </Link>
         )}
       </TitleAndActions>
@@ -193,17 +199,17 @@ export default function BusinessPartnersIndex({
           }}
         >
           <SelectTrigger className='w-50'>
-            <SelectValue placeholder='Filter by type' />
+            <SelectValue placeholder={t('partners.filterByType')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value='all'>All Partners</SelectItem>
-            <SelectItem value='client'>Clients Only</SelectItem>
-            <SelectItem value='vendor'>Vendors Only</SelectItem>
-            <SelectItem value='both'>Both</SelectItem>
+            <SelectItem value='all'>{t('partners.allPartners')}</SelectItem>
+            <SelectItem value='client'>{t('partners.clientsOnly')}</SelectItem>
+            <SelectItem value='vendor'>{t('partners.vendorsOnly')}</SelectItem>
+            <SelectItem value='both'>{t('partners.both')}</SelectItem>
           </SelectContent>
         </Select>
         <p className='text-muted-foreground text-sm'>
-          Showing {partners.length} partner{partners.length !== 1 ? 's' : ''}
+          {t('common.showing')} {partners.length} {partners.length !== 1 ? t('partners.partners') : t('partners.partner')}
         </p>
       </div>
 
@@ -211,12 +217,12 @@ export default function BusinessPartnersIndex({
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
             {selectedType
-              ? `No ${selectedType} partners found.`
-              : 'No business partners found. Add your first partner to get started.'}
+              ? t('partners.noTypePartners', { type: selectedType })
+              : t('partners.noPartners')}
           </p>
           {canCreatePartner && (
             <Link to='/business-partners/new'>
-              <Button>Add Partner</Button>
+              <Button>{t('partners.new')}</Button>
             </Link>
           )}
         </div>
@@ -225,7 +231,7 @@ export default function BusinessPartnersIndex({
           columns={columns}
           data={partners}
           enableSearch
-          searchPlaceholder="Search partners..."
+          searchPlaceholder={t('common.search')}
         />
       )}
     </div>

@@ -15,6 +15,8 @@ import {
 } from '~/features/products/server/repository'
 import { useCanPerformAction } from '~/hooks/usePermissions'
 import { useToastFromLoader } from '~/hooks/useToastFromLoader'
+import { useTranslation } from '~/i18n/context'
+import type { TranslationKey } from '~/i18n/types'
 import { requireAuth } from '~/server/auth/session.server'
 import { getFlash } from '~/server/flash.server'
 import type { Route } from './+types/index'
@@ -79,30 +81,31 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
   } = loaderData
   const canCreateProduct = useCanPerformAction('products.create')
   const [searchParams, setSearchParams] = useSearchParams()
+  const { t } = useTranslation()
 
   useToastFromLoader(toast)
 
   const handleExport = useCallback(async () => {
     const XLSX = await import('xlsx')
     const rows = products.map((p) => ({
-      SKU: p.sku,
-      Name: p.name,
-      Category: p.categoryName || '-',
-      Price: Number(p.price),
-      Stock: p.stock ?? 0,
-      'Min Stock': p.minStock ?? 0,
-      Status:
+      [t('products.sku')]: p.sku,
+      [t('products.name')]: p.name,
+      [t('products.category')]: p.categoryName || '-',
+      [t('products.price')]: Number(p.price),
+      [t('products.stock')]: p.stock ?? 0,
+      [t('products.minStock')]: p.minStock ?? 0,
+      [t('common.status' as TranslationKey)]:
         (p.stock ?? 0) === 0
-          ? 'Out of Stock'
+          ? t('products.stockStatus.outOfStock')
           : (p.stock ?? 0) <= (p.minStock ?? 0) && (p.minStock ?? 0) > 0
-            ? 'Low Stock'
-            : 'Normal',
+            ? t('products.stockStatus.lowStock')
+            : t('products.filter.normal'),
     }))
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Products')
+    XLSX.utils.book_append_sheet(wb, ws, t('products.title'))
     XLSX.writeFile(wb, `products-export-${new Date().toISOString().split('T')[0]}.xlsx`)
-  }, [products])
+  }, [products, t])
 
   const currentCategoryId = searchParams.get('categoryId') || ''
   const currentStockStatus = searchParams.get('stockStatus') || ''
@@ -122,21 +125,21 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
     () => [
       {
         accessorKey: 'sku',
-        header: 'SKU',
+        header: t('products.sku'),
         cell: ({ row }) => (
           <span className='font-mono text-sm'>{row.getValue('sku')}</span>
         ),
       },
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('common.name'),
         cell: ({ row }) => (
           <span className='font-medium'>{row.getValue('name')}</span>
         ),
       },
       {
         accessorKey: 'categoryName',
-        header: 'Category',
+        header: t('products.category'),
         cell: ({ row }) => {
           const name = row.original.categoryName
           const color = row.original.categoryColor as CategoryColor | null
@@ -156,7 +159,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'price',
-        header: () => <div className='text-right'>Price</div>,
+        header: () => <div className='text-right'>{t('products.price')}</div>,
         cell: ({ row }) => {
           const price = row.getValue('price') as string | number
           return (
@@ -166,7 +169,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'stock',
-        header: () => <div className='text-right'>Stock</div>,
+        header: () => <div className='text-right'>{t('products.stock')}</div>,
         cell: ({ row }) => {
           const stock = (row.getValue('stock') as number | null) ?? 0
           const minStock = row.original.minStock ?? 0
@@ -203,12 +206,12 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
             to={`/products/${row.original.sku}`}
             className='text-primary text-sm font-medium hover:underline'
           >
-            View
+            {t('common.view')}
           </Link>
         ),
       },
     ],
-    []
+    [t]
   )
 
   if (noOrganization) {
@@ -216,10 +219,10 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
       <div className='p-6'>
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            Please select an organization to view products.
+            {t('messages.products.noOrganization' as TranslationKey)}
           </p>
           <Link to='/organization'>
-            <Button>Select Organization</Button>
+            <Button>{t('sidebar.selectOrganization' as TranslationKey)}</Button>
           </Link>
         </div>
       </div>
@@ -230,9 +233,9 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
     <div className='p-6'>
       <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>Products</h1>
+          <h1 className='text-2xl font-bold'>{t('products.title')}</h1>
           <p className='text-muted-foreground'>
-            Manage your product catalog and inventory
+            {t('products.manage')}
             {total > 0 && (
               <span className='ml-2 text-xs'>({total} total)</span>
             )}
@@ -241,12 +244,12 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
         <div className='flex gap-2'>
           {products.length > 0 && (
             <Button variant='outline' onClick={handleExport}>
-              Export
+              {t('products.export')}
             </Button>
           )}
           {canCreateProduct && (
             <Link to='/products/new'>
-              <Button>Add Product</Button>
+              <Button>{t('products.new')}</Button>
             </Link>
           )}
         </div>
@@ -259,7 +262,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
           onChange={(e) => updateFilter('categoryId', e.target.value)}
           className='border-input bg-background rounded-md border px-3 py-2 text-sm'
         >
-          <option value=''>All Categories</option>
+          <option value=''>{t('common.allCategories')}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
@@ -272,21 +275,21 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
           onChange={(e) => updateFilter('stockStatus', e.target.value)}
           className='border-input bg-background rounded-md border px-3 py-2 text-sm'
         >
-          <option value=''>All Stock Status</option>
-          <option value='normal'>Normal</option>
-          <option value='low'>Low Stock</option>
-          <option value='out'>Out of Stock</option>
+          <option value=''>{t('products.allStockStatus')}</option>
+          <option value='normal'>{t('products.filter.normal')}</option>
+          <option value='low'>{t('products.filter.lowStock')}</option>
+          <option value='out'>{t('products.filter.outOfStock')}</option>
         </select>
       </div>
 
       {products.length === 0 && !searchParams.toString() ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>
           <p className='text-muted-foreground mb-4'>
-            No products found. Create your first product to get started.
+            {t('products.noProducts')}
           </p>
           {canCreateProduct && (
             <Link to='/products/new'>
-              <Button>Create Product</Button>
+              <Button>{t('products.createTitle')}</Button>
             </Link>
           )}
         </div>
@@ -296,7 +299,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
             columns={columns}
             data={products}
             enableSearch
-            searchPlaceholder='Search products...'
+            searchPlaceholder={t('products.searchPlaceholder')}
           />
 
           {/* Server-side pagination */}
@@ -312,10 +315,10 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
                   setSearchParams(params)
                 }}
               >
-                Previous
+                {t('common.previous')}
               </Button>
               <span className='text-muted-foreground text-sm'>
-                Page {page} of {totalPages}
+                {t('common.pageOf' as TranslationKey, { page: String(page), total: String(totalPages) })}
               </span>
               <Button
                 variant='outline'
@@ -327,7 +330,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
                   setSearchParams(params)
                 }}
               >
-                Next
+                {t('common.next')}
               </Button>
             </div>
           )}

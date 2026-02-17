@@ -1,7 +1,10 @@
 import { GalleryVerticalEnd } from 'lucide-react'
 import { ModeToggle } from '~/components/ui/mode-toggle'
+import { useTranslation } from '~/i18n/context'
 
 export function LandingFooter() {
+  const { t } = useTranslation()
+
   return (
     <footer className='bg-muted border-t'>
       <div className='mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8'>
@@ -15,20 +18,20 @@ export function LandingFooter() {
               Business Operations
             </div>
             <p className='text-muted-foreground text-sm'>
-              Plataforma ERP integral para negocios en Guatemala.
+              {t('landing.footer.description')}
             </p>
           </div>
 
-          {/* Producto */}
+          {/* Product */}
           <div>
-            <h3 className='mb-3 text-sm font-semibold'>Producto</h3>
+            <h3 className='mb-3 text-sm font-semibold'>{t('landing.footer.product')}</h3>
             <ul className='space-y-2'>
               <li>
                 <a
                   href='#servicios'
                   className='text-muted-foreground hover:text-foreground text-sm transition-colors'
                 >
-                  Servicios
+                  {t('landing.footer.services')}
                 </a>
               </li>
               <li>
@@ -36,7 +39,7 @@ export function LandingFooter() {
                   href='#precios'
                   className='text-muted-foreground hover:text-foreground text-sm transition-colors'
                 >
-                  Precios
+                  {t('landing.footer.pricing')}
                 </a>
               </li>
             </ul>
@@ -44,24 +47,24 @@ export function LandingFooter() {
 
           {/* Legal */}
           <div>
-            <h3 className='mb-3 text-sm font-semibold'>Legal</h3>
+            <h3 className='mb-3 text-sm font-semibold'>{t('landing.footer.legal')}</h3>
             <ul className='space-y-2'>
               <li>
                 <span className='text-muted-foreground text-sm'>
-                  Términos de servicio
+                  {t('landing.footer.terms')}
                 </span>
               </li>
               <li>
                 <span className='text-muted-foreground text-sm'>
-                  Política de privacidad
+                  {t('landing.footer.privacy')}
                 </span>
               </li>
             </ul>
           </div>
 
-          {/* Contacto */}
+          {/* Contact */}
           <div>
-            <h3 className='mb-3 text-sm font-semibold'>Contacto</h3>
+            <h3 className='mb-3 text-sm font-semibold'>{t('landing.footer.contact')}</h3>
             <ul className='space-y-2'>
               <li>
                 <span className='text-muted-foreground text-sm'>
@@ -74,8 +77,7 @@ export function LandingFooter() {
 
         <div className='mt-8 flex items-center justify-between border-t pt-8'>
           <p className='text-muted-foreground text-sm'>
-            &copy; {new Date().getFullYear()} Business Operations. Todos los
-            derechos reservados.
+            {t('landing.footer.copyright', { year: new Date().getFullYear().toString() })}
           </p>
           <ModeToggle />
         </div>

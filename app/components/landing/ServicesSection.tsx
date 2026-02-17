@@ -11,40 +11,37 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { useTranslation } from '~/i18n/context'
+import type { TranslationKey } from '~/i18n/types'
 
 const services = [
   {
-    title: 'Contabilidad',
-    description:
-      'Libro diario, libro mayor, partidas contables y reportes financieros. Todo en cumplimiento con las normas guatemaltecas.',
+    titleKey: 'landing.services.accounting.title' as TranslationKey,
+    descriptionKey: 'landing.services.accounting.description' as TranslationKey,
     icon: Calculator,
     accent: 'accent-accounting-bg',
   },
   {
-    title: 'Procesamiento SAT',
-    description:
-      'Procesa tus archivos de la SAT automáticamente. Genera libros de compras y ventas listos para presentar.',
+    titleKey: 'landing.services.sat.title' as TranslationKey,
+    descriptionKey: 'landing.services.sat.description' as TranslationKey,
     icon: FileText,
     accent: 'accent-admin-bg',
   },
   {
-    title: 'Inventario',
-    description:
-      'Control de productos, categorías, movimientos de stock y códigos QR. Reportes de inventario en tiempo real.',
+    titleKey: 'landing.services.inventory.title' as TranslationKey,
+    descriptionKey: 'landing.services.inventory.description' as TranslationKey,
     icon: Package,
     accent: 'accent-inventory-bg',
   },
   {
-    title: 'Agenda de Citas',
-    description:
-      'Gestiona citas con tus clientes, envía recordatorios automáticos y optimiza tu agenda diaria.',
+    titleKey: 'landing.services.appointments.title' as TranslationKey,
+    descriptionKey: 'landing.services.appointments.description' as TranslationKey,
     icon: CalendarDays,
     accent: 'accent-appointments-bg',
   },
   {
-    title: 'Facturación',
-    description:
-      'Crea y gestiona facturas profesionales. Control de pagos, estados y exportación a PDF.',
+    titleKey: 'landing.services.invoicing.title' as TranslationKey,
+    descriptionKey: 'landing.services.invoicing.description' as TranslationKey,
     icon: Receipt,
     accent:
       'bg-rose-500/10 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400',
@@ -52,21 +49,23 @@ const services = [
 ] as const
 
 export function ServicesSection() {
+  const { t } = useTranslation()
+
   return (
     <section id='servicios' className='bg-muted/50 py-20'>
       <div className='mx-auto max-w-6xl px-4 sm:px-6 lg:px-8'>
         <div className='mb-12 text-center'>
           <h2 className='text-3xl font-bold tracking-tight sm:text-4xl'>
-            Todo lo que necesitas para operar
+            {t('landing.services.title')}
           </h2>
           <p className='text-muted-foreground mt-3 text-lg'>
-            Cinco módulos integrados que cubren cada aspecto de tu negocio
+            {t('landing.services.subtitle')}
           </p>
         </div>
         <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
           {services.map((service) => (
             <Card
-              key={service.title}
+              key={service.titleKey}
               className='transition-all duration-300 hover:-translate-y-1 hover:shadow-md'
             >
               <CardHeader>
@@ -75,8 +74,8 @@ export function ServicesSection() {
                 >
                   <service.icon className='size-5' />
                 </div>
-                <CardTitle>{service.title}</CardTitle>
-                <CardDescription>{service.description}</CardDescription>
+                <CardTitle>{t(service.titleKey)}</CardTitle>
+                <CardDescription>{t(service.descriptionKey)}</CardDescription>
               </CardHeader>
             </Card>
           ))}

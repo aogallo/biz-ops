@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 import { ArrowLeft, Edit, FileText } from 'lucide-react'
 import { Link, redirect, useRevalidator } from 'react-router'
+import { useTranslation } from '~/i18n/context'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
@@ -98,49 +99,50 @@ export async function action({ request, params }: Route.ActionArgs) {
   return { error: 'Unknown action' }
 }
 
-function getTypeBadge(type: string) {
-  switch (type) {
-    case 'sale':
-      return (
-        <Badge variant="outline" className="border-blue-500 text-blue-600">
-          Sale Invoice
-        </Badge>
-      )
-    case 'purchase':
-      return (
-        <Badge variant="outline" className="border-orange-500 text-orange-600">
-          Purchase Invoice
-        </Badge>
-      )
-    default:
-      return <Badge variant="outline">{type}</Badge>
-  }
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case 'draft':
-      return <Badge variant="secondary">Draft</Badge>
-    case 'pending':
-      return <Badge variant="outline">Pending</Badge>
-    case 'posted':
-      return (
-        <Badge variant="default" className="bg-green-600">
-          Posted
-        </Badge>
-      )
-    case 'voided':
-      return <Badge variant="destructive">Voided</Badge>
-    default:
-      return <Badge variant="outline">{status}</Badge>
-  }
-}
-
 export default function InvoiceShowPage({
   loaderData,
 }: Route.ComponentProps) {
   const { invoice, journalEntry } = loaderData
   const revalidator = useRevalidator()
+  const { t } = useTranslation()
+
+  function getTypeBadge(type: string) {
+    switch (type) {
+      case 'sale':
+        return (
+          <Badge variant="outline" className="border-blue-500 text-blue-600">
+            {t('invoices.saleInvoice')}
+          </Badge>
+        )
+      case 'purchase':
+        return (
+          <Badge variant="outline" className="border-orange-500 text-orange-600">
+            {t('invoices.purchaseInvoice')}
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{type}</Badge>
+    }
+  }
+
+  function getStatusBadge(status: string) {
+    switch (status) {
+      case 'draft':
+        return <Badge variant="secondary">{t('invoices.draft')}</Badge>
+      case 'pending':
+        return <Badge variant="outline">{t('invoices.pending')}</Badge>
+      case 'posted':
+        return (
+          <Badge variant="default" className="bg-green-600">
+            {t('invoices.posted')}
+          </Badge>
+        )
+      case 'voided':
+        return <Badge variant="destructive">{t('invoices.voided')}</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
 
   const isDraft = invoice.status === 'draft'
 
@@ -166,7 +168,7 @@ export default function InvoiceShowPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Invoice {invoice.number}</h1>
+            <h1 className="text-2xl font-bold">{t('invoices.number')} {invoice.number}</h1>
             <div className="mt-1 flex items-center gap-2">
               {getTypeBadge(invoice.type)}
               {getStatusBadge(invoice.status)}
@@ -179,7 +181,7 @@ export default function InvoiceShowPage({
               <Button variant="outline" asChild>
                 <Link to={`/invoices/${invoice.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit
+                  {t('common.edit')}
                 </Link>
               </Button>
               <PostInvoiceButton
@@ -193,7 +195,7 @@ export default function InvoiceShowPage({
             <Button variant="outline" asChild>
               <Link to={`/journal-entries/${journalEntry.id}`}>
                 <FileText className="mr-2 h-4 w-4" />
-                View Journal Entry
+                {t('invoices.viewJournalEntry')}
               </Link>
             </Button>
           )}
@@ -205,17 +207,17 @@ export default function InvoiceShowPage({
         <div>
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
+              <CardTitle>{t('invoices.details')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div>
-                  <p className="text-muted-foreground text-sm">Company</p>
+                  <p className="text-muted-foreground text-sm">{t('invoices.company')}</p>
                   <p className="font-medium">{invoice.company?.name || '-'}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm">
-                    {invoice.type === 'sale' ? 'Customer' : 'Vendor'}
+                    {invoice.type === 'sale' ? t('invoices.customer') : t('invoices.vendor')}
                   </p>
                   <p className="font-medium">
                     {invoice.businessPartner?.name || '-'}
@@ -227,14 +229,14 @@ export default function InvoiceShowPage({
                   )}
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm">Invoice Date</p>
+                  <p className="text-muted-foreground text-sm">{t('invoices.invoiceDate')}</p>
                   <p className="font-medium">
                     {format(new Date(invoice.invoiceDate), 'PPP')}
                   </p>
                 </div>
                 {invoice.dueDate && (
                   <div>
-                    <p className="text-muted-foreground text-sm">Due Date</p>
+                    <p className="text-muted-foreground text-sm">{t('invoices.dueDate')}</p>
                     <p className="font-medium">
                       {format(new Date(invoice.dueDate), 'PPP')}
                     </p>
@@ -260,7 +262,7 @@ export default function InvoiceShowPage({
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm">
-                    {invoice.type === 'sale' ? 'Revenue Account' : 'Expense Account'}
+                    {invoice.type === 'sale' ? t('invoices.revenueAccount') : t('invoices.expenseAccount')}
                   </p>
                   <p className="font-medium">
                     {invoice.accountingAccount
@@ -275,15 +277,15 @@ export default function InvoiceShowPage({
           {/* Invoice Lines */}
           <Card>
             <CardHeader>
-              <CardTitle>Invoice Lines</CardTitle>
+              <CardTitle>{t('invoices.lines')}</CardTitle>
               <CardDescription>
-                {invoice.lines.length} line{invoice.lines.length !== 1 ? 's' : ''}
+                {invoice.lines.length} {t('invoices.line')}{invoice.lines.length !== 1 ? 's' : ''}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {invoice.lines.length === 0 ? (
                 <div className="text-muted-foreground py-8 text-center">
-                  No lines in this invoice
+                  {t('invoices.noLines')}
                 </div>
               ) : (
                 <div className="rounded-md border">
@@ -291,16 +293,16 @@ export default function InvoiceShowPage({
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[40px]">#</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-[100px] text-right">Qty</TableHead>
+                        <TableHead>{t('common.description')}</TableHead>
+                        <TableHead className="w-[100px] text-right">{t('invoices.qty')}</TableHead>
                         <TableHead className="w-[120px] text-right">
-                          Unit Price
+                          {t('invoices.unitPrice')}
                         </TableHead>
                         <TableHead className="w-[120px] text-right">
-                          Subtotal
+                          {t('invoices.subtotal')}
                         </TableHead>
-                        <TableHead className="w-[100px] text-right">IVA</TableHead>
-                        <TableHead className="w-[120px] text-right">Total</TableHead>
+                        <TableHead className="w-[100px] text-right">{t('invoices.iva')}</TableHead>
+                        <TableHead className="w-[120px] text-right">{t('invoices.total')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -340,7 +342,7 @@ export default function InvoiceShowPage({
                     <TableFooter>
                       <TableRow>
                         <TableCell colSpan={4} className="text-right font-semibold">
-                          Totals
+                          {t('invoices.totals')}
                         </TableCell>
                         <TableCell className="text-right font-mono font-semibold">
                           Q {totals.subtotal.toFixed(2)}
@@ -373,12 +375,12 @@ export default function InvoiceShowPage({
         {journalEntry && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Linked Journal Entry</CardTitle>
+              <CardTitle className="text-base">{t('invoices.linkedJournalEntry')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Entry Number:</span>
+                  <span className="text-muted-foreground">{t('invoices.entryNumber')}</span>
                   <Link
                     to={`/journal-entries/${journalEntry.id}`}
                     className="font-medium text-blue-600 hover:underline"

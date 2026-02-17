@@ -14,6 +14,9 @@ import { Toaster } from 'sonner'
 import { ThemeProvider, useTheme } from 'remix-themes'
 import type { Route } from './+types/root'
 import './app.css'
+import { I18nProvider, useTranslation } from '~/i18n/context'
+import { getLocaleFromRequest } from '~/i18n/translate.server'
+import type { Locale } from '~/i18n/types'
 import { cn } from './lib/utils'
 import { themeSessionResolver } from './server/sessions.server'
 
@@ -32,13 +35,16 @@ export const links: Route.LinksFunction = () => [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { getTheme } = await themeSessionResolver(request)
-  return { theme: getTheme() }
+  const locale = getLocaleFromRequest(request)
+  return { theme: getTheme(), locale }
 }
 
 function Document({ children }: { children: React.ReactNode }) {
   const [theme] = useTheme()
+  const data = useLoaderData<typeof loader>()
+  const locale = data?.locale ?? 'es'
   return (
-    <html lang='en' className={cn(theme)}>
+    <html lang={locale} className={cn(theme)}>
       <head>
         <meta charSet='utf-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
@@ -62,7 +68,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       specifiedTheme={data?.theme ?? null}
       themeAction='/action/set-theme'
     >
-      <Document>{children}</Document>
+      <I18nProvider locale={(data?.locale as Locale) ?? 'es'}>
+        <Document>{children}</Document>
+      </I18nProvider>
     </ThemeProvider>
   )
 }
@@ -72,19 +80,21 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = 'Oops!'
-  let details = 'An unexpected error occurred.'
+  const { t } = useTranslation()
+
+  let message = t('error.oops')
+  let details = t('error.unexpected')
   let stack: string | undefined
 
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
-      message = '404'
-      details = 'The requested page could not be found.'
+      message = t('error.notFound')
+      details = t('error.notFoundDetails')
     } else if (error.status === 403) {
-      message = 'Access Denied'
-      details = error.statusText || "You don't have permission for this action."
+      message = t('error.accessDenied')
+      details = error.statusText || t('error.accessDeniedDetails')
     } else {
-      message = 'Error'
+      message = t('error.generic')
       details = error.statusText || details
     }
   } else if (import.meta.env.DEV && error && error instanceof Error) {
@@ -97,19 +107,19 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 
   return (
     <main className='container mx-auto p-4 pt-16'>
-      <h1 className='text-2xl font-bold mb-2'>{message}</h1>
+      <h1 className='mb-2 text-2xl font-bold'>{message}</h1>
       <p className='text-muted-foreground mb-4'>{details}</p>
       {isSessionError ? (
         <Link to='/' className='text-primary hover:underline'>
-          Back to Login
+          {t('error.backToLogin')}
         </Link>
       ) : (
         <Link to='/dashboard' className='text-primary hover:underline'>
-          Go to Dashboard
+          {t('error.goToDashboard')}
         </Link>
       )}
       {stack && import.meta.env.DEV && (
-        <pre className='w-full overflow-x-auto p-4 mt-4 bg-muted rounded'>
+        <pre className='bg-muted mt-4 w-full overflow-x-auto rounded p-4'>
           <code>{stack}</code>
         </pre>
       )}

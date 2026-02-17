@@ -19,15 +19,16 @@ import {
 } from '~/components/ui/alert-dialog'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { PERMISSION_MESSAGES } from '~/features/permissions/messages'
 import { deletePermission } from '~/features/permissions/server/actions/delete-permission.action'
 import { permissionsRepository } from '~/features/permissions/server/repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/show'
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   const permissionId = params.id
   const permission = await permissionsRepository.getById(permissionId)
@@ -35,7 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!permission) {
     return redirectWithFlash('/permissions', {
       type: 'error',
-      message: PERMISSION_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.permissions.notFound'),
     })
   }
 
@@ -50,12 +51,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const permissionId = params.id
+  const locale = getLocaleFromRequest(request)
   const response = await deletePermission(request, permissionId)
 
   if (response.success) {
     return redirectWithFlash('/permissions', {
       type: 'success',
-      message: PERMISSION_MESSAGES.deleted,
+      message: translateServer(locale, 'messages.permissions.deleted'),
     })
   }
 

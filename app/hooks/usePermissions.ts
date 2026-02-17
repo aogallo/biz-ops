@@ -71,14 +71,14 @@ export function useCanPerformAction(action: ActionKey): boolean {
  * @param allMenus - All available navigation items
  * @returns Filtered array of navigation items user can access
  */
-export function useFilteredNavigation(
-  allMenus: Array<{
+export function useFilteredNavigation<
+  T extends {
     section: string
     icon: React.ElementType
     color: string
     items: Array<{ path: string; name: string; icon: React.ElementType }>
-  }>
-) {
+  },
+>(allMenus: T[]) {
   const { permissions } = useAuth()
 
   // Super admin sees everything

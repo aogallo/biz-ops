@@ -7,6 +7,7 @@ import { RoleAssignmentPanel } from '~/features/roles/components/role-assignment
 import { rolesRepository } from '~/features/roles/server/repository'
 import { updateMemberRoles } from '~/features/users/server/actions/update-role.action'
 import { usersRepository } from '~/features/users/server/repository'
+import { useTranslation } from '~/i18n/context'
 import { getUserOrganizations } from '~/server/auth/organization.server'
 import { requirePermission } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
@@ -83,6 +84,8 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps) {
+  const { t } = useTranslation()
+
   // Handle resource route responses (when intent=getUserRoles)
   if ('userRoles' in loaderData) {
     return null // This shouldn't render, fetcher handles it
@@ -171,9 +174,9 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-semibold'>Role Assignment</h1>
+          <h1 className='text-2xl font-semibold'>{t('roles.assignment')}</h1>
           <p className='text-muted-foreground text-sm'>
-            Assign roles to users in your organization
+            {t('roles.assignDescription')}
           </p>
         </div>
 
@@ -185,9 +188,9 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
               value: org.organization.id,
               label: org.organization.name,
             }))}
-            placeholder='Select organization'
-            searchPlaceholder='Search organizations...'
-            emptyMessage='No organizations found.'
+            placeholder={t('sidebar.selectOrganization')}
+            searchPlaceholder={t('users.searchOrganizations')}
+            emptyMessage={t('users.noOrganizationsFound')}
             className='w-64'
           />
         )}

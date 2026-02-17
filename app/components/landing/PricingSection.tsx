@@ -11,106 +11,117 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { Separator } from '~/components/ui/separator'
+import { useTranslation } from '~/i18n/context'
+import type { TranslationKey } from '~/i18n/types'
 
-interface Feature {
-  label: string
-  starter: string | boolean
-  pro: string | boolean
-  enterprise: string | boolean
+type TierKey = 'starter' | 'pro' | 'enterprise'
+
+interface FeatureRow {
+  labelKey: TranslationKey
+  starter: { type: 'boolean'; value: boolean } | { type: 'text'; key: TranslationKey }
+  pro: { type: 'boolean'; value: boolean } | { type: 'text'; key: TranslationKey }
+  enterprise: { type: 'boolean'; value: boolean } | { type: 'text'; key: TranslationKey }
 }
 
-const features: Feature[] = [
+const featureRows: FeatureRow[] = [
   {
-    label: 'Usuarios',
-    starter: '1',
-    pro: 'Hasta 5',
-    enterprise: 'Ilimitados',
+    labelKey: 'landing.pricing.features.users' as TranslationKey,
+    starter: { type: 'text', key: 'landing.pricing.starter.users' as TranslationKey },
+    pro: { type: 'text', key: 'landing.pricing.pro.users' as TranslationKey },
+    enterprise: { type: 'text', key: 'landing.pricing.enterprise.users' as TranslationKey },
   },
   {
-    label: 'Contabilidad',
-    starter: 'Básica',
-    pro: 'Completa',
-    enterprise: 'Completa + reportes',
-  },
-  { label: 'Procesamiento SAT', starter: false, pro: true, enterprise: true },
-  {
-    label: 'Inventario',
-    starter: '50 productos',
-    pro: '500 productos',
-    enterprise: 'Ilimitado',
+    labelKey: 'landing.pricing.features.accounting' as TranslationKey,
+    starter: { type: 'text', key: 'landing.pricing.starter.accounting' as TranslationKey },
+    pro: { type: 'text', key: 'landing.pricing.pro.accounting' as TranslationKey },
+    enterprise: { type: 'text', key: 'landing.pricing.enterprise.accounting' as TranslationKey },
   },
   {
-    label: 'Citas',
-    starter: '20/mes',
-    pro: 'Ilimitadas',
-    enterprise: 'Ilimitadas',
+    labelKey: 'landing.pricing.features.sat' as TranslationKey,
+    starter: { type: 'boolean', value: false },
+    pro: { type: 'boolean', value: true },
+    enterprise: { type: 'boolean', value: true },
   },
   {
-    label: 'Facturación',
-    starter: '10/mes',
-    pro: 'Ilimitadas',
-    enterprise: 'Ilimitadas',
+    labelKey: 'landing.pricing.features.inventory' as TranslationKey,
+    starter: { type: 'text', key: 'landing.pricing.starter.inventory' as TranslationKey },
+    pro: { type: 'text', key: 'landing.pricing.pro.inventory' as TranslationKey },
+    enterprise: { type: 'text', key: 'landing.pricing.enterprise.inventory' as TranslationKey },
   },
   {
-    label: 'Soporte',
-    starter: 'Comunidad',
-    pro: 'Email',
-    enterprise: 'Dedicado',
+    labelKey: 'landing.pricing.features.appointments' as TranslationKey,
+    starter: { type: 'text', key: 'landing.pricing.starter.appointments' as TranslationKey },
+    pro: { type: 'text', key: 'landing.pricing.pro.appointments' as TranslationKey },
+    enterprise: { type: 'text', key: 'landing.pricing.enterprise.appointments' as TranslationKey },
+  },
+  {
+    labelKey: 'landing.pricing.features.invoicing' as TranslationKey,
+    starter: { type: 'text', key: 'landing.pricing.starter.invoicing' as TranslationKey },
+    pro: { type: 'text', key: 'landing.pricing.pro.invoicing' as TranslationKey },
+    enterprise: { type: 'text', key: 'landing.pricing.enterprise.invoicing' as TranslationKey },
+  },
+  {
+    labelKey: 'landing.pricing.features.support' as TranslationKey,
+    starter: { type: 'text', key: 'landing.pricing.starter.support' as TranslationKey },
+    pro: { type: 'text', key: 'landing.pricing.pro.support' as TranslationKey },
+    enterprise: { type: 'text', key: 'landing.pricing.enterprise.support' as TranslationKey },
   },
 ]
 
-function FeatureValue({ value }: { value: string | boolean }) {
-  if (typeof value === 'boolean') {
-    return value ? (
+function FeatureValue({ cell, t }: { cell: FeatureRow['starter']; t: (key: TranslationKey) => string }) {
+  if (cell.type === 'boolean') {
+    return cell.value ? (
       <Check className='size-4 text-green-600 dark:text-green-400' />
     ) : (
       <X className='text-muted-foreground size-4' />
     )
   }
-  return <span className='text-sm'>{value}</span>
+  return <span className='text-sm'>{t(cell.key)}</span>
 }
 
 interface TierProps {
-  name: string
-  price: string
-  description: string
-  featureKey: 'starter' | 'pro' | 'enterprise'
+  nameKey: TranslationKey
+  priceKey: TranslationKey
+  descriptionKey: TranslationKey
+  featureKey: TierKey
   highlighted?: boolean
-  cta: string
+  ctaKey: TranslationKey
 }
 
 function PricingTier({
-  name,
-  price,
-  description,
+  nameKey,
+  priceKey,
+  descriptionKey,
   featureKey,
   highlighted,
-  cta,
+  ctaKey,
 }: TierProps) {
+  const { t } = useTranslation()
+
   return (
     <Card
       className={`flex flex-col ${highlighted ? 'border-primary border-2' : ''}`}
     >
       <CardHeader>
         <div className='flex items-center gap-2'>
-          <CardTitle className='text-xl'>{name}</CardTitle>
-          {highlighted && <Badge>Más popular</Badge>}
+          <CardTitle className='text-xl'>{t(nameKey)}</CardTitle>
+          {highlighted && <Badge>{t('landing.pricing.badge')}</Badge>}
         </div>
-        <CardDescription>{description}</CardDescription>
-        <p className='mt-2 text-3xl font-bold tracking-tight'>{price}</p>
+        <CardDescription>{t(descriptionKey)}</CardDescription>
+        <p className='mt-2 text-3xl font-bold tracking-tight'>{t(priceKey)}</p>
       </CardHeader>
       <Separator />
       <CardContent className='flex-1 pt-6'>
         <ul className='space-y-3'>
-          {features.map((feature) => (
+          {featureRows.map((feature) => (
             <li
-              key={feature.label}
+              key={feature.labelKey}
               className='flex items-center justify-between'
             >
               <span className='text-muted-foreground text-sm'>
-                {feature.label}
+                {t(feature.labelKey)}
               </span>
-              <FeatureValue value={feature[featureKey]} />
+              <FeatureValue cell={feature[featureKey]} t={t} />
             </li>
           ))}
         </ul>
@@ -121,7 +132,7 @@ function PricingTier({
           variant={highlighted ? 'default' : 'outline'}
           asChild
         >
-          <Link to='/login'>{cta}</Link>
+          <Link to='/login'>{t(ctaKey)}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -129,39 +140,41 @@ function PricingTier({
 }
 
 export function PricingSection() {
+  const { t } = useTranslation()
+
   return (
     <section id='precios' className='py-20'>
       <div className='mx-auto max-w-6xl px-4 sm:px-6 lg:px-8'>
         <div className='mb-12 text-center'>
           <h2 className='text-3xl font-bold tracking-tight sm:text-4xl'>
-            Planes para cada etapa de tu negocio
+            {t('landing.pricing.title')}
           </h2>
           <p className='text-muted-foreground mt-3 text-lg'>
-            Comenzá gratis y escalá cuando lo necesites
+            {t('landing.pricing.subtitle')}
           </p>
         </div>
         <div className='grid items-stretch gap-6 md:grid-cols-3'>
           <PricingTier
-            name='Starter'
-            price='Gratis'
-            description='Para emprendedores que están comenzando'
+            nameKey={'landing.pricing.starter.name' as TranslationKey}
+            priceKey={'landing.pricing.starter.price' as TranslationKey}
+            descriptionKey={'landing.pricing.starter.description' as TranslationKey}
             featureKey='starter'
-            cta='Comenzar gratis'
+            ctaKey={'landing.pricing.starter.cta' as TranslationKey}
           />
           <PricingTier
-            name='Pro'
-            price='Q199/mes'
-            description='Para negocios en crecimiento'
+            nameKey={'landing.pricing.pro.name' as TranslationKey}
+            priceKey={'landing.pricing.pro.price' as TranslationKey}
+            descriptionKey={'landing.pricing.pro.description' as TranslationKey}
             featureKey='pro'
             highlighted
-            cta='Comenzar con Pro'
+            ctaKey={'landing.pricing.pro.cta' as TranslationKey}
           />
           <PricingTier
-            name='Enterprise'
-            price='Q499/mes'
-            description='Para empresas que necesitan todo'
+            nameKey={'landing.pricing.enterprise.name' as TranslationKey}
+            priceKey={'landing.pricing.enterprise.price' as TranslationKey}
+            descriptionKey={'landing.pricing.enterprise.description' as TranslationKey}
             featureKey='enterprise'
-            cta='Contactar ventas'
+            ctaKey={'landing.pricing.enterprise.cta' as TranslationKey}
           />
         </div>
       </div>

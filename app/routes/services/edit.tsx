@@ -1,4 +1,5 @@
 import { Form, redirect, useActionData, useNavigation } from 'react-router'
+import { useTranslation } from '~/i18n/context'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -62,14 +63,15 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
+  const { t } = useTranslation()
 
   return (
     <div className="mx-auto max-w-4xl p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Edit Service</CardTitle>
+          <CardTitle>{t('services.editTitle')}</CardTitle>
           <CardDescription>
-            Update the service details
+            {t('services.description')}
           </CardDescription>
         </CardHeader>
         <Form method="post">
@@ -83,7 +85,7 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
 
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Service Name *</Label>
+                <Label htmlFor="name">{t('services.name')} *</Label>
                 <Input
                   type="text"
                   id="name"
@@ -100,7 +102,7 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (minutes) *</Label>
+                <Label htmlFor="duration">{t('services.duration')} *</Label>
                 <Input
                   type="number"
                   id="duration"
@@ -123,7 +125,7 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price</Label>
+              <Label htmlFor="price">{t('services.price')}</Label>
               <Input
                 type="number"
                 id="price"
@@ -144,7 +146,7 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="color">Color *</Label>
+              <Label htmlFor="color">{t('services.color')} *</Label>
               <Select name="color" defaultValue={service.color}>
                 <SelectTrigger id="color">
                   <SelectValue placeholder="Select a color" />
@@ -171,7 +173,7 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('services.description')}</Label>
               <Textarea
                 id="description"
                 name="description"
@@ -206,10 +208,10 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
           </CardContent>
           <CardFooter className="flex justify-end gap-3 border-t pt-6">
             <Button type="button" variant="outline" asChild>
-              <a href="/services">Cancel</a>
+              <a href="/services">{t('common.cancel')}</a>
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </Button>
           </CardFooter>
         </Form>

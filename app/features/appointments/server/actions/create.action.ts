@@ -2,6 +2,7 @@ import { requireAuth } from '~/server/auth/session.server'
 import { servicesRepository } from '~/features/services/server/repository'
 import { createAppointmentSchema } from '../../schemas'
 import { appointmentsRepository } from '../repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 
 /**
  * Calculate end time based on start time and duration
@@ -16,12 +17,13 @@ function calculateEndTime(startTime: string, durationMinutes: number): string {
 
 export async function createAppointmentAction(request: Request) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return {
       success: false,
-      message: 'No active organization selected',
+      message: translateServer(locale, 'appointments.noOrganization'),
     }
   }
 
@@ -44,7 +46,7 @@ export async function createAppointmentAction(request: Request) {
     const fieldErrors = result.error.flatten().fieldErrors
     return {
       success: false,
-      message: 'Please fill in all required fields',
+      message: translateServer(locale, 'appointments.created.fill'),
       errors: {
         clientId: fieldErrors.clientId?.[0],
         serviceId: fieldErrors.serviceId?.[0],
@@ -65,8 +67,8 @@ export async function createAppointmentAction(request: Request) {
   if (!service) {
     return {
       success: false,
-      message: 'Selected service not found',
-      errors: { serviceId: 'Service not found' },
+      message: translateServer(locale, 'appointments.noService'),
+      errors: { serviceId: translateServer(locale, 'appointments.noService') },
     }
   }
 
@@ -93,7 +95,10 @@ export async function createAppointmentAction(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to create appointment',
+      message:
+        error instanceof Error
+          ? error.message
+          : translateServer(locale, 'appointments.failed'),
     }
   }
 }

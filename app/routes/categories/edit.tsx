@@ -13,9 +13,9 @@ import {
   categoryColorMap,
   type CategoryColor,
 } from '~/features/categories/schemas'
-import { CATEGORY_MESSAGES } from '~/features/categories/messages'
 import { updateCategory } from '~/features/categories/server/actions/update.action'
 import { categoriesRepository } from '~/features/categories/server/repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/edit'
@@ -32,11 +32,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     })
   }
 
+  const locale = getLocaleFromRequest(request)
   const category = await categoriesRepository.getById(id)
   if (!category || category.organizationId !== organizationId) {
     return redirectWithFlash('/categories', {
       type: 'error',
-      message: CATEGORY_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.categories.notFound'),
     })
   }
 

@@ -2,14 +2,17 @@ import z from 'zod'
 import { requireAuth } from '~/server/auth/session.server'
 import { createCompanySchema } from '../../schema'
 import { companyRepository } from '../repository/company.repository'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 
 export async function createCompany(request: Request) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
+
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
     return {
       success: false,
-      message: 'No active organization selected',
+      message: translateServer(locale, 'common.noOrganization'),
     }
   }
   const formData = await request.formData()

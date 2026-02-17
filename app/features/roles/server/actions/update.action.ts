@@ -1,11 +1,12 @@
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isOrgAdmin, isSuperAdmin } from '~/server/permissions'
-import { ROLE_MESSAGES } from '../../messages'
 import { updateRoleSchema } from '../../schemas'
 import { rolesRepository } from '../repository'
 
 export async function updateRole(request: Request, roleId: string) {
   const session = await requireAuth(request)
+  const locale = getLocaleFromRequest(request)
   const formData = await request.formData()
 
   // Get role
@@ -13,7 +14,7 @@ export async function updateRole(request: Request, roleId: string) {
   if (!role) {
     return {
       success: false,
-      message: ROLE_MESSAGES.notFound,
+      message: translateServer(locale, 'messages.roles.notFound'),
     }
   }
 
@@ -24,7 +25,7 @@ export async function updateRole(request: Request, roleId: string) {
   if (!isSuperAdminUser && !isOrgAdminUser) {
     return {
       success: false,
-      message: ROLE_MESSAGES.systemRoleProtected,
+      message: translateServer(locale, 'messages.roles.systemRoleProtected'),
     }
   }
 
@@ -32,7 +33,7 @@ export async function updateRole(request: Request, roleId: string) {
   if (role.isSystem && !isSuperAdminUser) {
     return {
       success: false,
-      message: ROLE_MESSAGES.systemRoleProtected,
+      message: translateServer(locale, 'messages.roles.systemRoleProtected'),
     }
   }
 
@@ -66,7 +67,7 @@ export async function updateRole(request: Request, roleId: string) {
     if (exists) {
       return {
         success: false,
-        message: ROLE_MESSAGES.nameExists,
+        message: translateServer(locale, 'messages.roles.nameExists'),
       }
     }
   }

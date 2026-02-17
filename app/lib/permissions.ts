@@ -44,7 +44,7 @@ export const MENU_PERMISSIONS = {
   '/services': ['service:read'],
   // Settings
   '/settings/accounting': ['settings:accounting'],
-  // Reprots
+  // Reports
   '/reports': ['reports:create'],
 } as const
 

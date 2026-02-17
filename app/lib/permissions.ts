@@ -35,6 +35,8 @@ export const MENU_PERMISSIONS = {
   '/suppliers': ['suppliers:read'],
   // Accounting
   '/invocies': ['invoice:read'],
+  '/invoices': ['invoice:read'],
+  '/purchase/orders': ['order:create'],
   '/sat-processor': ['sat-processor:read'],
   // Appointments
   '/appointments': ['appointments:read'],

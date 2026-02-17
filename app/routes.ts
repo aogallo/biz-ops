@@ -151,6 +151,9 @@ export default [
       route('/:id/edit', './routes/invoices/$id.edit.tsx'),
     ]),
 
+    // Purchase Routes
+    ...prefix('purchase', [route('/orders', './routes/orders/index.tsx')]),
+
     route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

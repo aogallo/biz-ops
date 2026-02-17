@@ -1,31 +1,33 @@
 import {
-    Banknote,
-    BookOpen,
-    BookOpenIcon,
-    Briefcase,
-    Building2,
-    BuildingIcon,
-    Calendar1,
-    CalendarDays,
-    ChartColumnBig,
-    Drumstick,
-    FolderTreeIcon,
-    HandshakeIcon,
-    Mail,
-    NewspaperIcon,
-    Notebook,
-    NotebookPenIcon,
-    Package,
-    PackageCheck,
-    PlusCircle,
-    ScanLine,
-    Settings,
-    Shapes,
-    ShieldXIcon,
-    Tag,
-    Truck,
-    Users,
-    UserStarIcon,
+  Banknote,
+  BookOpen,
+  BookOpenIcon,
+  Briefcase,
+  Building2,
+  BuildingIcon,
+  Calendar1,
+  CalendarDays,
+  ChartColumnBig,
+  Drumstick,
+  FolderTreeIcon,
+  HandshakeIcon,
+  Mail,
+  NewspaperIcon,
+  Notebook,
+  NotebookPenIcon,
+  Package,
+  PackageCheck,
+  PlusCircle,
+  ScanLine,
+  Settings,
+  Shapes,
+  ShieldXIcon,
+  Tag,
+  Ticket,
+  TicketsPlane,
+  Truck,
+  Users,
+  UserStarIcon,
 } from 'lucide-react'
 import { Link, NavLink, useFetcher } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
@@ -34,15 +36,15 @@ import { useTranslation } from '~/i18n/context'
 import type { TranslationKey } from '~/i18n/types'
 import { cn } from '~/lib/utils'
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubItem,
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from './ui/sidebar'
 
 // Domain-specific accent colors per system.md
@@ -53,20 +55,60 @@ export const navigationItems = [
     icon: Drumstick,
     color: 'accent-admin', // indigo/brand for system pages
     items: [
-      { name: 'Dashboard', nameKey: 'sidebar.items.dashboard' as TranslationKey, path: '/dashboard', icon: ChartColumnBig },
-      { name: 'Accounts', nameKey: 'sidebar.items.accounts' as TranslationKey, path: '/accounts', icon: BookOpenIcon },
-      { name: 'Organization', nameKey: 'sidebar.items.organization' as TranslationKey, path: '/organization', icon: Building2 },
-      { name: 'Users', nameKey: 'sidebar.items.users' as TranslationKey, path: '/users', icon: Users },
-      { name: 'Permissions', nameKey: 'sidebar.items.permissions' as TranslationKey, path: '/permissions', icon: ShieldXIcon },
-      { name: 'Roles', nameKey: 'sidebar.items.roles' as TranslationKey, path: '/roles', icon: HandshakeIcon },
+      {
+        name: 'Dashboard',
+        nameKey: 'sidebar.items.dashboard' as TranslationKey,
+        path: '/dashboard',
+        icon: ChartColumnBig,
+      },
+      {
+        name: 'Accounts',
+        nameKey: 'sidebar.items.accounts' as TranslationKey,
+        path: '/accounts',
+        icon: BookOpenIcon,
+      },
+      {
+        name: 'Organization',
+        nameKey: 'sidebar.items.organization' as TranslationKey,
+        path: '/organization',
+        icon: Building2,
+      },
+      {
+        name: 'Users',
+        nameKey: 'sidebar.items.users' as TranslationKey,
+        path: '/users',
+        icon: Users,
+      },
+      {
+        name: 'Permissions',
+        nameKey: 'sidebar.items.permissions' as TranslationKey,
+        path: '/permissions',
+        icon: ShieldXIcon,
+      },
+      {
+        name: 'Roles',
+        nameKey: 'sidebar.items.roles' as TranslationKey,
+        path: '/roles',
+        icon: HandshakeIcon,
+      },
       {
         name: 'Business Partners',
         nameKey: 'sidebar.items.businessPartners' as TranslationKey,
         path: '/business-partners',
         icon: UserStarIcon,
       },
-      { name: 'Companies', nameKey: 'sidebar.items.companies' as TranslationKey, path: '/company', icon: BuildingIcon },
-      { name: 'Invitations', nameKey: 'sidebar.items.invitations' as TranslationKey, path: '/invitations', icon: Mail },
+      {
+        name: 'Companies',
+        nameKey: 'sidebar.items.companies' as TranslationKey,
+        path: '/company',
+        icon: BuildingIcon,
+      },
+      {
+        name: 'Invitations',
+        nameKey: 'sidebar.items.invitations' as TranslationKey,
+        path: '/invitations',
+        icon: Mail,
+      },
     ],
   },
   {
@@ -75,11 +117,50 @@ export const navigationItems = [
     icon: Package,
     color: 'accent-inventory', // amber for inventory domain
     items: [
-      { name: 'Products', nameKey: 'sidebar.items.products' as TranslationKey, path: '/products', icon: Shapes },
-      { name: 'Categories', nameKey: 'sidebar.items.categories' as TranslationKey, path: '/categories', icon: Tag },
-      { name: 'Stock', nameKey: 'sidebar.items.stock' as TranslationKey, path: '/stock', icon: PackageCheck },
-      { name: 'Scan QR', nameKey: 'sidebar.items.scanQr' as TranslationKey, path: '/products/scan', icon: ScanLine },
-      { name: 'Suppliers', nameKey: 'sidebar.items.suppliers' as TranslationKey, path: '/suppliers', icon: Truck },
+      {
+        name: 'Products',
+        nameKey: 'sidebar.items.products' as TranslationKey,
+        path: '/products',
+        icon: Shapes,
+      },
+      {
+        name: 'Categories',
+        nameKey: 'sidebar.items.categories' as TranslationKey,
+        path: '/categories',
+        icon: Tag,
+      },
+      {
+        name: 'Stock',
+        nameKey: 'sidebar.items.stock' as TranslationKey,
+        path: '/stock',
+        icon: PackageCheck,
+      },
+      {
+        name: 'Scan QR',
+        nameKey: 'sidebar.items.scanQr' as TranslationKey,
+        path: '/products/scan',
+        icon: ScanLine,
+      },
+      {
+        name: 'Suppliers',
+        nameKey: 'sidebar.items.suppliers' as TranslationKey,
+        path: '/suppliers',
+        icon: Truck,
+      },
+    ],
+  },
+  {
+    section: 'Purchase',
+    sectionKey: 'sidebar.sections.purchase',
+    icon: TicketsPlane,
+    color: '',
+    items: [
+      {
+        name: 'Orders',
+        nameKey: 'sidebar.items.orders' as TranslationKey,
+        path: '/purchase/orders',
+        icon: Ticket,
+      },
     ],
   },
   {
@@ -88,11 +169,36 @@ export const navigationItems = [
     icon: Building2,
     color: 'accent-accounting', // emerald for accounting domain
     items: [
-      { name: 'Journal Entries', nameKey: 'sidebar.items.journalEntries' as TranslationKey, path: '/journal-entries', icon: BookOpen },
-      { name: 'New Entry', nameKey: 'sidebar.items.newEntry' as TranslationKey, path: '/journal-entries/new', icon: PlusCircle },
-      { name: 'SAT Processor', nameKey: 'sidebar.items.satProcessor' as TranslationKey, path: '/sat-processor', icon: FolderTreeIcon },
-      { name: 'Invoices', nameKey: 'sidebar.items.invoices' as TranslationKey, path: '/invoices', icon: NewspaperIcon },
-      { name: 'Expenses', nameKey: 'sidebar.items.expenses' as TranslationKey, path: '/sat-processor', icon: Banknote },
+      {
+        name: 'Journal Entries',
+        nameKey: 'sidebar.items.journalEntries' as TranslationKey,
+        path: '/journal-entries',
+        icon: BookOpen,
+      },
+      {
+        name: 'New Entry',
+        nameKey: 'sidebar.items.newEntry' as TranslationKey,
+        path: '/journal-entries/new',
+        icon: PlusCircle,
+      },
+      {
+        name: 'SAT Processor',
+        nameKey: 'sidebar.items.satProcessor' as TranslationKey,
+        path: '/sat-processor',
+        icon: FolderTreeIcon,
+      },
+      {
+        name: 'Invoices',
+        nameKey: 'sidebar.items.invoices' as TranslationKey,
+        path: '/invoices',
+        icon: NewspaperIcon,
+      },
+      {
+        name: 'Expenses',
+        nameKey: 'sidebar.items.expenses' as TranslationKey,
+        path: '/sat-processor',
+        icon: Banknote,
+      },
     ],
   },
   {
@@ -101,7 +207,12 @@ export const navigationItems = [
     icon: Settings,
     color: 'accent-admin', // indigo/brand for settings
     items: [
-      { name: 'Accounting', nameKey: 'sidebar.items.accountingSettings' as TranslationKey, path: '/settings/accounting', icon: Settings },
+      {
+        name: 'Accounting',
+        nameKey: 'sidebar.items.accountingSettings' as TranslationKey,
+        path: '/settings/accounting',
+        icon: Settings,
+      },
     ],
   },
   {
@@ -110,8 +221,18 @@ export const navigationItems = [
     icon: CalendarDays,
     color: 'accent-appointments', // blue for appointments domain
     items: [
-      { name: 'Calendar', nameKey: 'sidebar.items.calendar' as TranslationKey, path: '/appointments', icon: Calendar1 },
-      { name: 'Services', nameKey: 'sidebar.items.services' as TranslationKey, path: '/services', icon: Briefcase },
+      {
+        name: 'Calendar',
+        nameKey: 'sidebar.items.calendar' as TranslationKey,
+        path: '/appointments',
+        icon: Calendar1,
+      },
+      {
+        name: 'Services',
+        nameKey: 'sidebar.items.services' as TranslationKey,
+        path: '/services',
+        icon: Briefcase,
+      },
     ],
   },
   {
@@ -165,7 +286,7 @@ const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
                   name='organizationId'
                   value={activeOrgId || ''}
                   onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                  className='w-full rounded-md border border-border/50 bg-sidebar px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+                  className='border-border/50 bg-sidebar focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none'
                 >
                   <option value=''>{t('sidebar.selectOrganization')}</option>
                   {availableOrganizations.map((org) => (
@@ -216,14 +337,14 @@ const AppSidebar = ({ lowStockCount = 0 }: AppSidebarProps) => {
                         cn(
                           'rounded-md transition-colors',
                           isActive
-                            ? 'bg-primary/10 font-medium text-primary'
+                            ? 'bg-primary/10 text-primary font-medium'
                             : 'hover:bg-primary/5'
                         )
                       }
                       to={item.path}
                     >
                       <SidebarMenuButton>
-                        <item.icon className="size-4" />
+                        <item.icon className='size-4' />
                         <span>{t(item.nameKey)}</span>
                       </SidebarMenuButton>
                     </NavLink>

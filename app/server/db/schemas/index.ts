@@ -71,6 +71,15 @@ import {
   orderSourceType,
   orderStatus,
 } from './orders'
+import {
+  quotationModel,
+  quotationDetailModel,
+  quotationRecipientModel,
+  quotationRelations,
+  quotationDetailRelations,
+  quotationRecipientRelations,
+  quotationStatus,
+} from './quotations'
 
 export const schema = {
   // Auth tables
@@ -120,6 +129,11 @@ export const schema = {
   orderDetail: orderDetailModel,
   orderRecipient: orderRecipientModel,
 
+  // Quotation tables
+  quotation: quotationModel,
+  quotationDetail: quotationDetailModel,
+  quotationRecipient: quotationRecipientModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -141,6 +155,9 @@ export const schema = {
   orderRelations,
   orderDetailRelations,
   orderRecipientRelations,
+  quotationRelations,
+  quotationDetailRelations,
+  quotationRecipientRelations,
 }
 
 // Re-export all schemas for easy access
@@ -158,6 +175,7 @@ export * from './service'
 export * from './appointment'
 export * from './stockMovement'
 export * from './orders'
+export * from './quotations'
 export * from './common'
 
 // Re-export enums
@@ -173,4 +191,5 @@ export {
   stockMovementTypeEnum,
   orderSourceType,
   orderStatus,
+  quotationStatus,
 }

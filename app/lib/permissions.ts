@@ -37,6 +37,7 @@ export const MENU_PERMISSIONS = {
   '/invocies': ['invoice:read'],
   '/invoices': ['invoice:read'],
   '/purchase/orders': ['order:create'],
+  '/purchase/quotations': ['quotation:create'],
   '/sat-processor': ['sat-processor:read'],
   // Appointments
   '/appointments': ['appointments:read'],
@@ -74,6 +75,7 @@ export const ACTION_PERMISSIONS = {
   'journal-entries.create': ['journal-entry:create'],
   'journal-entries.update': ['journal-entry:update'],
   'orders.create': ['order:create'],
+  'quotations.create': ['quotation:create'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

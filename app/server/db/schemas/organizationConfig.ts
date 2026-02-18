@@ -50,6 +50,9 @@ export const organizationAccountingConfigModel = pgTable(
     nextManualInvoiceNumber: integer('next_manual_invoice_number')
       .notNull()
       .default(1),
+    // Order settings
+    orderPrefix: text('order_prefix').notNull().default('OR'),
+    nextOrderNumber: integer('next_order_number').notNull().default(1),
     ...timestamps,
   }
 )

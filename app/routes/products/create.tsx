@@ -1,5 +1,12 @@
 import { useState } from 'react'
-import { Form, Link, redirect, useActionData, useNavigation } from 'react-router'
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from 'react-router'
+
 import {
   FileText,
   Package,
@@ -62,7 +69,6 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
         <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
           {/* ── Main Column ─────────────────────────────── */}
           <div className='space-y-6 lg:col-span-2'>
-
             {/* Global error */}
             {actionData?.message && !actionData.success && (
               <div className='bg-destructive/10 text-destructive flex items-start gap-3 rounded-xl p-4 text-sm'>
@@ -72,7 +78,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
             )}
 
             {/* General Information */}
-            <section className='rounded-xl bg-card p-6 shadow-sm'>
+            <section className='bg-card rounded-xl p-6 shadow-sm'>
               <div className='mb-5 flex items-center gap-2'>
                 <FileText className='h-4 w-4 text-amber-500' />
                 <h2 className='font-semibold'>
@@ -84,7 +90,10 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                 <div className='grid gap-4 sm:grid-cols-2'>
                   {/* SKU */}
                   <div>
-                    <label htmlFor='sku' className='mb-1.5 block text-sm font-medium'>
+                    <label
+                      htmlFor='sku'
+                      className='mb-1.5 block text-sm font-medium'
+                    >
                       {t('products.skuLabel')}
                     </label>
                     <input
@@ -95,7 +104,8 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                       placeholder={t('products.skuPlaceholder')}
                       className={cn(
                         inputClass,
-                        actionData?.errors?.sku && 'border-destructive focus-visible:ring-destructive'
+                        actionData?.errors?.sku &&
+                          'border-destructive focus-visible:ring-destructive'
                       )}
                     />
                     {actionData?.errors?.sku ? (
@@ -111,7 +121,10 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
 
                   {/* Product Name */}
                   <div>
-                    <label htmlFor='name' className='mb-1.5 block text-sm font-medium'>
+                    <label
+                      htmlFor='name'
+                      className='mb-1.5 block text-sm font-medium'
+                    >
                       {t('products.nameLabel')}
                     </label>
                     <input
@@ -122,7 +135,8 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                       placeholder={t('products.namePlaceholder')}
                       className={cn(
                         inputClass,
-                        actionData?.errors?.name && 'border-destructive focus-visible:ring-destructive'
+                        actionData?.errors?.name &&
+                          'border-destructive focus-visible:ring-destructive'
                       )}
                     />
                     {actionData?.errors?.name && (
@@ -136,7 +150,10 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                 <div className='grid gap-4 sm:grid-cols-2'>
                   {/* Category */}
                   <div>
-                    <label htmlFor='categoryId' className='mb-1.5 block text-sm font-medium'>
+                    <label
+                      htmlFor='categoryId'
+                      className='mb-1.5 block text-sm font-medium'
+                    >
                       {t('products.category')}
                     </label>
                     <select
@@ -155,11 +172,14 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
 
                   {/* Base Price */}
                   <div>
-                    <label htmlFor='price' className='mb-1.5 block text-sm font-medium'>
+                    <label
+                      htmlFor='price'
+                      className='mb-1.5 block text-sm font-medium'
+                    >
                       {t('products.basePrice')} *
                     </label>
                     <div className='relative'>
-                      <span className='text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 text-sm'>
+                      <span className='text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 text-sm'>
                         $
                       </span>
                       <input
@@ -173,7 +193,8 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                         className={cn(
                           inputClass,
                           'pl-7',
-                          actionData?.errors?.price && 'border-destructive focus-visible:ring-destructive'
+                          actionData?.errors?.price &&
+                            'border-destructive focus-visible:ring-destructive'
                         )}
                       />
                     </div>
@@ -187,7 +208,10 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
 
                 {/* Description */}
                 <div>
-                  <label htmlFor='description' className='mb-1.5 block text-sm font-medium'>
+                  <label
+                    htmlFor='description'
+                    className='mb-1.5 block text-sm font-medium'
+                  >
                     {t('products.description')}
                   </label>
                   <textarea
@@ -202,16 +226,21 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
             </section>
 
             {/* Inventory Control */}
-            <section className='rounded-xl bg-card p-6 shadow-sm'>
+            <section className='bg-card rounded-xl p-6 shadow-sm'>
               <div className='mb-5 flex items-center gap-2'>
                 <Package className='h-4 w-4 text-amber-500' />
-                <h2 className='font-semibold'>{t('products.inventoryControl')}</h2>
+                <h2 className='font-semibold'>
+                  {t('products.inventoryControl')}
+                </h2>
               </div>
 
               <div className='grid gap-4 sm:grid-cols-2'>
                 {/* Initial Stock */}
                 <div>
-                  <label htmlFor='stock' className='mb-1.5 block text-sm font-medium'>
+                  <label
+                    htmlFor='stock'
+                    className='mb-1.5 block text-sm font-medium'
+                  >
                     {t('products.initialStock')}
                   </label>
                   <input
@@ -222,7 +251,8 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                     defaultValue='0'
                     className={cn(
                       inputClass,
-                      actionData?.errors?.stock && 'border-destructive focus-visible:ring-destructive'
+                      actionData?.errors?.stock &&
+                        'border-destructive focus-visible:ring-destructive'
                     )}
                   />
                   {actionData?.errors?.stock && (
@@ -234,7 +264,10 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
 
                 {/* Min Stock */}
                 <div>
-                  <label htmlFor='minStock' className='mb-1.5 block text-sm font-medium'>
+                  <label
+                    htmlFor='minStock'
+                    className='mb-1.5 block text-sm font-medium'
+                  >
                     {t('products.minStock')}
                   </label>
                   <input
@@ -245,7 +278,8 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                     defaultValue='5'
                     className={cn(
                       inputClass,
-                      actionData?.errors?.minStock && 'border-destructive focus-visible:ring-destructive'
+                      actionData?.errors?.minStock &&
+                        'border-destructive focus-visible:ring-destructive'
                     )}
                   />
                   {actionData?.errors?.minStock ? (
@@ -268,7 +302,7 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
           {/* ── Sidebar ─────────────────────────────────── */}
           <div className='space-y-6'>
             {/* Product Image */}
-            <section className='rounded-xl bg-card p-6 shadow-sm'>
+            <section className='bg-card rounded-xl p-6 shadow-sm'>
               <div className='mb-4 flex items-center gap-2'>
                 <ImageIcon className='h-4 w-4 text-amber-500' />
                 <h2 className='font-semibold'>

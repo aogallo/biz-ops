@@ -2,6 +2,7 @@ import { requireAuth } from '~/server/auth/session.server'
 import { requirePermission } from '~/server/auth/permissions.server'
 import { createOrderSchema } from '../../schemas'
 import { ordersRepository } from '../repository'
+import z from 'zod'
 
 export async function createOrderAction(request: Request) {
   const session = await requireAuth(request)
@@ -35,11 +36,12 @@ export async function createOrderAction(request: Request) {
   }
 
   const result = createOrderSchema.safeParse(inputValues)
+
   if (!result.success) {
     return {
       success: false,
       message: 'Validation failed',
-      errors: result.error.flatten().fieldErrors,
+      errors: z.flattenError(result.error),
     }
   }
 

@@ -1,7 +1,9 @@
 import { relations } from 'drizzle-orm'
 import {
   integer,
+  jsonb,
   numeric,
+  pgEnum,
   pgTable,
   text,
   uniqueIndex,
@@ -10,6 +12,13 @@ import {
 import { organizationModel } from './auth'
 import { timestamps } from './common'
 import { productCategoryModel } from './productCategory'
+
+// Product type ENUM
+export const productTypeEnum = pgEnum('product_type', [
+  'STOCK', // Uses inventory
+  'MADE_TO_ORDER', // Produced when ordered
+  'SERVICE', // No physical product
+])
 
 // Products & Inventory
 export const productModel = pgTable(
@@ -27,6 +36,8 @@ export const productModel = pgTable(
     price: numeric('price', { precision: 12, scale: 2 }).notNull(),
     stock: integer('stock').default(0),
     minStock: integer('min_stock').default(0),
+    productType: productTypeEnum('product_type').notNull().default('STOCK'),
+    attributesJson: jsonb('attributes_json'),
     ...timestamps,
   },
   (table) => [

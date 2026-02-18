@@ -53,6 +53,9 @@ export const organizationAccountingConfigModel = pgTable(
     // Order settings
     orderPrefix: text('order_prefix').notNull().default('OR'),
     nextOrderNumber: integer('next_order_number').notNull().default(1),
+    // POS settings
+    posPrefix: text('pos_prefix').notNull().default('POS'),
+    nextPosSaleNumber: integer('next_pos_sale_number').notNull().default(1),
     ...timestamps,
   }
 )

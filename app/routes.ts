@@ -23,6 +23,18 @@ export default [
   // Public invitation acceptance
   route('/invitation/accept/:token', './routes/invitation/accept.$token.tsx'),
 
+  // POS routes (full-screen, no sidebar)
+  layout('./layout/PosLayout.tsx', [
+    ...prefix('pos', [
+      index('./routes/pos/index.tsx'),
+      route('/terminal', './routes/pos/terminal.tsx'),
+      ...prefix('sales', [
+        index('./routes/pos/sales/index.tsx'),
+        route('/:id', './routes/pos/sales/$id.tsx'),
+      ]),
+    ]),
+  ]),
+
   // App routes with sidebar layout
   layout('./layout/AppLayout.tsx', [
     // Organization Routes
@@ -149,6 +161,12 @@ export default [
       route('/new', './routes/invoices/new.tsx'),
       route('/:id', './routes/invoices/$id.tsx'),
       route('/:id/edit', './routes/invoices/$id.edit.tsx'),
+    ]),
+
+    // POS Settings Routes
+    ...prefix('pos-settings', [
+      index('./routes/pos-settings/index.tsx'),
+      route('/terminals', './routes/pos-settings/terminals.tsx'),
     ]),
 
     // Purchase Routes

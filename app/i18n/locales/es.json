@@ -79,6 +79,7 @@
   "sidebar.sections.settings": "Configuración",
   "sidebar.sections.appointments": "Citas",
   "sidebar.sections.reports": "Reportes",
+  "sidebar.sections.purchase": "Compras",
   "sidebar.items.dashboard": "Panel",
   "sidebar.items.accounts": "Cuentas",
   "sidebar.items.organization": "Organización",
@@ -97,6 +98,7 @@
   "sidebar.items.newEntry": "Nueva Partida",
   "sidebar.items.satProcessor": "Procesador SAT",
   "sidebar.items.invoices": "Facturas",
+  "sidebar.items.orders": "Ordenes de Compra",
   "sidebar.items.expenses": "Gastos",
   "sidebar.items.accountingSettings": "Contabilidad",
   "sidebar.items.calendar": "Calendario",
@@ -314,6 +316,26 @@
   "products.scanDescription": "Usa la cámara de tu dispositivo para escanear un código QR de producto",
   "products.allStockStatus": "Todos los Estados de Stock",
   "products.nameLabel": "Nombre del Producto *",
+  "products.customField.title": "Agregar otro campo",
+  "products.generalInformation": "Información General",
+  "products.generalInformationDesc": "Identificación del producto y detalles de precio.",
+  "products.inventoryControl": "Control de Inventario",
+  "products.inventoryControlDesc": "Define niveles de stock inicial y umbrales de alerta.",
+  "products.customAttributes": "Atributos Personalizados (JSON)",
+  "products.customAttributesDesc": "Define atributos dinámicos para uso en órdenes e informes.",
+  "products.addAttribute": "Agregar Atributo",
+  "products.fieldName": "Nombre del Campo",
+  "products.fieldType": "Tipo de Campo",
+  "products.basePrice": "Precio Base",
+  "products.productImageTitle": "Imagen del Producto",
+  "products.imageDropzoneText": "Clic para subir o arrastrá y soltá",
+  "products.imageDropzoneHint": "PNG, JPG o WEBP (Máx 2MB)",
+  "products.imageUrlAlternative": "URL de Imagen (Alternativa)",
+  "products.quickTips": "Consejos Rápidos",
+  "products.tip.sku": "Usá un SKU único para evitar conflictos de inventario.",
+  "products.tip.image": "Las imágenes de alta calidad (1080×1080) rinden mejor en canales de venta.",
+  "products.tip.attributes": "Los atributos personalizados ayudan a filtrar productos en el portal.",
+  "products.noCustomAttributes": "Sin atributos personalizados aún.",
 
   "stock.title": "Movimientos de Stock",
   "stock.new": "Nuevo Movimiento",
@@ -713,5 +735,8 @@
   "messages.permissions.hasRoles": "No se puede eliminar. Primero remueve el permiso de los roles.",
   "messages.permissions.systemPermissionInfo": "Los permisos del sistema se crean automáticamente y no pueden ser eliminados.",
 
-  "sat.row.notFound": "La linea/factura no fue encontrada"
+  "sat.row.notFound": "La linea/factura no fue encontrada",
+
+  "purchase.order.title": "Ordenes de compras",
+  "purchase.order.create.button": "Crear Orden"
 }

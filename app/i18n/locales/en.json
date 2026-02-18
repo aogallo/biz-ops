@@ -108,6 +108,7 @@
   "sidebar.items.services": "Services",
   "sidebar.items.financialReport": "Financial Report",
   "sidebar.items.inventoryReport": "Inventory Report",
+  "sidebar.items.quotations": "Quotations",
 
   "dashboard.greeting": "Welcome back",
   "dashboard.appointments": "Appointments",

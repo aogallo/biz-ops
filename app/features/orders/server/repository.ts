@@ -204,7 +204,7 @@ export class OrdersRepository {
       .where(eq(orderDetailModel.orderId, id))
 
     const detailIds = details.map((d) => d.id)
-    let recipientsByDetail: Record<string, typeof orderRecipientModel.$inferSelect[]> = {}
+    const recipientsByDetail: Record<string, typeof orderRecipientModel.$inferSelect[]> = {}
 
     if (detailIds.length > 0) {
       const allRecipients = await db

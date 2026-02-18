@@ -64,6 +64,13 @@
       "when": 1771388823077,
       "tag": "0008_wealthy_human_fly",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1771427575281,
+      "tag": "0009_thin_proudstar",
+      "breakpoints": true
     }
   ]
 }

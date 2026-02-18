@@ -7,6 +7,7 @@ import {
   roleModel,
   rolePermissionModel,
 } from '../db/schemas/auth'
+import { isSuperAdmin } from '~/server/permissions'
 
 /**
  * Check if user has specific permission in organization
@@ -20,6 +21,11 @@ export async function hasPermission(
   organizationId: string,
   permissionString: string
 ): Promise<boolean> {
+  // Super admins bypass all permission checks
+  if (await isSuperAdmin(userId)) {
+    return true
+  }
+
   const [resource, action] = permissionString.split(':')
 
   if (!resource || !action) {

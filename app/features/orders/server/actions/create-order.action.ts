@@ -1,4 +1,5 @@
 import { requireAuth } from '~/server/auth/session.server'
+import { requirePermission } from '~/server/auth/permissions.server'
 import { createOrderSchema } from '../../schemas'
 import { ordersRepository } from '../repository'
 
@@ -9,6 +10,8 @@ export async function createOrderAction(request: Request) {
   if (!organizationId) {
     return { success: false, message: 'No active organization' }
   }
+
+  await requirePermission(session.user.id, organizationId, 'order:create')
 
   const formData = await request.formData()
 
@@ -46,7 +49,8 @@ export async function createOrderAction(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to create order',
+      message:
+        error instanceof Error ? error.message : 'Failed to create order',
     }
   }
 }

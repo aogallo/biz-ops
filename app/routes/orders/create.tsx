@@ -6,6 +6,7 @@ import { businessPartnersRepository } from '~/features/business-partners/server/
 import { productsRepository } from '~/features/products/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/create'
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const organizationId = session.session.activeOrganizationId
@@ -16,7 +17,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const [companies, businessPartners, productsData] = await Promise.all([
     companyRepository.getByOrganization(organizationId),
-    businessPartnersRepository.getAllByOrganization(organizationId, 'vendor'),
+    businessPartnersRepository.getAllByOrganization(organizationId),
     productsRepository.getAllByOrganization(organizationId),
   ])
 
@@ -25,7 +26,14 @@ export async function loader({ request }: Route.LoaderArgs) {
     name: p.name,
     sku: p.sku,
     price: p.price,
-    attributesJson: p.attributesJson as Record<string, { type: 'text' | 'number' | 'boolean' | 'date' | 'select'; required: boolean; options?: string[] }> | null,
+    attributesJson: p.attributesJson as Record<
+      string,
+      {
+        type: 'text' | 'number' | 'boolean' | 'date' | 'select'
+        required: boolean
+        options?: string[]
+      }
+    > | null,
   }))
 
   return { companies, businessPartners, products }
@@ -33,6 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const response = await createOrderAction(request)
+
   if (response.success && response.data) {
     return redirect(`/purchase/orders/${response.data.id}`)
   }
@@ -59,7 +68,9 @@ export default function CreateOrder({ loaderData }: Route.ComponentProps) {
         businessPartners={businessPartners}
         products={products}
         isSubmitting={isSubmitting}
-        error={actionData && 'message' in actionData ? actionData.message : null}
+        error={
+          actionData && 'message' in actionData ? actionData.message : null
+        }
       />
     </div>
   )

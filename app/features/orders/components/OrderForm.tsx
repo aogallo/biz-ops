@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Form } from 'react-router'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import { Combobox } from '~/components/ui/combobox'
 import { DynamicAttributeFields } from './DynamicAttributeFields'
 import type { AttributeDef } from '~/features/products/components/CustomAttributesEditor'
 
@@ -138,46 +139,34 @@ export function OrderForm({
           <h2 className='mb-4 font-semibold'>Order Information</h2>
           <div className='grid gap-4 sm:grid-cols-3'>
             <div>
-              <label
-                htmlFor='companyId'
-                className='mb-1.5 block text-sm font-medium'
-              >
+              <label className='mb-1.5 block text-sm font-medium'>
                 Company *
               </label>
-              <select
-                id='companyId'
+              <Combobox
                 name='companyId'
-                required
-                className={inputClass}
-              >
-                <option value=''>Select company...</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                options={companies.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                }))}
+                placeholder='Select company...'
+                searchPlaceholder='Search companies...'
+                emptyMessage='No companies found.'
+              />
             </div>
             <div>
-              <label
-                htmlFor='businessPartnerId'
-                className='mb-1.5 block text-sm font-medium'
-              >
+              <label className='mb-1.5 block text-sm font-medium'>
                 Business Partner *
               </label>
-              <select
-                id='businessPartnerId'
+              <Combobox
                 name='businessPartnerId'
-                required
-                className={inputClass}
-              >
-                <option value=''>Select partner...</option>
-                {businessPartners.map((bp) => (
-                  <option key={bp.id} value={bp.id}>
-                    {bp.name}
-                  </option>
-                ))}
-              </select>
+                options={businessPartners.map((bp) => ({
+                  value: bp.id,
+                  label: bp.name,
+                }))}
+                placeholder='Select partner...'
+                searchPlaceholder='Search partners...'
+                emptyMessage='No partners found.'
+              />
             </div>
             <div>
               <label

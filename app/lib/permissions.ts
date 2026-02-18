@@ -73,6 +73,7 @@ export const ACTION_PERMISSIONS = {
   'services.delete': ['service:delete'],
   'journal-entries.create': ['journal-entry:create'],
   'journal-entries.update': ['journal-entry:update'],
+  'orders.create': ['order:create'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

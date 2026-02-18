@@ -7,6 +7,7 @@ import TitleAndActionsBody from '~/components/TitleAndActionsBody'
 import { orderColumns, type OrderRow } from '~/features/orders/components/columns'
 import { ordersRepository } from '~/features/orders/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
+import { useCanPerformAction } from '~/hooks/usePermissions'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -35,6 +36,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function OrdersIndex({ loaderData }: Route.ComponentProps) {
   const { orders } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
+  const canCreateOrder = useCanPerformAction('orders.create')
 
   const statusFilter = searchParams.get('status') ?? ''
 
@@ -62,12 +64,14 @@ export default function OrdersIndex({ loaderData }: Route.ComponentProps) {
             <option value='COMPLETED'>Completed</option>
             <option value='CANCELLED'>Cancelled</option>
           </select>
-          <Link to='/purchase/orders/new'>
-            <Button>
-              <Plus className='mr-2 h-4 w-4' />
-              New Order
-            </Button>
-          </Link>
+          {canCreateOrder && (
+            <Link to='/purchase/orders/new'>
+              <Button>
+                <Plus className='mr-2 h-4 w-4' />
+                New Order
+              </Button>
+            </Link>
+          )}
         </TitleAndActionsBody>
       </TitleAndActions>
 

@@ -152,7 +152,11 @@ export default [
     ]),
 
     // Purchase Routes
-    ...prefix('purchase', [route('/orders', './routes/orders/index.tsx')]),
+    ...prefix('purchase', [
+      route('/orders', './routes/orders/index.tsx'),
+      route('/orders/new', './routes/orders/create.tsx'),
+      route('/orders/:id', './routes/orders/show.tsx'),
+    ]),
 
     route('*', './routes/error/NotFound.tsx'),
   ]),

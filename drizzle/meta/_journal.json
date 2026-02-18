@@ -57,6 +57,13 @@
       "when": 1770860657844,
       "tag": "0007_familiar_morlocks",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1771388823077,
+      "tag": "0008_wealthy_human_fly",
+      "breakpoints": true
     }
   ]
 }

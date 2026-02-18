@@ -250,6 +250,76 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
           </CardContent>
         </Card>
 
+        {product.attributesJson &&
+          typeof product.attributesJson === 'object' &&
+          Object.keys(product.attributesJson as Record<string, unknown>).length > 0 && (
+            <Card className='md:col-span-3'>
+              <CardHeader>
+                <CardTitle>{t('products.customAttributes')}</CardTitle>
+                <CardDescription>
+                  {t('products.customAttributesDesc')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className='overflow-hidden rounded-lg border'>
+                  <table className='w-full text-sm'>
+                    <thead>
+                      <tr className='border-b bg-muted/40'>
+                        <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                          Field
+                        </th>
+                        <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                          Type
+                        </th>
+                        <th className='px-4 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                          Required
+                        </th>
+                        <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                          Options
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className='divide-y'>
+                      {Object.entries(
+                        product.attributesJson as Record<
+                          string,
+                          { type: string; required: boolean; options?: string[] }
+                        >
+                      ).map(([name, def]) => (
+                        <tr key={name}>
+                          <td className='px-4 py-2.5 font-medium'>{name}</td>
+                          <td className='px-4 py-2.5'>
+                            <Badge variant='outline'>{def.type}</Badge>
+                          </td>
+                          <td className='px-4 py-2.5 text-center'>
+                            {def.required ? (
+                              <Badge variant='default'>Yes</Badge>
+                            ) : (
+                              <span className='text-muted-foreground'>No</span>
+                            )}
+                          </td>
+                          <td className='px-4 py-2.5'>
+                            {def.options?.length ? (
+                              <div className='flex flex-wrap gap-1'>
+                                {def.options.map((opt) => (
+                                  <Badge key={opt} variant='secondary'>
+                                    {opt}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className='text-muted-foreground'>-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
         <Card className='md:col-span-3'>
           <CardHeader>
             <CardTitle>{t('products.metadata')}</CardTitle>

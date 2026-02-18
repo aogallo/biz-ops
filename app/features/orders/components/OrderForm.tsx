@@ -33,6 +33,7 @@ interface LineItem {
   sourceType: 'INVENTORY' | 'ON_DEMAND'
   customAttributesJson: Record<string, string | number | boolean>
   attributesDef: Record<string, AttributeDef> | null
+  recipients: Recipient[]
 }
 
 interface Recipient {
@@ -59,7 +60,6 @@ export function OrderForm({
   error,
 }: OrderFormProps) {
   const [lineItems, setLineItems] = useState<LineItem[]>([])
-  const [recipients, setRecipients] = useState<Recipient[]>([])
   const [productSearch, setProductSearch] = useState('')
 
   function addLineItem(product: Product) {
@@ -75,6 +75,7 @@ export function OrderForm({
         sourceType: 'INVENTORY',
         customAttributesJson: {},
         attributesDef: product.attributesJson,
+        recipients: [],
       },
     ])
     setProductSearch('')
@@ -88,17 +89,6 @@ export function OrderForm({
     setLineItems((prev) =>
       prev.map((item) => (item.key === key ? { ...item, ...patch } : item))
     )
-  }
-
-  function addRecipient() {
-    setRecipients((prev) => [
-      ...prev,
-      { key: crypto.randomUUID(), name: '' },
-    ])
-  }
-
-  function removeRecipient(key: string) {
-    setRecipients((prev) => prev.filter((r) => r.key !== key))
   }
 
   const subtotal = lineItems.reduce(
@@ -118,13 +108,10 @@ export function OrderForm({
         Object.keys(item.customAttributesJson).length > 0
           ? item.customAttributesJson
           : null,
+      recipients: item.recipients
+        .filter((r) => r.name.trim())
+        .map((r) => ({ name: r.name.trim(), metadataJson: null })),
     }))
-  )
-
-  const recipientsJson = JSON.stringify(
-    recipients
-      .filter((r) => r.name.trim())
-      .map((r) => ({ name: r.name.trim(), metadataJson: null }))
   )
 
   const filteredProducts = productSearch
@@ -138,24 +125,31 @@ export function OrderForm({
   return (
     <Form method='post'>
       <input type='hidden' name='details' value={detailsJson} />
-      <input type='hidden' name='recipients' value={recipientsJson} />
 
       {error && (
-        <div className='mb-6 rounded-lg bg-destructive/10 p-4 text-sm text-destructive'>
+        <div className='bg-destructive/10 text-destructive mb-6 rounded-lg p-4 text-sm'>
           {error}
         </div>
       )}
 
       <div className='space-y-6'>
         {/* Header Section */}
-        <section className='rounded-xl bg-card p-6 shadow-sm'>
+        <section className='bg-card rounded-xl p-6 shadow-sm'>
           <h2 className='mb-4 font-semibold'>Order Information</h2>
           <div className='grid gap-4 sm:grid-cols-3'>
             <div>
-              <label htmlFor='companyId' className='mb-1.5 block text-sm font-medium'>
+              <label
+                htmlFor='companyId'
+                className='mb-1.5 block text-sm font-medium'
+              >
                 Company *
               </label>
-              <select id='companyId' name='companyId' required className={inputClass}>
+              <select
+                id='companyId'
+                name='companyId'
+                required
+                className={inputClass}
+              >
                 <option value=''>Select company...</option>
                 {companies.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -165,7 +159,10 @@ export function OrderForm({
               </select>
             </div>
             <div>
-              <label htmlFor='businessPartnerId' className='mb-1.5 block text-sm font-medium'>
+              <label
+                htmlFor='businessPartnerId'
+                className='mb-1.5 block text-sm font-medium'
+              >
                 Business Partner *
               </label>
               <select
@@ -183,7 +180,10 @@ export function OrderForm({
               </select>
             </div>
             <div>
-              <label htmlFor='orderDate' className='mb-1.5 block text-sm font-medium'>
+              <label
+                htmlFor='orderDate'
+                className='mb-1.5 block text-sm font-medium'
+              >
                 Order Date *
               </label>
               <input
@@ -199,10 +199,10 @@ export function OrderForm({
         </section>
 
         {/* Line Items */}
-        <section className='rounded-xl bg-card p-6 shadow-sm'>
+        <section className='bg-card rounded-xl p-6 shadow-sm'>
           <div className='mb-4 flex items-center justify-between'>
             <h2 className='font-semibold'>Line Items</h2>
-            <span className='text-sm text-muted-foreground'>
+            <span className='text-muted-foreground text-sm'>
               {lineItems.length} item{lineItems.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -217,17 +217,17 @@ export function OrderForm({
               className={inputClass}
             />
             {filteredProducts.length > 0 && productSearch && (
-              <div className='absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-popover shadow-md'>
+              <div className='bg-popover absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border shadow-md'>
                 {filteredProducts.slice(0, 10).map((p) => (
                   <button
                     key={p.id}
                     type='button'
                     onClick={() => addLineItem(p)}
-                    className='flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-accent'
+                    className='hover:bg-accent flex w-full items-center justify-between px-3 py-2 text-sm'
                   >
                     <span>
                       <span className='font-medium'>{p.name}</span>
-                      <span className='ml-2 text-muted-foreground'>
+                      <span className='text-muted-foreground ml-2'>
                         ({p.sku})
                       </span>
                     </span>
@@ -241,20 +241,17 @@ export function OrderForm({
           </div>
 
           {lineItems.length === 0 ? (
-            <div className='rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground'>
+            <div className='text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm'>
               Search and select products to add line items
             </div>
           ) : (
             <div className='space-y-4'>
               {lineItems.map((item) => (
-                <div
-                  key={item.key}
-                  className='rounded-lg border p-4 space-y-3'
-                >
+                <div key={item.key} className='space-y-3 rounded-lg border p-4'>
                   <div className='flex items-start justify-between'>
                     <div>
                       <p className='font-medium'>{item.productName}</p>
-                      <p className='text-xs text-muted-foreground font-mono'>
+                      <p className='text-muted-foreground font-mono text-xs'>
                         {item.productSku}
                       </p>
                     </div>
@@ -340,55 +337,66 @@ export function OrderForm({
                       })
                     }
                   />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
 
-        {/* Recipients (optional) */}
-        <section className='rounded-xl bg-card p-6 shadow-sm'>
-          <div className='mb-4 flex items-center justify-between'>
-            <div>
-              <h2 className='font-semibold'>Recipients</h2>
-              <p className='text-xs text-muted-foreground'>Optional</p>
-            </div>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={addRecipient}
-            >
-              <Plus className='mr-1.5 h-3.5 w-3.5' />
-              Add Recipient
-            </Button>
-          </div>
-          {recipients.length > 0 && (
-            <div className='space-y-2'>
-              {recipients.map((r) => (
-                <div key={r.key} className='flex items-center gap-2'>
-                  <input
-                    type='text'
-                    value={r.name}
-                    onChange={(e) =>
-                      setRecipients((prev) =>
-                        prev.map((rec) =>
-                          rec.key === r.key
-                            ? { ...rec, name: e.target.value }
-                            : rec
-                        )
-                      )
-                    }
-                    placeholder='Recipient name'
-                    className={inputClass}
-                  />
-                  <button
-                    type='button'
-                    onClick={() => removeRecipient(r.key)}
-                    className='text-muted-foreground hover:text-destructive p-1'
-                  >
-                    <Trash2 className='h-4 w-4' />
-                  </button>
+                  {/* Recipients per line item */}
+                  <div className='border-t pt-3'>
+                    <div className='mb-2 flex items-center justify-between'>
+                      <label className='text-xs font-medium'>Recipients</label>
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        className='h-6 px-2 text-xs'
+                        onClick={() =>
+                          updateLineItem(item.key, {
+                            recipients: [
+                              ...item.recipients,
+                              { key: crypto.randomUUID(), name: '' },
+                            ],
+                          })
+                        }
+                      >
+                        <Plus className='mr-1 h-3 w-3' />
+                        Add
+                      </Button>
+                    </div>
+                    {item.recipients.length > 0 && (
+                      <div className='space-y-1.5'>
+                        {item.recipients.map((r) => (
+                          <div key={r.key} className='flex items-center gap-2'>
+                            <input
+                              type='text'
+                              value={r.name}
+                              onChange={(e) =>
+                                updateLineItem(item.key, {
+                                  recipients: item.recipients.map((rec) =>
+                                    rec.key === r.key
+                                      ? { ...rec, name: e.target.value }
+                                      : rec
+                                  ),
+                                })
+                              }
+                              placeholder='Recipient name'
+                              className={inputClass}
+                            />
+                            <button
+                              type='button'
+                              onClick={() =>
+                                updateLineItem(item.key, {
+                                  recipients: item.recipients.filter(
+                                    (rec) => rec.key !== r.key
+                                  ),
+                                })
+                              }
+                              className='text-muted-foreground hover:text-destructive p-1'
+                            >
+                              <Trash2 className='h-3.5 w-3.5' />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -396,9 +404,9 @@ export function OrderForm({
         </section>
 
         {/* Summary & Submit */}
-        <div className='flex items-center justify-between rounded-xl bg-card p-6 shadow-sm'>
+        <div className='bg-card flex items-center justify-between rounded-xl p-6 shadow-sm'>
           <div>
-            <p className='text-sm text-muted-foreground'>
+            <p className='text-muted-foreground text-sm'>
               {lineItems.length} item{lineItems.length !== 1 ? 's' : ''}
             </p>
             <p className='text-2xl font-bold'>${subtotal.toFixed(2)}</p>

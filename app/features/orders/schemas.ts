@@ -22,6 +22,7 @@ export const orderDetailInputSchema = z.object({
   unitPrice: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid price format'),
   sourceType: z.enum(['INVENTORY', 'ON_DEMAND']),
   customAttributesJson: z.record(z.string(), z.unknown()).nullable().optional(),
+  recipients: z.array(z.lazy(() => orderRecipientInputSchema)).optional(),
 })
 
 // Order recipient input
@@ -38,7 +39,6 @@ export const createOrderSchema = z.object({
   orderDate: z.string().min(1, 'Order date is required'),
   currencyCode: z.string().default('GT'),
   details: z.array(orderDetailInputSchema).min(1, 'At least one item is required'),
-  recipients: z.array(orderRecipientInputSchema).optional(),
 })
 
 // Type exports

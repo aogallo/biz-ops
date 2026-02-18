@@ -66,9 +66,9 @@ export const orderDetailModel = pgTable('order_detail', {
 
 export const orderRecipientModel = pgTable('order_recipient', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orderId: uuid('order_id')
+  orderDetailId: uuid('order_detail_id')
     .notNull()
-    .references(() => orderModel.id),
+    .references(() => orderDetailModel.id),
   name: text('name').notNull(),
   metadataJson: jsonb('metadata_json'),
 })
@@ -88,10 +88,9 @@ export const orderRelations = relations(orderModel, ({ one, many }) => ({
     references: [businessPartnerModel.id],
   }),
   details: many(orderDetailModel),
-  recipients: many(orderRecipientModel),
 }))
 
-export const orderDetailRelations = relations(orderDetailModel, ({ one }) => ({
+export const orderDetailRelations = relations(orderDetailModel, ({ one, many }) => ({
   order: one(orderModel, {
     fields: [orderDetailModel.orderId],
     references: [orderModel.id],
@@ -100,14 +99,15 @@ export const orderDetailRelations = relations(orderDetailModel, ({ one }) => ({
     fields: [orderDetailModel.productId],
     references: [productModel.id],
   }),
+  recipients: many(orderRecipientModel),
 }))
 
 export const orderRecipientRelations = relations(
   orderRecipientModel,
   ({ one }) => ({
-    order: one(orderModel, {
-      fields: [orderRecipientModel.orderId],
-      references: [orderModel.id],
+    orderDetail: one(orderDetailModel, {
+      fields: [orderRecipientModel.orderDetailId],
+      references: [orderDetailModel.id],
     }),
   })
 )

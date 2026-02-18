@@ -46,33 +46,35 @@ export class OrdersRepository {
         })
         .returning()
 
-      const detailValues = data.details.map((detail) => {
+      for (const detail of data.details) {
         const lineTotal = (
           Number(detail.unitPrice) * detail.quantity
         ).toFixed(2)
-        return {
-          orderId: order.id,
-          productId: detail.productId,
-          productName: detail.productName,
-          productSku: detail.productSku ?? null,
-          quantity: detail.quantity,
-          unitPrice: detail.unitPrice,
-          sourceType: detail.sourceType as 'INVENTORY' | 'ON_DEMAND',
-          lineTotal,
-          customAttributesJson: detail.customAttributesJson ?? null,
-        }
-      })
 
-      await tx.insert(orderDetailModel).values(detailValues)
-
-      if (data.recipients?.length) {
-        await tx.insert(orderRecipientModel).values(
-          data.recipients.map((r) => ({
+        const [insertedDetail] = await tx
+          .insert(orderDetailModel)
+          .values({
             orderId: order.id,
-            name: r.name,
-            metadataJson: r.metadataJson ?? null,
-          }))
-        )
+            productId: detail.productId,
+            productName: detail.productName,
+            productSku: detail.productSku ?? null,
+            quantity: detail.quantity,
+            unitPrice: detail.unitPrice,
+            sourceType: detail.sourceType as 'INVENTORY' | 'ON_DEMAND',
+            lineTotal,
+            customAttributesJson: detail.customAttributesJson ?? null,
+          })
+          .returning()
+
+        if (detail.recipients?.length) {
+          await tx.insert(orderRecipientModel).values(
+            detail.recipients.map((r) => ({
+              orderDetailId: insertedDetail.id,
+              name: r.name,
+              metadataJson: r.metadataJson ?? null,
+            }))
+          )
+        }
       }
 
       return order
@@ -201,12 +203,31 @@ export class OrdersRepository {
       .leftJoin(productModel, eq(orderDetailModel.productId, productModel.id))
       .where(eq(orderDetailModel.orderId, id))
 
-    const recipients = await db
-      .select()
-      .from(orderRecipientModel)
-      .where(eq(orderRecipientModel.orderId, id))
+    const detailIds = details.map((d) => d.id)
+    let recipientsByDetail: Record<string, typeof orderRecipientModel.$inferSelect[]> = {}
 
-    return { ...order, details, recipients }
+    if (detailIds.length > 0) {
+      const allRecipients = await db
+        .select()
+        .from(orderRecipientModel)
+        .where(
+          sql`${orderRecipientModel.orderDetailId} IN ${detailIds}`
+        )
+
+      for (const r of allRecipients) {
+        if (!recipientsByDetail[r.orderDetailId]) {
+          recipientsByDetail[r.orderDetailId] = []
+        }
+        recipientsByDetail[r.orderDetailId].push(r)
+      }
+    }
+
+    const detailsWithRecipients = details.map((d) => ({
+      ...d,
+      recipients: recipientsByDetail[d.id] ?? [],
+    }))
+
+    return { ...order, details: detailsWithRecipients }
   }
 
   async updateStatus(

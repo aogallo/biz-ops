@@ -13,14 +13,11 @@ export async function createOrderAction(request: Request) {
   const formData = await request.formData()
 
   const rawDetails = formData.get('details')
-  const rawRecipients = formData.get('recipients')
 
   let details: unknown[] = []
-  let recipients: unknown[] = []
 
   try {
     details = rawDetails ? JSON.parse(rawDetails as string) : []
-    recipients = rawRecipients ? JSON.parse(rawRecipients as string) : []
   } catch {
     return { success: false, message: 'Invalid JSON data' }
   }
@@ -32,7 +29,6 @@ export async function createOrderAction(request: Request) {
     orderDate: formData.get('orderDate'),
     currencyCode: (formData.get('currencyCode') as string) || 'GT',
     details,
-    recipients: recipients.length > 0 ? recipients : undefined,
   }
 
   const result = createOrderSchema.safeParse(inputValues)

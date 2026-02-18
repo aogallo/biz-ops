@@ -4,7 +4,6 @@ import { Button } from '~/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
@@ -197,30 +196,6 @@ export default function ShowOrder({ loaderData }: Route.ComponentProps) {
           </CardContent>
         </Card>
 
-        {/* Recipients */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recipients</CardTitle>
-            <CardDescription>
-              {order.recipients.length === 0
-                ? 'No recipients'
-                : `${order.recipients.length} recipient(s)`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {order.recipients.length > 0 ? (
-              <ul className='space-y-1'>
-                {order.recipients.map((r) => (
-                  <li key={r.id} className='text-sm'>
-                    {r.name}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className='text-sm text-muted-foreground'>-</p>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Line Items Table */}
@@ -276,6 +251,19 @@ export default function ShowOrder({ loaderData }: Route.ComponentProps) {
                             ))}
                           </div>
                         )}
+                      {detail.recipients.length > 0 && (
+                        <div className='mt-1 flex flex-wrap gap-1'>
+                          {detail.recipients.map((r) => (
+                            <Badge
+                              key={r.id}
+                              variant='secondary'
+                              className='text-xs'
+                            >
+                              {r.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className='px-4 py-3 font-mono text-xs text-muted-foreground'>
                       {detail.productSku ?? '-'}

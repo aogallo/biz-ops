@@ -35,6 +35,9 @@ export const MENU_PERMISSIONS = {
   '/suppliers': ['suppliers:read'],
   // Accounting
   '/invocies': ['invoice:read'],
+  '/invoices': ['invoice:read'],
+  '/purchase/orders': ['order:create'],
+  '/purchase/quotations': ['quotation:create'],
   '/sat-processor': ['sat-processor:read'],
   // Appointments
   '/appointments': ['appointments:read'],
@@ -42,7 +45,7 @@ export const MENU_PERMISSIONS = {
   '/services': ['service:read'],
   // Settings
   '/settings/accounting': ['settings:accounting'],
-  // Reprots
+  // Reports
   '/reports': ['reports:create'],
 } as const
 
@@ -71,6 +74,8 @@ export const ACTION_PERMISSIONS = {
   'services.delete': ['service:delete'],
   'journal-entries.create': ['journal-entry:create'],
   'journal-entries.update': ['journal-entry:update'],
+  'orders.create': ['order:create'],
+  'quotations.create': ['quotation:create'],
 } as const
 
 export type MenuPath = keyof typeof MENU_PERMISSIONS

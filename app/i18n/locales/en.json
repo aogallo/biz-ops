@@ -79,6 +79,7 @@
   "sidebar.sections.settings": "Settings",
   "sidebar.sections.appointments": "Appointments",
   "sidebar.sections.reports": "Reports",
+  "sidebar.sections.purchase": "Purchase",
   "sidebar.items.dashboard": "Dashboard",
   "sidebar.items.accounts": "Accounts",
   "sidebar.items.organization": "Organization",
@@ -97,6 +98,7 @@
   "sidebar.items.newEntry": "New Entry",
   "sidebar.items.satProcessor": "SAT Processor",
   "sidebar.items.invoices": "Invoices",
+  "sidebar.items.orders": "Orders",
   "sidebar.items.expenses": "Expenses",
   "sidebar.items.accountingSettings": "Accounting",
   "sidebar.items.calendar": "Calendar",
@@ -314,6 +316,26 @@
   "products.scanDescription": "Use your device camera to scan a product QR code",
   "products.allStockStatus": "All Stock Status",
   "products.nameLabel": "Product Name *",
+  "products.customField.title": "Add Field",
+  "products.generalInformation": "General Information",
+  "products.generalInformationDesc": "Product identification and pricing details.",
+  "products.inventoryControl": "Inventory Control",
+  "products.inventoryControlDesc": "Define starting stock levels and low-stock thresholds.",
+  "products.customAttributes": "Custom Attributes (JSON)",
+  "products.customAttributesDesc": "Define dynamic attributes for use in orders and specialized reporting.",
+  "products.addAttribute": "Add Attribute",
+  "products.fieldName": "Field Name",
+  "products.fieldType": "Field Type",
+  "products.basePrice": "Base Price",
+  "products.productImageTitle": "Product Image",
+  "products.imageDropzoneText": "Click to upload or drag & drop",
+  "products.imageDropzoneHint": "PNG, JPG or WEBP (Max 2MB)",
+  "products.imageUrlAlternative": "Image URL (Alternative)",
+  "products.quickTips": "Quick Tips",
+  "products.tip.sku": "Use a unique SKU to prevent inventory conflicts.",
+  "products.tip.image": "High-quality images (1080×1080) perform better in sales channels.",
+  "products.tip.attributes": "Custom attributes help filter products in the customer portal.",
+  "products.noCustomAttributes": "No custom attributes yet.",
 
   "stock.title": "Stock Movements",
   "stock.new": "New Movement",
@@ -713,5 +735,8 @@
   "messages.permissions.hasRoles": "Cannot delete. Remove permission from roles first.",
   "messages.permissions.systemPermissionInfo": "System permissions are created automatically and cannot be deleted.",
 
-  "sat.row.notFound": "SAT file record not found"
+  "sat.row.notFound": "SAT file record not found",
+
+  "purchase.order.title": "Orders",
+  "purchase.order.create.button": "Create an Order"
 }

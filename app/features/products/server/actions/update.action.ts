@@ -40,6 +40,10 @@ export async function updateProduct(request: Request, productId: string) {
     description: formData.get('description') || null,
     imageUrl: formData.get('imageUrl') || null,
     categoryId: formData.get('categoryId') || null,
+    productType: (formData.get('productType') as string) || 'STOCK',
+    attributesJson: formData.get('attributesJson')
+      ? JSON.parse(formData.get('attributesJson') as string)
+      : null,
     organizationId,
   }
 

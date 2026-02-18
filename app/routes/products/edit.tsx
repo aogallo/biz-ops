@@ -8,6 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
+import { CustomAttributesEditor } from '~/features/products/components/CustomAttributesEditor'
+import type { AttributeDef } from '~/features/products/components/CustomAttributesEditor'
 import { categoriesRepository } from '~/features/categories/server/repository'
 import { updateProduct } from '~/features/products/server/actions/update.action'
 import { productsRepository } from '~/features/products/server/repository'
@@ -279,6 +281,9 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                 className={inputClass}
               />
             </div>
+            <CustomAttributesEditor
+              initialAttributes={product.attributesJson as unknown as Record<string, AttributeDef> | null}
+            />
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>

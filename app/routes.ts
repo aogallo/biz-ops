@@ -151,6 +151,16 @@ export default [
       route('/:id/edit', './routes/invoices/$id.edit.tsx'),
     ]),
 
+    // Purchase Routes
+    ...prefix('purchase', [
+      route('/orders', './routes/orders/index.tsx'),
+      route('/orders/new', './routes/orders/create.tsx'),
+      route('/orders/:id', './routes/orders/show.tsx'),
+      route('/quotations', './routes/quotations/index.tsx'),
+      route('/quotations/new', './routes/quotations/create.tsx'),
+      route('/quotations/:id', './routes/quotations/show.tsx'),
+    ]),
+
     route('*', './routes/error/NotFound.tsx'),
   ]),
 ] satisfies RouteConfig

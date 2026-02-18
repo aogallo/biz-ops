@@ -61,6 +61,25 @@ import {
   stockMovementRelations,
   stockMovementTypeEnum,
 } from './stockMovement'
+import {
+  orderModel,
+  orderDetailModel,
+  orderRecipientModel,
+  orderRelations,
+  orderDetailRelations,
+  orderRecipientRelations,
+  orderSourceType,
+  orderStatus,
+} from './orders'
+import {
+  quotationModel,
+  quotationDetailModel,
+  quotationRecipientModel,
+  quotationRelations,
+  quotationDetailRelations,
+  quotationRecipientRelations,
+  quotationStatus,
+} from './quotations'
 
 export const schema = {
   // Auth tables
@@ -105,6 +124,16 @@ export const schema = {
   // Stock movement tables
   stockMovement: stockMovementModel,
 
+  // Order tables
+  order: orderModel,
+  orderDetail: orderDetailModel,
+  orderRecipient: orderRecipientModel,
+
+  // Quotation tables
+  quotation: quotationModel,
+  quotationDetail: quotationDetailModel,
+  quotationRecipient: quotationRecipientModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -123,6 +152,12 @@ export const schema = {
   productRelations,
   productCategoryRelations,
   stockMovementRelations,
+  orderRelations,
+  orderDetailRelations,
+  orderRecipientRelations,
+  quotationRelations,
+  quotationDetailRelations,
+  quotationRecipientRelations,
 }
 
 // Re-export all schemas for easy access
@@ -139,6 +174,8 @@ export * from './organizationConfig'
 export * from './service'
 export * from './appointment'
 export * from './stockMovement'
+export * from './orders'
+export * from './quotations'
 export * from './common'
 
 // Re-export enums
@@ -152,4 +189,7 @@ export {
   appointmentStatusEnum,
   productCategoryColorEnum,
   stockMovementTypeEnum,
+  orderSourceType,
+  orderStatus,
+  quotationStatus,
 }

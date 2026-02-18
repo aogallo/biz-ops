@@ -2,7 +2,6 @@ import { CTASection } from '~/components/landing/CTASection'
 import { HeroSection } from '~/components/landing/HeroSection'
 import { LandingFooter } from '~/components/landing/LandingFooter'
 import { LandingHeader } from '~/components/landing/LandingHeader'
-import { PricingSection } from '~/components/landing/PricingSection'
 import { ServicesSection } from '~/components/landing/ServicesSection'
 import { getOptionalAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/landing'
@@ -20,7 +19,7 @@ export default function LandingPage({ loaderData }: Route.ComponentProps) {
       <LandingHeader isAuthenticated={isAuthenticated} />
       <HeroSection />
       <ServicesSection />
-      <PricingSection />
+      {/* <PricingSection /> */}
       <CTASection />
       <LandingFooter />
     </div>

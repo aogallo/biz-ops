@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Form } from 'react-router'
-import { Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Combobox } from '~/components/ui/combobox'
 import { DynamicAttributeFields } from './DynamicAttributeFields'
@@ -35,6 +35,7 @@ interface LineItem {
   customAttributesJson: Record<string, string | number | boolean>
   attributesDef: Record<string, AttributeDef> | null
   recipients: Recipient[]
+  isExpanded: boolean
 }
 
 interface Recipient {
@@ -62,10 +63,14 @@ export function OrderForm({
 }: OrderFormProps) {
   const [lineItems, setLineItems] = useState<LineItem[]>([])
   const [productSearch, setProductSearch] = useState('')
+  const [selectedBpId, setSelectedBpId] = useState<string | null>(null)
+
+  const selectedBpName =
+    businessPartners.find((bp) => bp.id === selectedBpId)?.name ?? null
 
   function addLineItem(product: Product) {
     setLineItems((prev) => [
-      ...prev,
+      ...prev.map((item) => ({ ...item, isExpanded: false })),
       {
         key: crypto.randomUUID(),
         productId: product.id,
@@ -77,9 +82,18 @@ export function OrderForm({
         customAttributesJson: {},
         attributesDef: product.attributesJson,
         recipients: [],
+        isExpanded: true,
       },
     ])
     setProductSearch('')
+  }
+
+  function toggleLineItem(key: string) {
+    setLineItems((prev) =>
+      prev.map((item) =>
+        item.key === key ? { ...item, isExpanded: !item.isExpanded } : item
+      )
+    )
   }
 
   function removeLineItem(key: string) {
@@ -166,6 +180,7 @@ export function OrderForm({
                 placeholder='Select partner...'
                 searchPlaceholder='Search partners...'
                 emptyMessage='No partners found.'
+                onValueChange={(value) => setSelectedBpId(value || null)}
               />
             </div>
             <div>
@@ -234,158 +249,228 @@ export function OrderForm({
               Search and select products to add line items
             </div>
           ) : (
-            <div className='space-y-4'>
+            <div className='space-y-2'>
               {lineItems.map((item) => (
-                <div key={item.key} className='space-y-3 rounded-lg border p-4'>
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <p className='font-medium'>{item.productName}</p>
-                      <p className='text-muted-foreground font-mono text-xs'>
-                        {item.productSku}
-                      </p>
-                    </div>
+                <div key={item.key} className='rounded-lg border'>
+                  {/* Summary row (always visible) */}
+                  <div className='flex items-center gap-3 p-3'>
                     <button
                       type='button'
-                      onClick={() => removeLineItem(item.key)}
-                      className='text-muted-foreground hover:text-destructive p-1'
+                      onClick={() => toggleLineItem(item.key)}
+                      className='text-muted-foreground hover:text-foreground p-0.5'
                     >
-                      <Trash2 className='h-4 w-4' />
+                      {item.isExpanded ? (
+                        <ChevronDown className='h-4 w-4' />
+                      ) : (
+                        <ChevronRight className='h-4 w-4' />
+                      )}
                     </button>
-                  </div>
-
-                  <div className='grid gap-3 sm:grid-cols-4'>
-                    <div>
-                      <label className='mb-1 block text-xs font-medium'>
-                        Quantity
-                      </label>
-                      <input
-                        type='number'
-                        min='1'
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateLineItem(item.key, {
-                            quantity: Math.max(1, Number(e.target.value)),
-                          })
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className='mb-1 block text-xs font-medium'>
-                        Unit Price
-                      </label>
-                      <input
-                        type='number'
-                        step='0.01'
-                        min='0'
-                        value={item.unitPrice}
-                        onChange={(e) =>
-                          updateLineItem(item.key, {
-                            unitPrice: e.target.value,
-                          })
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className='mb-1 block text-xs font-medium'>
-                        Source
-                      </label>
-                      <select
-                        value={item.sourceType}
-                        onChange={(e) =>
-                          updateLineItem(item.key, {
-                            sourceType: e.target.value as
-                              | 'INVENTORY'
-                              | 'ON_DEMAND',
-                          })
-                        }
-                        className={inputClass}
-                      >
-                        <option value='INVENTORY'>Inventory</option>
-                        <option value='ON_DEMAND'>On Demand</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className='mb-1 block text-xs font-medium'>
-                        Line Total
-                      </label>
-                      <p className='px-3 py-2 text-sm font-semibold'>
-                        ${(Number(item.unitPrice) * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Dynamic custom attribute fields */}
-                  <DynamicAttributeFields
-                    attributesJson={item.attributesDef}
-                    values={item.customAttributesJson}
-                    onChange={(values) =>
-                      updateLineItem(item.key, {
-                        customAttributesJson: values,
-                      })
-                    }
-                  />
-
-                  {/* Recipients per line item */}
-                  <div className='border-t pt-3'>
-                    <div className='mb-2 flex items-center justify-between'>
-                      <label className='text-xs font-medium'>Recipients</label>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='sm'
-                        className='h-6 px-2 text-xs'
-                        onClick={() =>
-                          updateLineItem(item.key, {
-                            recipients: [
-                              ...item.recipients,
-                              { key: crypto.randomUUID(), name: '' },
-                            ],
-                          })
-                        }
-                      >
-                        <Plus className='mr-1 h-3 w-3' />
-                        Add
-                      </Button>
-                    </div>
-                    {item.recipients.length > 0 && (
-                      <div className='space-y-1.5'>
-                        {item.recipients.map((r) => (
-                          <div key={r.key} className='flex items-center gap-2'>
-                            <input
-                              type='text'
-                              value={r.name}
-                              onChange={(e) =>
-                                updateLineItem(item.key, {
-                                  recipients: item.recipients.map((rec) =>
-                                    rec.key === r.key
-                                      ? { ...rec, name: e.target.value }
-                                      : rec
-                                  ),
-                                })
-                              }
-                              placeholder='Recipient name'
-                              className={inputClass}
-                            />
-                            <button
-                              type='button'
-                              onClick={() =>
-                                updateLineItem(item.key, {
-                                  recipients: item.recipients.filter(
-                                    (rec) => rec.key !== r.key
-                                  ),
-                                })
-                              }
-                              className='text-muted-foreground hover:text-destructive p-1'
-                            >
-                              <Trash2 className='h-3.5 w-3.5' />
-                            </button>
-                          </div>
-                        ))}
+                    <div className='min-w-0 flex-1'>
+                      <div className='flex items-center gap-2'>
+                        <p className='truncate text-sm font-medium'>
+                          {item.productName}
+                        </p>
+                        <span className='text-muted-foreground font-mono text-xs'>
+                          {item.productSku}
+                        </span>
                       </div>
-                    )}
+                      {!item.isExpanded && (
+                        <p className='text-muted-foreground text-xs'>
+                          Qty: {item.quantity} &times; $
+                          {Number(item.unitPrice).toFixed(2)} &bull;{' '}
+                          {item.sourceType === 'INVENTORY'
+                            ? 'Inventory'
+                            : 'On Demand'}
+                          {item.recipients.length > 0 &&
+                            ` • ${item.recipients.length} recipient${item.recipients.length !== 1 ? 's' : ''}`}
+                        </p>
+                      )}
+                    </div>
+                    <p className='text-sm font-semibold whitespace-nowrap'>
+                      $
+                      {(Number(item.unitPrice) * item.quantity).toFixed(2)}
+                    </p>
+                    <div className='flex items-center gap-1'>
+                      {!item.isExpanded && (
+                        <button
+                          type='button'
+                          onClick={() => toggleLineItem(item.key)}
+                          className='text-muted-foreground hover:text-foreground p-1'
+                        >
+                          <Pencil className='h-3.5 w-3.5' />
+                        </button>
+                      )}
+                      <button
+                        type='button'
+                        onClick={() => removeLineItem(item.key)}
+                        className='text-muted-foreground hover:text-destructive p-1'
+                      >
+                        <Trash2 className='h-3.5 w-3.5' />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Expanded edit form */}
+                  {item.isExpanded && (
+                    <div className='space-y-3 border-t px-4 pb-4 pt-3'>
+                      <div className='grid gap-3 sm:grid-cols-4'>
+                        <div>
+                          <label className='mb-1 block text-xs font-medium'>
+                            Quantity
+                          </label>
+                          <input
+                            type='number'
+                            min='1'
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateLineItem(item.key, {
+                                quantity: Math.max(1, Number(e.target.value)),
+                              })
+                            }
+                            className={inputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className='mb-1 block text-xs font-medium'>
+                            Unit Price
+                          </label>
+                          <input
+                            type='number'
+                            step='0.01'
+                            min='0'
+                            value={item.unitPrice}
+                            onChange={(e) =>
+                              updateLineItem(item.key, {
+                                unitPrice: e.target.value,
+                              })
+                            }
+                            className={inputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className='mb-1 block text-xs font-medium'>
+                            Source
+                          </label>
+                          <select
+                            value={item.sourceType}
+                            onChange={(e) =>
+                              updateLineItem(item.key, {
+                                sourceType: e.target.value as
+                                  | 'INVENTORY'
+                                  | 'ON_DEMAND',
+                              })
+                            }
+                            className={inputClass}
+                          >
+                            <option value='INVENTORY'>Inventory</option>
+                            <option value='ON_DEMAND'>On Demand</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className='mb-1 block text-xs font-medium'>
+                            Line Total
+                          </label>
+                          <p className='px-3 py-2 text-sm font-semibold'>
+                            $
+                            {(Number(item.unitPrice) * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Dynamic custom attribute fields */}
+                      <DynamicAttributeFields
+                        attributesJson={item.attributesDef}
+                        values={item.customAttributesJson}
+                        onChange={(values) =>
+                          updateLineItem(item.key, {
+                            customAttributesJson: values,
+                          })
+                        }
+                      />
+
+                      {/* Recipients per line item */}
+                      <div className='border-t pt-3'>
+                        <div className='mb-2 flex items-center justify-between'>
+                          <label className='text-xs font-medium'>
+                            Recipients
+                          </label>
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-6 px-2 text-xs'
+                            onClick={() =>
+                              updateLineItem(item.key, {
+                                recipients: [
+                                  ...item.recipients,
+                                  { key: crypto.randomUUID(), name: '' },
+                                ],
+                              })
+                            }
+                          >
+                            <Plus className='mr-1 h-3 w-3' />
+                            Add
+                          </Button>
+                        </div>
+                        {item.recipients.length > 0 ? (
+                          <div className='space-y-1.5'>
+                            {item.recipients.map((r) => (
+                              <div
+                                key={r.key}
+                                className='flex items-center gap-2'
+                              >
+                                <input
+                                  type='text'
+                                  value={r.name}
+                                  onChange={(e) =>
+                                    updateLineItem(item.key, {
+                                      recipients: item.recipients.map((rec) =>
+                                        rec.key === r.key
+                                          ? { ...rec, name: e.target.value }
+                                          : rec
+                                      ),
+                                    })
+                                  }
+                                  placeholder='Recipient name'
+                                  className={inputClass}
+                                />
+                                <button
+                                  type='button'
+                                  onClick={() =>
+                                    updateLineItem(item.key, {
+                                      recipients: item.recipients.filter(
+                                        (rec) => rec.key !== r.key
+                                      ),
+                                    })
+                                  }
+                                  className='text-muted-foreground hover:text-destructive p-1'
+                                >
+                                  <Trash2 className='h-3.5 w-3.5' />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className='text-muted-foreground text-xs italic'>
+                            {selectedBpName
+                              ? `Defaults to "${selectedBpName}"`
+                              : 'Defaults to business partner'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className='flex justify-end pt-1'>
+                        <Button
+                          type='button'
+                          variant='secondary'
+                          size='sm'
+                          onClick={() => toggleLineItem(item.key)}
+                        >
+                          Done
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

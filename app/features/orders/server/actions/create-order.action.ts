@@ -2,6 +2,7 @@ import { requireAuth } from '~/server/auth/session.server'
 import { requirePermission } from '~/server/auth/permissions.server'
 import { createOrderSchema } from '../../schemas'
 import { ordersRepository } from '../repository'
+import { businessPartnersRepository } from '~/features/business-partners/server/repository'
 import z from 'zod'
 
 export async function createOrderAction(request: Request) {
@@ -26,10 +27,28 @@ export async function createOrderAction(request: Request) {
     return { success: false, message: 'Invalid JSON data' }
   }
 
+  const businessPartnerId = formData.get('businessPartnerId') as string | null
+
+  if (businessPartnerId) {
+    const businessPartner =
+      await businessPartnersRepository.getById(businessPartnerId)
+
+    if (businessPartner) {
+      for (const detail of details as Record<string, unknown>[]) {
+        const recipients = detail.recipients as unknown[] | undefined
+        if (!recipients || recipients.length === 0) {
+          detail.recipients = [
+            { name: businessPartner.name, metadataJson: null },
+          ]
+        }
+      }
+    }
+  }
+
   const inputValues = {
     organizationId,
     companyId: formData.get('companyId'),
-    businessPartnerId: formData.get('businessPartnerId'),
+    businessPartnerId,
     orderDate: formData.get('orderDate'),
     currencyCode: (formData.get('currencyCode') as string) || 'GT',
     details,

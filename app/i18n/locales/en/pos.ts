@@ -161,6 +161,12 @@ export const pos = {
   'pos.customerNit': 'NIT',
   'pos.customerCreated': 'Customer created successfully',
 
+  // Accounting integration
+  'pos.journalEntry': 'Journal Entry',
+  'pos.viewJournalEntry': 'View Journal Entry',
+  'pos.journalEntryCreated': 'Journal entry created',
+  'pos.noJournalEntry': 'No journal entry (accounts not configured)',
+
   // Errors
   'pos.noCustomerSelected': 'No customer selected and no default customer configured for this terminal.',
   'pos.errorProcessing': 'Error processing sale',

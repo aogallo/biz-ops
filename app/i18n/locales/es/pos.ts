@@ -161,6 +161,12 @@ export const pos = {
   'pos.customerNit': 'NIT',
   'pos.customerCreated': 'Cliente creado exitosamente',
 
+  // Accounting integration
+  'pos.journalEntry': 'Asiento Contable',
+  'pos.viewJournalEntry': 'Ver Asiento Contable',
+  'pos.journalEntryCreated': 'Asiento contable creado',
+  'pos.noJournalEntry': 'Sin asiento contable (cuentas no configuradas)',
+
   // Errors
   'pos.noCustomerSelected': 'No hay un cliente seleccionado ni un cliente por defecto configurado en la caja.',
   'pos.errorProcessing': 'Error al procesar la venta',

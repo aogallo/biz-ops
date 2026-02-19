@@ -10,9 +10,10 @@ import {
   posCashierModel,
 } from '~/server/db/schemas/pos'
 import type { CloseSessionInput } from '../../schemas'
+import { createPosSessionJournalEntry } from './create-pos-journal-entry.action'
 
 export async function closeSessionAction(input: CloseSessionInput) {
-  return await db.transaction(async (tx) => {
+  const txResult = await db.transaction(async (tx) => {
     // Get session
     const [session] = await tx
       .select()
@@ -186,6 +187,31 @@ export async function closeSessionAction(input: CloseSessionInput) {
       })
       .returning()
 
-    return { sessionId: session.id, zReportId: zReport.id }
+    return {
+      sessionId: session.id,
+      zReportId: zReport.id,
+      organizationId: session.organizationId,
+      companyId: session.companyId,
+    }
   })
+
+  // Create journal entry outside the transaction (uses its own)
+  let journalEntryId: string | undefined
+  try {
+    const jeResult = await createPosSessionJournalEntry(
+      txResult.sessionId,
+      txResult.organizationId,
+      txResult.companyId
+    )
+    journalEntryId = jeResult.journalEntryId
+  } catch (error) {
+    // Log but don't fail the session close
+    console.error('Failed to create POS journal entry:', error)
+  }
+
+  return {
+    sessionId: txResult.sessionId,
+    zReportId: txResult.zReportId,
+    journalEntryId,
+  }
 }

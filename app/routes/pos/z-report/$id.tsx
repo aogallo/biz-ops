@@ -1,21 +1,32 @@
-import { ArrowLeft, Printer } from 'lucide-react'
+import { ArrowLeft, FileText, Printer } from 'lucide-react'
 import { Link, redirect } from 'react-router'
+import { eq } from 'drizzle-orm'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import { posRepository } from '~/features/pos/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import { useTranslation } from '~/i18n/context'
+import { db } from '~/server/db'
+import { journalEntryModel } from '~/server/db/schemas/journalEntry'
 import type { Route } from './+types/$id'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   await requireAuth(request)
   const report = await posRepository.getZReportById(params.id)
   if (!report) throw redirect('/pos/sales')
-  return { report }
+
+  // Find journal entry linked to this session
+  const [journalEntry] = await db
+    .select({ id: journalEntryModel.id, entryNumber: journalEntryModel.entryNumber })
+    .from(journalEntryModel)
+    .where(eq(journalEntryModel.sourcePosSessionId, report.sessionId))
+    .limit(1)
+
+  return { report, journalEntry: journalEntry ?? null }
 }
 
 export default function ZReportView({ loaderData }: Route.ComponentProps) {
-  const { report } = loaderData
+  const { report, journalEntry } = loaderData
   const { t } = useTranslation()
 
   const rows = [
@@ -136,6 +147,17 @@ export default function ZReportView({ loaderData }: Route.ComponentProps) {
             </>
           )}
         </div>
+
+        {journalEntry && (
+          <div className='mt-4'>
+            <Button variant='outline' asChild className='w-full'>
+              <Link to={`/journal-entries/${journalEntry.id}`}>
+                <FileText className='size-4' />
+                {t('pos.viewJournalEntry')} — {journalEntry.entryNumber}
+              </Link>
+            </Button>
+          </div>
+        )}
 
         <div className='mt-4 flex justify-end'>
           <Button onClick={() => window.print()}>

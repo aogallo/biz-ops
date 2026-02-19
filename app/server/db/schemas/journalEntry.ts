@@ -19,6 +19,7 @@ import { organizationModel, userModel } from './auth'
 import { companyModel } from './company'
 import { timestamps } from './common'
 import { invoiceModel, invoiceLineModel } from './invoice'
+import { posSessionModel } from './pos'
 import { satFileModel } from './sat-file'
 
 // Enums
@@ -26,6 +27,7 @@ export const journalEntrySourceEnum = pgEnum('journal_entry_source', [
   'manual',
   'invoice',
   'adjustment',
+  'pos',
 ])
 
 export const journalEntryStatusEnum = pgEnum('journal_entry_status', [
@@ -50,6 +52,7 @@ export const journalEntryModel = pgTable('journal_entry', {
   source: journalEntrySourceEnum('source').notNull().default('manual'),
   sourceInvoiceId: uuid('source_invoice_id').references(() => invoiceModel.id),
   sourceSatFileId: uuid('source_sat_file_id').references(() => satFileModel.id),
+  sourcePosSessionId: uuid('source_pos_session_id'),
   totalDebit: numeric('total_debit', { precision: 12, scale: 2 })
     .notNull()
     .default('0'),
@@ -103,6 +106,10 @@ export const journalEntryRelations = relations(
       fields: [journalEntryModel.sourceSatFileId],
       references: [satFileModel.id],
     }),
+    sourcePosSession: one(posSessionModel, {
+      fields: [journalEntryModel.sourcePosSessionId],
+      references: [posSessionModel.id],
+    }),
     postedByUser: one(userModel, {
       fields: [journalEntryModel.postedBy],
       references: [userModel.id],
@@ -149,5 +156,5 @@ export type JournalEntry = z.infer<typeof selectJournalEntrySchema>
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>
 export type JournalEntryLine = z.infer<typeof selectJournalEntryLineSchema>
 export type InsertJournalEntryLine = z.infer<typeof insertJournalEntryLineSchema>
-export type JournalEntrySource = 'manual' | 'invoice' | 'adjustment'
+export type JournalEntrySource = 'manual' | 'invoice' | 'adjustment' | 'pos'
 export type JournalEntryStatus = 'draft' | 'posted' | 'voided'

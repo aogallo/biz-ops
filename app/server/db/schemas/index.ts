@@ -80,6 +80,18 @@ import {
   quotationRecipientRelations,
   quotationStatus,
 } from './quotations'
+import {
+  posTerminalModel,
+  posSaleModel,
+  posSaleLineModel,
+  posPaymentModel,
+  posTerminalRelations,
+  posSaleRelations,
+  posSaleLineRelations,
+  posPaymentRelations,
+  posSaleStatusEnum,
+  posPaymentMethodEnum,
+} from './pos'
 
 export const schema = {
   // Auth tables
@@ -134,6 +146,12 @@ export const schema = {
   quotationDetail: quotationDetailModel,
   quotationRecipient: quotationRecipientModel,
 
+  // POS tables
+  posTerminal: posTerminalModel,
+  posSale: posSaleModel,
+  posSaleLine: posSaleLineModel,
+  posPayment: posPaymentModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -158,6 +176,10 @@ export const schema = {
   quotationRelations,
   quotationDetailRelations,
   quotationRecipientRelations,
+  posTerminalRelations,
+  posSaleRelations,
+  posSaleLineRelations,
+  posPaymentRelations,
 }
 
 // Re-export all schemas for easy access
@@ -176,6 +198,7 @@ export * from './appointment'
 export * from './stockMovement'
 export * from './orders'
 export * from './quotations'
+export * from './pos'
 export * from './common'
 
 // Re-export enums
@@ -192,4 +215,6 @@ export {
   orderSourceType,
   orderStatus,
   quotationStatus,
+  posSaleStatusEnum,
+  posPaymentMethodEnum,
 }

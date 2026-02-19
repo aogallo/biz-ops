@@ -45,7 +45,9 @@ export const posTerminalModel = pgTable('pos_terminal', {
     .references(() => companyModel.id),
   name: text('name').notNull(),
   isActive: boolean('is_active').notNull().default(true),
-  autoGenerateInvoice: boolean('auto_generate_invoice').notNull().default(false),
+  autoGenerateInvoice: boolean('auto_generate_invoice')
+    .notNull()
+    .default(false),
   defaultBusinessPartnerId: uuid('default_business_partner_id').references(
     () => businessPartnerModel.id
   ),
@@ -183,19 +185,16 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
   payments: many(posPaymentModel),
 }))
 
-export const posSaleLineRelations = relations(
-  posSaleLineModel,
-  ({ one }) => ({
-    sale: one(posSaleModel, {
-      fields: [posSaleLineModel.saleId],
-      references: [posSaleModel.id],
-    }),
-    product: one(productModel, {
-      fields: [posSaleLineModel.productId],
-      references: [productModel.id],
-    }),
-  })
-)
+export const posSaleLineRelations = relations(posSaleLineModel, ({ one }) => ({
+  sale: one(posSaleModel, {
+    fields: [posSaleLineModel.saleId],
+    references: [posSaleModel.id],
+  }),
+  product: one(productModel, {
+    fields: [posSaleLineModel.productId],
+    references: [productModel.id],
+  }),
+}))
 
 export const posPaymentRelations = relations(posPaymentModel, ({ one }) => ({
   sale: one(posSaleModel, {

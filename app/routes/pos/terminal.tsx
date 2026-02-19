@@ -129,6 +129,7 @@ export async function action({ request }: Route.ActionArgs) {
       organizationId,
       query
     )
+    console.log('customers....', customers)
     return { customers }
   }
 
@@ -168,9 +169,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     if (selectedCategoryId && p.categoryId !== selectedCategoryId) return false
     if (search) {
       const q = search.toLowerCase()
-      return (
-        p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
-      )
+      return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
     }
     return true
   })
@@ -203,7 +202,10 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           discountPercent: 0,
           ivaType: 'taxed' as const,
           ivaRate: 12,
-          productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE',
+          productType: product.productType as
+            | 'STOCK'
+            | 'MADE_TO_ORDER'
+            | 'SERVICE',
           stock: product.stock,
         },
       ]
@@ -249,8 +251,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
 
   const handleCheckout = useCallback(
     (payments: CheckoutPayment[]) => {
-      const businessPartnerId =
-        selectedCustomer?.id ?? defaultBusinessPartnerId
+      const businessPartnerId = selectedCustomer?.id ?? defaultBusinessPartnerId
 
       if (!businessPartnerId) {
         alert(
@@ -313,7 +314,11 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
 
   const customers =
     customerFetcher.data && 'customers' in customerFetcher.data
-      ? (customerFetcher.data.customers as Array<{ id: string; name: string; nit: string | null }>)
+      ? (customerFetcher.data.customers as Array<{
+          id: string
+          name: string
+          nit: string | null
+        }>)
       : []
 
   return (

@@ -223,10 +223,16 @@ export const navigationItems = [
         icon: Monitor,
       },
       {
-        name: 'POS Settings',
-        nameKey: 'sidebar.items.posSettings' as TranslationKey,
+        name: 'Terminals',
+        nameKey: 'sidebar.items.posTerminals' as TranslationKey,
         path: '/pos-settings/terminals',
         icon: Settings,
+      },
+      {
+        name: 'Cashiers',
+        nameKey: 'sidebar.items.posCashiers' as TranslationKey,
+        path: '/pos-settings/cashiers',
+        icon: Users,
       },
     ],
   },

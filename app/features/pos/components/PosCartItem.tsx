@@ -1,5 +1,6 @@
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import { useTranslation } from '~/i18n/context'
 import type { CartItem } from '../types'
 import { calculateLineTotals } from '../types'
 
@@ -14,6 +15,7 @@ export function PosCartItem({
   onQuantityChange,
   onRemove,
 }: PosCartItemProps) {
+  const { t } = useTranslation()
   const { total } = calculateLineTotals(item)
 
   return (
@@ -21,7 +23,7 @@ export function PosCartItem({
       <div className='min-w-0 flex-1'>
         <p className='truncate text-sm font-medium'>{item.productName}</p>
         <p className='text-muted-foreground text-xs'>
-          Q{item.unitPrice.toFixed(2)} c/u
+          Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}
         </p>
       </div>
       <div className='flex items-center gap-1'>

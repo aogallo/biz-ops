@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { posRepository } from '~/features/pos/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
+import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/index'
 
 interface SaleRow {
@@ -19,77 +20,6 @@ interface SaleRow {
   terminalName: string
   customerName: string
 }
-
-const columns: ColumnDef<SaleRow>[] = [
-  {
-    accessorKey: 'saleNumber',
-    header: 'No. Venta',
-  },
-  {
-    accessorKey: 'terminalName',
-    header: 'Caja',
-  },
-  {
-    accessorKey: 'cashierName',
-    header: 'Cajero',
-  },
-  {
-    accessorKey: 'customerName',
-    header: 'Cliente',
-  },
-  {
-    accessorKey: 'total',
-    header: 'Total',
-    cell: ({ row }) => (
-      <span className='tabular-nums'>
-        Q{Number(row.original.total).toFixed(2)}
-      </span>
-    ),
-  },
-  {
-    accessorKey: 'status',
-    header: 'Estado',
-    cell: ({ row }) => {
-      const status = row.original.status
-      return (
-        <Badge
-          variant={
-            status === 'completed'
-              ? 'default'
-              : status === 'voided'
-                ? 'destructive'
-                : 'secondary'
-          }
-        >
-          {status === 'completed'
-            ? 'Completada'
-            : status === 'voided'
-              ? 'Anulada'
-              : 'Reembolsada'}
-        </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: 'createdAt',
-    header: 'Fecha',
-    cell: ({ row }) =>
-      new Date(row.original.createdAt).toLocaleString('es-GT', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      }),
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => (
-      <Button variant='ghost' size='icon-xs' asChild>
-        <Link to={`/pos/sales/${row.original.id}`}>
-          <Eye className='size-4' />
-        </Link>
-      </Button>
-    ),
-  },
-]
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -116,13 +46,85 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
   const { sales } = loaderData
+  const { t } = useTranslation()
+
+  const columns: ColumnDef<SaleRow>[] = [
+    {
+      accessorKey: 'saleNumber',
+      header: t('pos.saleNumber'),
+    },
+    {
+      accessorKey: 'terminalName',
+      header: t('pos.terminalCol'),
+    },
+    {
+      accessorKey: 'cashierName',
+      header: t('pos.cashierCol'),
+    },
+    {
+      accessorKey: 'customerName',
+      header: t('pos.customerCol'),
+    },
+    {
+      accessorKey: 'total',
+      header: t('pos.total'),
+      cell: ({ row }) => (
+        <span className='tabular-nums'>
+          Q{Number(row.original.total).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: t('pos.statusCol'),
+      cell: ({ row }) => {
+        const status = row.original.status
+        return (
+          <Badge
+            variant={
+              status === 'completed'
+                ? 'default'
+                : status === 'voided'
+                  ? 'destructive'
+                  : 'secondary'
+            }
+          >
+            {status === 'completed'
+              ? t('pos.completed')
+              : status === 'voided'
+                ? t('pos.voided')
+                : t('pos.refunded')}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: t('pos.dateCol'),
+      cell: ({ row }) =>
+        new Date(row.original.createdAt).toLocaleString('es-GT', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+        }),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => (
+        <Button variant='ghost' size='icon-xs' asChild>
+          <Link to={`/pos/sales/${row.original.id}`}>
+            <Eye className='size-4' />
+          </Link>
+        </Button>
+      ),
+    },
+  ]
 
   return (
     <div className='flex flex-1 flex-col p-6'>
       <div className='mb-4 flex items-center justify-between'>
-        <h1 className='text-xl font-bold'>Historial de Ventas POS</h1>
+        <h1 className='text-xl font-bold'>{t('pos.salesHistory')}</h1>
         <Button variant='outline' size='sm' asChild>
-          <Link to='/pos'>Volver al POS</Link>
+          <Link to='/pos'>{t('pos.backToPos')}</Link>
         </Button>
       </div>
       <DataTable columns={columns} data={sales} />

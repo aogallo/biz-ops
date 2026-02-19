@@ -85,12 +85,22 @@ import {
   posSaleModel,
   posSaleLineModel,
   posPaymentModel,
+  posCashierModel,
+  posSessionModel,
+  posCashMovementModel,
+  posZReportModel,
   posTerminalRelations,
   posSaleRelations,
   posSaleLineRelations,
   posPaymentRelations,
+  posCashierRelations,
+  posSessionRelations,
+  posCashMovementRelations,
+  posZReportRelations,
   posSaleStatusEnum,
   posPaymentMethodEnum,
+  posSessionStatusEnum,
+  posCashMovementTypeEnum,
 } from './pos'
 
 export const schema = {
@@ -151,6 +161,10 @@ export const schema = {
   posSale: posSaleModel,
   posSaleLine: posSaleLineModel,
   posPayment: posPaymentModel,
+  posCashier: posCashierModel,
+  posSession: posSessionModel,
+  posCashMovement: posCashMovementModel,
+  posZReport: posZReportModel,
 
   // Relations
   memberRelations,
@@ -180,6 +194,10 @@ export const schema = {
   posSaleRelations,
   posSaleLineRelations,
   posPaymentRelations,
+  posCashierRelations,
+  posSessionRelations,
+  posCashMovementRelations,
+  posZReportRelations,
 }
 
 // Re-export all schemas for easy access
@@ -217,4 +235,6 @@ export {
   quotationStatus,
   posSaleStatusEnum,
   posPaymentMethodEnum,
+  posSessionStatusEnum,
+  posCashMovementTypeEnum,
 }

@@ -1,6 +1,6 @@
 import type { Locale, TranslationKey, Translations } from './types'
-import en from './locales/en.json'
-import es from './locales/es.json'
+import en from './locales/en'
+import es from './locales/es'
 
 const translations: Record<Locale, Translations> = {
   en: en as Translations,

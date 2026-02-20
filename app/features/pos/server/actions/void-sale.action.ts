@@ -1,8 +1,11 @@
-import { eq, sql } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   posSaleModel,
   posSaleLineModel,
+  posPaymentModel,
+  posCashMovementModel,
+  posSessionModel,
 } from '~/server/db/schemas/pos'
 import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
@@ -75,7 +78,43 @@ export async function voidSaleAction(saleId: string, userId: string) {
         .where(eq(invoiceModel.id, sale.invoiceId))
     }
 
-    // 5. Mark sale as voided
+    // 5. Create refund cash movement if sale has open session
+    if (sale.sessionId) {
+      const [session] = await tx
+        .select({ id: posSessionModel.id, status: posSessionModel.status })
+        .from(posSessionModel)
+        .where(
+          and(
+            eq(posSessionModel.id, sale.sessionId),
+            eq(posSessionModel.status, 'open')
+          )
+        )
+        .limit(1)
+
+      if (session) {
+        // Calculate cash payment total for this sale
+        const payments = await tx
+          .select()
+          .from(posPaymentModel)
+          .where(eq(posPaymentModel.saleId, saleId))
+
+        const cashTotal = payments
+          .filter((p) => p.method === 'cash')
+          .reduce((sum, p) => sum + Number(p.amount), 0)
+
+        if (cashTotal > 0) {
+          await tx.insert(posCashMovementModel).values({
+            sessionId: sale.sessionId,
+            type: 'refund',
+            amount: String(cashTotal),
+            referenceId: saleId,
+            notes: `Void Sale ${sale.saleNumber}`,
+          })
+        }
+      }
+    }
+
+    // 6. Mark sale as voided
     const [voidedSale] = await tx
       .update(posSaleModel)
       .set({ status: 'voided', updatedAt: new Date() })

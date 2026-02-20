@@ -32,6 +32,7 @@ export default [
         index('./routes/pos/sales/index.tsx'),
         route('/:id', './routes/pos/sales/$id.tsx'),
       ]),
+      route('/z-report/:id', './routes/pos/z-report/$id.tsx'),
     ]),
   ]),
 
@@ -167,6 +168,7 @@ export default [
     ...prefix('pos-settings', [
       index('./routes/pos-settings/index.tsx'),
       route('/terminals', './routes/pos-settings/terminals.tsx'),
+      route('/cashiers', './routes/pos-settings/cashiers.tsx'),
     ]),
 
     // Purchase Routes

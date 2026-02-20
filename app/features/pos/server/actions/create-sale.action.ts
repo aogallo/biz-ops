@@ -5,6 +5,7 @@ import {
   posSaleLineModel,
   posPaymentModel,
   posTerminalModel,
+  posCashMovementModel,
 } from '~/server/db/schemas/pos'
 import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
@@ -106,6 +107,7 @@ export async function createSaleAction(input: CheckoutInput) {
         companyId: input.companyId,
         terminalId: input.terminalId,
         cashierId: input.cashierId,
+        sessionId: input.sessionId,
         businessPartnerId: input.businessPartnerId,
         saleNumber,
         status: 'completed',
@@ -166,7 +168,24 @@ export async function createSaleAction(input: CheckoutInput) {
       }
     }
 
-    // 8. Auto-generate invoice if terminal configured
+    // 8. Create cash movements for cash payments if session exists
+    if (input.sessionId) {
+      const cashPaymentTotal = input.payments
+        .filter((p) => p.method === 'cash')
+        .reduce((sum, p) => sum + p.amount, 0)
+
+      if (cashPaymentTotal > 0) {
+        await tx.insert(posCashMovementModel).values({
+          sessionId: input.sessionId,
+          type: 'sale',
+          amount: String(cashPaymentTotal),
+          referenceId: sale.id,
+          notes: `Sale ${saleNumber}`,
+        })
+      }
+    }
+
+    // 9. Auto-generate invoice if terminal configured
     const [terminal] = await tx
       .select({
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,

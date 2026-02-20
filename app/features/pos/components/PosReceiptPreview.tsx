@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
+import { useTranslation } from '~/i18n/context'
 
 interface ReceiptLine {
   productName: string
@@ -50,6 +51,8 @@ export function PosReceiptPreview({
   onOpenChange,
   receipt,
 }: PosReceiptPreviewProps) {
+  const { t } = useTranslation()
+
   if (!receipt) return null
 
   function handlePrint() {
@@ -60,28 +63,27 @@ export function PosReceiptPreview({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-sm'>
         <DialogHeader>
-          <DialogTitle>Recibo</DialogTitle>
+          <DialogTitle>{t('pos.receipt')}</DialogTitle>
         </DialogHeader>
 
-        {/* Printable receipt */}
         <div id='pos-receipt' className='space-y-3 font-mono text-xs'>
           <div className='text-center'>
-            <p className='text-sm font-bold'>RECIBO DE VENTA</p>
+            <p className='text-sm font-bold'>{t('pos.saleReceipt')}</p>
             <p>{receipt.saleNumber}</p>
             <p>{receipt.date}</p>
           </div>
 
           <div className='border-t border-dashed pt-2'>
-            <p>Terminal: {receipt.terminalName}</p>
-            <p>Cajero: {receipt.cashierName}</p>
-            <p>Cliente: {receipt.customerName ?? 'Consumidor Final'}</p>
+            <p>{t('pos.terminal')}: {receipt.terminalName}</p>
+            <p>{t('pos.cashier')}: {receipt.cashierName}</p>
+            <p>{t('pos.customer')}: {receipt.customerName ?? t('pos.defaultCustomer')}</p>
             {receipt.customerNit && <p>NIT: {receipt.customerNit}</p>}
           </div>
 
           <div className='border-t border-dashed pt-2'>
             <div className='mb-1 flex justify-between font-bold'>
-              <span>Producto</span>
-              <span>Total</span>
+              <span>{t('pos.product')}</span>
+              <span>{t('pos.total')}</span>
             </div>
             {receipt.lines.map((line, i) => (
               <div key={i} className='mb-1'>
@@ -98,12 +100,12 @@ export function PosReceiptPreview({
 
           <div className='border-t border-dashed pt-2'>
             <div className='flex justify-between'>
-              <span>Subtotal</span>
+              <span>{t('pos.subtotal')}</span>
               <span>Q{Number(receipt.subtotal).toFixed(2)}</span>
             </div>
             {Number(receipt.discountAmount) > 0 && (
               <div className='flex justify-between'>
-                <span>Descuento</span>
+                <span>{t('pos.discount')}</span>
                 <span>-Q{Number(receipt.discountAmount).toFixed(2)}</span>
               </div>
             )}
@@ -112,13 +114,13 @@ export function PosReceiptPreview({
               <span>Q{Number(receipt.ivaAmount).toFixed(2)}</span>
             </div>
             <div className='flex justify-between text-sm font-bold'>
-              <span>TOTAL</span>
+              <span>{t('pos.total')}</span>
               <span>Q{Number(receipt.total).toFixed(2)}</span>
             </div>
           </div>
 
           <div className='border-t border-dashed pt-2'>
-            <p className='mb-1 font-bold'>Pagos:</p>
+            <p className='mb-1 font-bold'>{t('pos.payments')}:</p>
             {receipt.payments.map((payment, i) => (
               <div key={i} className='flex justify-between'>
                 <span className='capitalize'>{payment.method}</span>
@@ -130,7 +132,7 @@ export function PosReceiptPreview({
             ) && (
               <>
                 <div className='flex justify-between'>
-                  <span>Recibido</span>
+                  <span>{t('pos.received')}</span>
                   <span>
                     Q
                     {Number(
@@ -140,7 +142,7 @@ export function PosReceiptPreview({
                   </span>
                 </div>
                 <div className='flex justify-between font-bold'>
-                  <span>Cambio</span>
+                  <span>{t('pos.change')}</span>
                   <span>
                     Q
                     {Number(
@@ -154,17 +156,17 @@ export function PosReceiptPreview({
           </div>
 
           <div className='border-t border-dashed pt-2 text-center'>
-            <p>¡Gracias por su compra!</p>
+            <p>{t('pos.thankYou')}</p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Cerrar
+            {t('pos.close')}
           </Button>
           <Button onClick={handlePrint}>
             <Printer className='size-4' />
-            Imprimir
+            {t('pos.print')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -17,6 +17,9 @@ export const updateAccountingConfigSchema = insertOrganizationAccountingConfigSc
     defaultSalesAccountId: true,
     defaultPurchaseAccountId: true,
     journalEntryPrefix: true,
+    posCashAccountId: true,
+    posCardAccountId: true,
+    posCheckAccountId: true,
   })
   .extend({
     journalEntryPrefix: z

@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm'
 import {
+  index,
   integer,
   jsonb,
   numeric,
@@ -41,8 +42,8 @@ export const productModel = pgTable(
     ...timestamps,
   },
   (table) => [
-    // Composite unique constraint: SKU must be unique per organization
     uniqueIndex('product_sku_org_idx').on(table.organizationId, table.sku),
+    index('product_org_type_idx').on(table.organizationId, table.productType),
   ]
 )
 

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { Form, redirect, useActionData, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -17,86 +16,51 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect('/pos')
   }
 
+  const url = new URL(request.url)
+  const companyId = url.searchParams.get('companyId')
+
   const companies = await posRepository.getActiveCompanies()
-  return { companies }
+
+  if (companyId) {
+    const cashiers = await posRepository.getActiveCashiersForCompany(companyId)
+    const company = companies.find((c) => c.id === companyId) ?? null
+    return { companies, cashiers, selectedCompanyId: companyId, company }
+  }
+
+  return { companies, cashiers: null, selectedCompanyId: null, company: null }
 }
 
 export async function action({ request }: Route.ActionArgs) {
+  const url = new URL(request.url)
+  const companyId = url.searchParams.get('companyId')
   const formData = await request.formData()
-  const intent = formData.get('intent')
+  const cashierId = formData.get('cashierId')
+  const pin = formData.get('pin')
 
-  if (intent === 'select-company') {
-    const companyId = formData.get('companyId')
-    if (!companyId || typeof companyId !== 'string') {
-      return { error: 'Company is required' }
-    }
-
-    const cashiers = await posRepository.getActiveCashiersForCompany(companyId)
-    return { cashiers, selectedCompanyId: companyId }
+  if (!companyId || !cashierId || typeof cashierId !== 'string' || !pin || typeof pin !== 'string') {
+    return { error: 'All fields are required' }
   }
 
-  if (intent === 'login') {
-    const companyId = formData.get('companyId')
-    const cashierId = formData.get('cashierId')
-    const pin = formData.get('pin')
-
-    if (
-      !companyId || typeof companyId !== 'string' ||
-      !cashierId || typeof cashierId !== 'string' ||
-      !pin || typeof pin !== 'string'
-    ) {
-      return { error: 'All fields are required', intent: 'login' }
-    }
-
-    const cashier = await posRepository.verifyCashierPin(cashierId, pin)
-    if (!cashier) {
-      return { error: 'Invalid PIN or cashier is locked', intent: 'login', cashierId, companyId }
-    }
-
-    const cookie = await setPosSession(request, {
-      cashierId: cashier.id,
-      cashierName: cashier.name,
-      organizationId: cashier.organizationId,
-      companyId: cashier.companyId,
-    })
-
-    throw redirect('/pos', { headers: { 'Set-Cookie': cookie } })
+  const cashier = await posRepository.verifyCashierPin(cashierId, pin)
+  if (!cashier) {
+    return { error: 'Invalid PIN or account is locked' }
   }
 
-  return { error: 'Unknown action' }
+  const cookie = await setPosSession(request, {
+    cashierId: cashier.id,
+    cashierName: cashier.name,
+    organizationId: cashier.organizationId,
+    companyId: cashier.companyId,
+  })
+
+  throw redirect('/pos', { headers: { 'Set-Cookie': cookie } })
 }
 
-type CashierOption = { id: string; name: string; hasPin: boolean }
-
 export default function PosLogin({ loaderData }: Route.ComponentProps) {
-  const { companies } = loaderData
+  const { companies, cashiers, company } = loaderData
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
-  const isSubmitting = navigation.state === 'submitting'
-
-  const [step, setStep] = useState<'company' | 'cashier'>('company')
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
-  const [cashiers, setCashiers] = useState<CashierOption[]>([])
-
-  // Sync cashiers and companyId from action response into local state
-  useEffect(() => {
-    if (actionData && 'cashiers' in actionData && Array.isArray(actionData.cashiers)) {
-      setCashiers(actionData.cashiers as CashierOption[])
-      setSelectedCompanyId(actionData.selectedCompanyId ?? null)
-      setStep('cashier')
-    }
-  }, [actionData])
-
-  const handleBack = () => {
-    setStep('company')
-    setCashiers([])
-    setSelectedCompanyId(null)
-  }
-
-  const loginError =
-    actionData && 'error' in actionData && step === 'cashier' ? actionData.error : null
-  const companyError =
-    actionData && 'error' in actionData && step === 'company' ? actionData.error : null
+  const isSubmitting = navigation.state === 'submitting' || navigation.state === 'loading'
 
   return (
     <div className='bg-background flex min-h-screen items-center justify-center p-4'>
@@ -105,15 +69,9 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
           <CardTitle className='text-center text-2xl'>POS Login</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {step === 'company' ? (
-            /* Step 1: Select company */
-            <Form method='post' className='space-y-3'>
-              <input type='hidden' name='intent' value='select-company' />
-              {companyError && (
-                <div className='rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/30'>
-                  {companyError}
-                </div>
-              )}
+          {cashiers === null ? (
+            /* Step 1: Select company — GET form updates the URL */
+            <Form method='get' className='space-y-3'>
               <div className='space-y-2'>
                 <label className='text-sm font-medium'>Company</label>
                 <select
@@ -125,9 +83,9 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
                   <option value='' disabled>
                     Select a company…
                   </option>
-                  {companies.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
@@ -137,15 +95,20 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
               </Button>
             </Form>
           ) : (
-            /* Step 2: Select cashier + PIN */
+            /* Step 2: Select cashier + PIN — POST form */
             <Form method='post' className='space-y-3'>
-              <input type='hidden' name='intent' value='login' />
-              <input type='hidden' name='companyId' value={selectedCompanyId ?? ''} />
-              {loginError && (
+              {actionData?.error && (
                 <div className='rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/30'>
-                  {loginError}
+                  {actionData.error}
                 </div>
               )}
+
+              {company && (
+                <p className='text-muted-foreground text-sm'>
+                  {company.name}
+                </p>
+              )}
+
               <div className='space-y-2'>
                 <label className='text-sm font-medium'>Cashier</label>
                 <select
@@ -183,8 +146,8 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
                 {isSubmitting ? 'Signing in…' : 'Sign In'}
               </Button>
 
-              <Button type='button' variant='ghost' className='w-full' onClick={handleBack}>
-                ← Back
+              <Button variant='ghost' className='w-full' asChild>
+                <a href='/pos-login'>← Back</a>
               </Button>
             </Form>
           )}

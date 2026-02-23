@@ -5,13 +5,22 @@ import {
   posSaleModel,
   posSaleLineModel,
   posPaymentModel,
+  posCashierModel,
+  posSessionModel,
+  posCashMovementModel,
+  posZReportModel,
 } from '~/server/db/schemas/pos'
 import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
 import { companyModel } from '~/server/db/schemas/company'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { userModel } from '~/server/db/schemas/auth'
-import type { CreateTerminalInput, UpdateTerminalInput } from '../schemas'
+import type {
+  CreateTerminalInput,
+  UpdateTerminalInput,
+  CreateCashierInput,
+  UpdateCashierInput,
+} from '../schemas'
 import type { PosProductForGrid, PosTerminalWithCompany } from '../types'
 
 export class PosRepository {
@@ -274,6 +283,155 @@ export class PosRepository {
       .from(productCategoryModel)
       .where(eq(productCategoryModel.organizationId, organizationId))
       .orderBy(productCategoryModel.name)
+  }
+  // ── Cashier CRUD ──
+
+  async getCashiersByOrganization(organizationId: string) {
+    return await db
+      .select({
+        id: posCashierModel.id,
+        name: posCashierModel.name,
+        userId: posCashierModel.userId,
+        userName: userModel.name,
+        isActive: posCashierModel.isActive,
+        companyId: posCashierModel.companyId,
+        companyName: companyModel.name,
+      })
+      .from(posCashierModel)
+      .leftJoin(userModel, eq(posCashierModel.userId, userModel.id))
+      .innerJoin(companyModel, eq(posCashierModel.companyId, companyModel.id))
+      .where(eq(posCashierModel.organizationId, organizationId))
+      .orderBy(posCashierModel.name)
+  }
+
+  async getCashierByUserId(organizationId: string, userId: string) {
+    const [cashier] = await db
+      .select()
+      .from(posCashierModel)
+      .where(
+        and(
+          eq(posCashierModel.organizationId, organizationId),
+          eq(posCashierModel.userId, userId),
+          eq(posCashierModel.isActive, true)
+        )
+      )
+      .limit(1)
+    return cashier ?? null
+  }
+
+  async getCashierById(id: string) {
+    const [cashier] = await db
+      .select()
+      .from(posCashierModel)
+      .where(eq(posCashierModel.id, id))
+      .limit(1)
+    return cashier ?? null
+  }
+
+  async createCashier(data: CreateCashierInput) {
+    const [cashier] = await db
+      .insert(posCashierModel)
+      .values(data)
+      .returning()
+    return cashier
+  }
+
+  async updateCashier(id: string, data: UpdateCashierInput) {
+    const [cashier] = await db
+      .update(posCashierModel)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(posCashierModel.id, id))
+      .returning()
+    return cashier ?? null
+  }
+
+  async deleteCashier(id: string) {
+    const result = await db
+      .delete(posCashierModel)
+      .where(eq(posCashierModel.id, id))
+      .returning()
+    return result.length > 0
+  }
+
+  // ── Session management ──
+
+  async getOpenSession(terminalId: string) {
+    const [session] = await db
+      .select({
+        id: posSessionModel.id,
+        terminalId: posSessionModel.terminalId,
+        cashierId: posSessionModel.cashierId,
+        cashierName: posCashierModel.name,
+        openedAt: posSessionModel.openedAt,
+        openingCashAmount: posSessionModel.openingCashAmount,
+        status: posSessionModel.status,
+      })
+      .from(posSessionModel)
+      .innerJoin(
+        posCashierModel,
+        eq(posSessionModel.cashierId, posCashierModel.id)
+      )
+      .where(
+        and(
+          eq(posSessionModel.terminalId, terminalId),
+          eq(posSessionModel.status, 'open')
+        )
+      )
+      .limit(1)
+    return session ?? null
+  }
+
+  async getSessionById(id: string) {
+    const [session] = await db
+      .select()
+      .from(posSessionModel)
+      .where(eq(posSessionModel.id, id))
+      .limit(1)
+    return session ?? null
+  }
+
+  // ── Cash movements ──
+
+  async addCashMovement(data: {
+    sessionId: string
+    type: 'sale' | 'refund' | 'withdrawal' | 'deposit'
+    amount: string
+    referenceId?: string
+    notes?: string
+  }) {
+    const [movement] = await db
+      .insert(posCashMovementModel)
+      .values(data)
+      .returning()
+    return movement
+  }
+
+  async getCashMovementsBySession(sessionId: string) {
+    return await db
+      .select()
+      .from(posCashMovementModel)
+      .where(eq(posCashMovementModel.sessionId, sessionId))
+      .orderBy(posCashMovementModel.createdAt)
+  }
+
+  // ── Z Report ──
+
+  async getZReportBySessionId(sessionId: string) {
+    const [report] = await db
+      .select()
+      .from(posZReportModel)
+      .where(eq(posZReportModel.sessionId, sessionId))
+      .limit(1)
+    return report ?? null
+  }
+
+  async getZReportById(id: string) {
+    const [report] = await db
+      .select()
+      .from(posZReportModel)
+      .where(eq(posZReportModel.id, id))
+      .limit(1)
+    return report ?? null
   }
 }
 

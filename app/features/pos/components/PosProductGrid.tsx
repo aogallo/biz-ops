@@ -1,4 +1,5 @@
 import { cn } from '~/lib/utils'
+import { useTranslation } from '~/i18n/context'
 import type { PosProductForGrid } from '../types'
 
 interface PosProductGridProps {
@@ -16,9 +17,10 @@ export function PosProductGrid({
   onCategoryChange,
   onProductClick,
 }: PosProductGridProps) {
+  const { t } = useTranslation()
+
   return (
     <div className='flex flex-1 flex-col gap-3 overflow-hidden'>
-      {/* Category tabs */}
       <div className='flex gap-1.5 overflow-x-auto pb-1'>
         <button
           type='button'
@@ -30,7 +32,7 @@ export function PosProductGrid({
               : 'bg-muted hover:bg-muted/80'
           )}
         >
-          Todos
+          {t('pos.allCategories')}
         </button>
         {categories.map((cat) => (
           <button
@@ -49,7 +51,6 @@ export function PosProductGrid({
         ))}
       </div>
 
-      {/* Product grid */}
       <div className='grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4'>
         {products.map((product) => {
           const isOutOfStock =
@@ -75,7 +76,7 @@ export function PosProductGrid({
               </span>
               {product.productType === 'STOCK' && (
                 <span className='text-muted-foreground mt-0.5 text-xs'>
-                  Stock: {product.stock ?? 0}
+                  {t('pos.stock')}: {product.stock ?? 0}
                 </span>
               )}
             </button>
@@ -83,7 +84,7 @@ export function PosProductGrid({
         })}
         {products.length === 0 && (
           <div className='text-muted-foreground col-span-full py-12 text-center text-sm'>
-            No se encontraron productos
+            {t('pos.noProducts')}
           </div>
         )}
       </div>

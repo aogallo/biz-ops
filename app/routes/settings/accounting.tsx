@@ -62,6 +62,12 @@ export async function action({ request }: Route.ActionArgs) {
       (formData.get('defaultPurchaseAccountId') as string) || null,
     journalEntryPrefix:
       (formData.get('journalEntryPrefix') as string) || undefined,
+    posCashAccountId:
+      (formData.get('posCashAccountId') as string) || null,
+    posCardAccountId:
+      (formData.get('posCardAccountId') as string) || null,
+    posCheckAccountId:
+      (formData.get('posCheckAccountId') as string) || null,
   }
 
   // Clean up empty strings to null
@@ -246,6 +252,39 @@ export default function AccountingSettings({
                 label='Default Purchase Account'
                 description='Default expense account for purchases'
                 value={config?.defaultPurchaseAccountId ?? null}
+                accounts={accounts}
+              />
+            </CardContent>
+          </Card>
+
+          {/* POS Accounts */}
+          <Card>
+            <CardHeader>
+              <CardTitle>POS Accounts</CardTitle>
+              <CardDescription>
+                Configure the accounts used for POS session journal entries
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='grid gap-6 md:grid-cols-3'>
+              <AccountSelect
+                name='posCashAccountId'
+                label='POS Cash Account'
+                description='Account for cash received at POS (e.g., Caja)'
+                value={config?.posCashAccountId ?? null}
+                accounts={accounts}
+              />
+              <AccountSelect
+                name='posCardAccountId'
+                label='POS Card Account'
+                description='Account for card payments at POS (e.g., Banco tarjetas)'
+                value={config?.posCardAccountId ?? null}
+                accounts={accounts}
+              />
+              <AccountSelect
+                name='posCheckAccountId'
+                label='POS Check Account'
+                description='Account for check payments at POS (e.g., Cheques por cobrar)'
+                value={config?.posCheckAccountId ?? null}
                 accounts={accounts}
               />
             </CardContent>

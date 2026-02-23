@@ -5,6 +5,7 @@ import {
   posSaleModel,
   posSaleLineModel,
   posPaymentModel,
+  posCashierModel,
 } from '~/server/db/schemas/pos'
 
 // Terminal schemas
@@ -54,12 +55,56 @@ export const checkoutSchema = z.object({
   cashierId: z.string().uuid(),
   businessPartnerId: z.string().uuid(),
   idempotencyKey: z.string().uuid(),
+  sessionId: z.string().uuid().optional(),
   lines: z.array(checkoutLineSchema).min(1, 'Cart cannot be empty'),
   payments: z.array(checkoutPaymentSchema).min(1, 'At least one payment required'),
   notes: z.string().optional(),
 })
 
+// Cashier schemas
+export const insertCashierSchema = createInsertSchema(posCashierModel)
+
+export const createCashierSchema = insertCashierSchema
+  .omit({ id: true, createdAt: true, updatedAt: true, pinAttempts: true, pinLockedAt: true })
+  .extend({
+    name: z.string().min(1, 'Name is required'),
+    organizationId: z.string().uuid(),
+    companyId: z.string().uuid(),
+    userId: z.string().uuid().optional().nullable(),
+    pin: z.string().min(4).max(6).optional().nullable(),
+  })
+
+export const updateCashierSchema = createCashierSchema.partial()
+
+// Session schemas
+export const openSessionSchema = z.object({
+  terminalId: z.string().uuid(),
+  organizationId: z.string().uuid(),
+  companyId: z.string().uuid(),
+  cashierId: z.string().uuid(),
+  openingCashAmount: z.number().nonnegative(),
+})
+
+export const closeSessionSchema = z.object({
+  sessionId: z.string().uuid(),
+  closingCashAmount: z.number().nonnegative(),
+  notes: z.string().optional(),
+})
+
+// Cash movement schema
+export const cashMovementSchema = z.object({
+  sessionId: z.string().uuid(),
+  type: z.enum(['withdrawal', 'deposit']),
+  amount: z.number().positive(),
+  notes: z.string().optional(),
+})
+
 // Types
+export type CreateCashierInput = z.infer<typeof createCashierSchema>
+export type UpdateCashierInput = z.infer<typeof updateCashierSchema>
+export type OpenSessionInput = z.infer<typeof openSessionSchema>
+export type CloseSessionInput = z.infer<typeof closeSessionSchema>
+export type CashMovementInput = z.infer<typeof cashMovementSchema>
 export type CreateTerminalInput = z.infer<typeof createTerminalSchema>
 export type UpdateTerminalInput = z.infer<typeof updateTerminalSchema>
 export type CheckoutInput = z.infer<typeof checkoutSchema>

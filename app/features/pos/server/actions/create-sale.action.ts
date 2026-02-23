@@ -5,6 +5,7 @@ import {
   posSaleLineModel,
   posPaymentModel,
   posTerminalModel,
+  posCashMovementModel,
 } from '~/server/db/schemas/pos'
 import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
@@ -25,7 +26,7 @@ export async function createSaleAction(input: CheckoutInput) {
     return { saleId: existingSale.id, saleNumber: existingSale.saleNumber }
   }
 
-  return await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     // 1. Lock and validate stock for STOCK products (SELECT FOR UPDATE prevents race conditions)
     for (const line of input.lines) {
       if (line.productType === 'STOCK') {
@@ -115,6 +116,7 @@ export async function createSaleAction(input: CheckoutInput) {
         companyId: input.companyId,
         terminalId: input.terminalId,
         cashierId: input.cashierId,
+        sessionId: input.sessionId,
         businessPartnerId: input.businessPartnerId,
         saleNumber,
         idempotencyKey: input.idempotencyKey,
@@ -176,6 +178,23 @@ export async function createSaleAction(input: CheckoutInput) {
       }
     }
 
+    // 8. Create cash movements for cash payments if session exists
+    if (input.sessionId) {
+      const cashPaymentTotal = input.payments
+        .filter((p) => p.method === 'cash')
+        .reduce((sum, p) => sum + p.amount, 0)
+
+      if (cashPaymentTotal > 0) {
+        await tx.insert(posCashMovementModel).values({
+          sessionId: input.sessionId,
+          type: 'sale',
+          amount: String(cashPaymentTotal),
+          referenceId: sale.id,
+          notes: `Sale ${saleNumber}`,
+        })
+      }
+    }
+
     return {
       saleId: sale.id,
       saleNumber,
@@ -189,7 +208,7 @@ export async function createSaleAction(input: CheckoutInput) {
     }
   })
 
-  // 8. Auto-generate invoice OUTSIDE the main transaction (reduces lock duration)
+  // 9. Auto-generate invoice OUTSIDE the main transaction (reduces lock duration)
   await generateInvoiceIfConfigured(input, result)
 
   return { saleId: result.saleId, saleNumber: result.saleNumber }

@@ -2,7 +2,15 @@ import { useState, useCallback } from 'react'
 import { useFetcher, redirect } from 'react-router'
 import { posRepository } from '~/features/pos/server/repository'
 import { createSaleAction } from '~/features/pos/server/actions/create-sale.action'
-import { checkoutSchema } from '~/features/pos/schemas'
+import { openSessionAction } from '~/features/pos/server/actions/open-session.action'
+import { closeSessionAction } from '~/features/pos/server/actions/close-session.action'
+import { cashMovementAction } from '~/features/pos/server/actions/cash-movement.action'
+import {
+  checkoutSchema,
+  openSessionSchema,
+  closeSessionSchema,
+  cashMovementSchema,
+} from '~/features/pos/schemas'
 import { PosHeader } from '~/features/pos/components/PosHeader'
 import { PosProductSearch } from '~/features/pos/components/PosProductSearch'
 import { PosProductGrid } from '~/features/pos/components/PosProductGrid'
@@ -10,6 +18,10 @@ import { PosCart } from '~/features/pos/components/PosCart'
 import { PosCustomerSearch } from '~/features/pos/components/PosCustomerSearch'
 import { PosPaymentDialog } from '~/features/pos/components/PosPaymentDialog'
 import { PosReceiptPreview } from '~/features/pos/components/PosReceiptPreview'
+import { PosOpenShiftDialog } from '~/features/pos/components/PosOpenShiftDialog'
+import { PosCloseShiftDialog } from '~/features/pos/components/PosCloseShiftDialog'
+import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovementDialog'
+import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
 import {
   type CartItem,
@@ -18,6 +30,9 @@ import {
 } from '~/features/pos/types'
 import type { CheckoutPayment } from '~/features/pos/schemas'
 import { requireAuth } from '~/server/auth/session.server'
+import { useTranslation } from '~/i18n/context'
+import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
+import { db } from '~/server/db'
 import type { Route } from './+types/terminal'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -35,6 +50,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect('/pos')
   }
 
+  // Get cashier profile for current user
+  const cashier = await posRepository.getCashierByUserId(
+    organizationId,
+    session.user.id
+  )
+
+  // Get open session for this terminal
+  const openSession = await posRepository.getOpenSession(terminalId)
+
   const [products, categories] = await Promise.all([
     posRepository.getProductsForPos(organizationId),
     posRepository.getCategories(organizationId),
@@ -48,6 +72,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     cashierName: session.user.name,
     organizationId,
     defaultBusinessPartnerId: terminal.defaultBusinessPartnerId,
+    cashier,
+    openSession,
   }
 }
 
@@ -72,8 +98,6 @@ export async function action({ request }: Route.ActionArgs) {
 
     try {
       const result = await createSaleAction(parsed.data)
-
-      // Fetch sale details for receipt
       const sale = await posRepository.getSaleById(result.saleId)
 
       return {
@@ -114,7 +138,7 @@ export async function action({ request }: Route.ActionArgs) {
     } catch (error) {
       return {
         error:
-          error instanceof Error ? error.message : 'Error al procesar la venta',
+          error instanceof Error ? error.message : 'Error processing sale',
       }
     }
   }
@@ -129,8 +153,102 @@ export async function action({ request }: Route.ActionArgs) {
       organizationId,
       query
     )
-    console.log('customers....', customers)
     return { customers }
+  }
+
+  if (intent === 'open-session') {
+    const rawData = formData.get('data')
+    if (!rawData || typeof rawData !== 'string') {
+      return { error: 'Invalid data' }
+    }
+
+    const parsed = openSessionSchema.safeParse(JSON.parse(rawData))
+    if (!parsed.success) {
+      return { error: 'Validation failed' }
+    }
+
+    try {
+      await openSessionAction(parsed.data)
+      return { success: true, intent: 'open-session' }
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Error opening session',
+      }
+    }
+  }
+
+  if (intent === 'close-session') {
+    const rawData = formData.get('data')
+    if (!rawData || typeof rawData !== 'string') {
+      return { error: 'Invalid data' }
+    }
+
+    const parsed = closeSessionSchema.safeParse(JSON.parse(rawData))
+    if (!parsed.success) {
+      return { error: 'Validation failed' }
+    }
+
+    try {
+      const result = await closeSessionAction(parsed.data)
+      return { success: true, intent: 'close-session', zReportId: result.zReportId }
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Error closing session',
+      }
+    }
+  }
+
+  if (intent === 'cash-movement') {
+    const rawData = formData.get('data')
+    if (!rawData || typeof rawData !== 'string') {
+      return { error: 'Invalid data' }
+    }
+
+    const parsed = cashMovementSchema.safeParse(JSON.parse(rawData))
+    if (!parsed.success) {
+      return { error: 'Validation failed' }
+    }
+
+    try {
+      await cashMovementAction(parsed.data)
+      return { success: true, intent: 'cash-movement' }
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Error registering movement',
+      }
+    }
+  }
+
+  if (intent === 'create-customer') {
+    const organizationId = session.session.activeOrganizationId
+    const name = formData.get('name')
+    const nit = formData.get('nit')
+
+    if (!organizationId || !name || typeof name !== 'string') {
+      return { error: 'Name is required' }
+    }
+
+    try {
+      const [customer] = await db
+        .insert(businessPartnerModel)
+        .values({
+          organizationId,
+          name,
+          nit: typeof nit === 'string' && nit ? nit : 'CF',
+          type: 'client',
+        })
+        .returning()
+
+      return {
+        success: true,
+        intent: 'create-customer',
+        customer: { id: customer.id, name: customer.name, nit: customer.nit },
+      }
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Error creating customer',
+      }
+    }
   }
 
   return { error: 'Unknown intent' }
@@ -145,16 +263,17 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     cashierName,
     organizationId,
     defaultBusinessPartnerId,
+    cashier,
+    openSession,
   } = loaderData
 
+  const { t } = useTranslation()
   const fetcher = useFetcher<typeof action>()
   const customerFetcher = useFetcher<typeof action>()
 
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
-  )
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [selectedCustomer, setSelectedCustomer] = useState<{
     id: string
     name: string
@@ -163,8 +282,24 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null)
   const [receiptOpen, setReceiptOpen] = useState(false)
+  const [closeShiftOpen, setCloseShiftOpen] = useState(false)
+  const [cashMovementOpen, setCashMovementOpen] = useState(false)
+  const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
 
-  // Filter products
+  // No cashier profile
+  if (!cashier) {
+    return (
+      <div className='flex flex-1 flex-col items-center justify-center p-8'>
+        <div className='text-center'>
+          <h2 className='text-xl font-bold'>{t('pos.noCashier')}</h2>
+          <p className='text-muted-foreground mt-2'>{t('pos.noCashierDescription')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const needsOpenShift = !openSession
+
   const filteredProducts = initialProducts.filter((p) => {
     if (selectedCategoryId && p.categoryId !== selectedCategoryId) return false
     if (search) {
@@ -202,10 +337,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           discountPercent: 0,
           ivaType: 'taxed' as const,
           ivaRate: 12,
-          productType: product.productType as
-            | 'STOCK'
-            | 'MADE_TO_ORDER'
-            | 'SERVICE',
+          productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE',
           stock: product.stock,
         },
       ]
@@ -230,9 +362,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const handleBarcodeScan = useCallback(
     (barcode: string) => {
       const product = initialProducts.find((p) => p.sku === barcode)
-      if (product) {
-        addToCart(product)
-      }
+      if (product) addToCart(product)
     },
     [initialProducts, addToCart]
   )
@@ -254,9 +384,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       const businessPartnerId = selectedCustomer?.id ?? defaultBusinessPartnerId
 
       if (!businessPartnerId) {
-        alert(
-          'No hay un cliente seleccionado ni un cliente por defecto configurado en la caja.'
-        )
+        alert(t('pos.noCustomerSelected'))
         return
       }
 
@@ -267,6 +395,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         cashierId,
         businessPartnerId,
         idempotencyKey: crypto.randomUUID(),
+        sessionId: openSession?.id,
         lines: cart.map((item) => ({
           productId: item.productId,
           productName: item.productName,
@@ -293,8 +422,70 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       terminal,
       organizationId,
       cashierId,
+      openSession,
       fetcher,
+      t,
     ]
+  )
+
+  const handleOpenShift = useCallback(
+    (openingCashAmount: number) => {
+      const data = {
+        terminalId: terminal.id,
+        organizationId,
+        companyId: terminal.companyId,
+        cashierId: cashier.id,
+        openingCashAmount,
+      }
+      fetcher.submit(
+        { intent: 'open-session', data: JSON.stringify(data) },
+        { method: 'post' }
+      )
+    },
+    [terminal, organizationId, cashier, fetcher]
+  )
+
+  const handleCloseShift = useCallback(
+    (closingCashAmount: number, notes?: string) => {
+      if (!openSession) return
+      const data = {
+        sessionId: openSession.id,
+        closingCashAmount,
+        notes,
+      }
+      fetcher.submit(
+        { intent: 'close-session', data: JSON.stringify(data) },
+        { method: 'post' }
+      )
+    },
+    [openSession, fetcher]
+  )
+
+  const handleCashMovement = useCallback(
+    (type: 'withdrawal' | 'deposit', amount: number, notes?: string) => {
+      if (!openSession) return
+      const data = {
+        sessionId: openSession.id,
+        type,
+        amount,
+        notes,
+      }
+      fetcher.submit(
+        { intent: 'cash-movement', data: JSON.stringify(data) },
+        { method: 'post' }
+      )
+    },
+    [openSession, fetcher]
+  )
+
+  const handleCreateCustomer = useCallback(
+    (name: string, nit: string) => {
+      fetcher.submit(
+        { intent: 'create-customer', name, nit },
+        { method: 'post' }
+      )
+    },
+    [fetcher]
   )
 
   // Handle successful checkout
@@ -303,6 +494,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     fetcherData &&
     'success' in fetcherData &&
     fetcherData.success &&
+    'sale' in fetcherData &&
     fetcherData.sale?.receipt &&
     !receiptOpen &&
     cart.length > 0
@@ -311,6 +503,22 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     setReceiptOpen(true)
     setCart([])
     setPaymentOpen(false)
+  }
+
+  // Handle created customer
+  if (
+    fetcherData &&
+    'success' in fetcherData &&
+    fetcherData.success &&
+    'intent' in fetcherData &&
+    fetcherData.intent === 'create-customer' &&
+    'customer' in fetcherData &&
+    fetcherData.customer &&
+    createCustomerOpen
+  ) {
+    const c = fetcherData.customer as { id: string; name: string; nit: string | null }
+    setSelectedCustomer(c)
+    setCreateCustomerOpen(false)
   }
 
   const customers =
@@ -324,7 +532,14 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
-      <PosHeader terminalName={terminal.name} cashierName={cashierName} />
+      <PosHeader
+        terminalName={terminal.name}
+        cashierName={cashierName}
+        sessionId={openSession?.id}
+        sessionOpenedAt={openSession?.openedAt ? String(openSession.openedAt) : null}
+        onCloseShift={() => setCloseShiftOpen(true)}
+        onCashMovement={() => setCashMovementOpen(true)}
+      />
 
       <div className='flex flex-1 overflow-hidden'>
         {/* Left panel: Products */}
@@ -351,6 +566,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
               customers={customers}
               onSearch={handleCustomerSearch}
               onSelect={setSelectedCustomer}
+              onCreateCustomer={() => setCreateCustomerOpen(true)}
             />
           </div>
 
@@ -384,7 +600,33 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         receipt={receiptData}
       />
 
-      {/* Print styles */}
+      <PosOpenShiftDialog
+        open={needsOpenShift}
+        onConfirm={handleOpenShift}
+        isSubmitting={fetcher.state === 'submitting'}
+      />
+
+      <PosCloseShiftDialog
+        open={closeShiftOpen}
+        onOpenChange={setCloseShiftOpen}
+        onConfirm={handleCloseShift}
+        isSubmitting={fetcher.state === 'submitting'}
+      />
+
+      <PosCashMovementDialog
+        open={cashMovementOpen}
+        onOpenChange={setCashMovementOpen}
+        onConfirm={handleCashMovement}
+        isSubmitting={fetcher.state === 'submitting'}
+      />
+
+      <PosCreateCustomerDialog
+        open={createCustomerOpen}
+        onOpenChange={setCreateCustomerOpen}
+        onConfirm={handleCreateCustomer}
+        isSubmitting={fetcher.state === 'submitting'}
+      />
+
       <style>{`
         @media print {
           body * { visibility: hidden; }

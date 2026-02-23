@@ -47,4 +47,6 @@ export const sidebar = {
   'sidebar.items.financialReport': 'Financial Report',
   'sidebar.items.inventoryReport': 'Inventory Report',
   'sidebar.items.quotations': 'Quotations',
+  'sidebar.items.posCashiers': 'Cashiers',
+  'sidebar.items.posTerminals': 'Terminals',
 } as const

@@ -1,6 +1,6 @@
 {
-  "id": "0d9d013d-b992-46c4-a38b-321b8a22d39d",
-  "prevId": "a867e898-271c-4a72-ab3f-5886ee23b84c",
+  "id": "dda1228e-0898-428c-aaf4-a0a554506246",
+  "prevId": "0d9d013d-b992-46c4-a38b-321b8a22d39d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2570,6 +2570,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "source_pos_session_id": {
+          "name": "source_pos_session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "total_debit": {
           "name": "total_debit",
           "type": "numeric(12, 2)",
@@ -2802,6 +2808,24 @@
           "notNull": true,
           "default": 1
         },
+        "pos_cash_account_id": {
+          "name": "pos_cash_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pos_card_account_id": {
+          "name": "pos_card_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pos_check_account_id": {
+          "name": "pos_check_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
@@ -2903,6 +2927,45 @@
           "tableTo": "accounting_account",
           "columnsFrom": [
             "default_purchase_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_accounting_config_pos_cash_account_id_accounting_account_id_fk": {
+          "name": "organization_accounting_config_pos_cash_account_id_accounting_account_id_fk",
+          "tableFrom": "organization_accounting_config",
+          "tableTo": "accounting_account",
+          "columnsFrom": [
+            "pos_cash_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_accounting_config_pos_card_account_id_accounting_account_id_fk": {
+          "name": "organization_accounting_config_pos_card_account_id_accounting_account_id_fk",
+          "tableFrom": "organization_accounting_config",
+          "tableTo": "accounting_account",
+          "columnsFrom": [
+            "pos_card_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_accounting_config_pos_check_account_id_accounting_account_id_fk": {
+          "name": "organization_accounting_config_pos_check_account_id_accounting_account_id_fk",
+          "tableFrom": "organization_accounting_config",
+          "tableTo": "accounting_account",
+          "columnsFrom": [
+            "pos_check_account_id"
           ],
           "columnsTo": [
             "id"
@@ -4877,7 +4940,8 @@
       "values": [
         "manual",
         "invoice",
-        "adjustment"
+        "adjustment",
+        "pos"
       ]
     },
     "public.journal_entry_status": {

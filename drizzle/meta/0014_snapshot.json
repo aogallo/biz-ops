@@ -1,6 +1,6 @@
 {
-  "id": "0d9d013d-b992-46c4-a38b-321b8a22d39d",
-  "prevId": "a867e898-271c-4a72-ab3f-5886ee23b84c",
+  "id": "8f89aef4-7b6c-4657-895e-2b17f115dc8d",
+  "prevId": "dda1228e-0898-428c-aaf4-a0a554506246",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1516,6 +1516,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "product_org_type_idx": {
+          "name": "product_org_type_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "product_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2570,6 +2591,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "source_pos_session_id": {
+          "name": "source_pos_session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "total_debit": {
           "name": "total_debit",
           "type": "numeric(12, 2)",
@@ -2802,6 +2829,24 @@
           "notNull": true,
           "default": 1
         },
+        "pos_cash_account_id": {
+          "name": "pos_cash_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pos_card_account_id": {
+          "name": "pos_card_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pos_check_account_id": {
+          "name": "pos_check_account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
@@ -2903,6 +2948,45 @@
           "tableTo": "accounting_account",
           "columnsFrom": [
             "default_purchase_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_accounting_config_pos_cash_account_id_accounting_account_id_fk": {
+          "name": "organization_accounting_config_pos_cash_account_id_accounting_account_id_fk",
+          "tableFrom": "organization_accounting_config",
+          "tableTo": "accounting_account",
+          "columnsFrom": [
+            "pos_cash_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_accounting_config_pos_card_account_id_accounting_account_id_fk": {
+          "name": "organization_accounting_config_pos_card_account_id_accounting_account_id_fk",
+          "tableFrom": "organization_accounting_config",
+          "tableTo": "accounting_account",
+          "columnsFrom": [
+            "pos_card_account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_accounting_config_pos_check_account_id_accounting_account_id_fk": {
+          "name": "organization_accounting_config_pos_check_account_id_accounting_account_id_fk",
+          "tableFrom": "organization_accounting_config",
+          "tableTo": "accounting_account",
+          "columnsFrom": [
+            "pos_check_account_id"
           ],
           "columnsTo": [
             "id"
@@ -4214,6 +4298,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "status": {
           "name": "status",
           "type": "pos_sale_status",
@@ -4282,7 +4372,80 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "pos_sale_idempotency_key_idx": {
+          "name": "pos_sale_idempotency_key_idx",
+          "columns": [
+            {
+              "expression": "idempotency_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "pos_sale_terminal_created_idx": {
+          "name": "pos_sale_terminal_created_idx",
+          "columns": [
+            {
+              "expression": "terminal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "pos_sale_status_idx": {
+          "name": "pos_sale_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "pos_sale_org_created_idx": {
+          "name": "pos_sale_org_created_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "pos_sale_organization_id_organization_id_fk": {
           "name": "pos_sale_organization_id_organization_id_fk",
@@ -4589,7 +4752,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "pos_terminal_org_active_idx": {
+          "name": "pos_terminal_org_active_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "is_active",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "pos_terminal_organization_id_organization_id_fk": {
           "name": "pos_terminal_organization_id_organization_id_fk",
@@ -4877,7 +5062,8 @@
       "values": [
         "manual",
         "invoice",
-        "adjustment"
+        "adjustment",
+        "pos"
       ]
     },
     "public.journal_entry_status": {

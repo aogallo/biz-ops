@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { posRepository } from '~/features/pos/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
+import { useTranslation } from '~/i18n/context'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/index'
 
@@ -20,6 +21,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function PosIndex({ loaderData }: Route.ComponentProps) {
   const { terminals, userName } = loaderData
+  const { t } = useTranslation()
 
   const activeTerminals = terminals.filter((t) => t.isActive)
 
@@ -27,21 +29,19 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
     <div className='flex flex-1 flex-col items-center justify-center p-8'>
       <div className='w-full max-w-2xl space-y-6'>
         <div className='text-center'>
-          <h1 className='text-2xl font-bold'>Punto de Venta</h1>
+          <h1 className='text-2xl font-bold'>{t('pos.title')}</h1>
           <p className='text-muted-foreground mt-1'>
-            Bienvenido, {userName}. Seleccioná una caja para comenzar.
+            {t('pos.welcome', { name: userName })}
           </p>
         </div>
 
         {activeTerminals.length === 0 ? (
           <div className='text-muted-foreground rounded-lg border border-dashed p-12 text-center'>
             <Monitor className='mx-auto mb-3 size-10' />
-            <p className='font-medium'>No hay cajas configuradas</p>
-            <p className='mt-1 text-sm'>
-              Configurá al menos una caja desde la sección de ajustes.
-            </p>
+            <p className='font-medium'>{t('pos.noTerminals')}</p>
+            <p className='mt-1 text-sm'>{t('pos.noTerminalsDescription')}</p>
             <Button variant='outline' className='mt-4' asChild>
-              <Link to='/pos-settings/terminals'>Configurar Cajas</Link>
+              <Link to='/pos-settings/terminals'>{t('pos.configureTerminals')}</Link>
             </Button>
           </div>
         ) : (
@@ -68,7 +68,7 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
 
         <div className='text-center'>
           <Button variant='ghost' size='sm' asChild>
-            <Link to='/dashboard'>Volver al ERP</Link>
+            <Link to='/dashboard'>{t('pos.backToErp')}</Link>
           </Button>
         </div>
       </div>

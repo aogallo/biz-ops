@@ -47,4 +47,6 @@ export const sidebar = {
   'sidebar.items.financialReport': 'Reporte Financiero',
   'sidebar.items.inventoryReport': 'Reporte de Inventario',
   'sidebar.items.quotations': 'Cótizaciones',
+  'sidebar.items.posCashiers': 'Cajeros',
+  'sidebar.items.posTerminals': 'Terminales',
 } as const

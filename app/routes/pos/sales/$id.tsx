@@ -6,6 +6,7 @@ import { Separator } from '~/components/ui/separator'
 import { posRepository } from '~/features/pos/server/repository'
 import { voidSaleAction } from '~/features/pos/server/actions/void-sale.action'
 import { requireAuth } from '~/server/auth/session.server'
+import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/$id'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
@@ -26,7 +27,7 @@ export async function action({ params, request }: Route.ActionArgs) {
       return { success: true }
     } catch (error) {
       return {
-        error: error instanceof Error ? error.message : 'Error al anular',
+        error: error instanceof Error ? error.message : 'Error voiding sale',
       }
     }
   }
@@ -36,6 +37,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 
 export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
   const { sale } = loaderData
+  const { t } = useTranslation()
   const fetcher = useFetcher<typeof action>()
 
   return (
@@ -47,13 +49,15 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
               <ArrowLeft className='size-4' />
             </Link>
           </Button>
-          <h1 className='text-xl font-bold'>Venta {sale.saleNumber}</h1>
+          <h1 className='text-xl font-bold'>
+            {t('pos.sale')} {sale.saleNumber}
+          </h1>
           <Badge
             variant={
               sale.status === 'completed' ? 'default' : 'destructive'
             }
           >
-            {sale.status === 'completed' ? 'Completada' : 'Anulada'}
+            {sale.status === 'completed' ? t('pos.completed') : t('pos.voided')}
           </Badge>
         </div>
 
@@ -64,24 +68,23 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
         )}
 
         <div className='bg-card space-y-4 rounded-lg border p-6'>
-          {/* Header info */}
           <div className='grid grid-cols-2 gap-4 text-sm'>
             <div>
-              <p className='text-muted-foreground'>Caja</p>
+              <p className='text-muted-foreground'>{t('pos.terminalCol')}</p>
               <p className='font-medium'>{sale.terminal?.name}</p>
             </div>
             <div>
-              <p className='text-muted-foreground'>Cajero</p>
+              <p className='text-muted-foreground'>{t('pos.cashierCol')}</p>
               <p className='font-medium'>{sale.cashier?.name}</p>
             </div>
             <div>
-              <p className='text-muted-foreground'>Cliente</p>
+              <p className='text-muted-foreground'>{t('pos.customerCol')}</p>
               <p className='font-medium'>
-                {sale.businessPartner?.name ?? 'Consumidor Final'}
+                {sale.businessPartner?.name ?? t('pos.defaultCustomer')}
               </p>
             </div>
             <div>
-              <p className='text-muted-foreground'>Fecha</p>
+              <p className='text-muted-foreground'>{t('pos.dateCol')}</p>
               <p className='font-medium'>
                 {new Date(sale.createdAt).toLocaleString('es-GT')}
               </p>
@@ -90,9 +93,8 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
 
           <Separator />
 
-          {/* Lines */}
           <div>
-            <h3 className='mb-2 text-sm font-semibold'>Productos</h3>
+            <h3 className='mb-2 text-sm font-semibold'>{t('pos.products')}</h3>
             <div className='space-y-2'>
               {sale.lines.map((line) => (
                 <div
@@ -116,10 +118,9 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
 
           <Separator />
 
-          {/* Totals */}
           <div className='space-y-1 text-sm'>
             <div className='flex justify-between'>
-              <span className='text-muted-foreground'>Subtotal</span>
+              <span className='text-muted-foreground'>{t('pos.subtotal')}</span>
               <span className='tabular-nums'>
                 Q{Number(sale.subtotal).toFixed(2)}
               </span>
@@ -131,7 +132,7 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
               </span>
             </div>
             <div className='flex justify-between text-base font-bold'>
-              <span>Total</span>
+              <span>{t('pos.total')}</span>
               <span className='tabular-nums'>
                 Q{Number(sale.total).toFixed(2)}
               </span>
@@ -140,9 +141,8 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
 
           <Separator />
 
-          {/* Payments */}
           <div>
-            <h3 className='mb-2 text-sm font-semibold'>Pagos</h3>
+            <h3 className='mb-2 text-sm font-semibold'>{t('pos.payments')}</h3>
             {sale.payments.map((payment) => (
               <div
                 key={payment.id}
@@ -156,14 +156,13 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
             ))}
           </div>
 
-          {/* Actions */}
           {sale.status === 'completed' && (
             <>
               <Separator />
               <div className='flex gap-2'>
                 <Button variant='outline' size='sm' onClick={() => window.print()}>
                   <Printer className='size-4' />
-                  Imprimir
+                  {t('pos.print')}
                 </Button>
                 <fetcher.Form method='post'>
                   <input type='hidden' name='intent' value='void' />
@@ -175,8 +174,8 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
                   >
                     <XCircle className='size-4' />
                     {fetcher.state === 'submitting'
-                      ? 'Anulando...'
-                      : 'Anular Venta'}
+                      ? t('pos.voiding')
+                      : t('pos.voidSale')}
                   </Button>
                 </fetcher.Form>
               </div>

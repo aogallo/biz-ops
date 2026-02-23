@@ -1,6 +1,7 @@
 import { Search } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { Input } from '~/components/ui/input'
+import { useTranslation } from '~/i18n/context'
 
 interface PosProductSearchProps {
   value: string
@@ -13,15 +14,13 @@ export function PosProductSearch({
   onChange,
   onBarcodeScanned,
 }: PosProductSearchProps) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const bufferRef = useRef('')
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => {
-    // Barcode scanner keyboard wedge detection
-    // Rapid keystrokes (< 50ms between) ending with Enter = barcode scan
     function handleKeyDown(e: KeyboardEvent) {
-      // Don't intercept if user is typing in another input
       if (
         document.activeElement &&
         document.activeElement !== inputRef.current &&
@@ -60,7 +59,7 @@ export function PosProductSearch({
       <Input
         ref={inputRef}
         type='text'
-        placeholder='Buscar producto o escanear código...'
+        placeholder={t('pos.searchProduct')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className='pl-9'

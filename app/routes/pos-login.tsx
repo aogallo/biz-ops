@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Form, redirect, useActionData, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -66,20 +66,37 @@ export async function action({ request }: Route.ActionArgs) {
   return { error: 'Unknown action' }
 }
 
+type CashierOption = { id: string; name: string; hasPin: boolean }
+
 export default function PosLogin({ loaderData }: Route.ComponentProps) {
   const { companies } = loaderData
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
 
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
-    actionData && 'selectedCompanyId' in actionData ? actionData.selectedCompanyId ?? null : null
-  )
+  const [step, setStep] = useState<'company' | 'cashier'>('company')
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
+  const [cashiers, setCashiers] = useState<CashierOption[]>([])
 
-  const cashiers =
-    actionData && 'cashiers' in actionData
-      ? (actionData.cashiers as Array<{ id: string; name: string; hasPin: boolean }>)
-      : null
+  // Sync cashiers and companyId from action response into local state
+  useEffect(() => {
+    if (actionData && 'cashiers' in actionData && Array.isArray(actionData.cashiers)) {
+      setCashiers(actionData.cashiers as CashierOption[])
+      setSelectedCompanyId(actionData.selectedCompanyId ?? null)
+      setStep('cashier')
+    }
+  }, [actionData])
+
+  const handleBack = () => {
+    setStep('company')
+    setCashiers([])
+    setSelectedCompanyId(null)
+  }
+
+  const loginError =
+    actionData && 'error' in actionData && step === 'cashier' ? actionData.error : null
+  const companyError =
+    actionData && 'error' in actionData && step === 'company' ? actionData.error : null
 
   return (
     <div className='bg-background flex min-h-screen items-center justify-center p-4'>
@@ -88,16 +105,15 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
           <CardTitle className='text-center text-2xl'>POS Login</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {actionData && 'error' in actionData && actionData.error && (
-            <div className='rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/30'>
-              {actionData.error}
-            </div>
-          )}
-
-          {!cashiers ? (
+          {step === 'company' ? (
             /* Step 1: Select company */
             <Form method='post' className='space-y-3'>
               <input type='hidden' name='intent' value='select-company' />
+              {companyError && (
+                <div className='rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/30'>
+                  {companyError}
+                </div>
+              )}
               <div className='space-y-2'>
                 <label className='text-sm font-medium'>Company</label>
                 <select
@@ -125,7 +141,11 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
             <Form method='post' className='space-y-3'>
               <input type='hidden' name='intent' value='login' />
               <input type='hidden' name='companyId' value={selectedCompanyId ?? ''} />
-
+              {loginError && (
+                <div className='rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/30'>
+                  {loginError}
+                </div>
+              )}
               <div className='space-y-2'>
                 <label className='text-sm font-medium'>Cashier</label>
                 <select
@@ -163,12 +183,7 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
                 {isSubmitting ? 'Signing in…' : 'Sign In'}
               </Button>
 
-              <Button
-                type='button'
-                variant='ghost'
-                className='w-full'
-                onClick={() => setSelectedCompanyId(null)}
-              >
+              <Button type='button' variant='ghost' className='w-full' onClick={handleBack}>
                 ← Back
               </Button>
             </Form>

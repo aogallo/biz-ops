@@ -14,7 +14,7 @@ import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
 import { companyModel } from '~/server/db/schemas/company'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
-import { organizationModel, userModel } from '~/server/db/schemas/auth'
+import { userModel } from '~/server/db/schemas/auth'
 import type {
   CreateTerminalInput,
   UpdateTerminalInput,
@@ -436,18 +436,18 @@ export class PosRepository {
 
   // ── POS Login ──
 
-  async getActiveOrganizations() {
+  async getActiveCompanies() {
     return await db
       .select({
-        id: organizationModel.id,
-        name: organizationModel.name,
-        slug: organizationModel.slug,
+        id: companyModel.id,
+        name: companyModel.name,
+        organizationId: companyModel.organizationId,
       })
-      .from(organizationModel)
-      .orderBy(organizationModel.name)
+      .from(companyModel)
+      .orderBy(companyModel.name)
   }
 
-  async getActiveCashiersForOrganization(organizationId: string) {
+  async getActiveCashiersForCompany(companyId: string) {
     return await db
       .select({
         id: posCashierModel.id,
@@ -458,7 +458,7 @@ export class PosRepository {
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.organizationId, organizationId),
+          eq(posCashierModel.companyId, companyId),
           eq(posCashierModel.isActive, true)
         )
       )

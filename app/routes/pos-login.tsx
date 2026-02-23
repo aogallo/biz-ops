@@ -17,31 +17,31 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect('/pos')
   }
 
-  const organizations = await posRepository.getActiveOrganizations()
-  return { organizations }
+  const companies = await posRepository.getActiveCompanies()
+  return { companies }
 }
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const intent = formData.get('intent')
 
-  if (intent === 'select-org') {
-    const organizationId = formData.get('organizationId')
-    if (!organizationId || typeof organizationId !== 'string') {
-      return { error: 'Organization is required' }
+  if (intent === 'select-company') {
+    const companyId = formData.get('companyId')
+    if (!companyId || typeof companyId !== 'string') {
+      return { error: 'Company is required' }
     }
 
-    const cashiers = await posRepository.getActiveCashiersForOrganization(organizationId)
-    return { cashiers, selectedOrgId: organizationId }
+    const cashiers = await posRepository.getActiveCashiersForCompany(companyId)
+    return { cashiers, selectedCompanyId: companyId }
   }
 
   if (intent === 'login') {
-    const organizationId = formData.get('organizationId')
+    const companyId = formData.get('companyId')
     const cashierId = formData.get('cashierId')
     const pin = formData.get('pin')
 
     if (
-      !organizationId || typeof organizationId !== 'string' ||
+      !companyId || typeof companyId !== 'string' ||
       !cashierId || typeof cashierId !== 'string' ||
       !pin || typeof pin !== 'string'
     ) {
@@ -50,13 +50,14 @@ export async function action({ request }: Route.ActionArgs) {
 
     const cashier = await posRepository.verifyCashierPin(cashierId, pin)
     if (!cashier) {
-      return { error: 'Invalid PIN or cashier is locked', intent: 'login', cashierId, organizationId }
+      return { error: 'Invalid PIN or cashier is locked', intent: 'login', cashierId, companyId }
     }
 
     const cookie = await setPosSession(request, {
       cashierId: cashier.id,
       cashierName: cashier.name,
-      organizationId,
+      organizationId: cashier.organizationId,
+      companyId: cashier.companyId,
     })
 
     throw redirect('/pos', { headers: { 'Set-Cookie': cookie } })
@@ -66,13 +67,13 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function PosLogin({ loaderData }: Route.ComponentProps) {
-  const { organizations } = loaderData
+  const { companies } = loaderData
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
 
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(
-    actionData && 'selectedOrgId' in actionData ? actionData.selectedOrgId ?? null : null
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    actionData && 'selectedCompanyId' in actionData ? actionData.selectedCompanyId ?? null : null
   )
 
   const cashiers =
@@ -94,23 +95,23 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
           )}
 
           {!cashiers ? (
-            /* Step 1: Select organization */
+            /* Step 1: Select company */
             <Form method='post' className='space-y-3'>
-              <input type='hidden' name='intent' value='select-org' />
+              <input type='hidden' name='intent' value='select-company' />
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Organization</label>
+                <label className='text-sm font-medium'>Company</label>
                 <select
-                  name='organizationId'
+                  name='companyId'
                   className='border-input bg-background w-full rounded-md border px-3 py-2 text-sm'
                   defaultValue=''
                   required
                 >
                   <option value='' disabled>
-                    Select an organization…
+                    Select a company…
                   </option>
-                  {organizations.map((org) => (
-                    <option key={org.id} value={org.id}>
-                      {org.name}
+                  {companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
                     </option>
                   ))}
                 </select>
@@ -123,7 +124,7 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
             /* Step 2: Select cashier + PIN */
             <Form method='post' className='space-y-3'>
               <input type='hidden' name='intent' value='login' />
-              <input type='hidden' name='organizationId' value={selectedOrgId ?? ''} />
+              <input type='hidden' name='companyId' value={selectedCompanyId ?? ''} />
 
               <div className='space-y-2'>
                 <label className='text-sm font-medium'>Cashier</label>
@@ -166,7 +167,7 @@ export default function PosLogin({ loaderData }: Route.ComponentProps) {
                 type='button'
                 variant='ghost'
                 className='w-full'
-                onClick={() => setSelectedOrgId(null)}
+                onClick={() => setSelectedCompanyId(null)}
               >
                 ← Back
               </Button>

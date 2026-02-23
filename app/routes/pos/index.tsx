@@ -1,22 +1,34 @@
 import { Monitor } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, redirect } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { posRepository } from '~/features/pos/server/repository'
-import { requireAuth } from '~/server/auth/session.server'
+import { getOptionalAuth } from '~/server/auth/session.server'
+import { getPosSession } from '~/server/auth/pos-session.server'
 import { useTranslation } from '~/i18n/context'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/index'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
-  const organizationId = session.session.activeOrganizationId
+  const [userSession, posSession] = await Promise.all([
+    getOptionalAuth(request),
+    getPosSession(request),
+  ])
+
+  if (!userSession && !posSession) {
+    throw redirect('/pos-login')
+  }
+
+  const organizationId =
+    posSession?.organizationId ?? userSession?.session.activeOrganizationId
+
+  const userName = posSession?.cashierName ?? userSession?.user.name ?? ''
 
   if (!organizationId) {
-    return { terminals: [], userName: session.user.name }
+    return { terminals: [], userName }
   }
 
   const terminals = await posRepository.getTerminals(organizationId)
-  return { terminals, userName: session.user.name }
+  return { terminals, userName }
 }
 
 export default function PosIndex({ loaderData }: Route.ComponentProps) {

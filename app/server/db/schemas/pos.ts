@@ -85,7 +85,7 @@ export const posSaleModel = pgTable('pos_sale', {
     .references(() => posTerminalModel.id),
   cashierId: uuid('cashier_id')
     .notNull()
-    .references(() => userModel.id),
+    .references(() => posCashierModel.id),
   sessionId: uuid('session_id'),
   businessPartnerId: uuid('business_partner_id')
     .notNull()
@@ -291,9 +291,9 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
     fields: [posSaleModel.terminalId],
     references: [posTerminalModel.id],
   }),
-  cashier: one(userModel, {
+  cashier: one(posCashierModel, {
     fields: [posSaleModel.cashierId],
-    references: [userModel.id],
+    references: [posCashierModel.id],
   }),
   businessPartner: one(businessPartnerModel, {
     fields: [posSaleModel.businessPartnerId],

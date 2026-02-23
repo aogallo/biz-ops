@@ -14,7 +14,7 @@ import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
 import { companyModel } from '~/server/db/schemas/company'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
-import { userModel } from '~/server/db/schemas/auth'
+import { organizationModel, userModel } from '~/server/db/schemas/auth'
 import type {
   CreateTerminalInput,
   UpdateTerminalInput,
@@ -162,9 +162,9 @@ export class PosRepository {
           .limit(1)
           .then((r) => r[0] ?? null),
         db
-          .select({ id: userModel.id, name: userModel.name })
-          .from(userModel)
-          .where(eq(userModel.id, sale.cashierId))
+          .select({ id: posCashierModel.id, name: posCashierModel.name })
+          .from(posCashierModel)
+          .where(eq(posCashierModel.id, sale.cashierId))
           .limit(1)
           .then((r) => r[0] ?? null),
         db
@@ -227,12 +227,12 @@ export class PosRepository {
         total: posSaleModel.total,
         currency: posSaleModel.currency,
         createdAt: posSaleModel.createdAt,
-        cashierName: userModel.name,
+        cashierName: posCashierModel.name,
         terminalName: posTerminalModel.name,
         customerName: businessPartnerModel.name,
       })
       .from(posSaleModel)
-      .innerJoin(userModel, eq(posSaleModel.cashierId, userModel.id))
+      .innerJoin(posCashierModel, eq(posSaleModel.cashierId, posCashierModel.id))
       .innerJoin(
         posTerminalModel,
         eq(posSaleModel.terminalId, posTerminalModel.id)
@@ -432,6 +432,84 @@ export class PosRepository {
       .where(eq(posZReportModel.id, id))
       .limit(1)
     return report ?? null
+  }
+
+  // ── POS Login ──
+
+  async getActiveOrganizations() {
+    return await db
+      .select({
+        id: organizationModel.id,
+        name: organizationModel.name,
+        slug: organizationModel.slug,
+      })
+      .from(organizationModel)
+      .orderBy(organizationModel.name)
+  }
+
+  async getActiveCashiersForOrganization(organizationId: string) {
+    return await db
+      .select({
+        id: posCashierModel.id,
+        name: posCashierModel.name,
+        userId: posCashierModel.userId,
+        hasPin: sql<boolean>`${posCashierModel.pin} IS NOT NULL`,
+      })
+      .from(posCashierModel)
+      .where(
+        and(
+          eq(posCashierModel.organizationId, organizationId),
+          eq(posCashierModel.isActive, true)
+        )
+      )
+      .orderBy(posCashierModel.name)
+  }
+
+  async verifyCashierPin(cashierId: string, pin: string) {
+    const [cashier] = await db
+      .select()
+      .from(posCashierModel)
+      .where(and(eq(posCashierModel.id, cashierId), eq(posCashierModel.isActive, true)))
+      .limit(1)
+
+    if (!cashier) return null
+
+    // Check lockout (5 failed attempts within 30 min)
+    if (cashier.pinAttempts >= 5 && cashier.pinLockedAt) {
+      const lockedAt = new Date(cashier.pinLockedAt).getTime()
+      const thirtyMin = 30 * 60 * 1000
+      if (Date.now() - lockedAt < thirtyMin) {
+        return null
+      }
+      // Lockout expired — reset
+      await db
+        .update(posCashierModel)
+        .set({ pinAttempts: 0, pinLockedAt: null, updatedAt: new Date() })
+        .where(eq(posCashierModel.id, cashierId))
+    }
+
+    if (cashier.pin !== pin) {
+      const newAttempts = cashier.pinAttempts + 1
+      await db
+        .update(posCashierModel)
+        .set({
+          pinAttempts: newAttempts,
+          pinLockedAt: newAttempts >= 5 ? new Date() : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(posCashierModel.id, cashierId))
+      return null
+    }
+
+    // Correct PIN — reset attempts
+    if (cashier.pinAttempts > 0) {
+      await db
+        .update(posCashierModel)
+        .set({ pinAttempts: 0, pinLockedAt: null, updatedAt: new Date() })
+        .where(eq(posCashierModel.id, cashierId))
+    }
+
+    return cashier
   }
 }
 

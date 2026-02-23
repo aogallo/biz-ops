@@ -53,6 +53,7 @@ export const checkoutSchema = z.object({
   organizationId: z.string().uuid(),
   companyId: z.string().uuid(),
   cashierId: z.string().uuid(),
+  userId: z.string().uuid().optional().nullable(),
   businessPartnerId: z.string().uuid(),
   idempotencyKey: z.string().uuid(),
   sessionId: z.string().uuid().optional(),

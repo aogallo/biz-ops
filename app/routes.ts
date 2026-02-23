@@ -23,6 +23,9 @@ export default [
   // Public invitation acceptance
   route('/invitation/accept/:token', './routes/invitation/accept.$token.tsx'),
 
+  // POS Login (no auth required)
+  route('/pos-login', './routes/pos-login.tsx'),
+
   // POS routes (full-screen, no sidebar)
   layout('./layout/PosLayout.tsx', [
     ...prefix('pos', [

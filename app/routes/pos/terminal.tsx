@@ -29,15 +29,26 @@ import {
   calculateCartTotals,
 } from '~/features/pos/types'
 import type { CheckoutPayment } from '~/features/pos/schemas'
-import { requireAuth } from '~/server/auth/session.server'
+import { getOptionalAuth } from '~/server/auth/session.server'
+import { getPosSession } from '~/server/auth/pos-session.server'
 import { useTranslation } from '~/i18n/context'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { db } from '~/server/db'
 import type { Route } from './+types/terminal'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
-  const organizationId = session.session.activeOrganizationId
+  const [userSession, posSession] = await Promise.all([
+    getOptionalAuth(request),
+    getPosSession(request),
+  ])
+
+  if (!userSession && !posSession) {
+    throw redirect('/pos-login')
+  }
+
+  const organizationId =
+    posSession?.organizationId ?? userSession?.session.activeOrganizationId
+
   const url = new URL(request.url)
   const terminalId = url.searchParams.get('terminalId')
 
@@ -50,11 +61,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect('/pos')
   }
 
-  // Get cashier profile for current user
-  const cashier = await posRepository.getCashierByUserId(
-    organizationId,
-    session.user.id
-  )
+  // Resolve cashier entity from POS session or user account
+  let cashier = null
+  if (posSession) {
+    cashier = await posRepository.getCashierById(posSession.cashierId)
+  } else if (userSession) {
+    cashier = await posRepository.getCashierByUserId(organizationId, userSession.user.id)
+  }
 
   // Get open session for this terminal
   const openSession = await posRepository.getOpenSession(terminalId)
@@ -64,13 +77,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     posRepository.getCategories(organizationId),
   ])
 
+  const cashierName = posSession?.cashierName ?? userSession?.user.name ?? ''
+  const userId = userSession?.user.id ?? null
+
   return {
     terminal,
     products,
     categories,
-    cashierId: session.user.id,
-    cashierName: session.user.name,
+    cashierId: cashier?.id ?? '',
+    cashierName,
     organizationId,
+    userId,
     defaultBusinessPartnerId: terminal.defaultBusinessPartnerId,
     cashier,
     openSession,
@@ -78,7 +95,18 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await requireAuth(request)
+  const [userSession, posSession] = await Promise.all([
+    getOptionalAuth(request),
+    getPosSession(request),
+  ])
+
+  if (!userSession && !posSession) {
+    throw redirect('/pos-login')
+  }
+
+  const organizationId =
+    posSession?.organizationId ?? userSession?.session.activeOrganizationId
+
   const formData = await request.formData()
   const intent = formData.get('intent')
 
@@ -144,7 +172,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === 'search-customers') {
-    const organizationId = session.session.activeOrganizationId
     const query = formData.get('query')
     if (!organizationId || !query || typeof query !== 'string') {
       return { customers: [] }
@@ -220,7 +247,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === 'create-customer') {
-    const organizationId = session.session.activeOrganizationId
     const name = formData.get('name')
     const nit = formData.get('nit')
 
@@ -262,6 +288,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     cashierId,
     cashierName,
     organizationId,
+    userId,
     defaultBusinessPartnerId,
     cashier,
     openSession,
@@ -393,6 +420,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         organizationId,
         companyId: terminal.companyId,
         cashierId,
+        userId,
         businessPartnerId,
         idempotencyKey: crypto.randomUUID(),
         sessionId: openSession?.id,
@@ -422,6 +450,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       terminal,
       organizationId,
       cashierId,
+      userId,
       openSession,
       fetcher,
       t,

@@ -53,6 +53,7 @@ export const checkoutSchema = z.object({
   companyId: z.string().uuid(),
   cashierId: z.string().uuid(),
   businessPartnerId: z.string().uuid(),
+  idempotencyKey: z.string().uuid(),
   lines: z.array(checkoutLineSchema).min(1, 'Cart cannot be empty'),
   payments: z.array(checkoutPaymentSchema).min(1, 'At least one payment required'),
   notes: z.string().optional(),

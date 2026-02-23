@@ -266,6 +266,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         companyId: terminal.companyId,
         cashierId,
         businessPartnerId,
+        idempotencyKey: crypto.randomUUID(),
         lines: cart.map((item) => ({
           productId: item.productId,
           productName: item.productName,

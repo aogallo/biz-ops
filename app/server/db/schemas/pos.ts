@@ -1,11 +1,13 @@
 import { relations } from 'drizzle-orm'
 import {
   boolean,
+  index,
   integer,
   numeric,
   pgEnum,
   pgTable,
   text,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 import {
@@ -52,7 +54,9 @@ export const posTerminalModel = pgTable('pos_terminal', {
     () => businessPartnerModel.id
   ),
   ...timestamps,
-})
+}, (table) => [
+  index('pos_terminal_org_active_idx').on(table.organizationId, table.isActive),
+])
 
 // POS Sale
 export const posSaleModel = pgTable('pos_sale', {
@@ -73,6 +77,7 @@ export const posSaleModel = pgTable('pos_sale', {
     .notNull()
     .references(() => businessPartnerModel.id),
   saleNumber: text('sale_number').notNull(),
+  idempotencyKey: uuid('idempotency_key'),
   status: posSaleStatusEnum('status').notNull().default('completed'),
   subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull(),
   ivaAmount: numeric('iva_amount', { precision: 12, scale: 2 })
@@ -86,7 +91,12 @@ export const posSaleModel = pgTable('pos_sale', {
   invoiceId: uuid('invoice_id').references(() => invoiceModel.id),
   notes: text('notes'),
   ...timestamps,
-})
+}, (table) => [
+  uniqueIndex('pos_sale_idempotency_key_idx').on(table.idempotencyKey),
+  index('pos_sale_terminal_created_idx').on(table.terminalId, table.createdAt),
+  index('pos_sale_status_idx').on(table.status),
+  index('pos_sale_org_created_idx').on(table.organizationId, table.createdAt),
+])
 
 // POS Sale Line
 export const posSaleLineModel = pgTable('pos_sale_line', {

@@ -14,15 +14,24 @@ import type { CheckoutInput } from '../../schemas'
 import { calculateLineTotals } from '../../types'
 
 export async function createSaleAction(input: CheckoutInput) {
+  // Check idempotency — return existing sale if already processed
+  const [existingSale] = await db
+    .select({ id: posSaleModel.id, saleNumber: posSaleModel.saleNumber })
+    .from(posSaleModel)
+    .where(eq(posSaleModel.idempotencyKey, input.idempotencyKey))
+    .limit(1)
+
+  if (existingSale) {
+    return { saleId: existingSale.id, saleNumber: existingSale.saleNumber }
+  }
+
   return await db.transaction(async (tx) => {
-    // 1. Validate stock for STOCK products
+    // 1. Lock and validate stock for STOCK products (SELECT FOR UPDATE prevents race conditions)
     for (const line of input.lines) {
       if (line.productType === 'STOCK') {
-        const [product] = await tx
-          .select({ id: productModel.id, stock: productModel.stock, name: productModel.name })
-          .from(productModel)
-          .where(eq(productModel.id, line.productId))
-          .limit(1)
+        const [product] = await tx.execute<{ id: string; stock: number; name: string }>(
+          sql`SELECT id, stock, name FROM ${productModel} WHERE id = ${line.productId} LIMIT 1 FOR UPDATE`
+        )
 
         if (!product) {
           throw new Error(`Product not found: ${line.productName}`)
@@ -108,6 +117,7 @@ export async function createSaleAction(input: CheckoutInput) {
         cashierId: input.cashierId,
         businessPartnerId: input.businessPartnerId,
         saleNumber,
+        idempotencyKey: input.idempotencyKey,
         status: 'completed',
         subtotal: String(saleSubtotal),
         ivaAmount: String(saleIvaAmount),
@@ -155,76 +165,116 @@ export async function createSaleAction(input: CheckoutInput) {
           createdById: input.cashierId,
         })
 
-        // Decrement stock
-        await tx
-          .update(productModel)
-          .set({
-            stock: sql`${productModel.stock} - ${line.quantity}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(productModel.id, line.productId))
-      }
-    }
-
-    // 8. Auto-generate invoice if terminal configured
-    const [terminal] = await tx
-      .select({
-        autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
-      })
-      .from(posTerminalModel)
-      .where(eq(posTerminalModel.id, input.terminalId))
-      .limit(1)
-
-    if (terminal?.autoGenerateInvoice) {
-      // Find a default sales accounting account
-      const defaultAccountId = orgConfig.defaultSalesAccountId
-      if (defaultAccountId) {
-        const invoiceNumber = `${orgConfig.posPrefix}-INV-${String(orgConfig.nextPosSaleNumber - 1).padStart(6, '0')}`
-
-        const [invoice] = await tx
-          .insert(invoiceModel)
-          .values({
-            organizationId: input.organizationId,
-            companyId: input.companyId,
-            businessPartnerId: input.businessPartnerId,
-            accountingAccountId: defaultAccountId,
-            type: 'sale',
-            number: invoiceNumber,
-            invoiceDate: new Date().toISOString().split('T')[0],
-            subtotal: String(saleSubtotal),
-            ivaAmount: String(saleIvaAmount),
-            total: String(saleTotal),
-            status: 'posted',
-            source: 'manual',
-          })
-          .returning()
-
-        // Insert invoice lines
-        await tx.insert(invoiceLineModel).values(
-          lineData.map((line) => ({
-            invoiceId: invoice.id,
-            lineNumber: line.lineNumber,
-            description: `${line.productName} (${line.productSku})`,
-            quantity: line.quantity,
-            unitPrice: line.unitPrice,
-            subtotal: line.subtotal,
-            ivaType: line.ivaType,
-            ivaRate: line.ivaRate,
-            ivaAmount: line.ivaAmount,
-            total: line.total,
-            productId: line.productId,
-            lineType: 'goods' as const,
-          }))
+        // Decrement stock atomically with safety check
+        const [updated] = await tx.execute<{ id: string }>(
+          sql`UPDATE ${productModel} SET stock = stock - ${line.quantity}, updated_at = NOW() WHERE id = ${line.productId} AND stock >= ${line.quantity} RETURNING id`
         )
 
-        // Link invoice to sale
-        await tx
-          .update(posSaleModel)
-          .set({ invoiceId: invoice.id, updatedAt: new Date() })
-          .where(eq(posSaleModel.id, sale.id))
+        if (!updated) {
+          throw new Error(`Stock conflict for "${line.productName}". Another transaction modified the stock.`)
+        }
       }
     }
 
-    return { saleId: sale.id, saleNumber }
+    return {
+      saleId: sale.id,
+      saleNumber,
+      posPrefix: orgConfig.posPrefix,
+      nextPosSaleNumber: orgConfig.nextPosSaleNumber,
+      defaultSalesAccountId: orgConfig.defaultSalesAccountId,
+      lineData,
+      saleSubtotal,
+      saleIvaAmount,
+      saleTotal,
+    }
   })
+
+  // 8. Auto-generate invoice OUTSIDE the main transaction (reduces lock duration)
+  await generateInvoiceIfConfigured(input, result)
+
+  return { saleId: result.saleId, saleNumber: result.saleNumber }
+}
+
+async function generateInvoiceIfConfigured(
+  input: CheckoutInput,
+  saleResult: {
+    saleId: string
+    saleNumber: string
+    posPrefix: string | null
+    nextPosSaleNumber: number
+    defaultSalesAccountId: string | null
+    lineData: Array<{
+      lineNumber: number
+      productId: string
+      productName: string
+      productSku: string
+      quantity: string
+      unitPrice: string
+      subtotal: string
+      ivaType: 'taxed' | 'exempt' | 'non_subject'
+      ivaRate: string
+      ivaAmount: string
+      total: string
+    }>
+    saleSubtotal: number
+    saleIvaAmount: number
+    saleTotal: number
+  }
+) {
+  const [terminal] = await db
+    .select({
+      autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
+    })
+    .from(posTerminalModel)
+    .where(eq(posTerminalModel.id, input.terminalId))
+    .limit(1)
+
+  if (!terminal?.autoGenerateInvoice) return
+
+  const defaultAccountId = saleResult.defaultSalesAccountId
+  if (!defaultAccountId) return
+
+  const invoiceNumber = `${saleResult.posPrefix}-INV-${String(saleResult.nextPosSaleNumber).padStart(6, '0')}`
+
+  const [invoice] = await db
+    .insert(invoiceModel)
+    .values({
+      organizationId: input.organizationId,
+      companyId: input.companyId,
+      businessPartnerId: input.businessPartnerId,
+      accountingAccountId: defaultAccountId,
+      type: 'sale',
+      number: invoiceNumber,
+      invoiceDate: new Date().toISOString().split('T')[0],
+      subtotal: String(saleResult.saleSubtotal),
+      ivaAmount: String(saleResult.saleIvaAmount),
+      total: String(saleResult.saleTotal),
+      status: 'posted',
+      source: 'manual',
+    })
+    .returning()
+
+  // Insert invoice lines
+  await db.insert(invoiceLineModel).values(
+    saleResult.lineData.map((line) => ({
+      invoiceId: invoice.id,
+      lineNumber: line.lineNumber,
+      description: `${line.productName} (${line.productSku})`,
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+      subtotal: line.subtotal,
+      ivaType: line.ivaType,
+      ivaRate: line.ivaRate,
+      ivaAmount: line.ivaAmount,
+      total: line.total,
+      productId: line.productId,
+      lineType: 'goods' as const,
+    }))
+  )
+
+  // Link invoice to sale
+  await db
+    .update(posSaleModel)
+    .set({ invoiceId: invoice.id, updatedAt: new Date() })
+    .where(eq(posSaleModel.id, saleResult.saleId))
 }

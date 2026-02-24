@@ -1,0 +1,15 @@
+export const stock = {
+  'stock.title': 'Stock Movements',
+  'stock.new': 'New Movement',
+  'stock.type': 'Type',
+  'stock.type.entry': 'Entry',
+  'stock.type.exit': 'Exit',
+  'stock.type.adjustment': 'Adjustment',
+  'stock.quantity': 'Quantity',
+  'stock.reason': 'Reason',
+  'stock.notes': 'Notes',
+  'stock.date': 'Date',
+  'stock.product': 'Product',
+  'stock.createdBy': 'Created by',
+  'stock.searchPlaceholder': 'Search movements...',
+} as const

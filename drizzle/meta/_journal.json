@@ -78,6 +78,49 @@
       "when": 1771437909944,
       "tag": "0010_reflective_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1771450557750,
+      "tag": "0011_great_lily_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1771511032367,
+      "tag": "0012_cool_scarlet_spider",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1771514099882,
+      "tag": "0013_even_sprite",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1771819086692,
+      "tag": "0014_mute_vertigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1771860960673,
+      "tag": "0015_abandoned_hellion",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1771948949591,
+      "tag": "0016_curved_strong_guy",
+      "breakpoints": true
     }
   ]
 }
+

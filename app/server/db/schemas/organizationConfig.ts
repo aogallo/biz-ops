@@ -53,6 +53,19 @@ export const organizationAccountingConfigModel = pgTable(
     // Order settings
     orderPrefix: text('order_prefix').notNull().default('OR'),
     nextOrderNumber: integer('next_order_number').notNull().default(1),
+    // POS settings
+    posPrefix: text('pos_prefix').notNull().default('POS'),
+    nextPosSaleNumber: integer('next_pos_sale_number').notNull().default(1),
+    // POS account mappings
+    posCashAccountId: uuid('pos_cash_account_id').references(
+      () => accountingAccountModel.id
+    ),
+    posCardAccountId: uuid('pos_card_account_id').references(
+      () => accountingAccountModel.id
+    ),
+    posCheckAccountId: uuid('pos_check_account_id').references(
+      () => accountingAccountModel.id
+    ),
     ...timestamps,
   }
 )
@@ -94,6 +107,21 @@ export const organizationAccountingConfigRelations = relations(
       fields: [organizationAccountingConfigModel.defaultPurchaseAccountId],
       references: [accountingAccountModel.id],
       relationName: 'defaultPurchase',
+    }),
+    posCashAccount: one(accountingAccountModel, {
+      fields: [organizationAccountingConfigModel.posCashAccountId],
+      references: [accountingAccountModel.id],
+      relationName: 'posCash',
+    }),
+    posCardAccount: one(accountingAccountModel, {
+      fields: [organizationAccountingConfigModel.posCardAccountId],
+      references: [accountingAccountModel.id],
+      relationName: 'posCard',
+    }),
+    posCheckAccount: one(accountingAccountModel, {
+      fields: [organizationAccountingConfigModel.posCheckAccountId],
+      references: [accountingAccountModel.id],
+      relationName: 'posCheck',
     }),
   })
 )

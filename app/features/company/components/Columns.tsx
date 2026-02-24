@@ -13,7 +13,7 @@ export const CompanyColumns: ColumnDef<Company>[] = [
   },
   {
     id: 'operations',
-    header: 'Operations',
+    header: 'Actions',
     size: 10,
     cell: ({ row }) => <RowOperations row={row} />,
   },

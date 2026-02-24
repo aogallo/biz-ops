@@ -137,6 +137,7 @@ export default [
       index('./routes/company/index.tsx'),
       route('/new', './routes/company/create.tsx'),
       route('/:companyId', './routes/company/show.tsx'),
+      route('/:companyId/edit', './routes/company/edit.tsx'),
     ]),
     ...prefix('permissions', [
       index('./routes/permissions/index.tsx'),

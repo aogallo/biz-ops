@@ -80,6 +80,28 @@ import {
   quotationRecipientRelations,
   quotationStatus,
 } from './quotations'
+import {
+  posTerminalModel,
+  posSaleModel,
+  posSaleLineModel,
+  posPaymentModel,
+  posCashierModel,
+  posSessionModel,
+  posCashMovementModel,
+  posZReportModel,
+  posTerminalRelations,
+  posSaleRelations,
+  posSaleLineRelations,
+  posPaymentRelations,
+  posCashierRelations,
+  posSessionRelations,
+  posCashMovementRelations,
+  posZReportRelations,
+  posSaleStatusEnum,
+  posPaymentMethodEnum,
+  posSessionStatusEnum,
+  posCashMovementTypeEnum,
+} from './pos'
 
 export const schema = {
   // Auth tables
@@ -134,6 +156,16 @@ export const schema = {
   quotationDetail: quotationDetailModel,
   quotationRecipient: quotationRecipientModel,
 
+  // POS tables
+  posTerminal: posTerminalModel,
+  posSale: posSaleModel,
+  posSaleLine: posSaleLineModel,
+  posPayment: posPaymentModel,
+  posCashier: posCashierModel,
+  posSession: posSessionModel,
+  posCashMovement: posCashMovementModel,
+  posZReport: posZReportModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -158,6 +190,14 @@ export const schema = {
   quotationRelations,
   quotationDetailRelations,
   quotationRecipientRelations,
+  posTerminalRelations,
+  posSaleRelations,
+  posSaleLineRelations,
+  posPaymentRelations,
+  posCashierRelations,
+  posSessionRelations,
+  posCashMovementRelations,
+  posZReportRelations,
 }
 
 // Re-export all schemas for easy access
@@ -176,6 +216,7 @@ export * from './appointment'
 export * from './stockMovement'
 export * from './orders'
 export * from './quotations'
+export * from './pos'
 export * from './common'
 
 // Re-export enums
@@ -192,4 +233,8 @@ export {
   orderSourceType,
   orderStatus,
   quotationStatus,
+  posSaleStatusEnum,
+  posPaymentMethodEnum,
+  posSessionStatusEnum,
+  posCashMovementTypeEnum,
 }

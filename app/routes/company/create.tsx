@@ -45,15 +45,16 @@ export default function CreateCompany() {
       <Card>
         <CardHeader>
           <CardTitle>{t('company.createTitle')}</CardTitle>
-          <CardDescription>
-            {t('company.createDescription')}
-          </CardDescription>
+          <CardDescription>{t('company.createDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('company.nameLabel')}
                 </label>
                 <input
@@ -88,6 +89,34 @@ export default function CreateCompany() {
                     {actionData.errors.nit}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor='code'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  POS Code *
+                </label>
+                <input
+                  type='text'
+                  id='code'
+                  name='code'
+                  required
+                  maxLength={20}
+                  placeholder='TIENDA-01'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm uppercase focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  style={{ textTransform: 'uppercase' }}
+                />
+                {actionData?.errors?.code && (
+                  <p className='text-destructive mt-1 text-xs'>
+                    {actionData.errors.code}
+                  </p>
+                )}
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  Short code cashiers type at POS login to identify this
+                  company.
+                </p>
               </div>
             </div>
 

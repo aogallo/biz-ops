@@ -1,5 +1,5 @@
 import { Monitor } from 'lucide-react'
-import { Link, redirect } from 'react-router'
+import { Form, Link, redirect } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { posRepository } from '~/features/pos/server/repository'
 import { getOptionalAuth } from '~/server/auth/session.server'
@@ -28,11 +28,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const terminals = await posRepository.getTerminals(organizationId)
-  return { terminals, userName }
+  return { terminals, userName, hasUserSession: !!userSession }
 }
 
 export default function PosIndex({ loaderData }: Route.ComponentProps) {
-  const { terminals, userName } = loaderData
+  const { terminals, userName, hasUserSession } = loaderData
   const { t } = useTranslation()
 
   const activeTerminals = terminals.filter((t) => t.isActive)
@@ -78,10 +78,17 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        <div className='text-center'>
-          <Button variant='ghost' size='sm' asChild>
-            <Link to='/dashboard'>{t('pos.backToErp')}</Link>
-          </Button>
+        <div className='flex items-center justify-center gap-3'>
+          {hasUserSession && (
+            <Button variant='ghost' size='sm' asChild>
+              <Link to='/dashboard'>Volver al ERP</Link>
+            </Button>
+          )}
+          <Form method='post' action='/pos-logout'>
+            <Button variant='ghost' size='sm' type='submit'>
+              Cerrar sesión
+            </Button>
+          </Form>
         </div>
       </div>
     </div>

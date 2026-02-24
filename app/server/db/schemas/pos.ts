@@ -161,22 +161,28 @@ export const posPaymentModel = pgTable('pos_payment', {
 })
 
 // POS Cashier
-export const posCashierModel = pgTable('pos_cashier', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: uuid('organization_id')
-    .notNull()
-    .references(() => organizationModel.id),
-  companyId: uuid('company_id')
-    .notNull()
-    .references(() => companyModel.id),
-  userId: uuid('user_id').references(() => userModel.id),
-  name: text('name').notNull(),
-  pin: text('pin'),
-  pinAttempts: integer('pin_attempts').notNull().default(0),
-  pinLockedAt: timestamp('pin_locked_at'),
-  isActive: boolean('is_active').notNull().default(true),
-  ...timestamps,
-})
+export const posCashierModel = pgTable(
+  'pos_cashier',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizationModel.id),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companyModel.id),
+    userId: uuid('user_id').references(() => userModel.id),
+    name: text('name').notNull(),
+    pin: text('pin'),
+    pinAttempts: integer('pin_attempts').notNull().default(0),
+    pinLockedAt: timestamp('pin_locked_at'),
+    isActive: boolean('is_active').notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex('cashier_pin_company_idx').on(table.companyId, table.pin),
+  ]
+)
 
 // POS Session
 export const posSessionModel = pgTable('pos_session', {

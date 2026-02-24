@@ -8,6 +8,13 @@ import { companyModel } from '~/server/db/schemas/company'
 
 const insertCompanySchema = createInsertSchema(companyModel, {
   name: z.string().min(3),
+  code: z
+    .string()
+    .max(20)
+    .regex(/^[A-Z0-9-]+$/, 'Only uppercase letters, numbers, and hyphens')
+    .transform((v) => (v && v.trim() !== '' ? v.toUpperCase() : null))
+    .optional()
+    .nullable(),
 })
 
 export const createCompanySchema = insertCompanySchema.omit({

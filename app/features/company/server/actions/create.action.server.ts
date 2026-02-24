@@ -45,6 +45,20 @@ export async function createCompany(request: Request) {
     }
   }
 
+  if (data.code) {
+    const existingCode = await companyRepository.getByCode({
+      organizationId,
+      code: data.code,
+    })
+    if (existingCode) {
+      return {
+        success: false,
+        message: `Company code "${data.code}" is already taken`,
+        errors: { code: [`Code "${data.code}" is already in use`] },
+      }
+    }
+  }
+
   try {
     const company = await companyRepository.create(data)
     return {

@@ -26,7 +26,9 @@ import type { PosProductForGrid, PosTerminalWithCompany } from '../types'
 export class PosRepository {
   // ── Terminal CRUD ──
 
-  async getTerminals(organizationId: string): Promise<PosTerminalWithCompany[]> {
+  async getTerminals(
+    organizationId: string
+  ): Promise<PosTerminalWithCompany[]> {
     const terminals = await db
       .select({
         id: posTerminalModel.id,
@@ -98,9 +100,7 @@ export class PosRepository {
     categoryId?: string,
     search?: string
   ): Promise<PosProductForGrid[]> {
-    const conditions: SQL[] = [
-      eq(productModel.organizationId, organizationId),
-    ]
+    const conditions: SQL[] = [eq(productModel.organizationId, organizationId)]
 
     if (categoryId) {
       conditions.push(eq(productModel.categoryId, categoryId))
@@ -151,12 +151,13 @@ export class PosRepository {
           .from(posSaleLineModel)
           .where(eq(posSaleLineModel.saleId, id))
           .orderBy(posSaleLineModel.lineNumber),
+        db.select().from(posPaymentModel).where(eq(posPaymentModel.saleId, id)),
         db
-          .select()
-          .from(posPaymentModel)
-          .where(eq(posPaymentModel.saleId, id)),
-        db
-          .select({ id: businessPartnerModel.id, name: businessPartnerModel.name, nit: businessPartnerModel.nit })
+          .select({
+            id: businessPartnerModel.id,
+            name: businessPartnerModel.name,
+            nit: businessPartnerModel.nit,
+          })
           .from(businessPartnerModel)
           .where(eq(businessPartnerModel.id, sale.businessPartnerId))
           .limit(1)
@@ -232,7 +233,10 @@ export class PosRepository {
         customerName: businessPartnerModel.name,
       })
       .from(posSaleModel)
-      .innerJoin(posCashierModel, eq(posSaleModel.cashierId, posCashierModel.id))
+      .innerJoin(
+        posCashierModel,
+        eq(posSaleModel.cashierId, posCashierModel.id)
+      )
       .innerJoin(
         posTerminalModel,
         eq(posSaleModel.terminalId, posTerminalModel.id)
@@ -329,10 +333,7 @@ export class PosRepository {
   }
 
   async createCashier(data: CreateCashierInput) {
-    const [cashier] = await db
-      .insert(posCashierModel)
-      .values(data)
-      .returning()
+    const [cashier] = await db.insert(posCashierModel).values(data).returning()
     return cashier
   }
 
@@ -465,11 +466,68 @@ export class PosRepository {
       .orderBy(posCashierModel.name)
   }
 
+  async verifyCashierByCompanyAndPin(companyCode: string, pin: string) {
+    // Find company by code (case-insensitive)
+    const [company] = await db
+      .select({
+        id: companyModel.id,
+        name: companyModel.name,
+        organizationId: companyModel.organizationId,
+      })
+      .from(companyModel)
+      .where(sql`upper(${companyModel.code}) = upper(${companyCode})`)
+      .limit(1)
+
+    if (!company) return null
+
+    // Find active cashier in that company with matching PIN
+    const [cashier] = await db
+      .select()
+      .from(posCashierModel)
+      .where(
+        and(
+          eq(posCashierModel.companyId, company.id),
+          eq(posCashierModel.pin, pin),
+          eq(posCashierModel.isActive, true)
+        )
+      )
+      .limit(1)
+
+    if (!cashier) return null
+
+    // Check lockout
+    if (cashier.pinAttempts >= 5 && cashier.pinLockedAt) {
+      const lockedAt = new Date(cashier.pinLockedAt).getTime()
+      const thirtyMin = 30 * 60 * 1000
+      if (Date.now() - lockedAt < thirtyMin) return null
+      // Lockout expired — reset
+      await db
+        .update(posCashierModel)
+        .set({ pinAttempts: 0, pinLockedAt: null, updatedAt: new Date() })
+        .where(eq(posCashierModel.id, cashier.id))
+    }
+
+    // Reset attempts on successful login
+    if (cashier.pinAttempts > 0) {
+      await db
+        .update(posCashierModel)
+        .set({ pinAttempts: 0, pinLockedAt: null, updatedAt: new Date() })
+        .where(eq(posCashierModel.id, cashier.id))
+    }
+
+    return { ...cashier, companyName: company.name }
+  }
+
   async verifyCashierPin(cashierId: string, pin: string) {
     const [cashier] = await db
       .select()
       .from(posCashierModel)
-      .where(and(eq(posCashierModel.id, cashierId), eq(posCashierModel.isActive, true)))
+      .where(
+        and(
+          eq(posCashierModel.id, cashierId),
+          eq(posCashierModel.isActive, true)
+        )
+      )
       .limit(1)
 
     if (!cashier) return null

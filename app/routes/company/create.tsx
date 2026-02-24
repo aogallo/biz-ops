@@ -91,6 +91,36 @@ export default function CreateCompany() {
               </div>
             </div>
 
+              <div>
+                <label
+                  htmlFor='code'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  POS Code{' '}
+                  <span className='text-muted-foreground font-normal'>
+                    (optional)
+                  </span>
+                </label>
+                <input
+                  type='text'
+                  id='code'
+                  name='code'
+                  maxLength={20}
+                  placeholder='TIENDA-01'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm uppercase focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                  style={{ textTransform: 'uppercase' }}
+                />
+                {actionData?.errors?.code && (
+                  <p className='text-destructive mt-1 text-xs'>
+                    {actionData.errors.code}
+                  </p>
+                )}
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  Short code cashiers type at POS login to identify this
+                  company.
+                </p>
+              </div>
+
             <div>
               <label htmlFor='email' className='mb-2 block text-sm font-medium'>
                 {t('company.emailLabel')}

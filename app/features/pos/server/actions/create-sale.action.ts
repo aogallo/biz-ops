@@ -164,7 +164,7 @@ export async function createSaleAction(input: CheckoutInput) {
           reason: `POS Sale ${saleNumber}`,
           referenceType: 'pos_sale',
           referenceId: sale.id,
-          createdById: input.cashierId,
+          createdById: input.userId ?? null,
         })
 
         // Decrement stock atomically with safety check

@@ -6,7 +6,7 @@ import {
   Landmark,
   MapPinCheck,
 } from 'lucide-react'
-import { useNavigation } from 'react-router'
+import { Link, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { useTranslation } from '~/i18n/context'
@@ -74,7 +74,11 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
           </div>
         </div>
         <div className='flex w-full gap-3 md:w-auto'>
-          <Button variant='outline'>{t('company.editDetails')}</Button>
+          <Button variant='outline' asChild>
+              <Link to={`/company/${company?.id}/edit`}>
+                {t('company.editDetails')}
+              </Link>
+            </Button>
         </div>
       </div>
 

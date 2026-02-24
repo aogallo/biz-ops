@@ -23,6 +23,10 @@ export default [
   // Public invitation acceptance
   route('/invitation/accept/:token', './routes/invitation/accept.$token.tsx'),
 
+  // POS Login / Logout (no auth required)
+  route('/pos-login', './routes/pos-login.tsx'),
+  route('/pos-logout', './routes/pos-logout.tsx'),
+
   // POS routes (full-screen, no sidebar)
   layout('./layout/PosLayout.tsx', [
     ...prefix('pos', [
@@ -134,6 +138,7 @@ export default [
       index('./routes/company/index.tsx'),
       route('/new', './routes/company/create.tsx'),
       route('/:companyId', './routes/company/show.tsx'),
+      route('/:companyId/edit', './routes/company/edit.tsx'),
     ]),
     ...prefix('permissions', [
       index('./routes/permissions/index.tsx'),

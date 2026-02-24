@@ -2,17 +2,51 @@ import { Outlet, redirect } from 'react-router'
 import { AuthProvider } from '~/contexts/AuthContext'
 import { organizationRepository } from '~/features/organization/server/repository'
 import { getUserOrganizations } from '~/server/auth/organization.server'
-import { requireAuth } from '~/server/auth/session.server'
+import { getOptionalAuth } from '~/server/auth/session.server'
+import { getPosSession } from '~/server/auth/pos-session.server'
 import { isSuperAdmin } from '~/server/permissions'
 import type { Route } from './+types/PosLayout'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
-  const userId = session.user.id
+  const [userSession, posSession] = await Promise.all([
+    getOptionalAuth(request),
+    getPosSession(request),
+  ])
 
+  if (!userSession && !posSession) {
+    throw redirect('/pos-login')
+  }
+
+  // POS cookie session — build minimal AuthProvider data
+  if (!userSession && posSession) {
+    return {
+      session: {
+        session: {
+          userId: '',
+          token: '',
+          expiresAt: new Date(),
+          activeOrganizationId: posSession.organizationId,
+        },
+        user: {
+          id: '',
+          email: '',
+          emailVerified: false,
+          name: posSession.cashierName,
+          image: null,
+          isSuperAdmin: false,
+        },
+      },
+      permissions: { list: [], isSuperAdmin: false },
+      organizations: [],
+      posSession,
+    }
+  }
+
+  // Better Auth session
+  const userId = userSession!.user.id
   const isSuperAdminUser = await isSuperAdmin(userId)
 
-  let organizations = []
+  let organizations: Array<{ id: string; name: string; slug: string; isAdmin?: boolean; logo: string | null; createdAt: Date }> = []
   if (isSuperAdminUser) {
     organizations = await organizationRepository.getAll()
   } else {
@@ -32,12 +66,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return {
-    session,
+    session: userSession!,
     permissions: {
       list: [],
       isSuperAdmin: isSuperAdminUser,
     },
     organizations,
+    posSession: null,
   }
 }
 

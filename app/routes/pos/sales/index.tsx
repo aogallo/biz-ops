@@ -4,8 +4,10 @@ import { Link } from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { DataTable } from '~/components/dataTable/DataTable'
+import { redirect } from 'react-router'
 import { posRepository } from '~/features/pos/server/repository'
-import { requireAuth } from '~/server/auth/session.server'
+import { getOptionalAuth } from '~/server/auth/session.server'
+import { getPosSession } from '~/server/auth/pos-session.server'
 import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/index'
 
@@ -22,8 +24,17 @@ interface SaleRow {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
-  const organizationId = session.session.activeOrganizationId
+  const [userSession, posSession] = await Promise.all([
+    getOptionalAuth(request),
+    getPosSession(request),
+  ])
+
+  if (!userSession && !posSession) {
+    throw redirect('/pos-login')
+  }
+
+  const organizationId =
+    posSession?.organizationId ?? userSession?.session.activeOrganizationId
 
   if (!organizationId) {
     return { sales: [], total: 0, page: 1, pageSize: 10 }
@@ -33,9 +44,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   const page = Number(url.searchParams.get('page') ?? '1')
   const pageSize = 10
 
+  const cashierIdFilter = posSession?.cashierId ?? undefined
+  const sessionIdFilter = url.searchParams.get('sessionId') ?? undefined
+
   const { sales, total } = await posRepository.getSalesPaginated(
     organizationId,
     {
+      cashierId: cashierIdFilter,
+      sessionId: sessionIdFilter,
       limit: pageSize,
       offset: (page - 1) * pageSize,
     }

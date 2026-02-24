@@ -176,7 +176,7 @@ export function PosPaymentDialog({
                 <Button
                   variant={method === 'cash' ? 'default' : 'outline'}
                   onClick={() => setMethod('cash')}
-                  className='flex-col gap-1 py-3'
+                  className='h-auto flex-col gap-1 py-3'
                 >
                   <Banknote className='size-5' />
                   <span className='text-xs'>{t('pos.cash')}</span>
@@ -184,7 +184,7 @@ export function PosPaymentDialog({
                 <Button
                   variant={method === 'card' ? 'default' : 'outline'}
                   onClick={() => setMethod('card')}
-                  className='flex-col gap-1 py-3'
+                  className='h-auto flex-col gap-1 py-3'
                 >
                   <CreditCard className='size-5' />
                   <span className='text-xs'>{t('pos.card')}</span>
@@ -192,7 +192,7 @@ export function PosPaymentDialog({
                 <Button
                   variant={method === 'check' ? 'default' : 'outline'}
                   onClick={() => setMethod('check')}
-                  className='flex-col gap-1 py-3'
+                  className='h-auto flex-col gap-1 py-3'
                 >
                   <FileText className='size-5' />
                   <span className='text-xs'>{t('pos.check')}</span>

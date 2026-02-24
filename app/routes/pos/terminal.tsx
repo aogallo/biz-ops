@@ -34,6 +34,7 @@ import { getPosSession } from '~/server/auth/pos-session.server'
 import { useTranslation } from '~/i18n/context'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { db } from '~/server/db'
+import { and, eq } from 'drizzle-orm'
 import type { Route } from './+types/terminal'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -80,6 +81,22 @@ export async function loader({ request }: Route.LoaderArgs) {
   const cashierName = posSession?.cashierName ?? userSession?.user.name ?? ''
   const userId = userSession?.user.id ?? null
 
+  let defaultBusinessPartnerId = terminal.defaultBusinessPartnerId ?? null
+
+  if (!defaultBusinessPartnerId) {
+    const [cfPartner] = await db
+      .select({ id: businessPartnerModel.id })
+      .from(businessPartnerModel)
+      .where(
+        and(
+          eq(businessPartnerModel.organizationId, organizationId),
+          eq(businessPartnerModel.nit, 'CF')
+        )
+      )
+      .limit(1)
+    defaultBusinessPartnerId = cfPartner?.id ?? null
+  }
+
   return {
     terminal,
     products,
@@ -88,7 +105,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     cashierName,
     organizationId,
     userId,
-    defaultBusinessPartnerId: terminal.defaultBusinessPartnerId,
+    defaultBusinessPartnerId,
     cashier,
     openSession,
   }

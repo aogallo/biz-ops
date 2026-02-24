@@ -67,7 +67,7 @@ export function PosHeader({
           </Button>
         )}
         <Button variant='ghost' size='sm' asChild>
-          <Link to='/pos/sales'>
+          <Link to={sessionId ? `/pos/sales?sessionId=${sessionId}` : '/pos/sales'}>
             <History className='size-4' />
             <span className='hidden sm:inline'>{t('pos.sales')}</span>
           </Link>

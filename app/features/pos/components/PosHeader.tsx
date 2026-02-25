@@ -6,6 +6,7 @@ import { useTranslation } from '~/i18n/context'
 
 interface PosHeaderProps {
   terminalName: string
+  terminalId: string
   cashierName: string
   sessionId?: string | null
   sessionOpenedAt?: string | null
@@ -15,6 +16,7 @@ interface PosHeaderProps {
 
 export function PosHeader({
   terminalName,
+  terminalId,
   cashierName,
   sessionId,
   sessionOpenedAt,
@@ -67,7 +69,7 @@ export function PosHeader({
           </Button>
         )}
         <Button variant='ghost' size='sm' asChild>
-          <Link to={sessionId ? `/pos/sales?sessionId=${sessionId}` : '/pos/sales'}>
+          <Link to={sessionId ? `/pos/sales?sessionId=${sessionId}&terminalId=${terminalId}` : `/pos/sales?terminalId=${terminalId}`}>
             <History className='size-4' />
             <span className='hidden sm:inline'>{t('pos.sales')}</span>
           </Link>

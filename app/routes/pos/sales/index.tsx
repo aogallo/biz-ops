@@ -57,11 +57,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
   )
 
-  return { sales, total, page, pageSize }
+  const terminalId = url.searchParams.get('terminalId') ?? null
+  return { sales, total, page, pageSize, terminalId }
 }
 
 export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
-  const { sales } = loaderData
+  const { sales, terminalId } = loaderData
   const { t } = useTranslation()
 
   const columns: ColumnDef<SaleRow>[] = [
@@ -140,7 +141,7 @@ export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
       <div className='mb-4 flex items-center justify-between'>
         <h1 className='text-xl font-bold'>{t('pos.salesHistory')}</h1>
         <Button variant='outline' size='sm' asChild>
-          <Link to='/pos'>{t('pos.backToPos')}</Link>
+          <Link to={terminalId ? `/pos/terminal?terminalId=${terminalId}` : '/pos'}>{t('pos.backToPos')}</Link>
         </Button>
       </div>
       <DataTable columns={columns} data={sales} />

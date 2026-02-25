@@ -30,9 +30,10 @@ export async function createSaleAction(input: CheckoutInput) {
     // 1. Lock and validate stock for STOCK products (SELECT FOR UPDATE prevents race conditions)
     for (const line of input.lines) {
       if (line.productType === 'STOCK') {
-        const [product] = await tx.execute<{ id: string; stock: number; name: string }>(
+        const productResult = await tx.execute<{ id: string; stock: number; name: string }>(
           sql`SELECT id, stock, name FROM ${productModel} WHERE id = ${line.productId} LIMIT 1 FOR UPDATE`
         )
+        const product = productResult.rows[0]
 
         if (!product) {
           throw new Error(`Product not found: ${line.productName}`)
@@ -168,9 +169,10 @@ export async function createSaleAction(input: CheckoutInput) {
         })
 
         // Decrement stock atomically with safety check
-        const [updated] = await tx.execute<{ id: string }>(
+        const updatedResult = await tx.execute<{ id: string }>(
           sql`UPDATE ${productModel} SET stock = stock - ${line.quantity}, updated_at = NOW() WHERE id = ${line.productId} AND stock >= ${line.quantity} RETURNING id`
         )
+        const updated = updatedResult.rows[0]
 
         if (!updated) {
           throw new Error(`Stock conflict for "${line.productName}". Another transaction modified the stock.`)

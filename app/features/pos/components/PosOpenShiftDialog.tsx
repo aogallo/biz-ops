@@ -13,12 +13,14 @@ import { useTranslation } from '~/i18n/context'
 interface PosOpenShiftDialogProps {
   open: boolean
   onConfirm: (openingCashAmount: number) => void
+  onCancel: () => void
   isSubmitting: boolean
 }
 
 export function PosOpenShiftDialog({
   open,
   onConfirm,
+  onCancel,
   isSubmitting,
 }: PosOpenShiftDialogProps) {
   const { t } = useTranslation()
@@ -56,11 +58,19 @@ export function PosOpenShiftDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className='flex gap-2 sm:flex-row'>
+          <Button
+            variant='outline'
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className='flex-1'
+          >
+            {t('common.cancel')}
+          </Button>
           <Button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className='w-full'
+            className='flex-1'
           >
             {isSubmitting ? t('pos.processing') : t('pos.openShift')}
           </Button>

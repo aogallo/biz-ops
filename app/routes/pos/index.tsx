@@ -27,6 +27,21 @@ export async function loader({ request }: Route.LoaderArgs) {
     return { terminals: [], userName }
   }
 
+  // Resolve cashier to check for an existing open session
+  let cashier = null
+  if (posSession) {
+    cashier = await posRepository.getCashierById(posSession.cashierId)
+  } else if (userSession) {
+    cashier = await posRepository.getCashierByUserId(organizationId, userSession.user.id)
+  }
+
+  if (cashier) {
+    const openSession = await posRepository.getOpenSessionByCashier(cashier.id)
+    if (openSession) {
+      throw redirect(`/pos/terminal?terminalId=${openSession.terminalId}`)
+    }
+  }
+
   const terminals = await posRepository.getTerminals(organizationId)
   return { terminals, userName, hasUserSession: !!userSession }
 }

@@ -390,6 +390,26 @@ export class PosRepository {
     return session ?? null
   }
 
+  async getOpenSessionByCashier(cashierId: string) {
+    const [session] = await db
+      .select({
+        id: posSessionModel.id,
+        terminalId: posSessionModel.terminalId,
+        cashierId: posSessionModel.cashierId,
+        openedAt: posSessionModel.openedAt,
+        status: posSessionModel.status,
+      })
+      .from(posSessionModel)
+      .where(
+        and(
+          eq(posSessionModel.cashierId, cashierId),
+          eq(posSessionModel.status, 'open')
+        )
+      )
+      .limit(1)
+    return session ?? null
+  }
+
   async getSessionById(id: string) {
     const [session] = await db
       .select()

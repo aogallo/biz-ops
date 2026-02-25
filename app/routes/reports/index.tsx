@@ -633,20 +633,20 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-AR', {
+    return new Intl.NumberFormat('es-GT', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'GTQ',
     }).format(amount)
   }
 
   const formatDateRange = () => {
     if (!dateRange?.from) return ''
-    const fromStr = dateRange.from.toLocaleDateString('es-AR', {
+    const fromStr = dateRange.from.toLocaleDateString('es-GT', {
       month: 'short',
       day: '2-digit',
     })
     const toStr = dateRange.to
-      ? dateRange.to.toLocaleDateString('es-AR', {
+      ? dateRange.to.toLocaleDateString('es-GT', {
           month: 'short',
           day: '2-digit',
         })
@@ -870,7 +870,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             {hasGeneratedData && totalRows > 0 && (
               <div className='flex items-center gap-3'>
                 <span className='text-muted-foreground text-sm'>
-                  Filas: {startRow}-{endRow} de {totalRows.toLocaleString('es-AR')}
+                  Filas: {startRow}-{endRow} de {totalRows.toLocaleString('es-GT')}
                 </span>
                 <div className='flex gap-1'>
                   <Button

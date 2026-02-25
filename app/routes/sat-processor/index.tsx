@@ -11,6 +11,12 @@ import {
   DialogTrigger,
 } from '~/components/ui/dialog'
 import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '~/components/ui/drawer'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -211,7 +217,7 @@ export default function SATProcessorIndex({
   })
 
   return (
-    <div className='flex flex-1 gap-2 overflow-hidden'>
+    <div className='flex flex-1 overflow-hidden'>
       <div className='flex flex-1 flex-col overflow-hidden p-6'>
         <div className='mb-4 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
@@ -283,12 +289,21 @@ export default function SATProcessorIndex({
         />
       </div>
 
-      {selectedRow && (
-        <aside className='w-80 shrink-0 overflow-auto border-l p-6'>
-          <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
-          <ProTipCard />
-        </aside>
-      )}
+      <Drawer
+        open={!!selectedRow}
+        onOpenChange={(open) => { if (!open) setSelectedRow(null) }}
+        direction='right'
+      >
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Invoice Details</DrawerTitle>
+          </DrawerHeader>
+          <div className='overflow-auto p-4'>
+            <SelectedRowDetails selectedRow={selectedRow} accounts={accounts} />
+            <ProTipCard />
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }

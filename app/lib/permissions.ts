@@ -46,7 +46,7 @@ export const MENU_PERMISSIONS = {
   // Settings
   '/settings/accounting': ['settings:accounting'],
   // Reports
-  '/reports': ['reports:create'],
+  '/reports': ['report:create'],
 } as const
 
 /**

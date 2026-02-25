@@ -34,7 +34,10 @@ export function PosOpenShiftDialog({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className='sm:max-w-sm' onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className='sm:max-w-sm'
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{t('pos.openShift')}</DialogTitle>
         </DialogHeader>
@@ -44,7 +47,9 @@ export function PosOpenShiftDialog({
             {t('pos.mustOpenShift')}
           </p>
           <div>
-            <label className='text-sm font-medium'>{t('pos.openingCash')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.openingCash')}
+            </label>
             <Input
               type='number'
               step='0.01'

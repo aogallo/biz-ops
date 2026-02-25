@@ -141,7 +141,11 @@ export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
       <div className='mb-4 flex items-center justify-between'>
         <h1 className='text-xl font-bold'>{t('pos.salesHistory')}</h1>
         <Button variant='outline' size='sm' asChild>
-          <Link to={terminalId ? `/pos/terminal?terminalId=${terminalId}` : '/pos'}>{t('pos.backToPos')}</Link>
+          <Link
+            to={terminalId ? `/pos/terminal?terminalId=${terminalId}` : '/pos'}
+          >
+            {t('pos.backToPos')}
+          </Link>
         </Button>
       </div>
       <DataTable columns={columns} data={sales} />

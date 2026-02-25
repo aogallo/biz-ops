@@ -67,7 +67,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (posSession) {
     cashier = await posRepository.getCashierById(posSession.cashierId)
   } else if (userSession) {
-    cashier = await posRepository.getCashierByUserId(organizationId, userSession.user.id)
+    cashier = await posRepository.getCashierByUserId(
+      organizationId,
+      userSession.user.id
+    )
   }
 
   // Get open session for this terminal
@@ -182,8 +185,7 @@ export async function action({ request }: Route.ActionArgs) {
       }
     } catch (error) {
       return {
-        error:
-          error instanceof Error ? error.message : 'Error processing sale',
+        error: error instanceof Error ? error.message : 'Error processing sale',
       }
     }
   }
@@ -234,7 +236,11 @@ export async function action({ request }: Route.ActionArgs) {
 
     try {
       const result = await closeSessionAction(parsed.data)
-      return { success: true, intent: 'close-session', zReportId: result.zReportId }
+      return {
+        success: true,
+        intent: 'close-session',
+        zReportId: result.zReportId,
+      }
     } catch (error) {
       return {
         error: error instanceof Error ? error.message : 'Error closing session',
@@ -258,7 +264,8 @@ export async function action({ request }: Route.ActionArgs) {
       return { success: true, intent: 'cash-movement' }
     } catch (error) {
       return {
-        error: error instanceof Error ? error.message : 'Error registering movement',
+        error:
+          error instanceof Error ? error.message : 'Error registering movement',
       }
     }
   }
@@ -289,7 +296,8 @@ export async function action({ request }: Route.ActionArgs) {
       }
     } catch (error) {
       return {
-        error: error instanceof Error ? error.message : 'Error creating customer',
+        error:
+          error instanceof Error ? error.message : 'Error creating customer',
       }
     }
   }
@@ -318,7 +326,9 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
 
   const [cart, setCart] = useState<CartItem[]>([])
   const [search, setSearch] = useState('')
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  )
   const [selectedCustomer, setSelectedCustomer] = useState<{
     id: string
     name: string
@@ -338,7 +348,9 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       <div className='flex flex-1 flex-col items-center justify-center p-8'>
         <div className='text-center'>
           <h2 className='text-xl font-bold'>{t('pos.noCashier')}</h2>
-          <p className='text-muted-foreground mt-2'>{t('pos.noCashierDescription')}</p>
+          <p className='text-muted-foreground mt-2'>
+            {t('pos.noCashierDescription')}
+          </p>
         </div>
       </div>
     )
@@ -383,7 +395,10 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           discountPercent: 0,
           ivaType: 'taxed' as const,
           ivaRate: 12,
-          productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE',
+          productType: product.productType as
+            | 'STOCK'
+            | 'MADE_TO_ORDER'
+            | 'SERVICE',
           stock: product.stock,
         },
       ]
@@ -580,7 +595,11 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     fetcherData.customer &&
     createCustomerOpen
   ) {
-    const c = fetcherData.customer as { id: string; name: string; nit: string | null }
+    const c = fetcherData.customer as {
+      id: string
+      name: string
+      nit: string | null
+    }
     setSelectedCustomer(c)
     setCreateCustomerOpen(false)
   }
@@ -601,7 +620,9 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         terminalId={terminal.id}
         cashierName={cashierName}
         sessionId={openSession?.id}
-        sessionOpenedAt={openSession?.openedAt ? String(openSession.openedAt) : null}
+        sessionOpenedAt={
+          openSession?.openedAt ? String(openSession.openedAt) : null
+        }
         onCloseShift={() => setCloseShiftOpen(true)}
         onCashMovement={() => setCashMovementOpen(true)}
       />

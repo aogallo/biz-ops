@@ -75,10 +75,10 @@ const CompanyShow = ({ loaderData }: Route.ComponentProps) => {
         </div>
         <div className='flex w-full gap-3 md:w-auto'>
           <Button variant='outline' asChild>
-              <Link to={`/company/${company?.id}/edit`}>
-                {t('company.editDetails')}
-              </Link>
-            </Button>
+            <Link to={`/company/${company?.id}/edit`}>
+              {t('company.editDetails')}
+            </Link>
+          </Button>
         </div>
       </div>
 

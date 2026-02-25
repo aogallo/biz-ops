@@ -32,7 +32,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (posSession) {
     cashier = await posRepository.getCashierById(posSession.cashierId)
   } else if (userSession) {
-    cashier = await posRepository.getCashierByUserId(organizationId, userSession.user.id)
+    cashier = await posRepository.getCashierByUserId(
+      organizationId,
+      userSession.user.id
+    )
   }
 
   if (cashier) {
@@ -68,7 +71,9 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
             <p className='font-medium'>{t('pos.noTerminals')}</p>
             <p className='mt-1 text-sm'>{t('pos.noTerminalsDescription')}</p>
             <Button variant='outline' className='mt-4' asChild>
-              <Link to='/pos-settings/terminals'>{t('pos.configureTerminals')}</Link>
+              <Link to='/pos-settings/terminals'>
+                {t('pos.configureTerminals')}
+              </Link>
             </Button>
           </div>
         ) : (

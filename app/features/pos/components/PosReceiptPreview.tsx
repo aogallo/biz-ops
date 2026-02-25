@@ -74,9 +74,16 @@ export function PosReceiptPreview({
           </div>
 
           <div className='border-t border-dashed pt-2'>
-            <p>{t('pos.terminal')}: {receipt.terminalName}</p>
-            <p>{t('pos.cashier')}: {receipt.cashierName}</p>
-            <p>{t('pos.customer')}: {receipt.customerName ?? t('pos.defaultCustomer')}</p>
+            <p>
+              {t('pos.terminal')}: {receipt.terminalName}
+            </p>
+            <p>
+              {t('pos.cashier')}: {receipt.cashierName}
+            </p>
+            <p>
+              {t('pos.customer')}:{' '}
+              {receipt.customerName ?? t('pos.defaultCustomer')}
+            </p>
             {receipt.customerNit && <p>NIT: {receipt.customerNit}</p>}
           </div>
 
@@ -90,7 +97,8 @@ export function PosReceiptPreview({
                 <p>{line.productName}</p>
                 <div className='flex justify-between'>
                   <span>
-                    {Number(line.quantity)} x Q{Number(line.unitPrice).toFixed(2)}
+                    {Number(line.quantity)} x Q
+                    {Number(line.unitPrice).toFixed(2)}
                   </span>
                   <span>Q{Number(line.total).toFixed(2)}</span>
                 </div>
@@ -136,7 +144,14 @@ export function PosReceiptPreview({
                   <span>
                     Q
                     {receipt.payments
-                      .reduce((sum, p) => sum + (p.receivedAmount !== null ? Number(p.receivedAmount) : 0), 0)
+                      .reduce(
+                        (sum, p) =>
+                          sum +
+                          (p.receivedAmount !== null
+                            ? Number(p.receivedAmount)
+                            : 0),
+                        0
+                      )
                       .toFixed(2)}
                   </span>
                 </div>
@@ -145,7 +160,14 @@ export function PosReceiptPreview({
                   <span>
                     Q
                     {receipt.payments
-                      .reduce((sum, p) => sum + (p.changeAmount !== null ? Number(p.changeAmount) : 0), 0)
+                      .reduce(
+                        (sum, p) =>
+                          sum +
+                          (p.changeAmount !== null
+                            ? Number(p.changeAmount)
+                            : 0),
+                        0
+                      )
                       .toFixed(2)}
                   </span>
                 </div>

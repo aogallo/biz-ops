@@ -45,9 +45,7 @@ export default function CreateCompany() {
       <Card>
         <CardHeader>
           <CardTitle>{t('company.createTitle')}</CardTitle>
-          <CardDescription>
-            {t('company.createDescription')}
-          </CardDescription>
+          <CardDescription>{t('company.createDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>

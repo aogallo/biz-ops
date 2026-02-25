@@ -198,7 +198,15 @@ export class PosRepository {
       offset?: number
     } = {}
   ) {
-    const { terminalId, cashierId, sessionId, status, search, limit = 10, offset = 0 } = filters
+    const {
+      terminalId,
+      cashierId,
+      sessionId,
+      status,
+      search,
+      limit = 10,
+      offset = 0,
+    } = filters
     const conditions: SQL[] = [eq(posSaleModel.organizationId, organizationId)]
 
     if (terminalId) {

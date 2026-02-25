@@ -347,18 +347,18 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 const reportTypes = [
-  { value: 'journal-entry', label: 'Journal Entry' },
-  { value: 'sales-ledger', label: 'Sales Ledger' },
-  { value: 'purchase-ledger', label: 'Purchase Ledger' },
-  { value: 'general-ledger', label: 'General Ledger' },
-  { value: 'appointment-occupancy', label: 'Appointment & Occupancy' },
+  { value: 'journal-entry', label: 'Diario de Asientos' },
+  { value: 'sales-ledger', label: 'Libro de Ventas' },
+  { value: 'purchase-ledger', label: 'Libro de Compras' },
+  { value: 'general-ledger', label: 'Mayor General' },
+  { value: 'appointment-occupancy', label: 'Citas y Ocupación' },
 ]
 
 const datePresets = [
-  { value: 'today', label: 'Today' },
-  { value: 'this-month', label: 'This Month' },
-  { value: 'last-quarter', label: 'Last Quarter' },
-  { value: 'fiscal-year', label: 'Fiscal Year' },
+  { value: 'today', label: 'Hoy' },
+  { value: 'this-month', label: 'Este Mes' },
+  { value: 'last-quarter', label: 'Último Trimestre' },
+  { value: 'fiscal-year', label: 'Año Fiscal' },
 ]
 
 function getDateRangeFromPreset(preset: string): { from: Date; to: Date } {
@@ -538,7 +538,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   }))
 
   const partnerOptions = [
-    { value: 'all', label: 'All Partners' },
+    { value: 'all', label: 'Todos los Socios' },
     ...businessPartners.map((partner) => ({
       value: partner.id,
       label: partner.name,
@@ -546,7 +546,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   ]
 
   const staffOptions = [
-    { value: 'all', label: 'All Staff' },
+    { value: 'all', label: 'Todo el Personal' },
     ...staff.map((s) => ({
       value: s.id,
       label: s.name ?? 'Unknown',
@@ -633,7 +633,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: 'USD',
     }).format(amount)
@@ -641,22 +641,22 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
 
   const formatDateRange = () => {
     if (!dateRange?.from) return ''
-    const fromStr = dateRange.from.toLocaleDateString('en-US', {
+    const fromStr = dateRange.from.toLocaleDateString('es-AR', {
       month: 'short',
       day: '2-digit',
     })
     const toStr = dateRange.to
-      ? dateRange.to.toLocaleDateString('en-US', {
+      ? dateRange.to.toLocaleDateString('es-AR', {
           month: 'short',
           day: '2-digit',
         })
       : fromStr
-    return `Range: ${fromStr} - ${toStr}`
+    return `Rango: ${fromStr} - ${toStr}`
   }
 
   const selectedReportLabel =
     reportTypes.find((r) => r.value === selectedReportType)?.label ||
-    'Financial Report'
+    'Reporte Financiero'
 
   const isGenerating = generateFetcher.state !== 'idle'
   const isExporting = exportFetcher.state !== 'idle'
@@ -681,8 +681,8 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <TitleAndActions
-        title={`${selectedReportLabel} Report`}
-        subtitle='Configure your multi-tenant financial reporting and preview data.'
+        title={`Reporte: ${selectedReportLabel}`}
+        subtitle='Configurá tus reportes financieros y previsualizá los datos.'
       >
         <TitleAndActionsBody>
           <Button
@@ -691,14 +691,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             disabled={isExporting}
           >
             <DownloadIcon />
-            {isExporting ? 'Exporting...' : 'Export'}
+            {isExporting ? 'Exportando...' : 'Exportar'}
           </Button>
           <Button
             onClick={() => handleGenerateReport(1)}
             disabled={isGenerating}
           >
             <PlayIcon />
-            {isGenerating ? 'Generating...' : 'Generate Report'}
+            {isGenerating ? 'Generando...' : 'Generar Reporte'}
           </Button>
         </TitleAndActionsBody>
       </TitleAndActions>
@@ -706,8 +706,8 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       {/* Error Messages */}
       {(generateError || exportError) && (
         <div className='mb-4 rounded-md border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300'>
-          {generateError && <p>Generate Error: {generateError}</p>}
-          {exportError && <p>Export Error: {exportError}</p>}
+          {generateError && <p>Error al generar: {generateError}</p>}
+          {exportError && <p>Error al exportar: {exportError}</p>}
         </div>
       )}
 
@@ -718,19 +718,19 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
           <CardHeader>
             <div className='flex items-center gap-2'>
               <SlidersHorizontalIcon className='text-muted-foreground size-5' />
-              <h3 className='text-lg font-semibold'>Report Configuration</h3>
+              <h3 className='text-lg font-semibold'>Configuración del Reporte</h3>
             </div>
           </CardHeader>
           <CardContent className='space-y-6'>
             {/* Report Type */}
             <div className='space-y-3'>
-              <Label className='text-primary font-medium'>Report Type</Label>
+              <Label className='text-primary font-medium'>Tipo de Reporte</Label>
               <Select
                 value={selectedReportType}
                 onValueChange={handleReportTypeChange}
               >
                 <SelectTrigger className='w-full sm:w-75'>
-                  <SelectValue placeholder='Select report type' />
+                  <SelectValue placeholder='Seleccioná un tipo de reporte' />
                 </SelectTrigger>
                 <SelectContent>
                   {reportTypes.map((type) => (
@@ -746,7 +746,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               {/* Date Range Presets */}
               <div className='space-y-3'>
                 <Label className='text-primary font-medium'>
-                  Date Range Presets
+                  Períodos Predefinidos
                 </Label>
                 <ToggleGroup
                   type='single'
@@ -771,15 +771,15 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               {!isAppointmentReport && (
                 <div className='space-y-3'>
                   <Label className='text-primary font-medium'>
-                    Company / Branch
+                    Empresa / Sucursal
                   </Label>
                   <Combobox
                     options={companyOptions}
                     value={selectedCompanyId}
                     onValueChange={handleCompanyChange}
-                    placeholder='Select a company...'
-                    searchPlaceholder='Search companies...'
-                    emptyMessage='No companies found.'
+                    placeholder='Seleccioná una empresa...'
+                    searchPlaceholder='Buscar empresas...'
+                    emptyMessage='No se encontraron empresas.'
                   />
                 </div>
               )}
@@ -788,14 +788,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               {isAppointmentReport && (
                 <div className='space-y-3'>
                   <Label className='text-primary font-medium'>
-                    Staff Member
+                    Personal
                   </Label>
                   <Select
                     value={selectedStaffId || 'all'}
                     onValueChange={handleStaffChange}
                   >
                     <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='All Staff' />
+                      <SelectValue placeholder='Todo el Personal' />
                     </SelectTrigger>
                     <SelectContent>
                       {staffOptions.map((option) => (
@@ -813,14 +813,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             {!isAppointmentReport && (
               <div className='space-y-3'>
                 <Label className='text-primary font-medium'>
-                  Business Partner Filter
+                  Filtro de Proveedor/Cliente
                 </Label>
                 <Select
                   value={selectedPartnerId || 'all'}
                   onValueChange={handlePartnerChange}
                 >
                   <SelectTrigger className='w-full sm:w-[300px]'>
-                    <SelectValue placeholder='All Partners' />
+                    <SelectValue placeholder='Todos los Socios' />
                   </SelectTrigger>
                   <SelectContent>
                     {partnerOptions.map((option) => (
@@ -857,7 +857,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
         <CardHeader>
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <div className='flex items-center gap-3'>
-              <h3 className='text-lg font-semibold'>Report Preview</h3>
+              <h3 className='text-lg font-semibold'>Vista Previa del Reporte</h3>
               {hasGeneratedData && (
                 <Badge
                   variant='secondary'
@@ -870,7 +870,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             {hasGeneratedData && totalRows > 0 && (
               <div className='flex items-center gap-3'>
                 <span className='text-muted-foreground text-sm'>
-                  Rows: {startRow}-{endRow} of {totalRows.toLocaleString()}
+                  Filas: {startRow}-{endRow} de {totalRows.toLocaleString('es-AR')}
                 </span>
                 <div className='flex gap-1'>
                   <Button
@@ -910,19 +910,19 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 <p className='text-2xl font-bold text-green-600'>
                   {appointmentData.summary.completed}
                 </p>
-                <p className='text-muted-foreground text-xs'>Completed</p>
+                <p className='text-muted-foreground text-xs'>Completadas</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
                 <p className='text-2xl font-bold text-red-600'>
                   {appointmentData.summary.cancelled}
                 </p>
-                <p className='text-muted-foreground text-xs'>Cancelled</p>
+                <p className='text-muted-foreground text-xs'>Canceladas</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
                 <p className='text-2xl font-bold text-teal-600'>
                   {formatCurrency(appointmentData.summary.totalRevenue)}
                 </p>
-                <p className='text-muted-foreground text-xs'>Revenue</p>
+                <p className='text-muted-foreground text-xs'>Ingresos</p>
               </div>
             </div>
           )}
@@ -971,49 +971,49 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                   {isAppointmentReport ? (
                     <>
                       <TableHead className='text-primary font-semibold'>
-                        DATE
+                        FECHA
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        TIME
+                        HORA
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        STAFF
+                        PERSONAL
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        SERVICE
+                        SERVICIO
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        CLIENT
+                        CLIENTE
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        DURATION
+                        DURACIÓN
                       </TableHead>
                       <TableHead className='text-primary text-right font-semibold'>
-                        PRICE
+                        PRECIO
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        STATUS
+                        ESTADO
                       </TableHead>
                     </>
                   ) : (
                     <>
                       <TableHead className='text-primary font-semibold'>
-                        DATE
+                        FECHA
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        REF NO
+                        NRO. REF.
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        ACCOUNT NAME
+                        NOMBRE DE CUENTA
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        DESCRIPTION
+                        DESCRIPCIÓN
                       </TableHead>
                       <TableHead className='text-primary text-right font-semibold'>
-                        DEBIT
+                        DEBE
                       </TableHead>
                       <TableHead className='text-primary text-right font-semibold'>
-                        CREDIT
+                        HABER
                       </TableHead>
                     </>
                   )}
@@ -1031,15 +1031,15 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                           <>
                             <PlayIcon className='size-8 opacity-50' />
                             <p>
-                              Click &quot;Generate Report&quot; to load data
+                              Hacé clic en &quot;Generar Reporte&quot; para cargar datos
                             </p>
                           </>
                         ) : (
                           <>
-                            <p className='text-lg font-medium'>No data found</p>
+                            <p className='text-lg font-medium'>No se encontraron datos</p>
                             <p className='text-sm'>
-                              No records match the selected filters. Try
-                              adjusting the date range.
+                              No hay registros para los filtros seleccionados. Probá
+                              ajustando el rango de fechas.
                             </p>
                           </>
                         )}
@@ -1058,7 +1058,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                       <TableCell>{row.staffName}</TableCell>
                       <TableCell>{row.serviceName}</TableCell>
                       <TableCell>{row.clientName}</TableCell>
-                      <TableCell>{row.duration} min</TableCell>
+                      <TableCell>{row.duration} min.</TableCell>
                       <TableCell className='text-right'>
                         {row.price ? formatCurrency(Number(row.price)) : '-'}
                       </TableCell>
@@ -1104,7 +1104,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 <TableFooter>
                   <TableRow>
                     <TableCell colSpan={4} className='text-right font-semibold'>
-                      PAGE TOTALS
+                      TOTALES DE PÁGINA
                     </TableCell>
                     <TableCell className='text-right font-bold text-teal-600'>
                       {formatCurrency(pageTotals.debit)}

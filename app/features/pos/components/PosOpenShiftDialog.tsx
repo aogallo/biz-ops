@@ -13,12 +13,14 @@ import { useTranslation } from '~/i18n/context'
 interface PosOpenShiftDialogProps {
   open: boolean
   onConfirm: (openingCashAmount: number) => void
+  onCancel: () => void
   isSubmitting: boolean
 }
 
 export function PosOpenShiftDialog({
   open,
   onConfirm,
+  onCancel,
   isSubmitting,
 }: PosOpenShiftDialogProps) {
   const { t } = useTranslation()
@@ -32,7 +34,10 @@ export function PosOpenShiftDialog({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className='sm:max-w-sm' onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className='sm:max-w-sm'
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{t('pos.openShift')}</DialogTitle>
         </DialogHeader>
@@ -42,7 +47,9 @@ export function PosOpenShiftDialog({
             {t('pos.mustOpenShift')}
           </p>
           <div>
-            <label className='text-sm font-medium'>{t('pos.openingCash')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.openingCash')}
+            </label>
             <Input
               type='number'
               step='0.01'
@@ -56,11 +63,19 @@ export function PosOpenShiftDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className='flex gap-2 sm:flex-row'>
+          <Button
+            variant='outline'
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className='flex-1'
+          >
+            {t('common.cancel')}
+          </Button>
           <Button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className='w-full'
+            className='flex-1'
           >
             {isSubmitting ? t('pos.processing') : t('pos.openShift')}
           </Button>

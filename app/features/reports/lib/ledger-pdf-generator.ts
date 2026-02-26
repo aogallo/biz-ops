@@ -21,6 +21,8 @@ const HEADER_ROW_HEIGHT = 10
 const AVG_CHAR_WIDTH = 0.52
 
 // Column layout for landscape SAT format
+// Content width = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT = 792 - 25 - 25 = 742
+// Numeric section (from 310): 432px available for 8 num cols + IVA + Total
 const COL = {
   fecha: 0,
   tipoDoc: 48,
@@ -30,15 +32,15 @@ const COL = {
   nit: 170,
   nombre: 215,
   localGravBienes: 310,
-  localGravServ: 365,
-  localExBienes: 420,
-  localExServ: 470,
-  importGravBienes: 520,
-  importGravServ: 565,
-  importExBienes: 610,
-  importExServ: 650,
-  iva: 690,
-  total: 720,
+  localGravServ: 354,
+  localExBienes: 398,
+  localExServ: 442,
+  importGravBienes: 486,
+  importGravServ: 530,
+  importExBienes: 574,
+  importExServ: 618,
+  iva: 662,
+  total: 694, // ends at 694 + 48 = 742 = content width ✓
 }
 
 const COL_WIDTH = {
@@ -49,9 +51,9 @@ const COL_WIDTH = {
   noDocto: 43,
   nit: 43,
   nombre: 93,
-  num: 48,
-  iva: 28,
-  total: 50,
+  num: 42,
+  iva: 30,
+  total: 48,
 }
 
 function wrapText(text: string, maxWidth: number, fontSize: number): string[] {

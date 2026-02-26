@@ -176,6 +176,18 @@ export default [
       route('/cashiers', './routes/pos-settings/cashiers.tsx'),
     ]),
 
+    // Sucursal Routes
+    ...prefix('sucursal', [
+      index('./routes/sucursal/index.tsx'),
+      route('/new', './routes/sucursal/create.tsx'),
+      route('/:id/edit', './routes/sucursal/edit.tsx'),
+    ]),
+
+    // Inventory Routes
+    ...prefix('inventory', [
+      index('./routes/inventory/index.tsx'),
+    ]),
+
     // Purchase Routes
     ...prefix('purchase', [
       route('/orders', './routes/orders/index.tsx'),

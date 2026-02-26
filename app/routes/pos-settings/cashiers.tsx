@@ -26,7 +26,7 @@ import { requireAuth } from '~/server/auth/session.server'
 import { useTranslation } from '~/i18n/context'
 import { db } from '~/server/db'
 import { userModel, memberModel } from '~/server/db/schemas/auth'
-import { companyModel } from '~/server/db/schemas/company'
+import { sucursalModel } from '~/server/db/schemas/sucursal'
 import { eq } from 'drizzle-orm'
 import type { Route } from './+types/cashiers'
 
@@ -36,8 +36,8 @@ interface CashierRow {
   userId: string | null
   userName: string | null
   isActive: boolean
-  companyId: string
-  companyName: string
+  sucursalId: string | null
+  sucursalName: string | null
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -45,10 +45,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { cashiers: [], users: [], companies: [] }
+    return { cashiers: [], users: [], sucursales: [] }
   }
 
-  const [cashiers, users, companies] = await Promise.all([
+  const [cashiers, users, sucursales] = await Promise.all([
     posRepository.getCashiersByOrganization(organizationId),
     db
       .select({ id: userModel.id, name: userModel.name })
@@ -56,12 +56,13 @@ export async function loader({ request }: Route.LoaderArgs) {
       .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
       .where(eq(memberModel.organizationId, organizationId)),
     db
-      .select({ id: companyModel.id, name: companyModel.name })
-      .from(companyModel)
-      .where(eq(companyModel.organizationId, organizationId)),
+      .select({ id: sucursalModel.id, name: sucursalModel.name, code: sucursalModel.code })
+      .from(sucursalModel)
+      .where(eq(sucursalModel.organizationId, organizationId))
+      .orderBy(sucursalModel.name),
   ])
 
-  return { cashiers, users, companies, organizationId }
+  return { cashiers, users, sucursales, organizationId }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -73,7 +74,7 @@ export async function action({ request }: Route.ActionArgs) {
     const data = {
       name: formData.get('name'),
       organizationId: formData.get('organizationId'),
-      companyId: formData.get('companyId'),
+      sucursalId: formData.get('sucursalId') || null,
       userId: formData.get('userId') || null,
       pin: formData.get('pin') || null,
     }
@@ -107,10 +108,10 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function PosCashiers({ loaderData }: Route.ComponentProps) {
-  const { cashiers, users, companies, organizationId } = loaderData as {
+  const { cashiers, users, sucursales, organizationId } = loaderData as {
     cashiers: CashierRow[]
     users: Array<{ id: string; name: string }>
-    companies: Array<{ id: string; name: string }>
+    sucursales: Array<{ id: string; name: string; code: string }>
     organizationId?: string
   }
 
@@ -131,8 +132,9 @@ export default function PosCashiers({ loaderData }: Route.ComponentProps) {
       cell: ({ row }) => row.original.userName ?? '-',
     },
     {
-      accessorKey: 'companyName',
-      header: t('pos.company'),
+      accessorKey: 'sucursalName',
+      header: 'Sucursal',
+      cell: ({ row }) => row.original.sucursalName ?? '-',
     },
     {
       accessorKey: 'isActive',
@@ -217,15 +219,15 @@ export default function PosCashiers({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label className='text-sm font-medium'>{t('pos.company')}</label>
-                <Select name='companyId' required>
+                <label className='text-sm font-medium'>Sucursal</label>
+                <Select name='sucursalId'>
                   <SelectTrigger className='mt-1'>
-                    <SelectValue placeholder={t('pos.selectCompany')} />
+                    <SelectValue placeholder='Seleccionar sucursal (opcional)' />
                   </SelectTrigger>
                   <SelectContent>
-                    {companies.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
+                    {sucursales.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} ({s.code})
                       </SelectItem>
                     ))}
                   </SelectContent>

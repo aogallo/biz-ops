@@ -11,6 +11,7 @@ import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
 import { organizationAccountingConfigModel } from '~/server/db/schemas/organizationConfig'
 import { invoiceModel, invoiceLineModel } from '~/server/db/schemas/invoice'
+import { sucursalModel } from '~/server/db/schemas/sucursal'
 import type { CheckoutInput } from '../../schemas'
 import { calculateLineTotals } from '../../types'
 
@@ -118,7 +119,7 @@ export async function createSaleAction(input: CheckoutInput) {
       .insert(posSaleModel)
       .values({
         organizationId: input.organizationId,
-        companyId: input.companyId,
+        sucursalId: input.sucursalId,
         terminalId: input.terminalId,
         cashierId: input.cashierId,
         sessionId: input.sessionId,
@@ -261,13 +262,26 @@ async function generateInvoiceIfConfigured(
   const defaultAccountId = saleResult.defaultSalesAccountId
   if (!defaultAccountId) return
 
+  // Look up companyId from sucursal (required by invoice model)
+  let companyId: string | null = null
+  if (input.sucursalId) {
+    const [sucursal] = await db
+      .select({ companyId: sucursalModel.companyId })
+      .from(sucursalModel)
+      .where(eq(sucursalModel.id, input.sucursalId))
+      .limit(1)
+    companyId = sucursal?.companyId ?? null
+  }
+
+  if (!companyId) return // Cannot generate invoice without a company
+
   const invoiceNumber = `${saleResult.posPrefix}-INV-${String(saleResult.nextPosSaleNumber).padStart(6, '0')}`
 
   const [invoice] = await db
     .insert(invoiceModel)
     .values({
       organizationId: input.organizationId,
-      companyId: input.companyId,
+      companyId,
       businessPartnerId: input.businessPartnerId,
       accountingAccountId: defaultAccountId,
       type: 'sale',

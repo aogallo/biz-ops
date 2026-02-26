@@ -26,7 +26,7 @@ export async function openSessionAction(input: OpenSessionInput) {
       .insert(posSessionModel)
       .values({
         organizationId: input.organizationId,
-        companyId: input.companyId,
+        sucursalId: input.sucursalId,
         terminalId: input.terminalId,
         cashierId: input.cashierId,
         openingCashAmount: String(input.openingCashAmount),

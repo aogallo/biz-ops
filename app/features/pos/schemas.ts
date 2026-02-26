@@ -17,7 +17,7 @@ export const createTerminalSchema = insertTerminalSchema
   .extend({
     name: z.string().min(1, 'Terminal name is required'),
     organizationId: z.string().uuid(),
-    companyId: z.string().uuid(),
+    sucursalId: z.string().uuid().optional().nullable(),
   })
 
 export const updateTerminalSchema = createTerminalSchema.partial()
@@ -51,7 +51,7 @@ export const checkoutPaymentSchema = z.object({
 export const checkoutSchema = z.object({
   terminalId: z.string().uuid(),
   organizationId: z.string().uuid(),
-  companyId: z.string().uuid(),
+  sucursalId: z.string().uuid().optional().nullable(),
   cashierId: z.string().uuid(),
   userId: z.string().uuid().optional().nullable(),
   businessPartnerId: z.string().uuid(),
@@ -70,7 +70,7 @@ export const createCashierSchema = insertCashierSchema
   .extend({
     name: z.string().min(1, 'Name is required'),
     organizationId: z.string().uuid(),
-    companyId: z.string().uuid(),
+    sucursalId: z.string().uuid().optional().nullable(),
     userId: z.string().uuid().optional().nullable(),
     pin: z.string().min(4).max(6).optional().nullable(),
   })
@@ -81,7 +81,7 @@ export const updateCashierSchema = createCashierSchema.partial()
 export const openSessionSchema = z.object({
   terminalId: z.string().uuid(),
   organizationId: z.string().uuid(),
-  companyId: z.string().uuid(),
+  sucursalId: z.string().uuid().optional().nullable(),
   cashierId: z.string().uuid(),
   openingCashAmount: z.number().nonnegative(),
 })

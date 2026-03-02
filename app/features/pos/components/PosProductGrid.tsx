@@ -8,6 +8,7 @@ interface PosProductGridProps {
   selectedCategoryId: string | null
   onCategoryChange: (categoryId: string | null) => void
   onProductClick: (product: PosProductForGrid) => void
+  sucursalId?: string | null
 }
 
 export function PosProductGrid({
@@ -16,6 +17,7 @@ export function PosProductGrid({
   selectedCategoryId,
   onCategoryChange,
   onProductClick,
+  sucursalId,
 }: PosProductGridProps) {
   const { t } = useTranslation()
 
@@ -53,9 +55,17 @@ export function PosProductGrid({
 
       <div className='grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4'>
         {products.map((product) => {
+          const displayStock = sucursalId
+            ? product.sucursalStock
+            : product.stock
           const isOutOfStock =
             product.productType === 'STOCK' &&
-            (product.stock === null || product.stock <= 0)
+            (displayStock === null || displayStock <= 0)
+          const isLowStock =
+            product.productType === 'STOCK' &&
+            displayStock !== null &&
+            displayStock > 0 &&
+            displayStock <= 5
 
           return (
             <button
@@ -68,6 +78,17 @@ export function PosProductGrid({
                 isOutOfStock && 'cursor-not-allowed opacity-50'
               )}
             >
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className='mb-2 h-16 w-16 rounded-md object-cover'
+                />
+              ) : (
+                <div className='bg-muted mb-2 flex h-16 w-16 items-center justify-center rounded-md'>
+                  <span className='text-muted-foreground text-2xl'>📦</span>
+                </div>
+              )}
               <span className='line-clamp-2 text-sm font-medium'>
                 {product.name}
               </span>
@@ -75,8 +96,16 @@ export function PosProductGrid({
                 Q{Number(product.price).toFixed(2)}
               </span>
               {product.productType === 'STOCK' && (
-                <span className='text-muted-foreground mt-0.5 text-xs'>
-                  {t('pos.stock')}: {product.stock ?? 0}
+                <span
+                  className={cn(
+                    'mt-0.5 text-xs',
+                    isLowStock
+                      ? 'font-medium text-amber-600 dark:text-amber-400'
+                      : 'text-muted-foreground'
+                  )}
+                >
+                  {t('pos.stock')}: {displayStock ?? 0}
+                  {isLowStock && ' ⚠'}
                 </span>
               )}
             </button>

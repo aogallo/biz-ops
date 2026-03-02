@@ -20,9 +20,9 @@ import type { z } from 'zod'
 import { organizationModel, userModel } from './auth'
 import { businessPartnerModel } from './businessPartner'
 import { timestamps } from './common'
-import { companyModel } from './company'
 import { invoiceModel, ivaTypeEnum } from './invoice'
 import { productModel } from './products'
+import { sucursalModel } from './sucursal'
 
 // Enums
 export const posSaleStatusEnum = pgEnum('pos_sale_status', [
@@ -55,9 +55,7 @@ export const posTerminalModel = pgTable('pos_terminal', {
   organizationId: uuid('organization_id')
     .notNull()
     .references(() => organizationModel.id),
-  companyId: uuid('company_id')
-    .notNull()
-    .references(() => companyModel.id),
+  sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
   name: text('name').notNull(),
   isActive: boolean('is_active').notNull().default(true),
   autoGenerateInvoice: boolean('auto_generate_invoice')
@@ -77,9 +75,7 @@ export const posSaleModel = pgTable('pos_sale', {
   organizationId: uuid('organization_id')
     .notNull()
     .references(() => organizationModel.id),
-  companyId: uuid('company_id')
-    .notNull()
-    .references(() => companyModel.id),
+  sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
   terminalId: uuid('terminal_id')
     .notNull()
     .references(() => posTerminalModel.id),
@@ -168,9 +164,7 @@ export const posCashierModel = pgTable(
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizationModel.id),
-    companyId: uuid('company_id')
-      .notNull()
-      .references(() => companyModel.id),
+    sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
     userId: uuid('user_id').references(() => userModel.id),
     name: text('name').notNull(),
     pin: text('pin'),
@@ -180,7 +174,7 @@ export const posCashierModel = pgTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex('cashier_pin_company_idx').on(table.companyId, table.pin),
+    uniqueIndex('cashier_pin_sucursal_idx').on(table.sucursalId, table.pin),
   ]
 )
 
@@ -190,9 +184,7 @@ export const posSessionModel = pgTable('pos_session', {
   organizationId: uuid('organization_id')
     .notNull()
     .references(() => organizationModel.id),
-  companyId: uuid('company_id')
-    .notNull()
-    .references(() => companyModel.id),
+  sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
   terminalId: uuid('terminal_id')
     .notNull()
     .references(() => posTerminalModel.id),
@@ -271,9 +263,9 @@ export const posTerminalRelations = relations(
       fields: [posTerminalModel.organizationId],
       references: [organizationModel.id],
     }),
-    company: one(companyModel, {
-      fields: [posTerminalModel.companyId],
-      references: [companyModel.id],
+    sucursal: one(sucursalModel, {
+      fields: [posTerminalModel.sucursalId],
+      references: [sucursalModel.id],
     }),
     defaultBusinessPartner: one(businessPartnerModel, {
       fields: [posTerminalModel.defaultBusinessPartnerId],
@@ -289,9 +281,9 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
     fields: [posSaleModel.organizationId],
     references: [organizationModel.id],
   }),
-  company: one(companyModel, {
-    fields: [posSaleModel.companyId],
-    references: [companyModel.id],
+  sucursal: one(sucursalModel, {
+    fields: [posSaleModel.sucursalId],
+    references: [sucursalModel.id],
   }),
   terminal: one(posTerminalModel, {
     fields: [posSaleModel.terminalId],
@@ -342,9 +334,9 @@ export const posCashierRelations = relations(
       fields: [posCashierModel.organizationId],
       references: [organizationModel.id],
     }),
-    company: one(companyModel, {
-      fields: [posCashierModel.companyId],
-      references: [companyModel.id],
+    sucursal: one(sucursalModel, {
+      fields: [posCashierModel.sucursalId],
+      references: [sucursalModel.id],
     }),
     user: one(userModel, {
       fields: [posCashierModel.userId],
@@ -361,9 +353,9 @@ export const posSessionRelations = relations(
       fields: [posSessionModel.organizationId],
       references: [organizationModel.id],
     }),
-    company: one(companyModel, {
-      fields: [posSessionModel.companyId],
-      references: [companyModel.id],
+    sucursal: one(sucursalModel, {
+      fields: [posSessionModel.sucursalId],
+      references: [sucursalModel.id],
     }),
     terminal: one(posTerminalModel, {
       fields: [posSessionModel.terminalId],

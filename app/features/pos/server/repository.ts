@@ -12,7 +12,7 @@ import {
 } from '~/server/db/schemas/pos'
 import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
-import { companyModel } from '~/server/db/schemas/company'
+import { sucursalModel, sucursalInventoryModel } from '~/server/db/schemas/sucursal'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { userModel } from '~/server/db/schemas/auth'
 import type {
@@ -21,26 +21,26 @@ import type {
   CreateCashierInput,
   UpdateCashierInput,
 } from '../schemas'
-import type { PosProductForGrid, PosTerminalWithCompany } from '../types'
+import type { PosProductForGrid, PosTerminalWithSucursal } from '../types'
 
 export class PosRepository {
   // ── Terminal CRUD ──
 
   async getTerminals(
     organizationId: string
-  ): Promise<PosTerminalWithCompany[]> {
+  ): Promise<PosTerminalWithSucursal[]> {
     const terminals = await db
       .select({
         id: posTerminalModel.id,
         name: posTerminalModel.name,
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
-        companyId: posTerminalModel.companyId,
-        companyName: companyModel.name,
+        sucursalId: posTerminalModel.sucursalId,
+        sucursalName: sucursalModel.name,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
       })
       .from(posTerminalModel)
-      .innerJoin(companyModel, eq(posTerminalModel.companyId, companyModel.id))
+      .leftJoin(sucursalModel, eq(posTerminalModel.sucursalId, sucursalModel.id))
       .where(eq(posTerminalModel.organizationId, organizationId))
       .orderBy(posTerminalModel.name)
 
@@ -52,16 +52,15 @@ export class PosRepository {
       .select({
         id: posTerminalModel.id,
         organizationId: posTerminalModel.organizationId,
-        companyId: posTerminalModel.companyId,
+        sucursalId: posTerminalModel.sucursalId,
         name: posTerminalModel.name,
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
-        companyName: companyModel.name,
-        companyNit: companyModel.nit,
+        sucursalName: sucursalModel.name,
       })
       .from(posTerminalModel)
-      .innerJoin(companyModel, eq(posTerminalModel.companyId, companyModel.id))
+      .leftJoin(sucursalModel, eq(posTerminalModel.sucursalId, sucursalModel.id))
       .where(eq(posTerminalModel.id, id))
       .limit(1)
 
@@ -97,6 +96,7 @@ export class PosRepository {
 
   async getProductsForPos(
     organizationId: string,
+    sucursalId?: string,
     categoryId?: string,
     search?: string
   ): Promise<PosProductForGrid[]> {
@@ -119,15 +119,28 @@ export class PosRepository {
         sku: productModel.sku,
         price: productModel.price,
         stock: productModel.stock,
+        imageUrl: productModel.imageUrl,
         productType: productModel.productType,
         categoryId: productModel.categoryId,
         categoryName: productCategoryModel.name,
         categoryColor: productCategoryModel.color,
+        sucursalStock: sucursalId
+          ? sucursalInventoryModel.stock
+          : sql<number | null>`null`,
       })
       .from(productModel)
       .leftJoin(
         productCategoryModel,
         eq(productModel.categoryId, productCategoryModel.id)
+      )
+      .leftJoin(
+        sucursalInventoryModel,
+        sucursalId
+          ? and(
+              eq(sucursalInventoryModel.productId, productModel.id),
+              eq(sucursalInventoryModel.sucursalId, sucursalId)
+            )
+          : sql`false`
       )
       .where(and(...conditions))
       .orderBy(productModel.name)
@@ -314,12 +327,12 @@ export class PosRepository {
         userId: posCashierModel.userId,
         userName: userModel.name,
         isActive: posCashierModel.isActive,
-        companyId: posCashierModel.companyId,
-        companyName: companyModel.name,
+        sucursalId: posCashierModel.sucursalId,
+        sucursalName: sucursalModel.name,
       })
       .from(posCashierModel)
       .leftJoin(userModel, eq(posCashierModel.userId, userModel.id))
-      .innerJoin(companyModel, eq(posCashierModel.companyId, companyModel.id))
+      .leftJoin(sucursalModel, eq(posCashierModel.sucursalId, sucursalModel.id))
       .where(eq(posCashierModel.organizationId, organizationId))
       .orderBy(posCashierModel.name)
   }
@@ -473,18 +486,25 @@ export class PosRepository {
 
   // ── POS Login ──
 
-  async getActiveCompanies() {
+  async getActiveSucursales(organizationId: string) {
     return await db
       .select({
-        id: companyModel.id,
-        name: companyModel.name,
-        organizationId: companyModel.organizationId,
+        id: sucursalModel.id,
+        name: sucursalModel.name,
+        code: sucursalModel.code,
+        organizationId: sucursalModel.organizationId,
       })
-      .from(companyModel)
-      .orderBy(companyModel.name)
+      .from(sucursalModel)
+      .where(
+        and(
+          eq(sucursalModel.organizationId, organizationId),
+          eq(sucursalModel.isActive, true)
+        )
+      )
+      .orderBy(sucursalModel.name)
   }
 
-  async getActiveCashiersForCompany(companyId: string) {
+  async getActiveCashiersForSucursal(sucursalId: string) {
     return await db
       .select({
         id: posCashierModel.id,
@@ -495,34 +515,39 @@ export class PosRepository {
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.companyId, companyId),
+          eq(posCashierModel.sucursalId, sucursalId),
           eq(posCashierModel.isActive, true)
         )
       )
       .orderBy(posCashierModel.name)
   }
 
-  async verifyCashierByCompanyAndPin(companyCode: string, pin: string) {
-    // Find company by code (case-insensitive)
-    const [company] = await db
+  async verifyCashierBySucursalAndPin(sucursalCode: string, pin: string) {
+    // Find sucursal by code (case-insensitive)
+    const [sucursal] = await db
       .select({
-        id: companyModel.id,
-        name: companyModel.name,
-        organizationId: companyModel.organizationId,
+        id: sucursalModel.id,
+        name: sucursalModel.name,
+        organizationId: sucursalModel.organizationId,
       })
-      .from(companyModel)
-      .where(sql`upper(${companyModel.code}) = upper(${companyCode})`)
+      .from(sucursalModel)
+      .where(
+        and(
+          sql`upper(${sucursalModel.code}) = upper(${sucursalCode})`,
+          eq(sucursalModel.isActive, true)
+        )
+      )
       .limit(1)
 
-    if (!company) return null
+    if (!sucursal) return null
 
-    // Find active cashier in that company with matching PIN
+    // Find active cashier in that sucursal with matching PIN
     const [cashier] = await db
       .select()
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.companyId, company.id),
+          eq(posCashierModel.sucursalId, sucursal.id),
           eq(posCashierModel.pin, pin),
           eq(posCashierModel.isActive, true)
         )
@@ -551,7 +576,7 @@ export class PosRepository {
         .where(eq(posCashierModel.id, cashier.id))
     }
 
-    return { ...cashier, companyName: company.name }
+    return { ...cashier, sucursalName: sucursal.name }
   }
 
   async verifyCashierPin(cashierId: string, pin: string) {

@@ -4,7 +4,7 @@ export interface PosCashierSession {
   cashierId: string
   cashierName: string
   organizationId: string
-  companyId: string
+  sucursalId: string
 }
 
 const posSessionStorage = createCookieSessionStorage({
@@ -23,11 +23,11 @@ export async function getPosSession(request: Request): Promise<PosCashierSession
   const cashierId = session.get('cashierId')
   const cashierName = session.get('cashierName')
   const organizationId = session.get('organizationId')
-  const companyId = session.get('companyId')
+  const sucursalId = session.get('sucursalId')
 
-  if (!cashierId || !cashierName || !organizationId || !companyId) return null
+  if (!cashierId || !cashierName || !organizationId || !sucursalId) return null
 
-  return { cashierId, cashierName, organizationId, companyId }
+  return { cashierId, cashierName, organizationId, sucursalId }
 }
 
 export async function setPosSession(
@@ -38,7 +38,7 @@ export async function setPosSession(
   session.set('cashierId', data.cashierId)
   session.set('cashierName', data.cashierName)
   session.set('organizationId', data.organizationId)
-  session.set('companyId', data.companyId)
+  session.set('sucursalId', data.sucursalId)
   return posSessionStorage.commitSession(session)
 }
 

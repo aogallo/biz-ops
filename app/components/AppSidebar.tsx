@@ -31,6 +31,7 @@ import {
   Truck,
   Users,
   UserStarIcon,
+  Store,
 } from 'lucide-react'
 import { Link, NavLink, useFetcher } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
@@ -208,6 +209,12 @@ export const navigationItems = [
         path: '/sat-processor',
         icon: Banknote,
       },
+      {
+        name: 'Accounting',
+        nameKey: 'sidebar.items.accountingSettings' as TranslationKey,
+        path: '/settings/accounting',
+        icon: Settings,
+      },
     ],
   },
   {
@@ -234,19 +241,11 @@ export const navigationItems = [
         path: '/pos-settings/cashiers',
         icon: Users,
       },
-    ],
-  },
-  {
-    section: 'Settings',
-    sectionKey: 'sidebar.sections.settings' as TranslationKey,
-    icon: Settings,
-    color: 'accent-admin', // indigo/brand for settings
-    items: [
       {
-        name: 'Accounting',
-        nameKey: 'sidebar.items.accountingSettings' as TranslationKey,
-        path: '/settings/accounting',
-        icon: Settings,
+        name: 'sucursal',
+        nameKey: 'sidebar.items.sucursal' as TranslationKey,
+        path: '/sucursal',
+        icon: Store,
       },
     ],
   },

@@ -9,6 +9,7 @@ import {
   posTerminalModel,
   posCashierModel,
 } from '~/server/db/schemas/pos'
+import { sucursalModel } from '~/server/db/schemas/sucursal'
 import type { CloseSessionInput } from '../../schemas'
 import { createPosSessionJournalEntry } from './create-pos-journal-entry.action'
 
@@ -191,9 +192,20 @@ export async function closeSessionAction(input: CloseSessionInput) {
       sessionId: session.id,
       zReportId: zReport.id,
       organizationId: session.organizationId,
-      companyId: session.companyId,
+      sucursalId: session.sucursalId,
     }
   })
+
+  // Look up company from sucursal (needed for journal entry)
+  let companyIdForJournal: string | null = null
+  if (txResult.sucursalId) {
+    const [sucursal] = await db
+      .select({ companyId: sucursalModel.companyId })
+      .from(sucursalModel)
+      .where(eq(sucursalModel.id, txResult.sucursalId))
+      .limit(1)
+    companyIdForJournal = sucursal?.companyId ?? null
+  }
 
   // Create journal entry outside the transaction (uses its own)
   let journalEntryId: string | undefined
@@ -201,7 +213,7 @@ export async function closeSessionAction(input: CloseSessionInput) {
     const jeResult = await createPosSessionJournalEntry(
       txResult.sessionId,
       txResult.organizationId,
-      txResult.companyId
+      companyIdForJournal
     )
     journalEntryId = jeResult.journalEntryId
   } catch (error) {

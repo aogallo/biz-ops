@@ -90,7 +90,7 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
                 <div>
                   <p className='font-semibold'>{terminal.name}</p>
                   <p className='text-muted-foreground text-sm'>
-                    {terminal.companyName}
+                    {terminal.sucursalName}
                   </p>
                 </div>
               </Link>

@@ -20,7 +20,17 @@
    * Smart Placement
    * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
    */
-	"placement": { "mode": "smart" }
+	"placement": { "mode": "smart" },
+	/**
+   * R2 Bucket for product image uploads
+   * https://developers.cloudflare.com/r2/api/workers/workers-api-reference/
+   */
+	"r2_buckets": [
+		{
+			"binding": "BUCKET",
+			"bucket_name": "erp-product-images"
+		}
+	]
 	/**
    * Bindings
    * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including

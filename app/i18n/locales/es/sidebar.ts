@@ -49,4 +49,5 @@ export const sidebar = {
   'sidebar.items.quotations': 'Cótizaciones',
   'sidebar.items.posCashiers': 'Cajeros',
   'sidebar.items.posTerminals': 'Terminales',
+  'sidebar.items.sucursal': 'Sucursal',
 } as const

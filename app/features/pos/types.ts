@@ -18,13 +18,13 @@ export interface CartTotals {
   total: number
 }
 
-export interface PosTerminalWithCompany {
+export interface PosTerminalWithSucursal {
   id: string
   name: string
   isActive: boolean
   autoGenerateInvoice: boolean
-  companyId: string
-  companyName: string
+  sucursalId: string | null
+  sucursalName: string | null
   defaultBusinessPartnerId: string | null
 }
 
@@ -34,10 +34,12 @@ export interface PosProductForGrid {
   sku: string
   price: string
   stock: number | null
+  imageUrl: string | null
   productType: 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE'
   categoryId: string | null
   categoryName: string | null
   categoryColor: string | null
+  sucursalStock: number | null
 }
 
 export function calculateLineTotals(item: CartItem) {

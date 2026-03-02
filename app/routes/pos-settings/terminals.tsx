@@ -26,9 +26,9 @@ import { createTerminalSchema } from '~/features/pos/schemas'
 import { requireAuth } from '~/server/auth/session.server'
 import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/terminals'
-import type { PosTerminalWithCompany } from '~/features/pos/types'
+import type { PosTerminalWithSucursal } from '~/features/pos/types'
 import { db } from '~/server/db'
-import { companyModel } from '~/server/db/schemas/company'
+import { sucursalModel } from '~/server/db/schemas/sucursal'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { eq } from 'drizzle-orm'
 
@@ -37,15 +37,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { terminals: [], companies: [], businessPartners: [] }
+    return { terminals: [], sucursales: [], businessPartners: [] }
   }
 
-  const [terminals, companies, businessPartners] = await Promise.all([
+  const [terminals, sucursales, businessPartners] = await Promise.all([
     posRepository.getTerminals(organizationId),
     db
-      .select({ id: companyModel.id, name: companyModel.name })
-      .from(companyModel)
-      .where(eq(companyModel.organizationId, organizationId)),
+      .select({ id: sucursalModel.id, name: sucursalModel.name, code: sucursalModel.code })
+      .from(sucursalModel)
+      .where(eq(sucursalModel.organizationId, organizationId))
+      .orderBy(sucursalModel.name),
     db
       .select({
         id: businessPartnerModel.id,
@@ -56,7 +57,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       .where(eq(businessPartnerModel.organizationId, organizationId)),
   ])
 
-  return { terminals, companies, businessPartners, organizationId }
+  return { terminals, sucursales, businessPartners, organizationId }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -68,7 +69,7 @@ export async function action({ request }: Route.ActionArgs) {
     const data = {
       name: formData.get('name'),
       organizationId: formData.get('organizationId'),
-      companyId: formData.get('companyId'),
+      sucursalId: formData.get('sucursalId') || null,
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
       defaultBusinessPartnerId:
         formData.get('defaultBusinessPartnerId') || null,
@@ -103,10 +104,10 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function PosTerminals({ loaderData }: Route.ComponentProps) {
-  const { terminals, companies, businessPartners, organizationId } =
+  const { terminals, sucursales, businessPartners, organizationId } =
     loaderData as {
-      terminals: PosTerminalWithCompany[]
-      companies: Array<{ id: string; name: string }>
+      terminals: PosTerminalWithSucursal[]
+      sucursales: Array<{ id: string; name: string; code: string }>
       businessPartners: Array<{
         id: string
         name: string
@@ -121,14 +122,15 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
 
-  const columns: ColumnDef<PosTerminalWithCompany>[] = [
+  const columns: ColumnDef<PosTerminalWithSucursal>[] = [
     {
       accessorKey: 'name',
       header: t('common.name'),
     },
     {
-      accessorKey: 'companyName',
-      header: t('pos.company'),
+      accessorKey: 'sucursalName',
+      header: 'Sucursal',
+      cell: ({ row }) => row.original.sucursalName ?? '-',
     },
     {
       accessorKey: 'isActive',
@@ -223,15 +225,15 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label className='text-sm font-medium'>{t('pos.company')}</label>
-                <Select name='companyId' required>
+                <label className='text-sm font-medium'>Sucursal</label>
+                <Select name='sucursalId'>
                   <SelectTrigger className='mt-1'>
-                    <SelectValue placeholder={t('pos.selectCompany')} />
+                    <SelectValue placeholder='Seleccionar sucursal (opcional)' />
                   </SelectTrigger>
                   <SelectContent>
-                    {companies.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
+                    {sucursales.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} ({s.code})
                       </SelectItem>
                     ))}
                   </SelectContent>

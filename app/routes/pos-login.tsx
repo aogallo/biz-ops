@@ -21,32 +21,32 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
-  const companyCode = formData.get('companyCode')
+  const sucursalCode = formData.get('sucursalCode')
   const pin = formData.get('pin')
 
   if (
-    !companyCode ||
-    typeof companyCode !== 'string' ||
+    !sucursalCode ||
+    typeof sucursalCode !== 'string' ||
     !pin ||
     typeof pin !== 'string'
   ) {
     return { error: 'All fields are required' }
   }
 
-  const cashier = await posRepository.verifyCashierByCompanyAndPin(
-    companyCode.trim(),
+  const cashier = await posRepository.verifyCashierBySucursalAndPin(
+    sucursalCode.trim(),
     pin.trim()
   )
 
   if (!cashier) {
-    return { error: 'Invalid company code or PIN' }
+    return { error: 'Invalid sucursal code or PIN' }
   }
 
   const cookie = await setPosSession(request, {
     cashierId: cashier.id,
     cashierName: cashier.name,
     organizationId: cashier.organizationId,
-    companyId: cashier.companyId,
+    sucursalId: cashier.sucursalId ?? '',
   })
 
   throw redirect('/pos', { headers: { 'Set-Cookie': cookie } })
@@ -73,15 +73,15 @@ export default function PosLogin() {
             )}
 
             <div className='space-y-2'>
-              <label className='text-sm font-medium'>Company Code</label>
+              <label className='text-sm font-medium'>Código de Sucursal</label>
               <input
                 type='text'
-                name='companyCode'
+                name='sucursalCode'
                 autoCapitalize='characters'
                 autoComplete='off'
                 spellCheck={false}
                 className='border-input bg-background w-full rounded-md border px-3 py-2 text-sm uppercase tracking-widest'
-                placeholder='TIENDA-01'
+                placeholder='SUCURSAL-01'
                 required
                 autoFocus
               />
@@ -101,7 +101,7 @@ export default function PosLogin() {
             </div>
 
             <Button type='submit' className='w-full' disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in…' : 'Sign In'}
+              {isSubmitting ? 'Iniciando sesión…' : 'Ingresar'}
             </Button>
           </Form>
         </CardContent>

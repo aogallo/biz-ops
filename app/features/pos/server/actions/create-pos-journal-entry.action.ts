@@ -12,8 +12,12 @@ export interface CreatePosJournalEntryResult {
 export async function createPosSessionJournalEntry(
   sessionId: string,
   organizationId: string,
-  companyId: string
+  companyId: string | null | undefined
 ): Promise<CreatePosJournalEntryResult> {
+  if (!companyId) {
+    return { success: true, skipped: true }
+  }
+
   try {
     // Get Z-Report for the session
     const zReport = await posRepository.getZReportBySessionId(sessionId)

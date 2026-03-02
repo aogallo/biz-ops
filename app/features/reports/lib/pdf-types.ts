@@ -70,7 +70,7 @@ export const SPANISH_MONTHS = [
  * Format a number with Spanish locale (comma for thousands, dot for decimals)
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-GT', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount)

@@ -452,7 +452,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       const data = {
         terminalId: terminal.id,
         organizationId,
-        companyId: terminal.companyId,
+        sucursalId: terminal.sucursalId,
         cashierId,
         userId,
         businessPartnerId,
@@ -496,7 +496,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       const data = {
         terminalId: terminal.id,
         organizationId,
-        companyId: terminal.companyId,
+        sucursalId: terminal.sucursalId,
         cashierId: cashier.id,
         openingCashAmount,
       }

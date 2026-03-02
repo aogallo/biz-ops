@@ -102,6 +102,15 @@ import {
   posSessionStatusEnum,
   posCashMovementTypeEnum,
 } from './pos'
+import {
+  sucursalModel,
+  sucursalInventoryModel,
+  inventoryMovementModel,
+  sucursalRelations,
+  sucursalInventoryRelations,
+  inventoryMovementRelations,
+  inventoryMovementTypeEnum,
+} from './sucursal'
 
 export const schema = {
   // Auth tables
@@ -166,6 +175,11 @@ export const schema = {
   posCashMovement: posCashMovementModel,
   posZReport: posZReportModel,
 
+  // Sucursal tables
+  sucursal: sucursalModel,
+  sucursalInventory: sucursalInventoryModel,
+  inventoryMovement: inventoryMovementModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -198,6 +212,9 @@ export const schema = {
   posSessionRelations,
   posCashMovementRelations,
   posZReportRelations,
+  sucursalRelations,
+  sucursalInventoryRelations,
+  inventoryMovementRelations,
 }
 
 // Re-export all schemas for easy access
@@ -217,6 +234,7 @@ export * from './stockMovement'
 export * from './orders'
 export * from './quotations'
 export * from './pos'
+export * from './sucursal'
 export * from './common'
 
 // Re-export enums
@@ -237,4 +255,5 @@ export {
   posPaymentMethodEnum,
   posSessionStatusEnum,
   posCashMovementTypeEnum,
+  inventoryMovementTypeEnum,
 }

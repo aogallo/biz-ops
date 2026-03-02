@@ -127,6 +127,13 @@
       "when": 1772078962534,
       "tag": "0017_overconfident_morbius",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1772467288989,
+      "tag": "0018_careful_stingray",
+      "breakpoints": true
     }
   ]
 }

@@ -31,6 +31,7 @@ import {
   Truck,
   Users,
   UserStarIcon,
+  Store,
 } from 'lucide-react'
 import { Link, NavLink, useFetcher } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
@@ -239,6 +240,12 @@ export const navigationItems = [
         nameKey: 'sidebar.items.posCashiers' as TranslationKey,
         path: '/pos-settings/cashiers',
         icon: Users,
+      },
+      {
+        name: 'sucursal',
+        nameKey: 'sidebar.items.sucursal' as TranslationKey,
+        path: '/sucursal',
+        icon: Store,
       },
     ],
   },

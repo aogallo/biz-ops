@@ -104,8 +104,13 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
               <Link to='/dashboard'>Volver al ERP</Link>
             </Button>
           )}
-          <Form method='post' action='/pos-logout'>
-            <Button variant='ghost' size='sm' type='submit'>
+          <Form method='post' action='/logout'>
+            <Button
+              variant='ghost'
+              size='sm'
+              type='submit'
+              className='cursor-pointer'
+            >
               Cerrar sesión
             </Button>
           </Form>

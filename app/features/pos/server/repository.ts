@@ -327,12 +327,9 @@ export class PosRepository {
         userId: posCashierModel.userId,
         userName: userModel.name,
         isActive: posCashierModel.isActive,
-        sucursalId: posCashierModel.sucursalId,
-        sucursalName: sucursalModel.name,
       })
       .from(posCashierModel)
       .leftJoin(userModel, eq(posCashierModel.userId, userModel.id))
-      .leftJoin(sucursalModel, eq(posCashierModel.sucursalId, sucursalModel.id))
       .where(eq(posCashierModel.organizationId, organizationId))
       .orderBy(posCashierModel.name)
   }
@@ -504,7 +501,7 @@ export class PosRepository {
       .orderBy(sucursalModel.name)
   }
 
-  async getActiveCashiersForSucursal(sucursalId: string) {
+  async getActiveCashiersForSucursal(organizationId: string) {
     return await db
       .select({
         id: posCashierModel.id,
@@ -515,7 +512,7 @@ export class PosRepository {
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.sucursalId, sucursalId),
+          eq(posCashierModel.organizationId, organizationId),
           eq(posCashierModel.isActive, true)
         )
       )
@@ -523,7 +520,7 @@ export class PosRepository {
   }
 
   async verifyCashierBySucursalAndPin(sucursalCode: string, pin: string) {
-    // Find sucursal by code (case-insensitive)
+    // Find sucursal by code (case-insensitive) to resolve the organization
     const [sucursal] = await db
       .select({
         id: sucursalModel.id,
@@ -541,13 +538,13 @@ export class PosRepository {
 
     if (!sucursal) return null
 
-    // Find active cashier in that sucursal with matching PIN
+    // Find active cashier in the organization with matching PIN
     const [cashier] = await db
       .select()
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.sucursalId, sucursal.id),
+          eq(posCashierModel.organizationId, sucursal.organizationId),
           eq(posCashierModel.pin, pin),
           eq(posCashierModel.isActive, true)
         )
@@ -576,7 +573,7 @@ export class PosRepository {
         .where(eq(posCashierModel.id, cashier.id))
     }
 
-    return { ...cashier, sucursalName: sucursal.name }
+    return { ...cashier, sucursalId: sucursal.id, sucursalName: sucursal.name }
   }
 
   async verifyCashierPin(cashierId: string, pin: string) {

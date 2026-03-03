@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, or, sql, type SQL } from 'drizzle-orm'
+import { and, count, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   posTerminalModel,
@@ -237,7 +237,13 @@ export class PosRepository {
       )
     }
     if (search) {
-      conditions.push(ilike(posSaleModel.saleNumber, `%${search}%`))
+      conditions.push(
+        or(
+          ilike(posSaleModel.saleNumber, `%${search}%`),
+          ilike(businessPartnerModel.nit, `%${search}%`),
+          ilike(sql`CAST(${posSaleModel.total} AS TEXT)`, `%${search}%`),
+        )!
+      )
     }
 
     const whereClause = and(...conditions)
@@ -245,6 +251,10 @@ export class PosRepository {
     const [totalResult] = await db
       .select({ count: count() })
       .from(posSaleModel)
+      .innerJoin(
+        businessPartnerModel,
+        eq(posSaleModel.businessPartnerId, businessPartnerModel.id)
+      )
       .where(whereClause)
 
     const total = totalResult?.count ?? 0
@@ -260,6 +270,7 @@ export class PosRepository {
         cashierName: posCashierModel.name,
         terminalName: posTerminalModel.name,
         customerName: businessPartnerModel.name,
+        customerNit: businessPartnerModel.nit,
       })
       .from(posSaleModel)
       .innerJoin(
@@ -279,7 +290,32 @@ export class PosRepository {
       .limit(limit)
       .offset(offset)
 
-    return { sales, total }
+    const saleIds = sales.map((s) => s.id)
+    const paymentMethodsMap: Record<string, string[]> = {}
+
+    if (saleIds.length > 0) {
+      const payments = await db
+        .select({
+          saleId: posPaymentModel.saleId,
+          method: posPaymentModel.method,
+        })
+        .from(posPaymentModel)
+        .where(inArray(posPaymentModel.saleId, saleIds))
+
+      for (const p of payments) {
+        if (!paymentMethodsMap[p.saleId]) paymentMethodsMap[p.saleId] = []
+        if (!paymentMethodsMap[p.saleId].includes(p.method)) {
+          paymentMethodsMap[p.saleId].push(p.method)
+        }
+      }
+    }
+
+    const salesWithPayments = sales.map((s) => ({
+      ...s,
+      paymentMethods: paymentMethodsMap[s.id] ?? [],
+    }))
+
+    return { sales: salesWithPayments, total }
   }
 
   // ── Business partners for customer search ──

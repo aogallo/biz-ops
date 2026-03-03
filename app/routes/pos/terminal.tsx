@@ -91,9 +91,12 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const sucursalId = terminal.sucursalId ?? undefined
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, expectedCash] = await Promise.all([
     posRepository.getProductsForPos(organizationId, sucursalId),
     posRepository.getCategories(organizationId),
+    openSession
+      ? posRepository.calculateExpectedCashForSession(openSession.id)
+      : Promise.resolve(0),
   ])
 
   const cashierName = posSession?.cashierName ?? userSession?.user.name ?? ''
@@ -127,6 +130,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     cashier,
     openSession,
     autoClosedStaleSession,
+    expectedCash,
   }
 }
 
@@ -334,6 +338,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     cashier,
     openSession,
     autoClosedStaleSession,
+    expectedCash,
   } = loaderData
 
   const { t } = useTranslation()
@@ -724,6 +729,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         onOpenChange={setCloseShiftOpen}
         onConfirm={handleCloseShift}
         isSubmitting={fetcher.state === 'submitting'}
+        expectedCash={expectedCash}
       />
 
       <PosCashMovementDialog

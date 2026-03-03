@@ -347,11 +347,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 const reportTypes = [
-  { value: 'journal-entry', label: 'Journal Entry' },
-  { value: 'sales-ledger', label: 'Sales Ledger' },
-  { value: 'purchase-ledger', label: 'Purchase Ledger' },
-  { value: 'general-ledger', label: 'General Ledger' },
-  { value: 'appointment-occupancy', label: 'Appointment & Occupancy' },
+  { value: 'journal-entry', label: 'Libro diario' },
+  { value: 'sales-ledger', label: 'Libro de Ventas' },
+  { value: 'purchase-ledger', label: 'Libro de Compras' },
+  { value: 'general-ledger', label: 'Mayor General' },
+  { value: 'appointment-occupancy', label: 'Citas y Ocupación' },
 ]
 
 const datePresets = [
@@ -718,13 +718,17 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
           <CardHeader>
             <div className='flex items-center gap-2'>
               <SlidersHorizontalIcon className='text-muted-foreground size-5' />
-              <h3 className='text-lg font-semibold'>Report Configuration</h3>
+              <h3 className='text-lg font-semibold'>
+                Configuración del Reporte
+              </h3>
             </div>
           </CardHeader>
           <CardContent className='space-y-6'>
             {/* Report Type */}
             <div className='space-y-3'>
-              <Label className='text-primary font-medium'>Report Type</Label>
+              <Label className='text-primary font-medium'>
+                Tipo de Reporte
+              </Label>
               <Select
                 value={selectedReportType}
                 onValueChange={handleReportTypeChange}
@@ -787,9 +791,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               {/* Staff Filter (only for appointment reports) */}
               {isAppointmentReport && (
                 <div className='space-y-3'>
-                  <Label className='text-primary font-medium'>
-                    Staff Member
-                  </Label>
+                  <Label className='text-primary font-medium'>Personal</Label>
                   <Select
                     value={selectedStaffId || 'all'}
                     onValueChange={handleStaffChange}
@@ -857,7 +859,9 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
         <CardHeader>
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <div className='flex items-center gap-3'>
-              <h3 className='text-lg font-semibold'>Report Preview</h3>
+              <h3 className='text-lg font-semibold'>
+                Vista Previa del Reporte
+              </h3>
               {hasGeneratedData && (
                 <Badge
                   variant='secondary'
@@ -870,7 +874,8 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             {hasGeneratedData && totalRows > 0 && (
               <div className='flex items-center gap-3'>
                 <span className='text-muted-foreground text-sm'>
-                  Rows: {startRow}-{endRow} of {totalRows.toLocaleString()}
+                  Filas: {startRow}-{endRow} de{' '}
+                  {totalRows.toLocaleString('es-GT')}
                 </span>
                 <div className='flex gap-1'>
                   <Button
@@ -1031,15 +1036,18 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                           <>
                             <PlayIcon className='size-8 opacity-50' />
                             <p>
-                              Click &quot;Generate Report&quot; to load data
+                              Hacé clic en &quot;Generar Reporte&quot; para
+                              cargar datos
                             </p>
                           </>
                         ) : (
                           <>
-                            <p className='text-lg font-medium'>No data found</p>
+                            <p className='text-lg font-medium'>
+                              No se encontraron datos
+                            </p>
                             <p className='text-sm'>
-                              No records match the selected filters. Try
-                              adjusting the date range.
+                              No hay registros para los filtros seleccionados.
+                              Probá ajustando el rango de fechas.
                             </p>
                           </>
                         )}

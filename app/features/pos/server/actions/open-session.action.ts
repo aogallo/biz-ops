@@ -2,25 +2,31 @@ import { eq, and } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { posSessionModel, posCashMovementModel } from '~/server/db/schemas/pos'
 import type { OpenSessionInput } from '../../schemas'
+import { autoCloseStaleSessionAction } from './auto-close-stale-session.action'
 
 export async function openSessionAction(input: OpenSessionInput) {
-  return await db.transaction(async (tx) => {
-    // Check no open session on this terminal
-    const [existing] = await tx
-      .select({ id: posSessionModel.id })
-      .from(posSessionModel)
-      .where(
-        and(
-          eq(posSessionModel.terminalId, input.terminalId),
-          eq(posSessionModel.status, 'open')
-        )
+  // Check for existing open session before entering the transaction to avoid
+  // nested transactions (not supported with Neon HTTP driver).
+  const [preCheck] = await db
+    .select({ id: posSessionModel.id })
+    .from(posSessionModel)
+    .where(
+      and(
+        eq(posSessionModel.terminalId, input.terminalId),
+        eq(posSessionModel.status, 'open')
       )
-      .limit(1)
+    )
+    .limit(1)
 
-    if (existing) {
+  if (preCheck) {
+    const staleResult = await autoCloseStaleSessionAction(preCheck.id)
+    if (!staleResult.closed) {
       throw new Error('Terminal already has an open session')
     }
+    // stale session auto-closed — proceed to create new session
+  }
 
+  return await db.transaction(async (tx) => {
     // Create session
     const [session] = await tx
       .insert(posSessionModel)

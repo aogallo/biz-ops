@@ -70,7 +70,6 @@ export const createCashierSchema = insertCashierSchema
   .extend({
     name: z.string().min(1, 'Name is required'),
     organizationId: z.string().uuid(),
-    sucursalId: z.string().uuid().optional().nullable(),
     userId: z.string().uuid().optional().nullable(),
     pin: z.string().min(4).max(6).optional().nullable(),
   })

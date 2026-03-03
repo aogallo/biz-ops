@@ -164,7 +164,6 @@ export const posCashierModel = pgTable(
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizationModel.id),
-    sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
     userId: uuid('user_id').references(() => userModel.id),
     name: text('name').notNull(),
     pin: text('pin'),
@@ -174,7 +173,7 @@ export const posCashierModel = pgTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex('cashier_pin_sucursal_idx').on(table.sucursalId, table.pin),
+    uniqueIndex('cashier_pin_org_idx').on(table.organizationId, table.pin),
   ]
 )
 
@@ -333,10 +332,6 @@ export const posCashierRelations = relations(
     organization: one(organizationModel, {
       fields: [posCashierModel.organizationId],
       references: [organizationModel.id],
-    }),
-    sucursal: one(sucursalModel, {
-      fields: [posCashierModel.sucursalId],
-      references: [sucursalModel.id],
     }),
     user: one(userModel, {
       fields: [posCashierModel.userId],

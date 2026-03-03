@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, or, sql, type SQL } from 'drizzle-orm'
+import { and, count, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   posTerminalModel,
@@ -237,7 +237,13 @@ export class PosRepository {
       )
     }
     if (search) {
-      conditions.push(ilike(posSaleModel.saleNumber, `%${search}%`))
+      conditions.push(
+        or(
+          ilike(posSaleModel.saleNumber, `%${search}%`),
+          ilike(businessPartnerModel.nit, `%${search}%`),
+          ilike(sql`CAST(${posSaleModel.total} AS TEXT)`, `%${search}%`),
+        )!
+      )
     }
 
     const whereClause = and(...conditions)
@@ -245,6 +251,10 @@ export class PosRepository {
     const [totalResult] = await db
       .select({ count: count() })
       .from(posSaleModel)
+      .innerJoin(
+        businessPartnerModel,
+        eq(posSaleModel.businessPartnerId, businessPartnerModel.id)
+      )
       .where(whereClause)
 
     const total = totalResult?.count ?? 0
@@ -260,6 +270,7 @@ export class PosRepository {
         cashierName: posCashierModel.name,
         terminalName: posTerminalModel.name,
         customerName: businessPartnerModel.name,
+        customerNit: businessPartnerModel.nit,
       })
       .from(posSaleModel)
       .innerJoin(
@@ -279,7 +290,32 @@ export class PosRepository {
       .limit(limit)
       .offset(offset)
 
-    return { sales, total }
+    const saleIds = sales.map((s) => s.id)
+    const paymentMethodsMap: Record<string, string[]> = {}
+
+    if (saleIds.length > 0) {
+      const payments = await db
+        .select({
+          saleId: posPaymentModel.saleId,
+          method: posPaymentModel.method,
+        })
+        .from(posPaymentModel)
+        .where(inArray(posPaymentModel.saleId, saleIds))
+
+      for (const p of payments) {
+        if (!paymentMethodsMap[p.saleId]) paymentMethodsMap[p.saleId] = []
+        if (!paymentMethodsMap[p.saleId].includes(p.method)) {
+          paymentMethodsMap[p.saleId].push(p.method)
+        }
+      }
+    }
+
+    const salesWithPayments = sales.map((s) => ({
+      ...s,
+      paymentMethods: paymentMethodsMap[s.id] ?? [],
+    }))
+
+    return { sales: salesWithPayments, total }
   }
 
   // ── Business partners for customer search ──
@@ -327,12 +363,9 @@ export class PosRepository {
         userId: posCashierModel.userId,
         userName: userModel.name,
         isActive: posCashierModel.isActive,
-        sucursalId: posCashierModel.sucursalId,
-        sucursalName: sucursalModel.name,
       })
       .from(posCashierModel)
       .leftJoin(userModel, eq(posCashierModel.userId, userModel.id))
-      .leftJoin(sucursalModel, eq(posCashierModel.sucursalId, sucursalModel.id))
       .where(eq(posCashierModel.organizationId, organizationId))
       .orderBy(posCashierModel.name)
   }
@@ -440,6 +473,51 @@ export class PosRepository {
     return session ?? null
   }
 
+  async calculateExpectedCashForSession(sessionId: string): Promise<number> {
+    const session = await this.getSessionById(sessionId)
+    if (!session) throw new Error('Session not found')
+
+    const movements = await db
+      .select()
+      .from(posCashMovementModel)
+      .where(eq(posCashMovementModel.sessionId, sessionId))
+
+    let totalDeposits = 0
+    let totalWithdrawals = 0
+    let totalRefundMovements = 0
+
+    for (const m of movements) {
+      const amt = Number(m.amount)
+      if (m.type === 'deposit') totalDeposits += amt
+      else if (m.type === 'withdrawal') totalWithdrawals += amt
+      else if (m.type === 'refund') totalRefundMovements += amt
+    }
+
+    const sales = await db
+      .select({ id: posSaleModel.id, status: posSaleModel.status })
+      .from(posSaleModel)
+      .where(eq(posSaleModel.sessionId, sessionId))
+
+    let totalCashSales = 0
+    const completedIds = sales
+      .filter((s) => s.status === 'completed')
+      .map((s) => s.id)
+
+    if (completedIds.length > 0) {
+      const payments = await db
+        .select()
+        .from(posPaymentModel)
+        .where(sql`${posPaymentModel.saleId} IN ${completedIds}`)
+
+      for (const p of payments) {
+        if (p.method === 'cash') totalCashSales += Number(p.amount)
+      }
+    }
+
+    const openingCash = Number(session.openingCashAmount)
+    return openingCash + totalCashSales - totalRefundMovements - totalWithdrawals + (totalDeposits - openingCash)
+  }
+
   // ── Cash movements ──
 
   async addCashMovement(data: {
@@ -504,7 +582,7 @@ export class PosRepository {
       .orderBy(sucursalModel.name)
   }
 
-  async getActiveCashiersForSucursal(sucursalId: string) {
+  async getActiveCashiersForSucursal(organizationId: string) {
     return await db
       .select({
         id: posCashierModel.id,
@@ -515,7 +593,7 @@ export class PosRepository {
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.sucursalId, sucursalId),
+          eq(posCashierModel.organizationId, organizationId),
           eq(posCashierModel.isActive, true)
         )
       )
@@ -523,7 +601,7 @@ export class PosRepository {
   }
 
   async verifyCashierBySucursalAndPin(sucursalCode: string, pin: string) {
-    // Find sucursal by code (case-insensitive)
+    // Find sucursal by code (case-insensitive) to resolve the organization
     const [sucursal] = await db
       .select({
         id: sucursalModel.id,
@@ -541,13 +619,13 @@ export class PosRepository {
 
     if (!sucursal) return null
 
-    // Find active cashier in that sucursal with matching PIN
+    // Find active cashier in the organization with matching PIN
     const [cashier] = await db
       .select()
       .from(posCashierModel)
       .where(
         and(
-          eq(posCashierModel.sucursalId, sucursal.id),
+          eq(posCashierModel.organizationId, sucursal.organizationId),
           eq(posCashierModel.pin, pin),
           eq(posCashierModel.isActive, true)
         )
@@ -576,7 +654,7 @@ export class PosRepository {
         .where(eq(posCashierModel.id, cashier.id))
     }
 
-    return { ...cashier, sucursalName: sucursal.name }
+    return { ...cashier, sucursalId: sucursal.id, sucursalName: sucursal.name }
   }
 
   async verifyCashierPin(cashierId: string, pin: string) {

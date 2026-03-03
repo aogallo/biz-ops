@@ -1,4 +1,14 @@
-import { and, count, eq, ilike, inArray, isNotNull, or, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   insertSatFileSchema,
@@ -25,11 +35,18 @@ export interface CategorizeStats {
 export class SatFileRepository {
   async getByOrganization(
     organizationId: string,
-    options: GetSatFilesOptions = {}
+    options: GetSatFilesOptions = {},
+    pendingRows: boolean = true
   ): Promise<SatFile[]> {
     const { search, companyId, limit = 50, offset = 0 } = options
 
     const conditions = [eq(satFileModel.organizationId, organizationId)]
+
+    if (pendingRows) {
+      conditions.push(isNull(satFileModel.accountingAccountId))
+    } else {
+      conditions.push(isNotNull(satFileModel.accountingAccountId))
+    }
 
     if (companyId) {
       conditions.push(eq(satFileModel.companyId, companyId))

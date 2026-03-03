@@ -1095,7 +1095,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                         {row.refNo}
                       </TableCell>
                       <TableCell>{row.accountName}</TableCell>
-                      <TableCell className='max-w-[200px] truncate'>
+                      <TableCell className='max-w-50 truncate'>
                         {row.description}
                       </TableCell>
                       <TableCell className='text-right'>

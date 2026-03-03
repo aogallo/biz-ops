@@ -4,6 +4,8 @@ import { Button } from '~/components/ui/button'
 import { posRepository } from '~/features/pos/server/repository'
 import { getOptionalAuth } from '~/server/auth/session.server'
 import { getPosSession } from '~/server/auth/pos-session.server'
+import { isStaleSession } from '~/features/pos/server/utils/session-date'
+import { autoCloseStaleSessionAction } from '~/features/pos/server/actions/auto-close-stale-session.action'
 import { useTranslation } from '~/i18n/context'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/index'
@@ -41,7 +43,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (cashier) {
     const openSession = await posRepository.getOpenSessionByCashier(cashier.id)
     if (openSession) {
-      throw redirect(`/pos/terminal?terminalId=${openSession.terminalId}`)
+      if (isStaleSession(new Date(openSession.openedAt))) {
+        await autoCloseStaleSessionAction(openSession.id)
+        // Don't redirect — let cashier pick terminal and open a fresh session
+      } else {
+        throw redirect(`/pos/terminal?terminalId=${openSession.terminalId}`)
+      }
     }
   }
 

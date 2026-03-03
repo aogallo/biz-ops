@@ -437,6 +437,51 @@ export class PosRepository {
     return session ?? null
   }
 
+  async calculateExpectedCashForSession(sessionId: string): Promise<number> {
+    const session = await this.getSessionById(sessionId)
+    if (!session) throw new Error('Session not found')
+
+    const movements = await db
+      .select()
+      .from(posCashMovementModel)
+      .where(eq(posCashMovementModel.sessionId, sessionId))
+
+    let totalDeposits = 0
+    let totalWithdrawals = 0
+    let totalRefundMovements = 0
+
+    for (const m of movements) {
+      const amt = Number(m.amount)
+      if (m.type === 'deposit') totalDeposits += amt
+      else if (m.type === 'withdrawal') totalWithdrawals += amt
+      else if (m.type === 'refund') totalRefundMovements += amt
+    }
+
+    const sales = await db
+      .select({ id: posSaleModel.id, status: posSaleModel.status })
+      .from(posSaleModel)
+      .where(eq(posSaleModel.sessionId, sessionId))
+
+    let totalCashSales = 0
+    const completedIds = sales
+      .filter((s) => s.status === 'completed')
+      .map((s) => s.id)
+
+    if (completedIds.length > 0) {
+      const payments = await db
+        .select()
+        .from(posPaymentModel)
+        .where(sql`${posPaymentModel.saleId} IN ${completedIds}`)
+
+      for (const p of payments) {
+        if (p.method === 'cash') totalCashSales += Number(p.amount)
+      }
+    }
+
+    const openingCash = Number(session.openingCashAmount)
+    return openingCash + totalCashSales - totalRefundMovements - totalWithdrawals + (totalDeposits - openingCash)
+  }
+
   // ── Cash movements ──
 
   async addCashMovement(data: {

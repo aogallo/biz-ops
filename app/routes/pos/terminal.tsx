@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useFetcher, redirect, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { posRepository } from '~/features/pos/server/repository'
 import { createSaleAction } from '~/features/pos/server/actions/create-sale.action'
 import { openSessionAction } from '~/features/pos/server/actions/open-session.action'
@@ -31,6 +32,8 @@ import {
 import type { CheckoutPayment } from '~/features/pos/schemas'
 import { getOptionalAuth } from '~/server/auth/session.server'
 import { getPosSession } from '~/server/auth/pos-session.server'
+import { isStaleSession } from '~/features/pos/server/utils/session-date'
+import { autoCloseStaleSessionAction } from '~/features/pos/server/actions/auto-close-stale-session.action'
 import { useTranslation } from '~/i18n/context'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { db } from '~/server/db'
@@ -73,11 +76,23 @@ export async function loader({ request }: Route.LoaderArgs) {
     )
   }
 
-  // Get open session for this terminal
-  const openSession = await posRepository.getOpenSession(terminalId)
+  // Get open session for this terminal — auto-close if stale (from a previous day)
+  let openSession: Awaited<ReturnType<typeof posRepository.getOpenSession>> | null =
+    await posRepository.getOpenSession(terminalId)
+  let autoClosedStaleSession = false
+
+  if (openSession && isStaleSession(new Date(openSession.openedAt))) {
+    const result = await autoCloseStaleSessionAction(openSession.id)
+    if (result.closed) {
+      autoClosedStaleSession = true
+      openSession = null
+    }
+  }
+
+  const sucursalId = terminal.sucursalId ?? undefined
 
   const [products, categories] = await Promise.all([
-    posRepository.getProductsForPos(organizationId),
+    posRepository.getProductsForPos(organizationId, sucursalId),
     posRepository.getCategories(organizationId),
   ])
 
@@ -111,6 +126,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     defaultBusinessPartnerId,
     cashier,
     openSession,
+    autoClosedStaleSession,
   }
 }
 
@@ -317,9 +333,18 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     defaultBusinessPartnerId,
     cashier,
     openSession,
+    autoClosedStaleSession,
   } = loaderData
 
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (autoClosedStaleSession) {
+      toast.warning(
+        'Tu turno anterior fue cerrado automáticamente al cambiar de día. Abre un nuevo turno para continuar.'
+      )
+    }
+  }, [autoClosedStaleSession])
   const navigate = useNavigate()
   const fetcher = useFetcher<typeof action>()
   const customerFetcher = useFetcher<typeof action>()
@@ -641,6 +666,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             selectedCategoryId={selectedCategoryId}
             onCategoryChange={setSelectedCategoryId}
             onProductClick={addToCart}
+            sucursalId={terminal.sucursalId}
           />
         </div>
 

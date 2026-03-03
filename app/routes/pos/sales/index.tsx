@@ -97,14 +97,24 @@ export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
       accessorKey: 'paymentMethods',
       header: 'Forma de pago',
       cell: ({ row }) => {
-        const labels: Record<string, string> = {
-          cash: 'Efectivo',
-          card: 'Tarjeta',
-          check: 'Cheque',
+        const config: Record<string, { label: string; className: string }> = {
+          cash: { label: 'Efectivo', className: 'bg-green-100 text-green-800 border-green-200' },
+          card: { label: 'Tarjeta', className: 'bg-blue-100 text-blue-800 border-blue-200' },
+          check: { label: 'Cheque', className: 'bg-orange-100 text-orange-800 border-orange-200' },
         }
+        const methods = row.original.paymentMethods
+        if (!methods.length) return '—'
         return (
-          row.original.paymentMethods.map((m) => labels[m] ?? m).join(', ') ||
-          '—'
+          <div className='flex flex-wrap gap-1'>
+            {methods.map((m) => {
+              const { label, className } = config[m] ?? { label: m, className: '' }
+              return (
+                <Badge key={m} variant='outline' className={className}>
+                  {label}
+                </Badge>
+              )
+            })}
+          </div>
         )
       },
     },

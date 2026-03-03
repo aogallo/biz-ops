@@ -5,25 +5,33 @@ import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import { posRepository } from '~/features/pos/server/repository'
 import { voidSaleAction } from '~/features/pos/server/actions/void-sale.action'
-import { requireAuth } from '~/server/auth/session.server'
+import { getOptionalAuth } from '~/server/auth/session.server'
+import { getPosSession } from '~/server/auth/pos-session.server'
 import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/$id'
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  await requireAuth(request)
+  const [userSession, posSession] = await Promise.all([
+    getOptionalAuth(request),
+    getPosSession(request),
+  ])
+  if (!userSession && !posSession) throw redirect('/pos-login')
+
   const sale = await posRepository.getSaleById(params.id)
   if (!sale) throw redirect('/pos/sales')
-  return { sale }
+  return { sale, canVoid: !!userSession }
 }
 
 export async function action({ params, request }: Route.ActionArgs) {
-  const session = await requireAuth(request)
+  const [userSession] = await Promise.all([getOptionalAuth(request)])
+  if (!userSession) throw redirect('/pos-login')
+
   const formData = await request.formData()
   const intent = formData.get('intent')
 
   if (intent === 'void') {
     try {
-      await voidSaleAction(params.id, session.user.id)
+      await voidSaleAction(params.id, userSession.user.id)
       return { success: true }
     } catch (error) {
       return {
@@ -36,7 +44,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 }
 
 export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
-  const { sale } = loaderData
+  const { sale, canVoid } = loaderData
   const { t } = useTranslation()
   const fetcher = useFetcher<typeof action>()
 
@@ -164,20 +172,22 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
                   <Printer className='size-4' />
                   {t('pos.print')}
                 </Button>
-                <fetcher.Form method='post'>
-                  <input type='hidden' name='intent' value='void' />
-                  <Button
-                    variant='destructive'
-                    size='sm'
-                    type='submit'
-                    disabled={fetcher.state !== 'idle'}
-                  >
-                    <XCircle className='size-4' />
-                    {fetcher.state === 'submitting'
-                      ? t('pos.voiding')
-                      : t('pos.voidSale')}
-                  </Button>
-                </fetcher.Form>
+                {canVoid && (
+                  <fetcher.Form method='post'>
+                    <input type='hidden' name='intent' value='void' />
+                    <Button
+                      variant='destructive'
+                      size='sm'
+                      type='submit'
+                      disabled={fetcher.state !== 'idle'}
+                    >
+                      <XCircle className='size-4' />
+                      {fetcher.state === 'submitting'
+                        ? t('pos.voiding')
+                        : t('pos.voidSale')}
+                    </Button>
+                  </fetcher.Form>
+                )}
               </div>
             </>
           )}

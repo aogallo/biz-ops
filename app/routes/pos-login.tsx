@@ -46,7 +46,7 @@ export async function action({ request }: Route.ActionArgs) {
     cashierId: cashier.id,
     cashierName: cashier.name,
     organizationId: cashier.organizationId,
-    sucursalId: cashier.sucursalId ?? '',
+    sucursalId: cashier.sucursalId,
   })
 
   throw redirect('/pos', { headers: { 'Set-Cookie': cookie } })

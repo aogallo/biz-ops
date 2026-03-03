@@ -1,8 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Eye } from 'lucide-react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { redirect } from 'react-router'
 import { posRepository } from '~/features/pos/server/repository'
@@ -21,6 +22,8 @@ interface SaleRow {
   cashierName: string
   terminalName: string
   customerName: string
+  customerNit: string | null
+  paymentMethods: string[]
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -46,12 +49,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const cashierIdFilter = posSession?.cashierId ?? undefined
   const sessionIdFilter = url.searchParams.get('sessionId') ?? undefined
+  const search = url.searchParams.get('search') ?? undefined
 
   const { sales, total } = await posRepository.getSalesPaginated(
     organizationId,
     {
       cashierId: cashierIdFilter,
       sessionId: sessionIdFilter,
+      search,
       limit: pageSize,
       offset: (page - 1) * pageSize,
     }
@@ -64,6 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
   const { sales, terminalId } = loaderData
   const { t } = useTranslation()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const columns: ColumnDef<SaleRow>[] = [
     {
@@ -81,6 +87,36 @@ export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
     {
       accessorKey: 'customerName',
       header: t('pos.customerCol'),
+    },
+    {
+      accessorKey: 'customerNit',
+      header: 'NIT',
+      cell: ({ row }) => row.original.customerNit ?? 'CF',
+    },
+    {
+      accessorKey: 'paymentMethods',
+      header: 'Forma de pago',
+      cell: ({ row }) => {
+        const config: Record<string, { label: string; className: string }> = {
+          cash: { label: 'Efectivo', className: 'bg-green-100 text-green-800 border-green-200' },
+          card: { label: 'Tarjeta', className: 'bg-blue-100 text-blue-800 border-blue-200' },
+          check: { label: 'Cheque', className: 'bg-orange-100 text-orange-800 border-orange-200' },
+        }
+        const methods = row.original.paymentMethods
+        if (!methods.length) return '—'
+        return (
+          <div className='flex flex-wrap gap-1'>
+            {methods.map((m) => {
+              const { label, className } = config[m] ?? { label: m, className: '' }
+              return (
+                <Badge key={m} variant='outline' className={className}>
+                  {label}
+                </Badge>
+              )
+            })}
+          </div>
+        )
+      },
     },
     {
       accessorKey: 'total',
@@ -147,6 +183,21 @@ export default function PosSalesIndex({ loaderData }: Route.ComponentProps) {
             {t('pos.backToPos')}
           </Link>
         </Button>
+      </div>
+      <div className='mb-4'>
+        <Input
+          placeholder='Buscar por NIT, monto o número...'
+          defaultValue={searchParams.get('search') ?? ''}
+          onChange={(e) =>
+            setSearchParams((prev) => {
+              if (e.target.value) prev.set('search', e.target.value)
+              else prev.delete('search')
+              prev.delete('page')
+              return prev
+            })
+          }
+          className='w-64'
+        />
       </div>
       <DataTable columns={columns} data={sales} />
     </div>

@@ -1,12 +1,13 @@
 import { useEffect } from 'react'
-import { useFetcher, useSearchParams } from 'react-router'
+import { useFetcher, useNavigation, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { requireAuth } from '~/server/auth/session.server'
 import { sucursalRepository } from '~/features/sucursal/server/repository/sucursal.repository'
 import { inventoryRepository } from '~/features/inventory/server/repository/inventory.repository'
 import { transferToSucursalAction } from '~/features/inventory/server/actions/transfer-to-sucursal.action'
 import { adjustSucursalStockAction } from '~/features/inventory/server/actions/adjust-inventory.action'
-import { transferToSucursalSchema, adjustSucursalStockSchema } from '~/features/inventory/schemas'
+import { ingressSucursalStockAction } from '~/features/inventory/server/actions/ingress-sucursal-stock.action'
+import { transferToSucursalSchema, adjustSucursalStockSchema, ingressSucursalStockSchema } from '~/features/inventory/schemas'
 import { productModel } from '~/server/db/schemas/products'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
@@ -89,6 +90,27 @@ export async function action({ request }: Route.ActionArgs) {
     }
   }
 
+  if (intent === 'ingress') {
+    const result = ingressSucursalStockSchema.safeParse({
+      organizationId,
+      sucursalId: formData.get('sucursalId'),
+      productId: formData.get('productId'),
+      quantity: Number(formData.get('quantity')),
+      notes: formData.get('notes') || undefined,
+    })
+
+    if (!result.success) {
+      return { error: 'Datos inválidos: ' + JSON.stringify(result.error.flatten().fieldErrors) }
+    }
+
+    try {
+      await ingressSucursalStockAction(result.data)
+      return { success: 'Ingreso de stock realizado exitosamente' }
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Error en el ingreso' }
+    }
+  }
+
   return { error: 'Acción desconocida' }
 }
 
@@ -96,6 +118,8 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
   const { sucursales, inventory, products, selectedSucursalId } = loaderData
   const [, setSearchParams] = useSearchParams()
   const fetcher = useFetcher<typeof action>()
+  const navigation = useNavigation()
+  const isLoadingInventory = navigation.state === 'loading'
 
   useEffect(() => {
     if (fetcher.data && 'success' in fetcher.data) {
@@ -134,8 +158,15 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
         </select>
       </div>
 
-      {selectedSucursalId && selectedSucursal && (
-        <>
+      {isLoadingInventory && (
+        <div className='flex items-center gap-2 text-sm text-muted-foreground animate-pulse'>
+          <div className='h-4 w-4 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin' />
+          Cargando inventario...
+        </div>
+      )}
+
+      {!isLoadingInventory && selectedSucursalId && selectedSucursal && (
+        <div className='space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-300'>
           {/* Transfer form */}
           <div className='rounded-lg border p-4 space-y-4'>
             <h3 className='font-semibold'>Transferir stock de org → {selectedSucursal.name}</h3>
@@ -168,6 +199,46 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
               <div className='flex items-end'>
                 <Button type='submit' disabled={fetcher.state !== 'idle'}>
                   {fetcher.state !== 'idle' ? 'Transfiriendo...' : 'Transferir'}
+                </Button>
+              </div>
+            </fetcher.Form>
+          </div>
+
+          {/* Ingreso directo form */}
+          <div className='rounded-lg border p-4 space-y-4'>
+            <div>
+              <h3 className='font-semibold'>Ingreso directo a {selectedSucursal.name}</h3>
+              <p className='text-muted-foreground text-xs mt-0.5'>Agrega stock directamente a la sucursal sin descontar del inventario central (ej: recepción de mercancía).</p>
+            </div>
+            <fetcher.Form method='post' className='grid gap-4 sm:grid-cols-4'>
+              <input type='hidden' name='intent' value='ingress' />
+              <input type='hidden' name='sucursalId' value={selectedSucursalId} />
+
+              <div>
+                <label className='mb-1 block text-xs font-medium'>Producto</label>
+                <select name='productId' required className={inputClass}>
+                  <option value=''>Seleccionar...</option>
+                  {products.filter(p => p.productType === 'STOCK').map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className='mb-1 block text-xs font-medium'>Cantidad a ingresar</label>
+                <input type='number' name='quantity' min='1' required className={inputClass} placeholder='1' />
+              </div>
+
+              <div>
+                <label className='mb-1 block text-xs font-medium'>Notas</label>
+                <input type='text' name='notes' className={inputClass} placeholder='Opcional' />
+              </div>
+
+              <div className='flex items-end'>
+                <Button type='submit' variant='outline' disabled={fetcher.state !== 'idle'}>
+                  {fetcher.state !== 'idle' ? 'Ingresando...' : 'Ingresar stock'}
                 </Button>
               </div>
             </fetcher.Form>
@@ -229,7 +300,7 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
               </table>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   )

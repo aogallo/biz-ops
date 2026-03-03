@@ -140,6 +140,12 @@ export const navigationItems = [
         icon: PackageCheck,
       },
       {
+        name: 'Inventory Sucursal',
+        nameKey: 'sidebar.items.inventorySucursal' as TranslationKey,
+        path: '/inventory',
+        icon: Store,
+      },
+      {
         name: 'Scan QR',
         nameKey: 'sidebar.items.scanQr' as TranslationKey,
         path: '/products/scan',

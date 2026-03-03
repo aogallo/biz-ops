@@ -11,7 +11,7 @@ import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
 import { organizationAccountingConfigModel } from '~/server/db/schemas/organizationConfig'
 import { invoiceModel, invoiceLineModel } from '~/server/db/schemas/invoice'
-import { sucursalModel } from '~/server/db/schemas/sucursal'
+import { sucursalModel, sucursalInventoryModel } from '~/server/db/schemas/sucursal'
 import type { CheckoutInput } from '../../schemas'
 import { calculateLineTotals } from '../../types'
 
@@ -182,6 +182,17 @@ export async function createSaleAction(input: CheckoutInput) {
         if (!updated) {
           throw new Error(
             `Stock conflict for "${line.productName}". Another transaction modified the stock.`
+          )
+        }
+
+        // Decrement sucursal inventory if terminal is linked to a sucursal
+        if (input.sucursalId) {
+          await tx.execute(
+            sql`UPDATE ${sucursalInventoryModel}
+                SET stock = stock - ${line.quantity}, updated_at = NOW()
+                WHERE sucursal_id = ${input.sucursalId}
+                  AND product_id = ${line.productId}
+                  AND stock >= ${line.quantity}`
           )
         }
       }

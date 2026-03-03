@@ -1,5 +1,11 @@
 import { GalleryVerticalEnd, Globe } from 'lucide-react'
-import { Form, redirect, useActionData, useFetcher, useNavigation } from 'react-router'
+import {
+  Form,
+  redirect,
+  useActionData,
+  useFetcher,
+  useNavigation,
+} from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -16,10 +22,7 @@ import {
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 import { useLocale, useTranslation } from '~/i18n/context'
-import {
-  getLocaleFromRequest,
-  translateServer,
-} from '~/i18n/translate.server'
+import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { getPostLoginRedirect } from '~/server/auth/access.server'
 import auth from '~/server/auth-server'
 import { getOptionalAuth } from '~/server/auth/session.server'
@@ -119,9 +122,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
         <Card>
           <CardHeader className='text-center'>
             <CardTitle className='text-xl'>{t('auth.welcomeBack')}</CardTitle>
-            <CardDescription>
-              {t('auth.loginDescription')}
-            </CardDescription>
+            <CardDescription>{t('auth.loginDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loaderData?.message && (
@@ -148,7 +149,9 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor='password'>{t('auth.password')}</FieldLabel>
+                  <FieldLabel htmlFor='password'>
+                    {t('auth.password')}
+                  </FieldLabel>
                   <Input
                     id='password'
                     name='password'

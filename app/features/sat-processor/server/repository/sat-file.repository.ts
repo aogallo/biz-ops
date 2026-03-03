@@ -36,15 +36,15 @@ export class SatFileRepository {
   async getByOrganization(
     organizationId: string,
     options: GetSatFilesOptions = {},
-    pendingRows: boolean = true
+    pendingRows?: boolean
   ): Promise<SatFile[]> {
     const { search, companyId, limit = 50, offset = 0 } = options
 
     const conditions = [eq(satFileModel.organizationId, organizationId)]
 
-    if (pendingRows) {
+    if (pendingRows === true) {
       conditions.push(isNull(satFileModel.accountingAccountId))
-    } else {
+    } else if (pendingRows === false) {
       conditions.push(isNotNull(satFileModel.accountingAccountId))
     }
 

@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { accountsRepository } from '~/features/accounts/server/repository'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
 import { processSatRecordAction } from '~/features/journal-entry/server/actions/process-sat-record.action'
@@ -41,6 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const url = new URL(request.url)
   const companyId = url.searchParams.get('companyId') ?? undefined
+  const status = url.searchParams.get('status') ?? 'assigned'
 
   if (!session.session.activeOrganizationId) {
     return {
@@ -48,19 +50,24 @@ export async function loader({ request }: Route.LoaderArgs) {
       accounts: [],
       companies: [],
       stats: { total: 0, matched: 0, review: 0 },
+      status,
     }
   }
 
   const organizationId = session.session.activeOrganizationId
 
+  // pending = null accountingAccountId, assigned = not null, all = undefined (no filter)
+  const pendingRows =
+    status === 'pending' ? true : status === 'assigned' ? false : undefined
+
   const [satFiles, accounts, companies, stats] = await Promise.all([
-    satFileRepository.getByOrganization(organizationId, { companyId }),
+    satFileRepository.getByOrganization(organizationId, { companyId }, pendingRows),
     accountsRepository.getAllByOrganization(organizationId),
     companyRepository.getByOrganization(organizationId),
     satFileRepository.getCategorizeStats(organizationId),
   ])
 
-  return { satFiles, accounts, companies, stats }
+  return { satFiles, accounts, companies, stats, status }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -176,15 +183,17 @@ export default function SATProcessorIndex({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { satFiles, accounts, companies } = loaderData
+  const { satFiles, accounts, companies, status } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedRow, setSelectedRow] = useState<SatFile | null>(null)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
 
-  console.log('actionData...', actionData?.error)
-
   const handleRowSelectionChange = useCallback((selectedRows: SatFile[]) => {
     setSelectedRow(selectedRows.length > 0 ? selectedRows[0] : null)
+  }, [])
+
+  const handleRowClick = useCallback((row: SatFile) => {
+    setSelectedRow((prev) => (prev?.id === row.id ? null : row))
   }, [])
 
   const handleUploadSuccess = useCallback(() => {
@@ -208,6 +217,12 @@ export default function SATProcessorIndex({
     } else {
       newParams.delete('companyId')
     }
+    setSearchParams(newParams)
+  }
+
+  const handleStatusChange = (value: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('status', value)
     setSearchParams(newParams)
   }
 
@@ -279,11 +294,20 @@ export default function SATProcessorIndex({
           </div>
         )}
 
+        <Tabs value={status} onValueChange={handleStatusChange} className='mb-2'>
+          <TabsList>
+            <TabsTrigger value='assigned'>Asignadas</TabsTrigger>
+            <TabsTrigger value='pending'>Pendientes</TabsTrigger>
+            <TabsTrigger value='all'>Todas</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         <DataTable
           columns={SatFileColumns}
           data={satFiles}
           enableRowSelection
           onRowSelectionChange={handleRowSelectionChange}
+          onRowClick={handleRowClick}
           enableSearch
           searchPlaceholder='Search invoices...'
         />

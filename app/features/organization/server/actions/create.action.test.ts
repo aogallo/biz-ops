@@ -41,7 +41,10 @@ describe('createOrganization action', () => {
       name: 'Acme Corp',
       slug: 'acme-corp',
       createdAt: new Date(),
+      updatedAt: new Date(),
       logo: null,
+      metadata: null,
+      isAdmin: false,
     })
 
     const result = await createOrganization(makeRequest(), makeFormData())
@@ -52,7 +55,7 @@ describe('createOrganization action', () => {
 
   test('creates organization when slug is available', async () => {
     mockRepo.getBySlug.mockResolvedValue(null)
-    mockAuth.api.createOrganization.mockResolvedValue({
+    vi.mocked(mockAuth.api.createOrganization as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: 'new-org-id',
       name: 'Acme Corp',
       slug: 'acme-corp',

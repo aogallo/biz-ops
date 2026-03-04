@@ -142,6 +142,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     case 'addLine': {
+      const lineTypeRaw = formData.get('lineType') as string | null
       const input = {
         invoiceId: params.id,
         description: formData.get('description') as string,
@@ -150,6 +151,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         ivaType: (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject') || 'taxed',
         ivaRate: 12,
         productId: (formData.get('productId') as string) || null,
+        lineType: lineTypeRaw === 'goods' || lineTypeRaw === 'services' ? lineTypeRaw : null,
       }
 
       const validation = addInvoiceLineSchema.safeParse(input)
@@ -165,6 +167,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     case 'updateLine': {
+      const lineTypeRaw = formData.get('lineType') as string | null
       const input = {
         lineId: formData.get('lineId') as string,
         description: formData.get('description') as string,
@@ -173,6 +176,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         ivaType: (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject'),
         ivaRate: 12,
         productId: (formData.get('productId') as string) || null,
+        lineType: lineTypeRaw === 'goods' || lineTypeRaw === 'services' ? lineTypeRaw : null,
       }
 
       const validation = updateInvoiceLineSchema.safeParse(input)
@@ -275,6 +279,7 @@ export default function InvoiceEditPage({
     ivaAmount: Number(line.ivaAmount),
     total: Number(line.total),
     productId: line.productId,
+    lineType: line.lineType,
     product: line.product,
   }))
 

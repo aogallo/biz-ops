@@ -56,6 +56,7 @@ export function InvoiceLineTable({
   const [newQuantity, setNewQuantity] = useState('1')
   const [newUnitPrice, setNewUnitPrice] = useState('')
   const [newIvaType, setNewIvaType] = useState<'taxed' | 'exempt' | 'non_subject'>('taxed')
+  const [newLineType, setNewLineType] = useState<'goods' | 'services' | ''>('')
 
   // Ref to track processed fetcher data to prevent duplicate toasts
   const lastAddDataRef = useRef<unknown>(null)
@@ -80,6 +81,7 @@ export function InvoiceLineTable({
     setNewQuantity('1')
     setNewUnitPrice('')
     setNewIvaType('taxed')
+    setNewLineType('')
     setShowAddForm(false)
   }, [])
 
@@ -116,6 +118,7 @@ export function InvoiceLineTable({
         unitPrice: newUnitPrice,
         ivaType: newIvaType,
         productId: newProductId || '',
+        lineType: newLineType || '',
       },
       { method: 'post' }
     )
@@ -127,6 +130,7 @@ export function InvoiceLineTable({
     newUnitPrice,
     newIvaType,
     newProductId,
+    newLineType,
   ])
 
   const productOptions: ComboboxOption[] = products.map((product) => ({
@@ -234,6 +238,23 @@ export function InvoiceLineTable({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label>Tipo</Label>
+                <Select
+                  value={newLineType}
+                  onValueChange={(value: 'goods' | 'services') =>
+                    setNewLineType(value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="goods">Bien</SelectItem>
+                    <SelectItem value="services">Servicio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <Button
@@ -267,6 +288,7 @@ export function InvoiceLineTable({
                   <TableHead className="w-[80px] text-right">Qty</TableHead>
                   <TableHead className="w-[100px] text-right">Unit Price</TableHead>
                   <TableHead className="w-[100px]">IVA Type</TableHead>
+                  <TableHead className="w-[100px]">Tipo</TableHead>
                   <TableHead className="w-[100px] text-right">Subtotal</TableHead>
                   <TableHead className="w-[80px] text-right">IVA</TableHead>
                   <TableHead className="w-[100px] text-right">Total</TableHead>
@@ -289,7 +311,7 @@ export function InvoiceLineTable({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-right font-semibold">
+                  <TableCell colSpan={7} className="text-right font-semibold">
                     Totals
                   </TableCell>
                   <TableCell className="text-right font-mono font-semibold">

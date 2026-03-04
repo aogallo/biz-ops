@@ -1,9 +1,11 @@
 import { CheckCircle2, ExternalLink, Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useFetcher } from 'react-router'
 import { toast } from 'sonner'
 import { Badge } from '~/components/ui/badge'
 import { Combobox } from '~/components/ui/combobox'
+import { Label } from '~/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import type { AccountingAccount } from '~/server/db/schemas/accounting'
 import type { SatFile } from '~/server/db/schemas/sat-file'
 
@@ -18,6 +20,14 @@ export function SelectedRowDetails({
 }: SelectedRowDetailsProps) {
   const fetcher = useFetcher()
   const isUpdating = fetcher.state !== 'idle'
+  const [itemType, setItemType] = useState<'goods' | 'services' | null>(
+    selectedRow?.itemType as 'goods' | 'services' | null ?? null
+  )
+
+  // Sync itemType when selectedRow changes
+  useEffect(() => {
+    setItemType(selectedRow?.itemType as 'goods' | 'services' | null ?? null)
+  }, [selectedRow?.id])
 
   // Handle fetcher response for toast notifications
   const fetcherData = fetcher.data as
@@ -41,6 +51,25 @@ export function SelectedRowDetails({
         _action: 'updateAccount',
         satFileId: selectedRow.id,
         accountingAccountId: accountId === 'none' ? '' : accountId,
+        itemType: itemType ?? '',
+      },
+      { method: 'post' }
+    )
+  }
+
+  const handleItemTypeChange = (value: string) => {
+    const newType = value as 'goods' | 'services'
+    setItemType(newType)
+
+    if (!selectedRow || !selectedRow.accountingAccountId) return
+
+    // Submit immediately if account already assigned
+    fetcher.submit(
+      {
+        _action: 'updateAccount',
+        satFileId: selectedRow.id,
+        accountingAccountId: selectedRow.accountingAccountId,
+        itemType: newType,
       },
       { method: 'post' }
     )
@@ -165,6 +194,28 @@ export function SelectedRowDetails({
           </div>
         </div>
       )}
+
+      {/* Item Type Selection */}
+      <div className='mt-4 border-t pt-4'>
+        <span className='text-muted-foreground mb-2 block text-sm'>
+          Tipo de Operación
+        </span>
+        <RadioGroup
+          value={itemType ?? ''}
+          onValueChange={handleItemTypeChange}
+          className='flex gap-4'
+          disabled={isUpdating}
+        >
+          <div className='flex items-center gap-2'>
+            <RadioGroupItem value='goods' id='goods' />
+            <Label htmlFor='goods'>Bien</Label>
+          </div>
+          <div className='flex items-center gap-2'>
+            <RadioGroupItem value='services' id='services' />
+            <Label htmlFor='services'>Servicio</Label>
+          </div>
+        </RadioGroup>
+      </div>
 
       {/* Accounting Account Selection */}
       <div className='mt-4 border-t pt-4'>

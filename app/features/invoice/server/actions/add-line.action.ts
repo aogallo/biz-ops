@@ -71,6 +71,7 @@ export async function addInvoiceLineAction(
       ivaType: input.ivaType,
       ivaRate: String(input.ivaRate),
       productId: input.productId ?? null,
+      lineType: input.lineType ?? null,
       subtotal: amounts.subtotal,
       ivaAmount: amounts.ivaAmount,
       total: amounts.total,

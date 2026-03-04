@@ -33,6 +33,9 @@ export async function updateInvoiceLineAction(
     if (input.productId !== undefined) {
       updateData.productId = input.productId
     }
+    if (input.lineType !== undefined) {
+      updateData.lineType = input.lineType
+    }
 
     // Recalculate amounts if quantity, unitPrice, ivaType, or ivaRate changed
     if (

@@ -56,7 +56,7 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
     header: 'Emisor',
     size: 160,
     cell: ({ row }) => (
-      <div className="max-w-[160px] truncate" title={row.original.emitterName}>
+      <div className="max-w-[160px] truncate" title={row.original.emitterName ?? undefined}>
         {row.original.emitterName}
       </div>
     ),
@@ -71,7 +71,7 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
     header: 'Receptor',
     size: 160,
     cell: ({ row }) => (
-      <div className="max-w-[160px] truncate" title={row.original.receptorName}>
+      <div className="max-w-[160px] truncate" title={row.original.receptorName ?? undefined}>
         {row.original.receptorName}
       </div>
     ),
@@ -105,6 +105,31 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
         <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
           Pendiente
         </span>
+      )
+    },
+  },
+  {
+    accessorKey: 'itemType',
+    header: 'Tipo',
+    size: 90,
+    cell: ({ row }) => {
+      const itemType = row.original.itemType
+      if (itemType === 'goods') {
+        return (
+          <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+            Bien
+          </span>
+        )
+      }
+      if (itemType === 'services') {
+        return (
+          <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+            Servicio
+          </span>
+        )
+      }
+      return (
+        <span className="text-muted-foreground text-xs">—</span>
       )
     },
   },

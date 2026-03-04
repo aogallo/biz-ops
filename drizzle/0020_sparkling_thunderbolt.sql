@@ -1,0 +1,1 @@
+ALTER TABLE "sat_file" ADD COLUMN "item_type" text;

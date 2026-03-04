@@ -144,6 +144,11 @@ export async function action({ request }: Route.ActionArgs) {
   if (actionType === 'updateAccount') {
     const satFileId = formData.get('satFileId') as string
     const accountingAccountId = formData.get('accountingAccountId') as string
+    const itemTypeRaw = formData.get('itemType') as string | null
+    const itemType =
+      itemTypeRaw === 'goods' || itemTypeRaw === 'services'
+        ? itemTypeRaw
+        : null
 
     if (!satFileId) {
       return { error: 'SAT file ID is required' }
@@ -151,7 +156,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     // If no account selected, just clear it (no journal entry creation)
     if (!accountingAccountId) {
-      await satFileRepository.updateAccountingAccount(satFileId, null)
+      await satFileRepository.updateAccountingAccount(satFileId, null, itemType)
       return { success: true, message: 'Account removed' }
     }
 
@@ -160,6 +165,7 @@ export async function action({ request }: Route.ActionArgs) {
       satFileId,
       accountingAccountId,
       organizationId,
+      itemType,
     })
 
     if (!result.success) {

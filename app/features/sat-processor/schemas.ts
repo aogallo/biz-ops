@@ -49,6 +49,7 @@ export const updateAccountSchema = z.object({
     .string()
     .uuid('Invalid accounting account ID')
     .nullable(),
+  itemType: z.enum(['goods', 'services']).nullable().optional(),
 })
 
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>

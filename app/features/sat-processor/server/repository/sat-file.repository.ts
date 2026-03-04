@@ -256,11 +256,17 @@ export class SatFileRepository {
 
   async updateAccountingAccount(
     id: string,
-    accountingAccountId: string | null
+    accountingAccountId: string | null,
+    itemType?: 'goods' | 'services' | null
   ): Promise<SatFile | null> {
+    const updateData: Partial<typeof satFileModel.$inferInsert> = {
+      accountingAccountId,
+    }
+    if (itemType !== undefined) updateData.itemType = itemType
+
     const [updated] = await db
       .update(satFileModel)
-      .set({ accountingAccountId })
+      .set(updateData)
       .where(eq(satFileModel.id, id))
       .returning()
 

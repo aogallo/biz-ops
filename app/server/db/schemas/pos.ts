@@ -61,6 +61,9 @@ export const posTerminalModel = pgTable('pos_terminal', {
   autoGenerateInvoice: boolean('auto_generate_invoice')
     .notNull()
     .default(false),
+  autoPrintReceipt: boolean('auto_print_receipt')
+    .notNull()
+    .default(false),
   defaultBusinessPartnerId: uuid('default_business_partner_id').references(
     () => businessPartnerModel.id
   ),

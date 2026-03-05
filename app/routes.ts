@@ -42,6 +42,8 @@ export default [
 
   // App routes with sidebar layout
   layout('./layout/AppLayout.tsx', [
+    //Home
+    route('/home', './routes/home.tsx'),
     // Organization Routes
     ...prefix('organization', [
       index('./routes/organization/index.tsx'),
@@ -184,9 +186,7 @@ export default [
     ]),
 
     // Inventory Routes
-    ...prefix('inventory', [
-      index('./routes/inventory/index.tsx'),
-    ]),
+    ...prefix('inventory', [index('./routes/inventory/index.tsx')]),
 
     // Purchase Routes
     ...prefix('purchase', [

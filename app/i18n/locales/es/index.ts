@@ -8,6 +8,7 @@ import { invoices } from './invoices'
 import { stock } from './stock'
 import { misc } from './misc'
 import { pos } from './pos'
+import { home } from './home'
 
 const es = {
   ...common,
@@ -20,6 +21,7 @@ const es = {
   ...stock,
   ...misc,
   ...pos,
+  ...home,
 } as const
 
 export default es

@@ -27,6 +27,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   onRowSelectionChange?: (selectedRows: TData[]) => void
+  onRowClick?: (row: TData) => void
   enableRowSelection?: boolean
   enableSearch?: boolean
   searchPlaceholder?: string
@@ -36,6 +37,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   onRowSelectionChange,
+  onRowClick,
   enableRowSelection = false,
   enableSearch = false,
   searchPlaceholder = "Search...",
@@ -124,6 +126,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={onRowClick ? 'cursor-pointer' : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

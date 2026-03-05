@@ -1,9 +1,11 @@
 import { CheckCircle2, ExternalLink, Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useFetcher } from 'react-router'
 import { toast } from 'sonner'
 import { Badge } from '~/components/ui/badge'
 import { Combobox } from '~/components/ui/combobox'
+import { Label } from '~/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import type { AccountingAccount } from '~/server/db/schemas/accounting'
 import type { SatFile } from '~/server/db/schemas/sat-file'
 
@@ -18,6 +20,18 @@ export function SelectedRowDetails({
 }: SelectedRowDetailsProps) {
   const fetcher = useFetcher()
   const isUpdating = fetcher.state !== 'idle'
+  const [itemType, setItemType] = useState<'goods' | 'services' | null>(
+    selectedRow?.itemType as 'goods' | 'services' | null ?? null
+  )
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(
+    selectedRow?.accountingAccountId ?? 'none'
+  )
+
+  // Sync state when selectedRow changes
+  useEffect(() => {
+    setItemType(selectedRow?.itemType as 'goods' | 'services' | null ?? null)
+    setSelectedAccountId(selectedRow?.accountingAccountId ?? 'none')
+  }, [selectedRow?.id])
 
   // Handle fetcher response for toast notifications
   const fetcherData = fetcher.data as
@@ -36,11 +50,36 @@ export function SelectedRowDetails({
   const handleAccountChange = (accountId: string) => {
     if (!selectedRow) return
 
+    if (!itemType) {
+      toast.error('Seleccioná el Tipo de Operación (Bien o Servicio) antes de asignar una cuenta.')
+      return
+    }
+
+    setSelectedAccountId(accountId)
     fetcher.submit(
       {
         _action: 'updateAccount',
         satFileId: selectedRow.id,
         accountingAccountId: accountId === 'none' ? '' : accountId,
+        itemType: itemType,
+      },
+      { method: 'post' }
+    )
+  }
+
+  const handleItemTypeChange = (value: string) => {
+    const newType = value as 'goods' | 'services'
+    setItemType(newType)
+
+    if (!selectedRow || !selectedRow.accountingAccountId) return
+
+    // Submit immediately if account already assigned
+    fetcher.submit(
+      {
+        _action: 'updateAccount',
+        satFileId: selectedRow.id,
+        accountingAccountId: selectedRow.accountingAccountId,
+        itemType: newType,
       },
       { method: 'post' }
     )
@@ -75,7 +114,7 @@ export function SelectedRowDetails({
               <CheckCircle2 className='mr-1 h-3 w-3' />
               Processed
             </Badge>
-          ) : selectedRow.accountingAccountId ? (
+          ) : selectedAccountId !== 'none' ? (
             <Badge variant='secondary'>Pending Processing</Badge>
           ) : (
             <Badge variant='outline'>No Account</Badge>
@@ -166,13 +205,35 @@ export function SelectedRowDetails({
         </div>
       )}
 
+      {/* Item Type Selection */}
+      <div className='mt-4 border-t pt-4'>
+        <span className='text-muted-foreground mb-2 block text-sm'>
+          Tipo de Operación
+        </span>
+        <RadioGroup
+          value={itemType ?? ''}
+          onValueChange={handleItemTypeChange}
+          className='flex gap-4'
+          disabled={isUpdating}
+        >
+          <div className='flex items-center gap-2'>
+            <RadioGroupItem value='goods' id='goods' />
+            <Label htmlFor='goods'>Bien</Label>
+          </div>
+          <div className='flex items-center gap-2'>
+            <RadioGroupItem value='services' id='services' />
+            <Label htmlFor='services'>Servicio</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
       {/* Accounting Account Selection */}
       <div className='mt-4 border-t pt-4'>
         <span className='text-muted-foreground mb-2 block text-sm'>
           Accounting Account
         </span>
         <Combobox
-          value={selectedRow.accountingAccountId ?? 'none'}
+          value={selectedAccountId}
           onValueChange={handleAccountChange}
           disabled={isUpdating}
           options={[
@@ -198,13 +259,13 @@ export function SelectedRowDetails({
         )}
 
         {/* Help text */}
-        {!isProcessed && !selectedRow.accountingAccountId && (
+        {!isProcessed && selectedAccountId === 'none' && (
           <p className='text-muted-foreground mt-2 text-xs'>
             Select an accounting account to automatically create a journal entry
             for this record.
           </p>
         )}
-        {!isProcessed && selectedRow.accountingAccountId && (
+        {!isProcessed && selectedAccountId !== 'none' && (
           <p className='mt-2 text-xs text-amber-600 dark:text-amber-400'>
             Processing pending. The journal entry will be created once the
             configuration is complete.

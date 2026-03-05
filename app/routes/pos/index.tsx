@@ -111,7 +111,7 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
               <Link to='/dashboard'>Volver al ERP</Link>
             </Button>
           )}
-          <Form method='post' action='/logout'>
+          <Form method='post' action='/pos-logout'>
             <Button
               variant='ghost'
               size='sm'

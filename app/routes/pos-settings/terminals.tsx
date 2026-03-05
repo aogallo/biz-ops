@@ -106,6 +106,7 @@ export async function action({ request }: Route.ActionArgs) {
     const data = {
       name: formData.get('name'),
       sucursalId: formData.get('sucursalId') || null,
+      isActive: formData.get('isActive') === 'on',
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
       autoPrintReceipt: formData.get('autoPrintReceipt') === 'on',
       defaultBusinessPartnerId:
@@ -311,6 +312,17 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className='flex items-center gap-3'>
+                  <Switch
+                    name='isActive'
+                    id='edit-isActive'
+                    defaultChecked={editingTerminal.isActive}
+                  />
+                  <label htmlFor='edit-isActive' className='text-sm font-medium'>
+                    {t('common.active')}
+                  </label>
                 </div>
 
                 <div className='flex items-center gap-3'>

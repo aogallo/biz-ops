@@ -611,6 +611,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     setReceiptData(fetcherData.sale.receipt)
     setReceiptOpen(true)
     setCart([])
+    setSelectedCustomer(null)
     setPaymentOpen(false)
   }
 

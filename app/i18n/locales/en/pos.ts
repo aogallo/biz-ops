@@ -10,6 +10,9 @@ export const pos = {
   // Header
   'pos.sales': 'Sales',
   'pos.exit': 'Exit',
+  'pos.myShift': 'My Shift',
+  'pos.cashRegisterHistory': 'Register History',
+  'pos.shiftDuration': '{{h}}h {{m}}m',
 
   // Product search
   'pos.searchProduct': 'Search product or scan code...',
@@ -21,6 +24,7 @@ export const pos = {
 
   // Cart
   'pos.emptyCart': 'Empty cart',
+  'pos.checkoutWithCount': 'CHECKOUT ({{count}})',
   'pos.subtotal': 'Subtotal',
   'pos.discount': 'Discount',
   'pos.iva': 'IVA (12%)',
@@ -42,6 +46,7 @@ export const pos = {
   'pos.check': 'Check',
   'pos.receivedAmount': 'Received amount',
   'pos.exact': 'Exact',
+  'pos.roundUp': 'Round up',
   'pos.change': 'Change',
   'pos.last4Digits': 'Last 4 digits (optional)',
   'pos.checkNumber': 'Check number',

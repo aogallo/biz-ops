@@ -10,6 +10,9 @@ export const pos = {
   // Header
   'pos.sales': 'Ventas',
   'pos.exit': 'Salir',
+  'pos.myShift': 'Mi Turno',
+  'pos.cashRegisterHistory': 'Historial de Caja',
+  'pos.shiftDuration': '{{h}}h {{m}}m',
 
   // Product search
   'pos.searchProduct': 'Buscar producto o escanear código...',
@@ -21,6 +24,7 @@ export const pos = {
 
   // Cart
   'pos.emptyCart': 'Carrito vacío',
+  'pos.checkoutWithCount': 'COBRAR ({{count}})',
   'pos.subtotal': 'Subtotal',
   'pos.discount': 'Descuento',
   'pos.iva': 'IVA (12%)',
@@ -42,6 +46,7 @@ export const pos = {
   'pos.check': 'Cheque',
   'pos.receivedAmount': 'Monto recibido',
   'pos.exact': 'Exacto',
+  'pos.roundUp': 'Redondear',
   'pos.change': 'Cambio',
   'pos.last4Digits': 'Últimos 4 dígitos (opcional)',
   'pos.checkNumber': 'Número de cheque',

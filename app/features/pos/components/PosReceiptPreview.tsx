@@ -61,7 +61,7 @@ export function PosReceiptPreview({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-sm'>
+      <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle>{t('pos.receipt')}</DialogTitle>
         </DialogHeader>

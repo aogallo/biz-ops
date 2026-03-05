@@ -24,6 +24,7 @@ import { PosCloseShiftDialog } from '~/features/pos/components/PosCloseShiftDial
 import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovementDialog'
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
+import { PosReceiptContent } from '~/features/pos/components/PosReceiptContent'
 import {
   type CartItem,
   type PosProductForGrid,
@@ -607,11 +608,24 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     fetcherData.sale?.receipt &&
     fetcherData.sale.receipt.saleNumber !== processedSaleRef.current
   ) {
-    processedSaleRef.current = fetcherData.sale.receipt.saleNumber
-    setReceiptData(fetcherData.sale.receipt)
-    setReceiptOpen(true)
+    const receipt = fetcherData.sale.receipt
+    processedSaleRef.current = receipt.saleNumber
+    setReceiptData(receipt)
     setCart([])
+    setSelectedCustomer(null)
     setPaymentOpen(false)
+
+    if (terminal.autoPrintReceipt) {
+      // Auto-print: the receipt is already rendered in the hidden DOM node.
+      // Two rAF frames ensure React has committed the new receiptData before printing.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.print()
+        })
+      })
+    } else {
+      setReceiptOpen(true)
+    }
   }
 
   // Handle created customer
@@ -746,16 +760,39 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         isSubmitting={fetcher.state === 'submitting'}
       />
 
+      {/*
+        Hidden receipt node — always present in the DOM when there is receiptData.
+        window.print() targets #pos-receipt via the @media print CSS below,
+        so auto-print works without opening the dialog.
+      */}
+      {receiptData && (
+        <div
+          aria-hidden
+          style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}
+        >
+          <PosReceiptContent receipt={receiptData} />
+        </div>
+      )}
+
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          #pos-receipt, #pos-receipt * { visibility: visible; }
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+          body * { visibility: hidden !important; }
+          #pos-receipt, #pos-receipt * { visibility: visible !important; }
           #pos-receipt {
-            position: absolute;
-            left: 0;
+            position: fixed;
             top: 0;
-            width: 80mm;
-            padding: 4mm;
+            left: 0;
+            width: 76mm;
+            padding: 2mm;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #000;
+            background: #fff;
           }
         }
       `}</style>

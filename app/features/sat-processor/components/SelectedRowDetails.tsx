@@ -23,10 +23,14 @@ export function SelectedRowDetails({
   const [itemType, setItemType] = useState<'goods' | 'services' | null>(
     selectedRow?.itemType as 'goods' | 'services' | null ?? null
   )
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(
+    selectedRow?.accountingAccountId ?? 'none'
+  )
 
-  // Sync itemType when selectedRow changes
+  // Sync state when selectedRow changes
   useEffect(() => {
     setItemType(selectedRow?.itemType as 'goods' | 'services' | null ?? null)
+    setSelectedAccountId(selectedRow?.accountingAccountId ?? 'none')
   }, [selectedRow?.id])
 
   // Handle fetcher response for toast notifications
@@ -46,12 +50,18 @@ export function SelectedRowDetails({
   const handleAccountChange = (accountId: string) => {
     if (!selectedRow) return
 
+    if (!itemType) {
+      toast.error('Seleccioná el Tipo de Operación (Bien o Servicio) antes de asignar una cuenta.')
+      return
+    }
+
+    setSelectedAccountId(accountId)
     fetcher.submit(
       {
         _action: 'updateAccount',
         satFileId: selectedRow.id,
         accountingAccountId: accountId === 'none' ? '' : accountId,
-        itemType: itemType ?? '',
+        itemType: itemType,
       },
       { method: 'post' }
     )
@@ -104,7 +114,7 @@ export function SelectedRowDetails({
               <CheckCircle2 className='mr-1 h-3 w-3' />
               Processed
             </Badge>
-          ) : selectedRow.accountingAccountId ? (
+          ) : selectedAccountId !== 'none' ? (
             <Badge variant='secondary'>Pending Processing</Badge>
           ) : (
             <Badge variant='outline'>No Account</Badge>
@@ -223,7 +233,7 @@ export function SelectedRowDetails({
           Accounting Account
         </span>
         <Combobox
-          value={selectedRow.accountingAccountId ?? 'none'}
+          value={selectedAccountId}
           onValueChange={handleAccountChange}
           disabled={isUpdating}
           options={[
@@ -249,13 +259,13 @@ export function SelectedRowDetails({
         )}
 
         {/* Help text */}
-        {!isProcessed && !selectedRow.accountingAccountId && (
+        {!isProcessed && selectedAccountId === 'none' && (
           <p className='text-muted-foreground mt-2 text-xs'>
             Select an accounting account to automatically create a journal entry
             for this record.
           </p>
         )}
-        {!isProcessed && selectedRow.accountingAccountId && (
+        {!isProcessed && selectedAccountId !== 'none' && (
           <p className='mt-2 text-xs text-amber-600 dark:text-amber-400'>
             Processing pending. The journal entry will be created once the
             configuration is complete.

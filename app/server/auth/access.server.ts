@@ -14,6 +14,5 @@ export async function getPostLoginRedirect(userId: string): Promise<string> {
     return '/welcome'
   }
 
-  // Redirect to the first organization's dashboard
-  return `/organization/${organizations[0].organization.slug}`
+  return '/home'
 }

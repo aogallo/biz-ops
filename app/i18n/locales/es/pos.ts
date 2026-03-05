@@ -71,16 +71,6 @@ export const pos = {
   'pos.thankYou': '¡Gracias por su compra!',
   'pos.close': 'Cerrar',
   'pos.print': 'Imprimir',
-  'pos.thermalPrint': 'Imprimir Térmica',
-  'pos.printing': 'Imprimiendo...',
-  'pos.printSuccess': 'Recibo enviado a la impresora',
-  'pos.printError': 'Error al imprimir',
-  'pos.connectPrinter': 'Conectar Impresora',
-  'pos.connectingPrinter': 'Conectando...',
-  'pos.disconnectPrinter': 'Desconectar',
-  'pos.printerConnected': 'Impresora conectada',
-  'pos.printerDisconnected': 'Sin impresora',
-  'pos.webSerialUnsupported': 'Usá Chrome o Edge para impresión directa',
 
   // Sales history
   'pos.salesHistory': 'Historial de Ventas POS',

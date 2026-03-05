@@ -1,0 +1,1 @@
+ALTER TABLE "pos_terminal" ADD COLUMN "auto_print_receipt" boolean DEFAULT false NOT NULL;

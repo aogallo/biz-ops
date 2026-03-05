@@ -111,6 +111,8 @@ export const pos = {
   'pos.selectCompany': 'Select company',
   'pos.defaultCustomerLabel': 'Default customer (optional)',
   'pos.autoInvoice': 'Auto-generate invoice',
+  'pos.autoPrintReceipt': 'Auto-print receipt',
+  'pos.autoPrintCol': 'Auto Print',
   'pos.createTerminal': 'Create Terminal',
   'pos.yes': 'Yes',
   'pos.no': 'No',

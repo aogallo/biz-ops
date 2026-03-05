@@ -24,6 +24,8 @@ import { PosCloseShiftDialog } from '~/features/pos/components/PosCloseShiftDial
 import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovementDialog'
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
+import { useThermalPrinter } from '~/features/pos/hooks/useThermalPrinter'
+import { buildReceiptBytes } from '~/features/pos/lib/thermal-printer'
 import {
   type CartItem,
   type PosProductForGrid,
@@ -342,6 +344,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   } = loaderData
 
   const { t } = useTranslation()
+  const thermalPrinter = useThermalPrinter()
 
   useEffect(() => {
     if (autoClosedStaleSession) {
@@ -607,12 +610,28 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     fetcherData.sale?.receipt &&
     fetcherData.sale.receipt.saleNumber !== processedSaleRef.current
   ) {
-    processedSaleRef.current = fetcherData.sale.receipt.saleNumber
-    setReceiptData(fetcherData.sale.receipt)
-    setReceiptOpen(true)
+    const receipt = fetcherData.sale.receipt
+    processedSaleRef.current = receipt.saleNumber
+    setReceiptData(receipt)
     setCart([])
     setSelectedCustomer(null)
     setPaymentOpen(false)
+
+    const printerReady =
+      thermalPrinter.status === 'connected' || thermalPrinter.status === 'printing'
+
+    if (terminal.autoPrintReceipt && printerReady) {
+      // Auto-print: send bytes directly, skip dialog
+      thermalPrinter
+        .print(buildReceiptBytes(receipt))
+        .then(() => toast.success(t('pos.printSuccess')))
+        .catch(() => {
+          // If auto-print fails, fall back to showing the receipt dialog
+          setReceiptOpen(true)
+        })
+    } else {
+      setReceiptOpen(true)
+    }
   }
 
   // Handle created customer
@@ -716,6 +735,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         open={receiptOpen}
         onOpenChange={setReceiptOpen}
         receipt={receiptData}
+        printer={thermalPrinter}
       />
 
       <PosOpenShiftDialog

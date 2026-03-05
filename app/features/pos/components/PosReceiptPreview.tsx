@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 import { useTranslation } from '~/i18n/context'
-import { useThermalPrinter } from '../hooks/useThermalPrinter'
+import type { PrinterStatus } from '../hooks/useThermalPrinter'
 import { buildReceiptBytes } from '../lib/thermal-printer'
 
 interface ReceiptLine {
@@ -44,19 +44,29 @@ interface ReceiptData {
   currency: string
 }
 
+export interface ThermalPrinterControls {
+  status: PrinterStatus
+  isSupported: boolean
+  connect: () => Promise<void>
+  disconnect: () => Promise<void>
+  print: (data: Uint8Array) => Promise<void>
+}
+
 interface PosReceiptPreviewProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   receipt: ReceiptData | null
+  printer: ThermalPrinterControls
 }
 
 export function PosReceiptPreview({
   open,
   onOpenChange,
   receipt,
+  printer,
 }: PosReceiptPreviewProps) {
   const { t } = useTranslation()
-  const { status, error, connect, disconnect, print, isSupported } = useThermalPrinter()
+  const { status, isSupported, connect, disconnect, print } = printer
 
   const handleThermalPrint = useCallback(async () => {
     if (!receipt) return
@@ -85,7 +95,6 @@ export function PosReceiptPreview({
         <DialogHeader>
           <DialogTitle className='flex items-center justify-between'>
             {t('pos.receipt')}
-            {/* Thermal printer status indicator */}
             {isSupported && (
               <div className='flex items-center gap-2'>
                 <span
@@ -98,7 +107,9 @@ export function PosReceiptPreview({
                   }`}
                 />
                 <span className='text-muted-foreground text-xs font-normal'>
-                  {isConnected ? t('pos.printerConnected') : t('pos.printerDisconnected')}
+                  {isConnected
+                    ? t('pos.printerConnected')
+                    : t('pos.printerDisconnected')}
                 </span>
               </div>
             )}
@@ -219,17 +230,11 @@ export function PosReceiptPreview({
           </div>
         </div>
 
-        {/* Thermal printer error */}
-        {error && (
-          <p className='text-destructive text-xs'>{error}</p>
-        )}
-
         <DialogFooter className='flex-col gap-2 sm:flex-row'>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             {t('pos.close')}
           </Button>
 
-          {/* Thermal print section */}
           {isSupported ? (
             isConnected ? (
               <>
@@ -283,7 +288,6 @@ export function PosReceiptPreview({
             )
           ) : (
             <>
-              {/* Fallback: Web Serial not supported → browser print only */}
               <div className='text-muted-foreground flex items-center gap-1 text-xs'>
                 <WifiOff className='size-3' />
                 {t('pos.webSerialUnsupported')}

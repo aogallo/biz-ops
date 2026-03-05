@@ -73,7 +73,7 @@ export function PosCart({
           disabled={items.length === 0}
         >
           {items.length > 0
-            ? t('pos.checkoutWithCount', { count: items.length })
+            ? t('pos.checkoutWithCount', { count: String(items.length) })
             : t('pos.checkout')}
         </Button>
       </div>

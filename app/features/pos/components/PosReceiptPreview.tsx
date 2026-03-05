@@ -1,4 +1,6 @@
-import { Printer } from 'lucide-react'
+import { Loader2, Printer, Unplug, Usb, WifiOff } from 'lucide-react'
+import { useCallback } from 'react'
+import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
 import {
   Dialog,
@@ -8,6 +10,8 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 import { useTranslation } from '~/i18n/context'
+import { useThermalPrinter } from '../hooks/useThermalPrinter'
+import { buildReceiptBytes } from '../lib/thermal-printer'
 
 interface ReceiptLine {
   productName: string
@@ -52,18 +56,53 @@ export function PosReceiptPreview({
   receipt,
 }: PosReceiptPreviewProps) {
   const { t } = useTranslation()
+  const { status, error, connect, disconnect, print, isSupported } = useThermalPrinter()
+
+  const handleThermalPrint = useCallback(async () => {
+    if (!receipt) return
+    try {
+      const bytes = buildReceiptBytes(receipt)
+      await print(bytes)
+      toast.success(t('pos.printSuccess'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('pos.printError')
+      toast.error(message)
+    }
+  }, [receipt, print, t])
+
+  function handleBrowserPrint() {
+    window.print()
+  }
 
   if (!receipt) return null
 
-  function handlePrint() {
-    window.print()
-  }
+  const isConnected = status === 'connected' || status === 'printing'
+  const isPrinting = status === 'printing'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>{t('pos.receipt')}</DialogTitle>
+          <DialogTitle className='flex items-center justify-between'>
+            {t('pos.receipt')}
+            {/* Thermal printer status indicator */}
+            {isSupported && (
+              <div className='flex items-center gap-2'>
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    isConnected
+                      ? 'bg-green-500'
+                      : status === 'error'
+                        ? 'bg-red-500'
+                        : 'bg-gray-300'
+                  }`}
+                />
+                <span className='text-muted-foreground text-xs font-normal'>
+                  {isConnected ? t('pos.printerConnected') : t('pos.printerDisconnected')}
+                </span>
+              </div>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div id='pos-receipt' className='space-y-3 font-mono text-xs'>
@@ -180,14 +219,81 @@ export function PosReceiptPreview({
           </div>
         </div>
 
-        <DialogFooter>
+        {/* Thermal printer error */}
+        {error && (
+          <p className='text-destructive text-xs'>{error}</p>
+        )}
+
+        <DialogFooter className='flex-col gap-2 sm:flex-row'>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             {t('pos.close')}
           </Button>
-          <Button onClick={handlePrint}>
-            <Printer className='size-4' />
-            {t('pos.print')}
-          </Button>
+
+          {/* Thermal print section */}
+          {isSupported ? (
+            isConnected ? (
+              <>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={disconnect}
+                  className='gap-1.5'
+                >
+                  <Unplug className='size-4' />
+                  {t('pos.disconnectPrinter')}
+                </Button>
+                <Button
+                  onClick={handleThermalPrint}
+                  disabled={isPrinting}
+                  className='gap-1.5'
+                >
+                  {isPrinting ? (
+                    <Loader2 className='size-4 animate-spin' />
+                  ) : (
+                    <Printer className='size-4' />
+                  )}
+                  {isPrinting ? t('pos.printing') : t('pos.thermalPrint')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant='outline'
+                  onClick={handleBrowserPrint}
+                  className='gap-1.5'
+                >
+                  <Printer className='size-4' />
+                  {t('pos.print')}
+                </Button>
+                <Button
+                  onClick={connect}
+                  disabled={status === 'connecting'}
+                  className='gap-1.5'
+                >
+                  {status === 'connecting' ? (
+                    <Loader2 className='size-4 animate-spin' />
+                  ) : (
+                    <Usb className='size-4' />
+                  )}
+                  {status === 'connecting'
+                    ? t('pos.connectingPrinter')
+                    : t('pos.connectPrinter')}
+                </Button>
+              </>
+            )
+          ) : (
+            <>
+              {/* Fallback: Web Serial not supported → browser print only */}
+              <div className='text-muted-foreground flex items-center gap-1 text-xs'>
+                <WifiOff className='size-3' />
+                {t('pos.webSerialUnsupported')}
+              </div>
+              <Button onClick={handleBrowserPrint} className='gap-1.5'>
+                <Printer className='size-4' />
+                {t('pos.print')}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

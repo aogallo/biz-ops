@@ -36,7 +36,7 @@ export function PosHeader({
         const diff = time.getTime() - new Date(sessionOpenedAt).getTime()
         const h = Math.floor(diff / 3_600_000)
         const m = Math.floor((diff % 3_600_000) / 60_000)
-        return t('pos.shiftDuration', { h, m })
+        return t('pos.shiftDuration', { h: String(h), m: String(m) })
       })()
     : null
 

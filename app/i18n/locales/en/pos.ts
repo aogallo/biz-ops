@@ -71,6 +71,16 @@ export const pos = {
   'pos.thankYou': 'Thank you for your purchase!',
   'pos.close': 'Close',
   'pos.print': 'Print',
+  'pos.thermalPrint': 'Thermal Print',
+  'pos.printing': 'Printing...',
+  'pos.printSuccess': 'Receipt sent to printer',
+  'pos.printError': 'Print error',
+  'pos.connectPrinter': 'Connect Printer',
+  'pos.connectingPrinter': 'Connecting...',
+  'pos.disconnectPrinter': 'Disconnect',
+  'pos.printerConnected': 'Printer connected',
+  'pos.printerDisconnected': 'No printer',
+  'pos.webSerialUnsupported': 'Use Chrome or Edge for direct printing',
 
   // Sales history
   'pos.salesHistory': 'POS Sales History',

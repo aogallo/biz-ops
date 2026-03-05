@@ -651,6 +651,16 @@ export default function CreateUser() {
 8. **Table Pagination**: Every table displaying data MUST implement pagination. Use server-side pagination with URL searchParams for page state. Default page size: 10 items.
 9. **Drizzle Migrations**: Every time update or create table use the command `npm run db:generate`
 10. **Always Use DataTable Component**: When displaying tabular data, ALWAYS use the `~/components/dataTable/DataTable.tsx` component. Do not create tables from scratch using raw Table components. The DataTable component provides built-in sorting, pagination, column visibility, and row selection.
+12. **Test-Driven Development (TDD)**: Every new feature, bug fix, or update MUST follow the Red-Green-Refactor cycle:
+    1. **Red**: Write a failing test that describes the expected behavior BEFORE writing any implementation code
+    2. **Green**: Write the minimum amount of code necessary to make the test pass
+    3. **Refactor**: Clean up the code while keeping tests green
+    - Schema changes → write schema validation tests first
+    - New actions → write action tests with mocked repos first
+    - New components → write component tests with `createRoutesStub` first
+    - Bug fixes → write a test that reproduces the bug first, then fix it
+    - No implementation code is written without a corresponding test
+
 11. **Single Responsibility for Actions (SOLID)**: When creating a component with a form that uses `useFetcher`, that component should be responsible for handling its own action responses (errors and success messages via toast notifications). Avoid having multiple unrelated action types in a single route action function. Each action should have a single responsibility. If a route needs multiple actions, consider:
     - Using separate routes for each action
     - Creating dedicated action components that use `useFetcher` with their own response handling

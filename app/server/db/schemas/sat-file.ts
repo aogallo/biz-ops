@@ -64,6 +64,7 @@ export const satFileModel = pgTable('sat_file', {
   cementTax: real('cement_tax').default(0.0),
   noAlcoholicTax: real('no_alcoholic_tax').default(0.0),
   portTariffTax: real('port_tariff_tax').default(0.0),
+  itemType: text('item_type'), // 'goods' | 'services' | null
   // Processing fields
   processedAt: timestamp('processed_at'),
   invoiceId: uuid('invoice_id'), // FK to invoice, set when journal entry is created

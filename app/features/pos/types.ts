@@ -23,6 +23,7 @@ export interface PosTerminalWithSucursal {
   name: string
   isActive: boolean
   autoGenerateInvoice: boolean
+  autoPrintReceipt: boolean
   sucursalId: string | null
   sucursalName: string | null
   defaultBusinessPartnerId: string | null

@@ -253,21 +253,6 @@ export function PosPaymentDialog({
                       size='sm'
                       onClick={() =>
                         setAmount(
-                          String(
-                            Math.ceil(payments.length > 0 ? remaining : total)
-                          )
-                        )
-                      }
-                      className='col-span-2 tabular-nums'
-                    >
-                      {t('pos.exact')} Q
-                      {Math.ceil(payments.length > 0 ? remaining : total)}
-                    </Button>
-                    <Button
-                      variant='secondary'
-                      size='sm'
-                      onClick={() =>
-                        setAmount(
                           String(payments.length > 0 ? remaining : total)
                         )
                       }
@@ -275,6 +260,21 @@ export function PosPaymentDialog({
                     >
                       {t('pos.exact')} Q
                       {(payments.length > 0 ? remaining : total).toFixed(2)}
+                    </Button>
+                    <Button
+                      variant='secondary'
+                      size='sm'
+                      onClick={() =>
+                        setAmount(
+                          String(
+                            Math.ceil(payments.length > 0 ? remaining : total)
+                          )
+                        )
+                      }
+                      className='col-span-2 tabular-nums'
+                    >
+                      {t('pos.roundUp')} Q
+                      {Math.ceil(payments.length > 0 ? remaining : total)}
                     </Button>
                   </div>
 

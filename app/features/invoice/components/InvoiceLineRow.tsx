@@ -27,6 +27,7 @@ export interface InvoiceLineData {
   ivaAmount: number
   total: number
   productId: string | null
+  lineType?: 'goods' | 'services' | null
   product?: {
     id: string
     sku: string
@@ -63,6 +64,9 @@ export function InvoiceLineRow({
   const [unitPrice, setUnitPrice] = useState(String(line.unitPrice))
   const [ivaType, setIvaType] = useState(line.ivaType)
   const [productId, setProductId] = useState(line.productId || '')
+  const [lineType, setLineType] = useState<'goods' | 'services' | ''>(
+    line.lineType ?? ''
+  )
 
   // Track if there are pending changes
   const [hasChanges, setHasChanges] = useState(false)
@@ -72,16 +76,21 @@ export function InvoiceLineRow({
   const lastRemoveDataRef = useRef<unknown>(null)
 
   useEffect(() => {
+    setLineType(line.lineType ?? '')
+  }, [line.id])
+
+  useEffect(() => {
     // Check if any field has changed
     const changed =
       description !== line.description ||
       quantity !== String(line.quantity) ||
       unitPrice !== String(line.unitPrice) ||
       ivaType !== line.ivaType ||
-      productId !== (line.productId || '')
+      productId !== (line.productId || '') ||
+      lineType !== (line.lineType ?? '')
 
     setHasChanges(changed)
-  }, [description, quantity, unitPrice, ivaType, productId, line])
+  }, [description, quantity, unitPrice, ivaType, productId, lineType, line])
 
   // Handle update fetcher response
   useEffect(() => {
@@ -142,6 +151,7 @@ export function InvoiceLineRow({
         unitPrice,
         ivaType,
         productId: productId || '',
+        lineType: lineType || '',
       },
       { method: 'post' }
     )
@@ -155,6 +165,7 @@ export function InvoiceLineRow({
     unitPrice,
     ivaType,
     productId,
+    lineType,
   ])
 
   const handleRemove = useCallback(() => {
@@ -243,6 +254,24 @@ export function InvoiceLineRow({
             <SelectItem value="taxed">Taxed</SelectItem>
             <SelectItem value="exempt">Exempt</SelectItem>
             <SelectItem value="non_subject">Non-subject</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <Select
+          value={lineType}
+          onValueChange={(value: 'goods' | 'services') => {
+            setLineType(value)
+            setTimeout(saveChanges, 0)
+          }}
+          disabled={!isDraft}
+        >
+          <SelectTrigger className="h-8 w-28">
+            <SelectValue placeholder="—" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="goods">Bien</SelectItem>
+            <SelectItem value="services">Servicio</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>

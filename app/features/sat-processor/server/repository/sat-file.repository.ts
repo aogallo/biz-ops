@@ -1,4 +1,14 @@
-import { and, count, eq, ilike, inArray, isNotNull, or, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   insertSatFileSchema,
@@ -25,11 +35,18 @@ export interface CategorizeStats {
 export class SatFileRepository {
   async getByOrganization(
     organizationId: string,
-    options: GetSatFilesOptions = {}
+    options: GetSatFilesOptions = {},
+    pendingRows?: boolean
   ): Promise<SatFile[]> {
     const { search, companyId, limit = 50, offset = 0 } = options
 
     const conditions = [eq(satFileModel.organizationId, organizationId)]
+
+    if (pendingRows === true) {
+      conditions.push(isNull(satFileModel.accountingAccountId))
+    } else if (pendingRows === false) {
+      conditions.push(isNotNull(satFileModel.accountingAccountId))
+    }
 
     if (companyId) {
       conditions.push(eq(satFileModel.companyId, companyId))
@@ -239,11 +256,17 @@ export class SatFileRepository {
 
   async updateAccountingAccount(
     id: string,
-    accountingAccountId: string | null
+    accountingAccountId: string | null,
+    itemType?: 'goods' | 'services' | null
   ): Promise<SatFile | null> {
+    const updateData: Partial<typeof satFileModel.$inferInsert> = {
+      accountingAccountId,
+    }
+    if (itemType !== undefined) updateData.itemType = itemType
+
     const [updated] = await db
       .update(satFileModel)
-      .set({ accountingAccountId })
+      .set(updateData)
       .where(eq(satFileModel.id, id))
       .returning()
 

@@ -25,6 +25,7 @@ export interface ProcessSatRecordInput {
   satFileId: string
   accountingAccountId: string
   organizationId: string
+  itemType?: 'goods' | 'services' | null
 }
 
 /**
@@ -42,7 +43,7 @@ export interface ProcessSatRecordInput {
 export async function processSatRecordAction(
   input: ProcessSatRecordInput
 ): Promise<ProcessSatRecordResult> {
-  const { satFileId, accountingAccountId, organizationId } = input
+  const { satFileId, accountingAccountId, organizationId, itemType } = input
 
   try {
     // Get SAT record
@@ -74,7 +75,8 @@ export async function processSatRecordAction(
         satFile,
         accountingAccountId,
         config,
-        isPurchase
+        isPurchase,
+        itemType
       )
     }
 
@@ -89,7 +91,8 @@ export async function processSatRecordAction(
       satFile,
       accountingAccountId,
       config,
-      isPurchase
+      isPurchase,
+      itemType
     )
   } catch (error) {
     console.error('Error processing SAT record:', error)
@@ -132,7 +135,8 @@ async function createNewJournalEntry(
   satFile: SatFile,
   accountingAccountId: string,
   config: Awaited<ReturnType<typeof organizationConfigRepository.getOrCreate>>,
-  isPurchase: boolean
+  isPurchase: boolean,
+  itemType?: 'goods' | 'services' | null
 ): Promise<ProcessSatRecordResult> {
   return await db.transaction(async (tx) => {
     // Calculate amounts
@@ -301,15 +305,18 @@ async function createNewJournalEntry(
       )
 
     // Update SAT file with invoice and journal entry references
+    const satFileUpdate: Record<string, unknown> = {
+      processedAt: new Date(),
+      invoiceId: invoice.id,
+      journalEntryId: journalEntry.id,
+      accountingAccountId,
+      updatedAt: new Date(),
+    }
+    if (itemType !== undefined) satFileUpdate.itemType = itemType
+
     await tx
       .update(satFileModel)
-      .set({
-        processedAt: new Date(),
-        invoiceId: invoice.id,
-        journalEntryId: journalEntry.id,
-        accountingAccountId,
-        updatedAt: new Date(),
-      })
+      .set(satFileUpdate)
       .where(eq(satFileModel.id, satFile.id))
 
     return {
@@ -325,7 +332,8 @@ async function updateExistingJournalEntry(
   satFile: SatFile,
   accountingAccountId: string,
   config: Awaited<ReturnType<typeof organizationConfigRepository.getOrCreate>>,
-  isPurchase: boolean
+  isPurchase: boolean,
+  itemType?: 'goods' | 'services' | null
 ): Promise<ProcessSatRecordResult> {
   return await db.transaction(async (tx) => {
     const { journalEntryLineModel } =
@@ -369,12 +377,15 @@ async function updateExistingJournalEntry(
     // A better approach would be to store the line ID in the invoice line
 
     // Update SAT file accounting account
+    const satFileUpdate: Record<string, unknown> = {
+      accountingAccountId,
+      updatedAt: new Date(),
+    }
+    if (itemType !== undefined) satFileUpdate.itemType = itemType
+
     await tx
       .update(satFileModel)
-      .set({
-        accountingAccountId,
-        updatedAt: new Date(),
-      })
+      .set(satFileUpdate)
       .where(eq(satFileModel.id, satFile.id))
 
     // Get updated journal entry

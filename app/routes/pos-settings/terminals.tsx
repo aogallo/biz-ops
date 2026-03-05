@@ -71,6 +71,7 @@ export async function action({ request }: Route.ActionArgs) {
       organizationId: formData.get('organizationId'),
       sucursalId: formData.get('sucursalId') || null,
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
+      autoPrintReceipt: formData.get('autoPrintReceipt') === 'on',
       defaultBusinessPartnerId:
         formData.get('defaultBusinessPartnerId') || null,
     }
@@ -158,6 +159,15 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
       cell: ({ row }) => (
         <Badge variant={row.original.autoGenerateInvoice ? 'default' : 'outline'}>
           {row.original.autoGenerateInvoice ? t('pos.yes') : t('pos.no')}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'autoPrintReceipt',
+      header: t('pos.autoPrintCol'),
+      cell: ({ row }) => (
+        <Badge variant={row.original.autoPrintReceipt ? 'default' : 'outline'}>
+          {row.original.autoPrintReceipt ? t('pos.yes') : t('pos.no')}
         </Badge>
       ),
     },
@@ -262,6 +272,13 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                 <Switch name='autoGenerateInvoice' id='autoInvoice' />
                 <label htmlFor='autoInvoice' className='text-sm font-medium'>
                   {t('pos.autoInvoice')}
+                </label>
+              </div>
+
+              <div className='flex items-center gap-3'>
+                <Switch name='autoPrintReceipt' id='autoPrintReceipt' />
+                <label htmlFor='autoPrintReceipt' className='text-sm font-medium'>
+                  {t('pos.autoPrintReceipt')}
                 </label>
               </div>
             </div>

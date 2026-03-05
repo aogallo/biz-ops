@@ -35,6 +35,7 @@ export class PosRepository {
         name: posTerminalModel.name,
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
+        autoPrintReceipt: posTerminalModel.autoPrintReceipt,
         sucursalId: posTerminalModel.sucursalId,
         sucursalName: sucursalModel.name,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
@@ -56,6 +57,7 @@ export class PosRepository {
         name: posTerminalModel.name,
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
+        autoPrintReceipt: posTerminalModel.autoPrintReceipt,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
         sucursalName: sucursalModel.name,
       })

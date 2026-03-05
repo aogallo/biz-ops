@@ -40,8 +40,16 @@ export class PosRepository {
   // ── Terminal CRUD ──
 
   async getTerminals(
-    organizationId: string
+    organizationId: string,
+    sucursalId?: string
   ): Promise<PosTerminalWithSucursal[]> {
+    const conditions: SQL[] = [
+      eq(posTerminalModel.organizationId, organizationId),
+    ]
+    if (sucursalId) {
+      conditions.push(eq(posTerminalModel.sucursalId, sucursalId))
+    }
+
     const terminals = await db
       .select({
         id: posTerminalModel.id,
@@ -58,7 +66,7 @@ export class PosRepository {
         sucursalModel,
         eq(posTerminalModel.sucursalId, sucursalModel.id)
       )
-      .where(eq(posTerminalModel.organizationId, organizationId))
+      .where(and(...conditions))
       .orderBy(posTerminalModel.name)
 
     return terminals
@@ -148,6 +156,16 @@ export class PosRepository {
         sucursalStock: sucursalId
           ? sucursalInventoryModel.stock
           : sql<number | null>`null`,
+        otherSucursalesStock: sucursalId
+          ? sql<{ name: string; stock: number }[] | null>`(
+              SELECT json_agg(json_build_object('name', s.name, 'stock', si.stock))
+              FROM ${sucursalInventoryModel} si
+              JOIN ${sucursalModel} s ON s.id = si.sucursal_id
+              WHERE si.product_id = ${productModel.id}
+                AND si.sucursal_id != ${sucursalId}
+                AND si.stock > 0
+            )`
+          : sql<null>`null`,
       })
       .from(productModel)
       .leftJoin(

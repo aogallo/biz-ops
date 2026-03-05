@@ -29,6 +29,11 @@ export interface PosTerminalWithSucursal {
   defaultBusinessPartnerId: string | null
 }
 
+export interface OtherSucursalStock {
+  name: string
+  stock: number
+}
+
 export interface PosProductForGrid {
   id: string
   name: string
@@ -41,6 +46,7 @@ export interface PosProductForGrid {
   categoryName: string | null
   categoryColor: string | null
   sucursalStock: number | null
+  otherSucursalesStock: OtherSucursalStock[] | null
 }
 
 export function calculateLineTotals(item: CartItem) {

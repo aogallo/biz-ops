@@ -52,7 +52,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
   }
 
-  const terminals = await posRepository.getTerminals(organizationId)
+  const terminals = await posRepository.getTerminals(
+    organizationId,
+    posSession?.sucursalId ?? undefined
+  )
   return { terminals, userName, hasUserSession: !!userSession }
 }
 

@@ -169,6 +169,13 @@
       "when": 1772818904998,
       "tag": "0023_dizzy_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1772825761119,
+      "tag": "0024_rich_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

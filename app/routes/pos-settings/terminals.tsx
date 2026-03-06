@@ -30,6 +30,7 @@ import type { PosTerminalWithSucursal } from '~/features/pos/types'
 import { db } from '~/server/db'
 import { sucursalModel } from '~/server/db/schemas/sucursal'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
+import { companyModel } from '~/server/db/schemas/company'
 import { eq } from 'drizzle-orm'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -40,7 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     return { terminals: [], sucursales: [], businessPartners: [] }
   }
 
-  const [terminals, sucursales, businessPartners] = await Promise.all([
+  const [terminals, sucursales, businessPartners, companies] = await Promise.all([
     posRepository.getTerminals(organizationId),
     db
       .select({ id: sucursalModel.id, name: sucursalModel.name, code: sucursalModel.code })
@@ -55,9 +56,14 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
       .from(businessPartnerModel)
       .where(eq(businessPartnerModel.organizationId, organizationId)),
+    db
+      .select({ id: companyModel.id, name: companyModel.name, nit: companyModel.nit })
+      .from(companyModel)
+      .where(eq(companyModel.organizationId, organizationId))
+      .orderBy(companyModel.name),
   ])
 
-  return { terminals, sucursales, businessPartners, organizationId }
+  return { terminals, sucursales, businessPartners, companies, organizationId }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -70,6 +76,7 @@ export async function action({ request }: Route.ActionArgs) {
       name: formData.get('name'),
       organizationId: formData.get('organizationId'),
       sucursalId: formData.get('sucursalId') || null,
+      companyId: formData.get('companyId') || null,
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
       autoPrintReceipt: formData.get('autoPrintReceipt') === 'on',
       defaultBusinessPartnerId:
@@ -106,6 +113,7 @@ export async function action({ request }: Route.ActionArgs) {
     const data = {
       name: formData.get('name'),
       sucursalId: formData.get('sucursalId') || null,
+      companyId: formData.get('companyId') || null,
       isActive: formData.get('isActive') === 'on',
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
       autoPrintReceipt: formData.get('autoPrintReceipt') === 'on',
@@ -129,15 +137,12 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function PosTerminals({ loaderData }: Route.ComponentProps) {
-  const { terminals, sucursales, businessPartners, organizationId } =
+  const { terminals, sucursales, businessPartners, companies, organizationId } =
     loaderData as {
       terminals: PosTerminalWithSucursal[]
       sucursales: Array<{ id: string; name: string; code: string }>
-      businessPartners: Array<{
-        id: string
-        name: string
-        nit: string | null
-      }>
+      businessPartners: Array<{ id: string; name: string; nit: string | null }>
+      companies: Array<{ id: string; name: string; nit: string }>
       organizationId?: string
     }
 
@@ -158,6 +163,11 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
       accessorKey: 'sucursalName',
       header: 'Sucursal',
       cell: ({ row }) => row.original.sucursalName ?? '-',
+    },
+    {
+      accessorKey: 'companyName',
+      header: 'Empresa',
+      cell: ({ row }) => row.original.companyName ?? '-',
     },
     {
       accessorKey: 'isActive',
@@ -292,6 +302,25 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <div>
+                  <label className='text-sm font-medium'>Empresa legal</label>
+                  <Select
+                    name='companyId'
+                    defaultValue={editingTerminal.companyId ?? undefined}
+                  >
+                    <SelectTrigger className='mt-1'>
+                      <SelectValue placeholder='Seleccionar empresa (opcional)' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} ({c.nit})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <label className='text-sm font-medium'>
                     {t('pos.defaultCustomerLabel')}
                   </label>
@@ -408,6 +437,22 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                     {sucursales.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.name} ({s.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className='text-sm font-medium'>Empresa legal</label>
+                <Select name='companyId'>
+                  <SelectTrigger className='mt-1'>
+                    <SelectValue placeholder='Seleccionar empresa (opcional)' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} ({c.nit})
                       </SelectItem>
                     ))}
                   </SelectContent>

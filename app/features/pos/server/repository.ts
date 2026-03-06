@@ -27,6 +27,7 @@ import {
   sucursalInventoryModel,
 } from '~/server/db/schemas/sucursal'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
+import { companyModel } from '~/server/db/schemas/company'
 import { userModel } from '~/server/db/schemas/auth'
 import type {
   CreateTerminalInput,
@@ -60,11 +61,17 @@ export class PosRepository {
         sucursalId: posTerminalModel.sucursalId,
         sucursalName: sucursalModel.name,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
+        companyId: posTerminalModel.companyId,
+        companyName: companyModel.name,
       })
       .from(posTerminalModel)
       .leftJoin(
         sucursalModel,
         eq(posTerminalModel.sucursalId, sucursalModel.id)
+      )
+      .leftJoin(
+        companyModel,
+        eq(posTerminalModel.companyId, companyModel.id)
       )
       .where(and(...conditions))
       .orderBy(posTerminalModel.name)
@@ -84,11 +91,17 @@ export class PosRepository {
         autoPrintReceipt: posTerminalModel.autoPrintReceipt,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
         sucursalName: sucursalModel.name,
+        companyId: posTerminalModel.companyId,
+        companyName: companyModel.name,
       })
       .from(posTerminalModel)
       .leftJoin(
         sucursalModel,
         eq(posTerminalModel.sucursalId, sucursalModel.id)
+      )
+      .leftJoin(
+        companyModel,
+        eq(posTerminalModel.companyId, companyModel.id)
       )
       .where(eq(posTerminalModel.id, id))
       .limit(1)
@@ -153,6 +166,7 @@ export class PosRepository {
         categoryId: productModel.categoryId,
         categoryName: productCategoryModel.name,
         categoryColor: productCategoryModel.color,
+        attributesJson: sql<import('../types').ProductAttributesJson | null>`${productModel.attributesJson}`,
         sucursalStock: sucursalId
           ? sucursalInventoryModel.stock
           : sql<number | null>`null`,

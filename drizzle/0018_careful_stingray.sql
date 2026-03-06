@@ -1,4 +1,9 @@
-CREATE TYPE "public"."inventory_movement_type" AS ENUM('in', 'out', 'transfer_to_sucursal', 'transfer_from_sucursal', 'adjustment');--> statement-breakpoint
+DO $$ BEGIN
+  CREATE TYPE "public"."inventory_movement_type" AS ENUM('in', 'out', 'transfer_to_sucursal', 'transfer_from_sucursal', 'adjustment');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TABLE "inventory_movement" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,

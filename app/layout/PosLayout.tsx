@@ -83,6 +83,7 @@ export default function PosLayout({ loaderData }: Route.ComponentProps) {
         session: loaderData.session,
         permissions: loaderData.permissions,
         availableOrganizations: loaderData.organizations,
+        moduleAccess: [],
       }}
     >
       <div className='bg-background flex h-screen flex-col overflow-hidden'>

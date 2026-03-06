@@ -113,11 +113,18 @@ export const navigationItems = [
         path: '/invitations',
         icon: Mail,
       },
+      {
+        name: 'Modules',
+        nameKey: 'sidebar.items.modules' as TranslationKey,
+        path: '/settings/modules',
+        icon: Settings,
+      },
     ],
   },
   {
     section: 'Inventory',
     sectionKey: 'sidebar.sections.inventory' as TranslationKey,
+    moduleKey: 'inventory',
     icon: Package,
     color: 'accent-inventory', // amber for inventory domain
     items: [
@@ -182,6 +189,7 @@ export const navigationItems = [
   {
     section: 'Accounting',
     sectionKey: 'sidebar.sections.accounting' as TranslationKey,
+    moduleKey: 'accounting',
     icon: Building2,
     color: 'accent-accounting', // emerald for accounting domain
     items: [
@@ -226,6 +234,7 @@ export const navigationItems = [
   {
     section: 'POS',
     sectionKey: 'sidebar.sections.pos' as TranslationKey,
+    moduleKey: 'pos',
     icon: ShoppingCart,
     color: 'accent-pos',
     items: [
@@ -258,6 +267,7 @@ export const navigationItems = [
   {
     section: 'Appointments',
     sectionKey: 'sidebar.sections.appointments' as TranslationKey,
+    moduleKey: 'appointments',
     icon: CalendarDays,
     color: 'accent-appointments', // blue for appointments domain
     items: [

@@ -3,9 +3,19 @@ import { organizationCreateSchema } from '../../schemas'
 import { organizationRepository } from '../repository'
 
 export async function createOrganization(request: Request, input: FormData) {
-  const inputValues = Object.fromEntries(input)
-  const { data, error, success } =
-    organizationCreateSchema.safeParse(inputValues)
+  const logoFile = input.get('logo') as File | null
+  let logoBase64: string | undefined
+  if (logoFile && logoFile.size > 0) {
+    const buffer = await logoFile.arrayBuffer()
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    logoBase64 = `data:${logoFile.type};base64,${base64}`
+  }
+
+  const rawValues = Object.fromEntries(input)
+  const { data, error, success } = organizationCreateSchema.safeParse({
+    ...rawValues,
+    logo: logoBase64,
+  })
 
   if (!success) {
     return {
@@ -26,14 +36,20 @@ export async function createOrganization(request: Request, input: FormData) {
 
   const createdOrganization = await auth.api.createOrganization({
     body: {
-      name: data.name, //required
-      slug: data.slug, // required
-      logo: data.logo || '',
+      name: data.name,
+      slug: data.slug,
+      logo: logoBase64 || '',
       metadata: {},
       keepCurrentActiveOrganization: false,
     },
     headers: request.headers,
   })
+
+  if (data.domain && createdOrganization?.id) {
+    await organizationRepository.updateById(createdOrganization.id, {
+      domain: data.domain,
+    })
+  }
 
   return {
     success: true,

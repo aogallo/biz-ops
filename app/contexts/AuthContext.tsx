@@ -4,6 +4,7 @@ import type {
   OrganizationMember,
 } from "~/server/auth/organization.server";
 import type { SessionData } from "~/server/auth/session.server";
+import type { ModuleKey } from "~/features/modules/constants";
 
 interface AuthContextType {
   session: SessionData;
@@ -21,6 +22,7 @@ interface AuthContextType {
     slug: string;
     isAdmin?: boolean;
   }>;
+  moduleAccess: ModuleKey[];
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

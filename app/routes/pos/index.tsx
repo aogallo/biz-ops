@@ -52,7 +52,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
   }
 
-  const terminals = await posRepository.getTerminals(organizationId)
+  const terminals = await posRepository.getTerminals(
+    organizationId,
+    posSession?.sucursalId ?? undefined
+  )
   return { terminals, userName, hasUserSession: !!userSession }
 }
 
@@ -111,7 +114,7 @@ export default function PosIndex({ loaderData }: Route.ComponentProps) {
               <Link to='/dashboard'>Volver al ERP</Link>
             </Button>
           )}
-          <Form method='post' action='/logout'>
+          <Form method='post' action='/pos-logout'>
             <Button
               variant='ghost'
               size='sm'

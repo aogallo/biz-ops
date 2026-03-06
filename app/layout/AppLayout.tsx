@@ -1,3 +1,4 @@
+import { eq, and } from 'drizzle-orm'
 import { Outlet, redirect, useLocation, useNavigation } from 'react-router'
 import AppSidebar from '~/components/AppSidebar'
 import SiteHeader from '~/components/SiteHeader'
@@ -8,9 +9,12 @@ import type { Organization } from '~/features/organization/schemas'
 import { organizationRepository } from '~/features/organization/server/repository'
 import { getUserOrganizations } from '~/server/auth/organization.server'
 import { productsRepository } from '~/features/products/server/repository'
+import { modulesRepository } from '~/features/modules/server/repository'
 import { getUserPermissions } from '~/server/auth/permissions.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { isSuperAdmin } from '~/server/permissions'
+import { db } from '~/server/db'
+import { memberModel } from '~/server/db/schemas/auth'
 import type { Route } from './+types/AppLayout'
 
 // Add loader to require authentication and load permissions
@@ -19,16 +23,37 @@ export async function loader({ request }: Route.LoaderArgs) {
   const userId = session.user.id
   const organizationId = session.session.activeOrganizationId
 
+  // Get memberId for module access lookup
+  const memberRow = organizationId
+    ? await db
+        .select({ id: memberModel.id })
+        .from(memberModel)
+        .where(
+          and(
+            eq(memberModel.userId, userId),
+            eq(memberModel.organizationId, organizationId)
+          )
+        )
+        .limit(1)
+        .then((rows) => rows[0])
+    : null
+
+  const memberId = memberRow?.id ?? null
+
   // Fetch permissions, super admin status, and low stock count in parallel
-  const [permissions, isSuperAdminUser, lowStockCount] = await Promise.all([
-    organizationId
-      ? getUserPermissions(userId, organizationId)
-      : Promise.resolve([]),
-    isSuperAdmin(userId),
-    organizationId
-      ? productsRepository.countLowStock(organizationId)
-      : Promise.resolve(0),
-  ])
+  const [permissions, isSuperAdminUser, lowStockCount, moduleAccess] =
+    await Promise.all([
+      organizationId
+        ? getUserPermissions(userId, organizationId)
+        : Promise.resolve([]),
+      isSuperAdmin(userId),
+      organizationId
+        ? productsRepository.countLowStock(organizationId)
+        : Promise.resolve(0),
+      memberId && organizationId
+        ? modulesRepository.getAccessibleModulesForMember(memberId, organizationId)
+        : Promise.resolve([]),
+    ])
 
   // Fetch all organizations for super admin, or just user's organizations
   let organizations: Organization[] = []
@@ -61,6 +86,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     organizations,
     lowStockCount,
+    moduleAccess,
   }
 }
 
@@ -77,6 +103,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         session: loaderData.session,
         permissions: loaderData.permissions,
         availableOrganizations: loaderData.organizations,
+        moduleAccess: loaderData.moduleAccess,
       }}
     >
       <SidebarProvider>

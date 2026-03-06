@@ -66,7 +66,7 @@ export function useCanPerformAction(action: ActionKey): boolean {
 }
 
 /**
- * Get filtered navigation items based on user permissions
+ * Get filtered navigation items based on user permissions and module access
  * Super admins see all menus, regular users see only menus they have access to
  * @param allMenus - All available navigation items
  * @returns Filtered array of navigation items user can access
@@ -74,20 +74,26 @@ export function useCanPerformAction(action: ActionKey): boolean {
 export function useFilteredNavigation<
   T extends {
     section: string
+    moduleKey?: string
     icon: React.ElementType
     color: string
     items: Array<{ path: string; name: string; icon: React.ElementType }>
   },
 >(allMenus: T[]) {
-  const { permissions } = useAuth()
+  const { permissions, moduleAccess } = useAuth()
 
   // Super admin sees everything
   if (permissions.isSuperAdmin) {
     return allMenus
   }
 
-  // Filter menus by permission
+  // Filter menus by permission and module access
   const filtered = allMenus.filter((section) => {
+    // If section has a moduleKey, check module access first
+    if (section.moduleKey && !moduleAccess.includes(section.moduleKey as never)) {
+      return false
+    }
+
     const filteredItems = section.items.filter((item) => {
       const requiredPermissions = MENU_PERMISSIONS[item.path as MenuPath] || []
       const hasPermission = requiredPermissions.some((perm) =>

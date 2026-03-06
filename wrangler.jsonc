@@ -25,6 +25,9 @@
    * R2 Bucket for product image uploads
    * https://developers.cloudflare.com/r2/api/workers/workers-api-reference/
    */
+	"vars": {
+		"APP_DOMAIN": "bizops.app"
+	},
 	"r2_buckets": [
 		{
 			"binding": "BUCKET",

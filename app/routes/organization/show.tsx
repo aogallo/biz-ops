@@ -7,12 +7,13 @@ import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/show'
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, context }: Route.LoaderArgs) {
   const { slug } = params
 
   const organization = await organizationRepository.getBySlug(slug)
+  const appDomain = context.cloudflare.env.APP_DOMAIN ?? 'bizops.app'
 
-  return { organization }
+  return { organization, appDomain }
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -29,7 +30,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function Show({ loaderData }: Route.ComponentProps) {
-  const { organization } = loaderData
+  const { organization, appDomain } = loaderData
   const metadata = organization?.metadata ?? {}
   const submit = useSubmit()
   const { t } = useTranslation()
@@ -77,6 +78,16 @@ export default function Show({ loaderData }: Route.ComponentProps) {
             {organization?.name || 'Unknown User'}
           </h2>
           <p className='text-muted-foreground'>{organization?.slug}</p>
+          {organization?.domain && (
+            <a
+              href={`https://${organization.domain}.${appDomain}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='text-primary text-sm hover:underline'
+            >
+              {organization.domain}.{appDomain}
+            </a>
+          )}
         </div>
       </div>
 

@@ -27,6 +27,15 @@ class OrganizationRepository {
     return data[0];
   }
 
+  async updateById(id: string, data: Partial<typeof organizationModel.$inferInsert>) {
+    const [org] = await db
+      .update(organizationModel)
+      .set(data)
+      .where(eq(organizationModel.id, id))
+      .returning()
+    return org
+  }
+
   async delete(id: string) {
     try {
       await db.delete(organizationModel).where(eq(organizationModel.id, id));

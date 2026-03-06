@@ -70,6 +70,7 @@ export const organizationModel = pgTable('organization', {
   slug: text('slug').notNull().unique(),
   logo: text('logo'),
   metadata: text('metadata'),
+  domain: text('domain').unique(),
   isAdmin: boolean('is_admin').default(false).notNull(), // Identifies admin organizations that can create other orgs
   ...timestamps,
 })

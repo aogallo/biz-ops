@@ -356,6 +356,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const customerFetcher = useFetcher<typeof action>()
 
   const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null)
+  const [numpadInput, setNumpadInput] = useState('')
   const [search, setSearch] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
@@ -434,6 +436,61 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         },
       ]
     })
+    setSelectedCartItemId(product.id)
+    setNumpadInput('')
+  }, [])
+
+  const handleItemSelect = useCallback((productId: string) => {
+    setSelectedCartItemId(productId)
+    setNumpadInput('')
+  }, [])
+
+  const handleNumpadDigit = useCallback(
+    (digit: string) => {
+      if (!selectedCartItemId) return
+      setNumpadInput((prev) => {
+        const next = prev.length >= 4 ? prev : prev + digit
+        const qty = parseInt(next, 10)
+        if (!isNaN(qty) && qty >= 1) {
+          setCart((items) =>
+            items.map((item) => {
+              if (item.productId !== selectedCartItemId) return item
+              const max =
+                item.productType === 'STOCK' && item.stock !== null
+                  ? item.stock
+                  : Infinity
+              return { ...item, quantity: Math.min(qty, max) }
+            })
+          )
+        }
+        return next
+      })
+    },
+    [selectedCartItemId]
+  )
+
+  const handleNumpadBackspace = useCallback(() => {
+    if (!selectedCartItemId) return
+    setNumpadInput((prev) => {
+      const next = prev.slice(0, -1)
+      if (next !== '') {
+        const qty = parseInt(next, 10)
+        if (!isNaN(qty) && qty >= 1) {
+          setCart((items) =>
+            items.map((item) =>
+              item.productId === selectedCartItemId
+                ? { ...item, quantity: qty }
+                : item
+            )
+          )
+        }
+      }
+      return next
+    })
+  }, [selectedCartItemId])
+
+  const handleNumpadClear = useCallback(() => {
+    setNumpadInput('')
   }, [])
 
   const handleQuantityChange = useCallback(
@@ -612,6 +669,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     processedSaleRef.current = receipt.saleNumber
     setReceiptData(receipt)
     setCart([])
+    setSelectedCartItemId(null)
+    setNumpadInput('')
     setSelectedCustomer(null)
     setPaymentOpen(false)
 
@@ -713,6 +772,12 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             onQuantityChange={handleQuantityChange}
             onRemoveItem={handleRemoveItem}
             onCheckout={() => setPaymentOpen(true)}
+            selectedItemId={selectedCartItemId}
+            onItemSelect={handleItemSelect}
+            numpadInput={numpadInput}
+            onNumpadDigit={handleNumpadDigit}
+            onNumpadBackspace={handleNumpadBackspace}
+            onNumpadClear={handleNumpadClear}
           />
         </div>
       </div>

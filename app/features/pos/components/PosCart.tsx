@@ -4,6 +4,7 @@ import { Separator } from '~/components/ui/separator'
 import { useTranslation } from '~/i18n/context'
 import type { CartItem, CartTotals } from '../types'
 import { PosCartItem } from './PosCartItem'
+import { PosNumpad } from './PosNumpad'
 
 interface PosCartProps {
   items: CartItem[]
@@ -11,6 +12,12 @@ interface PosCartProps {
   onQuantityChange: (productId: string, quantity: number) => void
   onRemoveItem: (productId: string) => void
   onCheckout: () => void
+  selectedItemId: string | null
+  onItemSelect: (productId: string) => void
+  numpadInput: string
+  onNumpadDigit: (d: string) => void
+  onNumpadBackspace: () => void
+  onNumpadClear: () => void
 }
 
 export function PosCart({
@@ -19,8 +26,17 @@ export function PosCart({
   onQuantityChange,
   onRemoveItem,
   onCheckout,
+  selectedItemId,
+  onItemSelect,
+  numpadInput,
+  onNumpadDigit,
+  onNumpadBackspace,
+  onNumpadClear,
 }: PosCartProps) {
   const { t } = useTranslation()
+
+  const selectedItem = items.find((i) => i.productId === selectedItemId)
+  const numpadDisplay = numpadInput || (selectedItem ? String(selectedItem.quantity) : '')
 
   return (
     <div className='flex h-full flex-col'>
@@ -37,10 +53,20 @@ export function PosCart({
               item={item}
               onQuantityChange={onQuantityChange}
               onRemove={onRemoveItem}
+              isSelected={item.productId === selectedItemId}
+              onSelect={onItemSelect}
             />
           ))
         )}
       </div>
+
+      <PosNumpad
+        displayValue={numpadDisplay}
+        onDigit={onNumpadDigit}
+        onBackspace={onNumpadBackspace}
+        onClear={onNumpadClear}
+        disabled={selectedItemId === null || items.length === 0}
+      />
 
       <div className='mt-auto border-t px-4 pt-3 pb-4'>
         <div className='space-y-1 text-sm'>

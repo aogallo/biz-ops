@@ -1,5 +1,6 @@
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import { cn } from '~/lib/utils'
 import { useTranslation } from '~/i18n/context'
 import type { CartItem } from '../types'
 import { calculateLineTotals } from '../types'
@@ -8,18 +9,28 @@ interface PosCartItemProps {
   item: CartItem
   onQuantityChange: (productId: string, quantity: number) => void
   onRemove: (productId: string) => void
+  isSelected?: boolean
+  onSelect?: (productId: string) => void
 }
 
 export function PosCartItem({
   item,
   onQuantityChange,
   onRemove,
+  isSelected,
+  onSelect,
 }: PosCartItemProps) {
   const { t } = useTranslation()
   const { total } = calculateLineTotals(item)
 
   return (
-    <div className='flex items-center gap-2 border-b py-2'>
+    <div
+      className={cn(
+        'flex items-center gap-2 border-b py-2 cursor-pointer rounded-sm px-1 -mx-1 transition-colors',
+        isSelected && 'bg-primary/10'
+      )}
+      onClick={() => onSelect?.(item.productId)}
+    >
       <div className='min-w-0 flex-1'>
         <p className='truncate text-sm font-medium'>{item.productName}</p>
         <p className='text-muted-foreground text-xs'>

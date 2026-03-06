@@ -4,7 +4,7 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE TABLE "inventory_movement" (
+CREATE TABLE IF NOT EXISTS "inventory_movement" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"sucursal_id" uuid,
@@ -17,7 +17,7 @@ CREATE TABLE "inventory_movement" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "sucursal_inventory" (
+CREATE TABLE IF NOT EXISTS "sucursal_inventory" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"sucursal_id" uuid NOT NULL,
 	"product_id" uuid NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE "sucursal_inventory" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "sucursal" (
+CREATE TABLE IF NOT EXISTS "sucursal" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" uuid NOT NULL,
 	"company_id" uuid,
@@ -53,20 +53,34 @@ ALTER TABLE "pos_session" DROP CONSTRAINT "pos_session_company_id_company_id_fk"
 ALTER TABLE "pos_terminal" DROP CONSTRAINT "pos_terminal_company_id_company_id_fk";
 --> statement-breakpoint
 DROP INDEX "cashier_pin_company_idx";--> statement-breakpoint
-ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sucursal_inventory" ADD CONSTRAINT "sucursal_inventory_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sucursal_inventory" ADD CONSTRAINT "sucursal_inventory_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sucursal" ADD CONSTRAINT "sucursal_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sucursal" ADD CONSTRAINT "sucursal_company_id_company_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."company"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "inventory_movement_org_idx" ON "inventory_movement" USING btree ("organization_id","created_at");--> statement-breakpoint
-CREATE INDEX "inventory_movement_product_idx" ON "inventory_movement" USING btree ("product_id");--> statement-breakpoint
-CREATE INDEX "inventory_movement_sucursal_idx" ON "inventory_movement" USING btree ("sucursal_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "sucursal_inventory_sucursal_product_idx" ON "sucursal_inventory" USING btree ("sucursal_id","product_id");--> statement-breakpoint
-CREATE INDEX "sucursal_inventory_sucursal_idx" ON "sucursal_inventory" USING btree ("sucursal_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "sucursal_code_org_idx" ON "sucursal" USING btree ("organization_id","code");--> statement-breakpoint
-CREATE INDEX "sucursal_org_active_idx" ON "sucursal" USING btree ("organization_id","is_active");--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "sucursal_inventory" ADD CONSTRAINT "sucursal_inventory_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "sucursal_inventory" ADD CONSTRAINT "sucursal_inventory_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "sucursal" ADD CONSTRAINT "sucursal_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "sucursal" ADD CONSTRAINT "sucursal_company_id_company_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."company"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "inventory_movement_org_idx" ON "inventory_movement" USING btree ("organization_id","created_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "inventory_movement_product_idx" ON "inventory_movement" USING btree ("product_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "inventory_movement_sucursal_idx" ON "inventory_movement" USING btree ("sucursal_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "sucursal_inventory_sucursal_product_idx" ON "sucursal_inventory" USING btree ("sucursal_id","product_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sucursal_inventory_sucursal_idx" ON "sucursal_inventory" USING btree ("sucursal_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "sucursal_code_org_idx" ON "sucursal" USING btree ("organization_id","code");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sucursal_org_active_idx" ON "sucursal" USING btree ("organization_id","is_active");--> statement-breakpoint
 ALTER TABLE "pos_cashier" ADD CONSTRAINT "pos_cashier_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "pos_sale" ADD CONSTRAINT "pos_sale_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "pos_session" ADD CONSTRAINT "pos_session_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

@@ -11,7 +11,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   const { slug } = params
 
   const organization = await organizationRepository.getBySlug(slug)
-  const appDomain = context.cloudflare.env.APP_DOMAIN ?? 'bizops.app'
+  const appDomain = context?.cloudflare?.env?.APP_DOMAIN ?? 'bizops.app'
 
   return { organization, appDomain }
 }

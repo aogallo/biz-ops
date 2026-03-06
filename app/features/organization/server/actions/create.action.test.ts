@@ -44,6 +44,7 @@ describe('createOrganization action', () => {
       updatedAt: new Date(),
       logo: null,
       metadata: null,
+      domain: null,
       isAdmin: false,
     })
 

@@ -49,6 +49,7 @@ export default [
       index('./routes/organization/index.tsx'),
       route('/new', './routes/organization/create.tsx'),
       route('/:slug', './routes/organization/show.tsx'),
+      route('/:slug/edit', './routes/organization/edit.tsx'),
     ]),
 
     // Products Routes

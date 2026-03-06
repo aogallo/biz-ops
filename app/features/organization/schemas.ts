@@ -18,7 +18,7 @@ export const organizationCreateSchema = createInsertSchema(organizationModel, {
 
 export const selectOrganizationSchema = createSelectSchema(
   organizationModel
-).omit({ updatedAt: true, metadata: true })
+).omit({ updatedAt: true, metadata: true, domain: true })
 
 export const organizationUpdateSchema = createUpdateSchema(organizationModel)
 

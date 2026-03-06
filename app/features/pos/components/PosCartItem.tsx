@@ -7,10 +7,10 @@ import { calculateLineTotals } from '../types'
 
 interface PosCartItemProps {
   item: CartItem
-  onQuantityChange: (productId: string, quantity: number) => void
-  onRemove: (productId: string) => void
+  onQuantityChange: (cartItemId: string, quantity: number) => void
+  onRemove: (cartItemId: string) => void
   isSelected?: boolean
-  onSelect?: (productId: string) => void
+  onSelect?: (cartItemId: string) => void
 }
 
 export function PosCartItem({
@@ -23,16 +23,25 @@ export function PosCartItem({
   const { t } = useTranslation()
   const { total } = calculateLineTotals(item)
 
+  const attrEntries = item.selectedAttributes
+    ? Object.entries(item.selectedAttributes)
+    : []
+
   return (
     <div
       className={cn(
         'flex items-center gap-2 border-b py-2 cursor-pointer rounded-sm px-1 -mx-1 transition-colors',
         isSelected && 'bg-primary/10'
       )}
-      onClick={() => onSelect?.(item.productId)}
+      onClick={() => onSelect?.(item.cartItemId)}
     >
       <div className='min-w-0 flex-1'>
         <p className='truncate text-sm font-medium'>{item.productName}</p>
+        {attrEntries.length > 0 && (
+          <p className='text-muted-foreground truncate text-xs'>
+            {attrEntries.map(([, v]) => v).join(' · ')}
+          </p>
+        )}
         <p className='text-muted-foreground text-xs'>
           Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}
         </p>
@@ -41,9 +50,10 @@ export function PosCartItem({
         <Button
           variant='outline'
           size='icon-xs'
-          onClick={() =>
-            onQuantityChange(item.productId, Math.max(1, item.quantity - 1))
-          }
+          onClick={(e) => {
+            e.stopPropagation()
+            onQuantityChange(item.cartItemId, Math.max(1, item.quantity - 1))
+          }}
         >
           <Minus />
         </Button>
@@ -53,13 +63,14 @@ export function PosCartItem({
         <Button
           variant='outline'
           size='icon-xs'
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation()
             const max =
               item.productType === 'STOCK' && item.stock !== null
                 ? item.stock
                 : Infinity
             if (item.quantity < max) {
-              onQuantityChange(item.productId, item.quantity + 1)
+              onQuantityChange(item.cartItemId, item.quantity + 1)
             }
           }}
         >
@@ -73,7 +84,10 @@ export function PosCartItem({
         variant='ghost'
         size='icon-xs'
         className='text-destructive'
-        onClick={() => onRemove(item.productId)}
+        onClick={(e) => {
+          e.stopPropagation()
+          onRemove(item.cartItemId)
+        }}
       >
         <Trash2 />
       </Button>

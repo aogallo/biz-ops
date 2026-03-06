@@ -9,11 +9,11 @@ import { PosNumpad } from './PosNumpad'
 interface PosCartProps {
   items: CartItem[]
   totals: CartTotals
-  onQuantityChange: (productId: string, quantity: number) => void
-  onRemoveItem: (productId: string) => void
+  onQuantityChange: (cartItemId: string, quantity: number) => void
+  onRemoveItem: (cartItemId: string) => void
   onCheckout: () => void
   selectedItemId: string | null
-  onItemSelect: (productId: string) => void
+  onItemSelect: (cartItemId: string) => void
   numpadInput: string
   onNumpadDigit: (d: string) => void
   onNumpadBackspace: () => void
@@ -35,7 +35,7 @@ export function PosCart({
 }: PosCartProps) {
   const { t } = useTranslation()
 
-  const selectedItem = items.find((i) => i.productId === selectedItemId)
+  const selectedItem = items.find((i) => i.cartItemId === selectedItemId)
   const numpadDisplay = numpadInput || (selectedItem ? String(selectedItem.quantity) : '')
 
   return (
@@ -49,11 +49,11 @@ export function PosCart({
         ) : (
           items.map((item) => (
             <PosCartItem
-              key={item.productId}
+              key={item.cartItemId}
               item={item}
               onQuantityChange={onQuantityChange}
               onRemove={onRemoveItem}
-              isSelected={item.productId === selectedItemId}
+              isSelected={item.cartItemId === selectedItemId}
               onSelect={onItemSelect}
             />
           ))

@@ -51,4 +51,5 @@ export const sidebar = {
   'sidebar.items.posTerminals': 'Terminales',
   'sidebar.items.sucursal': 'Sucursal',
   'sidebar.items.inventorySucursal': 'Inventario por Sucursal',
+  'sidebar.items.modules': 'Módulos',
 } as const

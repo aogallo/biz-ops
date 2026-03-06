@@ -111,6 +111,12 @@ import {
   inventoryMovementRelations,
   inventoryMovementTypeEnum,
 } from './sucursal'
+import {
+  organizationModuleModel,
+  memberModuleAccessModel,
+  organizationModuleRelations,
+  memberModuleAccessRelations,
+} from './modules'
 
 export const schema = {
   // Auth tables
@@ -180,6 +186,10 @@ export const schema = {
   sucursalInventory: sucursalInventoryModel,
   inventoryMovement: inventoryMovementModel,
 
+  // Module tables
+  organizationModule: organizationModuleModel,
+  memberModuleAccess: memberModuleAccessModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -215,6 +225,8 @@ export const schema = {
   sucursalRelations,
   sucursalInventoryRelations,
   inventoryMovementRelations,
+  organizationModuleRelations,
+  memberModuleAccessRelations,
 }
 
 // Re-export all schemas for easy access
@@ -236,6 +248,7 @@ export * from './quotations'
 export * from './pos'
 export * from './sucursal'
 export * from './common'
+export * from './modules'
 
 // Re-export enums
 export {

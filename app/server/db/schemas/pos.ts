@@ -20,6 +20,7 @@ import type { z } from 'zod'
 import { organizationModel, userModel } from './auth'
 import { businessPartnerModel } from './businessPartner'
 import { timestamps } from './common'
+import { companyModel } from './company'
 import { invoiceModel, ivaTypeEnum } from './invoice'
 import { productModel } from './products'
 import { sucursalModel } from './sucursal'
@@ -67,6 +68,7 @@ export const posTerminalModel = pgTable('pos_terminal', {
   defaultBusinessPartnerId: uuid('default_business_partner_id').references(
     () => businessPartnerModel.id
   ),
+  companyId: uuid('company_id').references(() => companyModel.id),
   ...timestamps,
 }, (table) => [
   index('pos_terminal_org_active_idx').on(table.organizationId, table.isActive),
@@ -101,6 +103,7 @@ export const posSaleModel = pgTable('pos_sale', {
     .default('0'),
   total: numeric('total', { precision: 12, scale: 2 }).notNull(),
   currency: text('currency').notNull().default('GTQ'),
+  companyId: uuid('company_id').references(() => companyModel.id),
   invoiceId: uuid('invoice_id').references(() => invoiceModel.id),
   notes: text('notes'),
   ...timestamps,
@@ -273,6 +276,10 @@ export const posTerminalRelations = relations(
       fields: [posTerminalModel.defaultBusinessPartnerId],
       references: [businessPartnerModel.id],
     }),
+    company: one(companyModel, {
+      fields: [posTerminalModel.companyId],
+      references: [companyModel.id],
+    }),
     sales: many(posSaleModel),
     sessions: many(posSessionModel),
   })
@@ -298,6 +305,10 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
   businessPartner: one(businessPartnerModel, {
     fields: [posSaleModel.businessPartnerId],
     references: [businessPartnerModel.id],
+  }),
+  company: one(companyModel, {
+    fields: [posSaleModel.companyId],
+    references: [companyModel.id],
   }),
   invoice: one(invoiceModel, {
     fields: [posSaleModel.invoiceId],

@@ -120,6 +120,7 @@ export async function createSaleAction(input: CheckoutInput) {
       .values({
         organizationId: input.organizationId,
         sucursalId: input.sucursalId,
+        companyId: input.companyId ?? null,
         terminalId: input.terminalId,
         cashierId: input.cashierId,
         sessionId: input.sessionId,
@@ -273,9 +274,9 @@ async function generateInvoiceIfConfigured(
   const defaultAccountId = saleResult.defaultSalesAccountId
   if (!defaultAccountId) return
 
-  // Look up companyId from sucursal (required by invoice model)
-  let companyId: string | null = null
-  if (input.sucursalId) {
+  // Resolve companyId: prefer terminal's direct companyId, fall back to sucursal's company
+  let companyId: string | null = input.companyId ?? null
+  if (!companyId && input.sucursalId) {
     const [sucursal] = await db
       .select({ companyId: sucursalModel.companyId })
       .from(sucursalModel)

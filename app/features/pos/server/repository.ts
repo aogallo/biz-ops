@@ -1,4 +1,14 @@
-import { and, count, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm'
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   posTerminalModel,
@@ -12,8 +22,12 @@ import {
 } from '~/server/db/schemas/pos'
 import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
-import { sucursalModel, sucursalInventoryModel } from '~/server/db/schemas/sucursal'
+import {
+  sucursalModel,
+  sucursalInventoryModel,
+} from '~/server/db/schemas/sucursal'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
+import { companyModel } from '~/server/db/schemas/company'
 import { userModel } from '~/server/db/schemas/auth'
 import type {
   CreateTerminalInput,
@@ -27,8 +41,16 @@ export class PosRepository {
   // ── Terminal CRUD ──
 
   async getTerminals(
-    organizationId: string
+    organizationId: string,
+    sucursalId?: string
   ): Promise<PosTerminalWithSucursal[]> {
+    const conditions: SQL[] = [
+      eq(posTerminalModel.organizationId, organizationId),
+    ]
+    if (sucursalId) {
+      conditions.push(eq(posTerminalModel.sucursalId, sucursalId))
+    }
+
     const terminals = await db
       .select({
         id: posTerminalModel.id,
@@ -39,10 +61,19 @@ export class PosRepository {
         sucursalId: posTerminalModel.sucursalId,
         sucursalName: sucursalModel.name,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
+        companyId: posTerminalModel.companyId,
+        companyName: companyModel.name,
       })
       .from(posTerminalModel)
-      .leftJoin(sucursalModel, eq(posTerminalModel.sucursalId, sucursalModel.id))
-      .where(eq(posTerminalModel.organizationId, organizationId))
+      .leftJoin(
+        sucursalModel,
+        eq(posTerminalModel.sucursalId, sucursalModel.id)
+      )
+      .leftJoin(
+        companyModel,
+        eq(posTerminalModel.companyId, companyModel.id)
+      )
+      .where(and(...conditions))
       .orderBy(posTerminalModel.name)
 
     return terminals
@@ -60,9 +91,18 @@ export class PosRepository {
         autoPrintReceipt: posTerminalModel.autoPrintReceipt,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
         sucursalName: sucursalModel.name,
+        companyId: posTerminalModel.companyId,
+        companyName: companyModel.name,
       })
       .from(posTerminalModel)
-      .leftJoin(sucursalModel, eq(posTerminalModel.sucursalId, sucursalModel.id))
+      .leftJoin(
+        sucursalModel,
+        eq(posTerminalModel.sucursalId, sucursalModel.id)
+      )
+      .leftJoin(
+        companyModel,
+        eq(posTerminalModel.companyId, companyModel.id)
+      )
       .where(eq(posTerminalModel.id, id))
       .limit(1)
 
@@ -126,9 +166,20 @@ export class PosRepository {
         categoryId: productModel.categoryId,
         categoryName: productCategoryModel.name,
         categoryColor: productCategoryModel.color,
+        attributesJson: sql<import('../types').ProductAttributesJson | null>`${productModel.attributesJson}`,
         sucursalStock: sucursalId
           ? sucursalInventoryModel.stock
           : sql<number | null>`null`,
+        otherSucursalesStock: sucursalId
+          ? sql<{ name: string; stock: number }[] | null>`(
+              SELECT json_agg(json_build_object('name', s.name, 'stock', si.stock))
+              FROM ${sucursalInventoryModel} si
+              JOIN ${sucursalModel} s ON s.id = si.sucursal_id
+              WHERE si.product_id = ${productModel.id}
+                AND si.sucursal_id != ${sucursalId}
+                AND si.stock > 0
+            )`
+          : sql<null>`null`,
       })
       .from(productModel)
       .leftJoin(
@@ -243,7 +294,7 @@ export class PosRepository {
         or(
           ilike(posSaleModel.saleNumber, `%${search}%`),
           ilike(businessPartnerModel.nit, `%${search}%`),
-          ilike(sql`CAST(${posSaleModel.total} AS TEXT)`, `%${search}%`),
+          ilike(sql`CAST(${posSaleModel.total} AS TEXT)`, `%${search}%`)
         )!
       )
     }
@@ -517,7 +568,13 @@ export class PosRepository {
     }
 
     const openingCash = Number(session.openingCashAmount)
-    return openingCash + totalCashSales - totalRefundMovements - totalWithdrawals + (totalDeposits - openingCash)
+    return (
+      openingCash +
+      totalCashSales -
+      totalRefundMovements -
+      totalWithdrawals +
+      (totalDeposits - openingCash)
+    )
   }
 
   // ── Cash movements ──

@@ -99,15 +99,28 @@ export function PosProductGrid({
                 <span
                   className={cn(
                     'mt-0.5 text-xs',
-                    isLowStock
-                      ? 'font-medium text-amber-600 dark:text-amber-400'
-                      : 'text-muted-foreground'
+                    isOutOfStock
+                      ? 'text-red-500 dark:text-red-400'
+                      : isLowStock
+                        ? 'font-medium text-amber-600 dark:text-amber-400'
+                        : 'text-muted-foreground'
                   )}
                 >
                   {t('pos.stock')}: {displayStock ?? 0}
                   {isLowStock && ' ⚠'}
                 </span>
               )}
+              {product.productType === 'STOCK' &&
+                isOutOfStock &&
+                product.otherSucursalesStock &&
+                product.otherSucursalesStock.length > 0 && (
+                  <span className='mt-0.5 text-xs text-blue-600 dark:text-blue-400'>
+                    📦{' '}
+                    {product.otherSucursalesStock
+                      .map((s) => `${s.name} (${s.stock})`)
+                      .join(', ')}
+                  </span>
+                )}
             </button>
           )
         })}

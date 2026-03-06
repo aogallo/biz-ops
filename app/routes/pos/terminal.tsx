@@ -23,6 +23,7 @@ import { PosOpenShiftDialog } from '~/features/pos/components/PosOpenShiftDialog
 import { PosCloseShiftDialog } from '~/features/pos/components/PosCloseShiftDialog'
 import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovementDialog'
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
+import { PosProductAttributesDialog } from '~/features/pos/components/PosProductAttributesDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
 import { PosReceiptContent } from '~/features/pos/components/PosReceiptContent'
 import {
@@ -356,6 +357,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const customerFetcher = useFetcher<typeof action>()
 
   const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null)
+  const [numpadInput, setNumpadInput] = useState('')
   const [search, setSearch] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
@@ -372,6 +375,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const [closeShiftOpen, setCloseShiftOpen] = useState(false)
   const [cashMovementOpen, setCashMovementOpen] = useState(false)
   const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
+  const [attributeDialogProduct, setAttributeDialogProduct] = useState<PosProductForGrid | null>(null)
 
   // No cashier profile
   if (!cashier) {
@@ -400,63 +404,154 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
 
   const totals = calculateCartTotals(cart)
 
-  const addToCart = useCallback((product: PosProductForGrid) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.productId === product.id)
-      if (existing) {
-        const max =
-          product.productType === 'STOCK' && product.stock !== null
-            ? product.stock
-            : Infinity
-        if (existing.quantity >= max) return prev
-        return prev.map((item) =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+  const addToCart = useCallback(
+    (
+      product: PosProductForGrid,
+      selectedAttributes?: Record<string, string>,
+      priceAdjustment = 0
+    ) => {
+      const attrsKey = selectedAttributes ? JSON.stringify(selectedAttributes) : ''
+      setCart((prev) => {
+        const existing = prev.find(
+          (item) =>
+            item.productId === product.id &&
+            JSON.stringify(item.selectedAttributes ?? {}) === attrsKey
         )
+        if (existing) {
+          const max =
+            product.productType === 'STOCK' && product.stock !== null
+              ? product.stock
+              : Infinity
+          if (existing.quantity >= max) return prev
+          setSelectedCartItemId(existing.cartItemId)
+          return prev.map((item) =>
+            item.cartItemId === existing.cartItemId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        }
+        const newCartItemId = crypto.randomUUID()
+        setSelectedCartItemId(newCartItemId)
+        return [
+          ...prev,
+          {
+            cartItemId: newCartItemId,
+            productId: product.id,
+            productName: product.name,
+            productSku: product.sku,
+            unitPrice: Number(product.price) + priceAdjustment,
+            quantity: 1,
+            discountPercent: 0,
+            ivaType: 'taxed' as const,
+            ivaRate: 12,
+            productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE',
+            stock: product.stock,
+            selectedAttributes,
+          },
+        ]
+      })
+      setNumpadInput('')
+    },
+    []
+  )
+
+  const handleProductClick = useCallback(
+    (product: PosProductForGrid) => {
+      if (product.attributesJson?.attributes?.length) {
+        setAttributeDialogProduct(product)
+      } else {
+        addToCart(product)
       }
-      return [
-        ...prev,
-        {
-          productId: product.id,
-          productName: product.name,
-          productSku: product.sku,
-          unitPrice: Number(product.price),
-          quantity: 1,
-          discountPercent: 0,
-          ivaType: 'taxed' as const,
-          ivaRate: 12,
-          productType: product.productType as
-            | 'STOCK'
-            | 'MADE_TO_ORDER'
-            | 'SERVICE',
-          stock: product.stock,
-        },
-      ]
+    },
+    [addToCart]
+  )
+
+  const handleAttributesConfirm = useCallback(
+    (
+      product: PosProductForGrid,
+      selectedAttributes: Record<string, string>,
+      priceAdjustment: number
+    ) => {
+      addToCart(product, selectedAttributes, priceAdjustment)
+      setAttributeDialogProduct(null)
+    },
+    [addToCart]
+  )
+
+  const handleItemSelect = useCallback((cartItemId: string) => {
+    setSelectedCartItemId(cartItemId)
+    setNumpadInput('')
+  }, [])
+
+  const handleNumpadDigit = useCallback(
+    (digit: string) => {
+      if (!selectedCartItemId) return
+      setNumpadInput((prev) => {
+        const next = prev.length >= 4 ? prev : prev + digit
+        const qty = parseInt(next, 10)
+        if (!isNaN(qty) && qty >= 1) {
+          setCart((items) =>
+            items.map((item) => {
+              if (item.cartItemId !== selectedCartItemId) return item
+              const max =
+                item.productType === 'STOCK' && item.stock !== null
+                  ? item.stock
+                  : Infinity
+              return { ...item, quantity: Math.min(qty, max) }
+            })
+          )
+        }
+        return next
+      })
+    },
+    [selectedCartItemId]
+  )
+
+  const handleNumpadBackspace = useCallback(() => {
+    if (!selectedCartItemId) return
+    setNumpadInput((prev) => {
+      const next = prev.slice(0, -1)
+      if (next !== '') {
+        const qty = parseInt(next, 10)
+        if (!isNaN(qty) && qty >= 1) {
+          setCart((items) =>
+            items.map((item) =>
+              item.cartItemId === selectedCartItemId
+                ? { ...item, quantity: qty }
+                : item
+            )
+          )
+        }
+      }
+      return next
     })
+  }, [selectedCartItemId])
+
+  const handleNumpadClear = useCallback(() => {
+    setNumpadInput('')
   }, [])
 
   const handleQuantityChange = useCallback(
-    (productId: string, quantity: number) => {
+    (cartItemId: string, quantity: number) => {
       setCart((prev) =>
         prev.map((item) =>
-          item.productId === productId ? { ...item, quantity } : item
+          item.cartItemId === cartItemId ? { ...item, quantity } : item
         )
       )
     },
     []
   )
 
-  const handleRemoveItem = useCallback((productId: string) => {
-    setCart((prev) => prev.filter((item) => item.productId !== productId))
+  const handleRemoveItem = useCallback((cartItemId: string) => {
+    setCart((prev) => prev.filter((item) => item.cartItemId !== cartItemId))
   }, [])
 
   const handleBarcodeScan = useCallback(
     (barcode: string) => {
       const product = initialProducts.find((p) => p.sku === barcode)
-      if (product) addToCart(product)
+      if (product) handleProductClick(product)
     },
-    [initialProducts, addToCart]
+    [initialProducts, handleProductClick]
   )
 
   const handleCustomerSearch = useCallback(
@@ -484,6 +579,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         terminalId: terminal.id,
         organizationId,
         sucursalId: terminal.sucursalId,
+        companyId: terminal.companyId,
         cashierId,
         userId,
         businessPartnerId,
@@ -612,6 +708,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     processedSaleRef.current = receipt.saleNumber
     setReceiptData(receipt)
     setCart([])
+    setSelectedCartItemId(null)
+    setNumpadInput('')
     setSelectedCustomer(null)
     setPaymentOpen(false)
 
@@ -684,7 +782,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             categories={categories}
             selectedCategoryId={selectedCategoryId}
             onCategoryChange={setSelectedCategoryId}
-            onProductClick={addToCart}
+            onProductClick={handleProductClick}
             sucursalId={terminal.sucursalId}
           />
         </div>
@@ -713,6 +811,12 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             onQuantityChange={handleQuantityChange}
             onRemoveItem={handleRemoveItem}
             onCheckout={() => setPaymentOpen(true)}
+            selectedItemId={selectedCartItemId}
+            onItemSelect={handleItemSelect}
+            numpadInput={numpadInput}
+            onNumpadDigit={handleNumpadDigit}
+            onNumpadBackspace={handleNumpadBackspace}
+            onNumpadClear={handleNumpadClear}
           />
         </div>
       </div>
@@ -758,6 +862,13 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         onOpenChange={setCreateCustomerOpen}
         onConfirm={handleCreateCustomer}
         isSubmitting={fetcher.state === 'submitting'}
+      />
+
+      <PosProductAttributesDialog
+        product={attributeDialogProduct}
+        open={attributeDialogProduct !== null}
+        onOpenChange={(open) => { if (!open) setAttributeDialogProduct(null) }}
+        onConfirm={handleAttributesConfirm}
       />
 
       {/*

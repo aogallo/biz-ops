@@ -18,6 +18,7 @@ export const createTerminalSchema = insertTerminalSchema
     name: z.string().min(1, 'Terminal name is required'),
     organizationId: z.string().uuid(),
     sucursalId: z.string().uuid().optional().nullable(),
+    companyId: z.string().uuid().optional().nullable(),
   })
 
 export const updateTerminalSchema = createTerminalSchema.partial()
@@ -52,6 +53,7 @@ export const checkoutSchema = z.object({
   terminalId: z.string().uuid(),
   organizationId: z.string().uuid(),
   sucursalId: z.string().uuid().optional().nullable(),
+  companyId: z.string().uuid().optional().nullable(),
   cashierId: z.string().uuid(),
   userId: z.string().uuid().optional().nullable(),
   businessPartnerId: z.string().uuid(),

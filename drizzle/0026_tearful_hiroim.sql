@@ -1,0 +1,1 @@
+ALTER TABLE "pos_terminal" ADD COLUMN "print_method" text DEFAULT 'qz-tray' NOT NULL;

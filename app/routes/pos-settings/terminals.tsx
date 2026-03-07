@@ -79,6 +79,8 @@ export async function action({ request }: Route.ActionArgs) {
       companyId: formData.get('companyId') || null,
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
       autoPrintReceipt: formData.get('autoPrintReceipt') === 'on',
+      printerName: formData.get('printerName') || null,
+      printMethod: formData.get('printMethod') || 'qz-tray',
       defaultBusinessPartnerId:
         formData.get('defaultBusinessPartnerId') || null,
     }
@@ -117,6 +119,8 @@ export async function action({ request }: Route.ActionArgs) {
       isActive: formData.get('isActive') === 'on',
       autoGenerateInvoice: formData.get('autoGenerateInvoice') === 'on',
       autoPrintReceipt: formData.get('autoPrintReceipt') === 'on',
+      printerName: formData.get('printerName') || null,
+      printMethod: formData.get('printMethod') || 'qz-tray',
       defaultBusinessPartnerId:
         formData.get('defaultBusinessPartnerId') || null,
     }
@@ -208,6 +212,15 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
       ),
     },
     {
+      accessorKey: 'printMethod',
+      header: t('pos.printMethodCol'),
+      cell: ({ row }) => (
+        <Badge variant='outline'>
+          {row.original.printMethod === 'qz-tray' ? 'QZ Tray' : t('pos.browserPrint')}
+        </Badge>
+      ),
+    },
+    {
       id: 'actions',
       cell: ({ row }) => (
         <div className='flex items-center gap-1'>
@@ -280,6 +293,32 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                     required
                     className='mt-1'
                   />
+                </div>
+
+                <div>
+                  <label className='text-sm font-medium'>{t('pos.printerName')}</label>
+                  <Input
+                    name='printerName'
+                    defaultValue={editingTerminal.printerName ?? ''}
+                    placeholder='EPSON TM-T88'
+                    className='mt-1'
+                  />
+                </div>
+
+                <div>
+                  <label className='text-sm font-medium'>{t('pos.printMethod')}</label>
+                  <Select
+                    name='printMethod'
+                    defaultValue={editingTerminal.printMethod ?? 'qz-tray'}
+                  >
+                    <SelectTrigger className='mt-1'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='qz-tray'>QZ Tray (ESC/POS)</SelectItem>
+                      <SelectItem value='browser'>{t('pos.browserPrint')}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -425,6 +464,28 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                   required
                   className='mt-1'
                 />
+              </div>
+
+              <div>
+                <label className='text-sm font-medium'>{t('pos.printerName')}</label>
+                <Input
+                  name='printerName'
+                  placeholder='EPSON TM-T88'
+                  className='mt-1'
+                />
+              </div>
+
+              <div>
+                <label className='text-sm font-medium'>{t('pos.printMethod')}</label>
+                <Select name='printMethod' defaultValue='qz-tray'>
+                  <SelectTrigger className='mt-1'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='qz-tray'>QZ Tray (ESC/POS)</SelectItem>
+                    <SelectItem value='browser'>{t('pos.browserPrint')}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

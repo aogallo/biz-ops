@@ -37,12 +37,16 @@ export interface CartTotals {
   total: number
 }
 
+export type PrintMethod = 'qz-tray' | 'browser'
+
 export interface PosTerminalWithSucursal {
   id: string
   name: string
   isActive: boolean
   autoGenerateInvoice: boolean
   autoPrintReceipt: boolean
+  printerName: string | null
+  printMethod: string
   sucursalId: string | null
   sucursalName: string | null
   defaultBusinessPartnerId: string | null
@@ -69,6 +73,38 @@ export interface PosProductForGrid {
   sucursalStock: number | null
   otherSucursalesStock: OtherSucursalStock[] | null
   attributesJson: ProductAttributesJson | null
+}
+
+export interface ReceiptLine {
+  productName: string
+  productSku: string
+  quantity: string
+  unitPrice: string
+  total: string
+}
+
+export interface ReceiptPayment {
+  method: string
+  amount: string
+  receivedAmount: string | null
+  changeAmount: string | null
+}
+
+export interface ReceiptData {
+  saleNumber: string
+  terminalName: string | null
+  cashierName: string | null
+  customerName: string | null
+  customerNit: string | null
+  date: string
+  lines: ReceiptLine[]
+  payments: ReceiptPayment[]
+  subtotal: string
+  ivaAmount: string
+  discountAmount: string
+  total: string
+  currency: string
+  printerName: string | null
 }
 
 export type CartItemLike = Pick<CartItem, 'quantity' | 'unitPrice' | 'discountPercent' | 'ivaType' | 'ivaRate'> & { stock?: number | null }

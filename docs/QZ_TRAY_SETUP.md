@@ -1,0 +1,330 @@
+# Guía de Configuración: QZ Tray + POS
+
+Documento para técnicos / encargados de TI. Cubre la instalación de QZ Tray en la
+computadora del punto de venta y la configuración del terminal dentro del ERP.
+
+---
+
+## Índice
+
+1. [¿Qué es QZ Tray y por qué lo usamos?](#1-qué-es-qz-tray-y-por-qué-lo-usamos)
+2. [Requisitos](#2-requisitos)
+3. [Instalar QZ Tray en la computadora](#3-instalar-qz-tray-en-la-computadora)
+4. [Verificar que QZ Tray está corriendo](#4-verificar-que-qz-tray-está-corriendo)
+5. [Conocer el nombre exacto de la impresora](#5-conocer-el-nombre-exacto-de-la-impresora)
+6. [Crear el terminal POS en el ERP](#6-crear-el-terminal-pos-en-el-erp)
+7. [Probar la impresión](#7-probar-la-impresión)
+8. [Hacer que QZ Tray arranque automáticamente](#8-hacer-que-qz-tray-arranque-automáticamente)
+9. [Troubleshooting](#9-troubleshooting)
+10. [Comparación de métodos de impresión](#10-comparación-de-métodos-de-impresión)
+
+---
+
+## 1. ¿Qué es QZ Tray y por qué lo usamos?
+
+**QZ Tray** es una aplicación de escritorio gratuita que corre en segundo plano.
+Abre un WebSocket local (`wss://localhost:8181`) y permite que el browser envíe
+comandos de impresión directamente al hardware — sin mostrar el diálogo del browser.
+
+| Sin QZ Tray | Con QZ Tray |
+|---|---|
+| El browser muestra el diálogo de impresión cada vez | Imprime silenciosamente, sin ningún diálogo |
+| El cajero tiene que hacer click en "Imprimir" | El recibo sale automáticamente al finalizar la venta |
+| Depende de los drivers del sistema operativo | Envía comandos ESC/POS nativos a la impresora térmica |
+
+> **Fallback automático**: si QZ Tray no está corriendo o falla, el sistema
+> cae automáticamente al método de browser (`window.print()`). El POS nunca queda bloqueado.
+
+---
+
+## 2. Requisitos
+
+### Hardware mínimo
+- Impresora térmica compatible con ESC/POS (Epson TM serie, 3nStar, Sam4s, Bixolon, etc.)
+- La impresora debe estar conectada por **USB** o **red local** y visible en el sistema operativo
+
+### Software
+| Componente | Versión mínima |
+|---|---|
+| Windows | 10 / 11 |
+| macOS | 11 Big Sur o superior |
+| QZ Tray | 2.2.x (última estable) |
+| Chrome / Brave / Edge (Chromium) | Cualquier versión reciente |
+| Java (JRE) | 11 o superior — **requerido por QZ Tray** |
+
+> **Nota**: QZ Tray requiere Java. Si la computadora no tiene Java instalado, ver sección 3.1.
+
+---
+
+## 3. Instalar QZ Tray en la computadora
+
+### 3.1 Instalar Java (si no está instalado)
+
+**Windows:**
+1. Ir a https://adoptium.net/
+2. Descargar el instalador **JRE 21 LTS** para Windows x64
+3. Ejecutar el `.msi` y seguir el asistente (opciones por defecto están bien)
+4. Verificar: abrir CMD y ejecutar `java -version` — debe mostrar la versión instalada
+
+**macOS:**
+```bash
+# Con Homebrew (recomendado)
+brew install --cask temurin
+
+# Verificar
+java -version
+```
+
+### 3.2 Instalar QZ Tray
+
+1. Ir a **https://qz.io/download/** (sitio oficial)
+2. Descargar el instalador para el sistema operativo correspondiente:
+   - Windows: `qz-tray-2.x.x.exe`
+   - macOS: `qz-tray-2.x.x.pkg`
+
+**Windows:**
+1. Ejecutar el instalador `.exe` como Administrador
+2. Aceptar los términos y seguir el asistente (opciones por defecto)
+3. Al finalizar, QZ Tray arranca automáticamente — aparece un ícono en la bandeja del sistema (esquina inferior derecha)
+
+**macOS:**
+1. Ejecutar el instalador `.pkg`
+2. Ingresar la contraseña de administrador cuando lo pida
+3. Al finalizar, QZ Tray arranca — aparece un ícono de impresora en la barra de menú (esquina superior derecha)
+
+---
+
+## 4. Verificar que QZ Tray está corriendo
+
+### Windows
+- En la bandeja del sistema (área de notificaciones, esquina inferior derecha), buscar el ícono de impresora de QZ Tray
+- Si no aparece, ir a **Inicio → QZ Tray** para iniciarlo manualmente
+
+### macOS
+- En la barra de menú (parte superior derecha), buscar el ícono de impresora
+- Si no aparece, abrir **Finder → Aplicaciones → QZ Tray**
+
+### Verificar vía browser
+Abrir el browser y navegar a:
+```
+https://localhost:8181
+```
+Si QZ Tray está corriendo, el browser mostrará un mensaje de "conexión rechazada" o un
+certificado autofirmado — eso es **normal y correcto**. Si la página no carga en absoluto
+(timeout), QZ Tray no está corriendo.
+
+---
+
+## 5. Conocer el nombre exacto de la impresora
+
+El nombre de la impresora que se configura en el ERP debe ser **exactamente igual** al
+nombre que el sistema operativo le asigna. Un espacio de diferencia rompe la conexión.
+
+### Windows
+1. Ir a **Inicio → Configuración → Bluetooth y dispositivos → Impresoras y escáneres**
+2. Hacer click en la impresora térmica
+3. El nombre que aparece en la parte superior es el que hay que copiar exactamente
+
+Alternativa rápida (CMD o PowerShell):
+```powershell
+Get-Printer | Select-Object Name
+```
+Copiar el nombre tal cual aparece, incluyendo mayúsculas y espacios.
+
+### macOS
+1. Ir a **Preferencias del Sistema → Impresoras y Escáneres**
+2. El nombre aparece en la lista de la izquierda
+3. Copiar el nombre tal cual (macOS puede mostrar un nombre diferente al del driver)
+
+Alternativa (Terminal):
+```bash
+lpstat -p | awk '{print $2}'
+```
+
+### Ejemplos de nombres típicos
+| Impresora | Nombre en Windows | Nombre en macOS |
+|---|---|---|
+| Epson TM-T88V | `EPSON TM-T88V` | `EPSON_TM-T88V` |
+| 3nStar RPT006 | `3nStar RPT006` | `3nStar_RPT006` |
+| Sam4s Ellix 30 | `Ellix 30` | `Ellix_30` |
+
+> **Importante**: macOS suele reemplazar espacios con guiones bajos `_`. Probar ambas
+> variantes si la impresión falla.
+
+---
+
+## 6. Crear el terminal POS en el ERP
+
+### Paso 1: Ingresar a la configuración de terminales
+
+1. Abrir el ERP en el browser
+2. Ir al menú lateral → **POS** → **Configuración** → **Terminales**
+3. Hacer click en **Nueva Caja**
+
+### Paso 2: Completar el formulario
+
+| Campo | Valor a ingresar |
+|---|---|
+| **Nombre** | Nombre identificatorio de la caja (ej: `Caja 1`, `Caja Principal`) |
+| **Nombre de impresora** | El nombre exacto obtenido en el Paso 5 (ej: `EPSON TM-T88V`) |
+| **Método de impresión** | Seleccionar **QZ Tray (ESC/POS)** |
+| **Sucursal** | Seleccionar la sucursal correspondiente (opcional) |
+| **Empresa legal** | Seleccionar la empresa para la facturación (opcional) |
+| **Cliente por defecto** | Cliente genérico para ventas sin identificación (opcional) |
+| **Auto-generar factura** | Activar si se quiere factura automática con cada venta |
+| **Imprimir recibo automáticamente** | **Activar** — el recibo sale solo al finalizar la venta |
+
+### Paso 3: Guardar
+
+Hacer click en **Crear Caja**. El terminal queda creado.
+
+---
+
+## 7. Probar la impresión
+
+### Secuencia de prueba completa
+
+1. **Asegurarse que QZ Tray está corriendo** (ícono visible en bandeja / barra de menú)
+2. **Asegurarse que la impresora está encendida y con papel**
+3. Abrir el browser y navegar al POS: `https://<host>/pos`
+4. Seleccionar el terminal recién creado
+5. Ingresar con un cajero
+6. Agregar cualquier producto al carrito
+7. Ir a cobrar → confirmar el pago
+8. El recibo debe **salir automáticamente por la impresora térmica, sin ningún diálogo**
+
+### Si pide aceptar el certificado de QZ Tray
+
+La primera vez que el browser se conecta a QZ Tray puede mostrar una alerta de
+certificado autofirmado. Hacer click en **Aceptar** o **Continuar de todas formas**.
+Esto solo sucede una vez por browser.
+
+En algunos casos QZ Tray mismo muestra un popup pidiendo autorización al sitio.
+Hacer click en **Permitir** y marcar "Recordar esta decisión".
+
+---
+
+## 8. Hacer que QZ Tray arranque automáticamente
+
+Para que el operador no tenga que iniciar QZ Tray manualmente cada vez que enciende la
+computadora:
+
+### Windows — Inicio automático
+
+QZ Tray ya se agrega al inicio automático durante la instalación. Para verificarlo:
+1. Presionar `Win + R` → escribir `shell:startup` → Enter
+2. Debe aparecer un acceso directo de QZ Tray
+3. Si no aparece, crear un acceso directo del ejecutable de QZ Tray en esa carpeta:
+   - El ejecutable suele estar en `C:\Program Files\QZ Tray\qz-tray.exe`
+
+Alternativa por Task Scheduler para arranque sin login de usuario (recomendado para
+cajas dedicadas):
+1. Abrir **Programador de tareas**
+2. Crear tarea básica → "QZ Tray Auto Start"
+3. Desencadenador: "Al iniciar el equipo"
+4. Acción: Iniciar programa → `C:\Program Files\QZ Tray\qz-tray.exe`
+5. Marcar "Ejecutar con los privilegios más altos"
+
+### macOS — Inicio automático
+
+1. Ir a **Preferencias del Sistema → General → Elementos de inicio de sesión**
+2. Hacer click en `+`
+3. Navegar a **Aplicaciones → QZ Tray** y agregarlo
+4. QZ Tray arrancará automáticamente al iniciar sesión
+
+---
+
+## 9. Troubleshooting
+
+### La impresión cae al diálogo del browser (modo fallback)
+
+Significa que QZ Tray no pudo conectarse o falló. Verificar:
+
+1. **¿QZ Tray está corriendo?** — Buscar el ícono en la bandeja / barra de menú
+2. **¿El nombre de la impresora es correcto?** — Comparar carácter por carácter con lo que muestra el sistema operativo
+3. **Abrir la consola del browser** (`F12` → Console) y buscar el mensaje:
+   ```
+   [QZ Tray] fallback to browser print: <razón del fallo>
+   ```
+   La razón del fallo indica qué está mal.
+
+### Errores comunes en consola
+
+| Mensaje | Causa | Solución |
+|---|---|---|
+| `Unable to establish connection` | QZ Tray no está corriendo | Iniciar QZ Tray |
+| `No printer name configured` | El campo "Nombre de impresora" en el terminal está vacío | Editar el terminal y agregar el nombre |
+| `Printer not found` | El nombre no coincide exactamente | Verificar el nombre en el sistema operativo |
+| `Connection refused` | QZ Tray bloqueado por firewall | Agregar excepción en el firewall para el puerto 8181 |
+| `Certificate error` | Certificado autofirmado no aceptado | Ir a `https://localhost:8181` y aceptar el certificado |
+
+### El recibo imprime pero con caracteres raros (mojibake)
+
+El builder ESC/POS del sistema envía texto UTF-8. Si la impresora no está configurada
+para UTF-8, puede mostrar caracteres incorrectos para tildes y ñ. Soluciones:
+
+1. **Configurar la impresora en UTF-8** desde su utilidad de configuración (varía por modelo)
+2. **Para impresoras Epson**: usar la utilidad **EpsonNet Config** o el panel de control
+   de la impresora para cambiar el code page a UTF-8 / PC-858 (incluye caracteres latinos)
+3. Si persiste, contactar al soporte técnico para ajustar el code page en el builder ESC/POS
+
+### La impresora corta el papel a la mitad del recibo
+
+Verificar que el tipo de papel configurado en el driver/sistema coincide con el papel
+real. El builder usa `GS V 0` (corte completo). Algunas impresoras requieren `GS V 1`
+(corte parcial). Reportar al equipo de desarrollo si ocurre.
+
+### QZ Tray instalado pero no aparece en la bandeja (Windows)
+
+1. Buscar `QZ Tray` en el buscador de Windows e iniciarlo manualmente
+2. Si aparece un error de Java: reinstalar Java (JRE 11+) y luego reinstalar QZ Tray
+3. Verificar que la versión de Java (32-bit vs 64-bit) coincide con la de QZ Tray
+
+---
+
+## 10. Comparación de métodos de impresión
+
+El ERP soporta dos métodos. Se configura por terminal, no es global.
+
+| | QZ Tray (ESC/POS) | Navegador (window.print) |
+|---|---|---|
+| **Diálogo al imprimir** | ❌ Ninguno | ✅ Siempre aparece |
+| **Velocidad** | Muy rápido (directo a la impresora) | Depende del render del browser |
+| **Calidad del recibo** | ESC/POS nativo — óptimo para térmica | HTML renderizado — varía |
+| **Corte automático de papel** | ✅ Sí (comando GS V) | ❌ No |
+| **Requiere software extra** | ✅ QZ Tray en cada PC | ❌ Solo el browser |
+| **Funciona sin internet** | ✅ Sí (local) | ✅ Sí |
+| **Recomendado para** | Cajas de producción dedicadas | Pruebas o cajas eventuales |
+
+### ¿Cuándo usar el método Browser?
+
+- Durante el **desarrollo o pruebas** cuando no se tiene impresora física
+- En **computadoras eventuales** que no tienen QZ Tray instalado
+- Como **respaldo** si QZ Tray da problemas
+
+El sistema cae automáticamente al método Browser si QZ Tray falla, por lo que el
+cajero nunca queda sin poder imprimir.
+
+---
+
+## Checklist de instalación por computadora
+
+Usar esta lista para cada PC de punto de venta que se configure:
+
+- [ ] Java JRE 11+ instalado (`java -version` funciona en terminal)
+- [ ] QZ Tray instalado y corriendo (ícono visible en bandeja / barra de menú)
+- [ ] QZ Tray configurado para iniciar automáticamente al encender la PC
+- [ ] Impresora térmica instalada y visible en el sistema operativo
+- [ ] Nombre exacto de la impresora copiado del sistema operativo
+- [ ] Terminal POS creado en el ERP con:
+  - [ ] Nombre de impresora correcto
+  - [ ] Método de impresión: **QZ Tray (ESC/POS)**
+  - [ ] Auto-imprimir recibo: **Activado**
+  - [ ] Sucursal y empresa configuradas
+- [ ] Prueba de venta completa realizada → recibo imprime sin diálogo
+- [ ] Cajero asignado al terminal
+
+---
+
+*Documento generado para el equipo técnico. Actualizar si cambia la versión de QZ Tray
+o la configuración del terminal.*

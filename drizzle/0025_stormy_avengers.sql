@@ -1,0 +1,1 @@
+ALTER TABLE "pos_terminal" ADD COLUMN "printer_name" text;

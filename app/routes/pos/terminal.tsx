@@ -25,7 +25,8 @@ import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovement
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import { PosProductAttributesDialog } from '~/features/pos/components/PosProductAttributesDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
-import { PosReceiptContent } from '~/features/pos/components/PosReceiptContent'
+import { buildReceiptHtml, printWithIframe } from '~/features/pos/utils/receipt-html'
+import { printWithQz } from '~/features/pos/utils/qz-print'
 import {
   type CartItem,
   type PosProductForGrid,
@@ -180,6 +181,7 @@ export async function action({ request }: Route.ActionArgs) {
                 saleNumber: sale.saleNumber,
                 terminalName: sale.terminal?.name ?? null,
                 cashierName: sale.cashier?.name ?? null,
+                printerName: sale.terminal?.printerName ?? null,
                 customerName: sale.businessPartner?.name ?? null,
                 customerNit: sale.businessPartner?.nit ?? null,
                 date: new Date(sale.createdAt).toLocaleString('es-GT'),
@@ -678,6 +680,18 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     [fetcher]
   )
 
+  const handlePrint = useCallback(
+    async (receipt: ReceiptData) => {
+      if (terminal.printMethod === 'qz-tray') {
+        const result = await printWithQz(receipt, t)
+        if (result.success) return
+        console.warn('[QZ Tray] fallback to browser print:', result.reason)
+      }
+      printWithIframe(buildReceiptHtml(receipt, t))
+    },
+    [terminal.printMethod, t]
+  )
+
   // Handle close-session success: redirect to /pos terminal selector
   const closedSessionRef = useRef(false)
   useEffect(() => {
@@ -714,13 +728,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     setPaymentOpen(false)
 
     if (terminal.autoPrintReceipt) {
-      // Auto-print: the receipt is already rendered in the hidden DOM node.
-      // Two rAF frames ensure React has committed the new receiptData before printing.
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.print()
-        })
-      })
+      handlePrint(receipt)
     } else {
       setReceiptOpen(true)
     }
@@ -833,6 +841,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         open={receiptOpen}
         onOpenChange={setReceiptOpen}
         receipt={receiptData}
+        onPrint={handlePrint}
       />
 
       <PosOpenShiftDialog
@@ -871,42 +880,6 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         onConfirm={handleAttributesConfirm}
       />
 
-      {/*
-        Hidden receipt node — always present in the DOM when there is receiptData.
-        window.print() targets #pos-receipt via the @media print CSS below,
-        so auto-print works without opening the dialog.
-      */}
-      {receiptData && (
-        <div
-          aria-hidden
-          style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}
-        >
-          <PosReceiptContent receipt={receiptData} />
-        </div>
-      )}
-
-      <style>{`
-        @media print {
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-          body * { visibility: hidden !important; }
-          #pos-receipt, #pos-receipt * { visibility: visible !important; }
-          #pos-receipt {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 76mm;
-            padding: 2mm;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 9pt;
-            line-height: 1.4;
-            color: #000;
-            background: #fff;
-          }
-        }
-      `}</style>
     </>
   )
 }

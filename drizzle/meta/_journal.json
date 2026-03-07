@@ -176,6 +176,20 @@
       "when": 1772825761119,
       "tag": "0024_rich_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1772852211617,
+      "tag": "0025_stormy_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1772898558040,
+      "tag": "0026_tearful_hiroim",
+      "breakpoints": true
     }
   ]
 }

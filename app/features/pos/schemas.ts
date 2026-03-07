@@ -19,6 +19,7 @@ export const createTerminalSchema = insertTerminalSchema
     organizationId: z.string().uuid(),
     sucursalId: z.string().uuid().optional().nullable(),
     companyId: z.string().uuid().optional().nullable(),
+    printMethod: z.enum(['qz-tray', 'browser']).default('qz-tray'),
   })
 
 export const updateTerminalSchema = createTerminalSchema.partial()

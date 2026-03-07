@@ -1,6 +1,7 @@
 import type { ReceiptData } from '../types'
 
-type T = (key: string) => string
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type T = (key: any, params?: any) => string
 
 export function buildReceiptHtml(receipt: ReceiptData, t: T): string {
   const totalReceived = receipt.payments.reduce(
@@ -57,9 +58,10 @@ export function buildReceiptHtml(receipt: ReceiptData, t: T): string {
 <html>
   <head>
     <meta charset="utf-8" />
+    <title></title>
     <style>
-      @page { margin: 4mm 2mm; size: 80mm auto; }
-      body { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; color: #000; background: #fff; margin: 0; padding: 4px 6px; }
+      @page { margin: 0; size: 80mm auto; }
+      body { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; color: #000; background: #fff; margin: 0; padding: 4mm 2mm; }
     </style>
   </head>
   <body>
@@ -99,7 +101,7 @@ export function buildReceiptHtml(receipt: ReceiptData, t: T): string {
 export function printWithIframe(html: string): void {
   const iframe = document.createElement('iframe')
   iframe.style.cssText =
-    'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;'
+    'position:fixed;top:-9999px;left:-9999px;width:80mm;height:297mm;'
   document.body.appendChild(iframe)
   const doc = iframe.contentDocument ?? iframe.contentWindow?.document
   if (!doc) {

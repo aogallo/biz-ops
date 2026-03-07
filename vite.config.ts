@@ -14,7 +14,7 @@ export default defineConfig({
     devtoolsJson(),
   ],
   optimizeDeps: {
-    include: ['lucide-react', 'better-auth', 'better-auth/adapters/drizzle'],
+    include: ['lucide-react', 'better-auth', 'better-auth/adapters/drizzle', 'qz-tray'],
   },
   ssr: {
     noExternal: ['lucide-react', 'better-auth', 'better-auth/adapters/drizzle'],

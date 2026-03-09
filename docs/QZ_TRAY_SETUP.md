@@ -17,6 +17,7 @@ computadora del punto de venta y la configuración del terminal dentro del ERP.
 8. [Hacer que QZ Tray arranque automáticamente](#8-hacer-que-qz-tray-arranque-automáticamente)
 9. [Troubleshooting](#9-troubleshooting)
 10. [Comparación de métodos de impresión](#10-comparación-de-métodos-de-impresión)
+11. [Configurar certificados para producción](#11-configurar-certificados-para-producción)
 
 ---
 
@@ -323,6 +324,192 @@ Usar esta lista para cada PC de punto de venta que se configure:
   - [ ] Sucursal y empresa configuradas
 - [ ] Prueba de venta completa realizada → recibo imprime sin diálogo
 - [ ] Cajero asignado al terminal
+
+---
+
+---
+
+## 11. Configurar certificados para producción
+
+Esta sección es para el equipo de desarrollo / DevOps. Explica cómo funciona el sistema
+de firma y cómo configurarlo al desplegar la aplicación.
+
+### ¿Por qué hay un certificado?
+
+QZ Tray requiere que el sitio web que se conecta a él esté **firmado digitalmente**. Cada
+vez que el browser carga el POS, QZ Tray:
+
+1. Recibe el certificado público del sitio (`/qz-certificate.pem`)
+2. Le envía un string aleatorio para firmar (`toSign`)
+3. El server firma ese string con la **llave privada** (`QZ_PRIVATE_KEY`)
+4. QZ Tray verifica la firma con el certificado público
+
+Si la firma es válida **y** el certificado está en el registro interno de QZ Tray, se
+conecta sin mostrar ningún diálogo. Si no, muestra el popup de "Untrusted website".
+
+> **Clave**: solo los certificados generados desde el **Site Manager de QZ Tray** son
+> reconocidos automáticamente como trusted. Un certificado autofirmado con `openssl`
+> nunca lo será.
+
+---
+
+### 11.1 Generar un nuevo par de certificados (Site Manager)
+
+Esto solo se hace una vez, o cuando el certificado expire / se comprometa.
+
+1. Tener QZ Tray instalado localmente (ver sección 3)
+2. Abrir el browser y navegar a: `https://localhost:8181`
+3. Ir a la pestaña **Site Manager**
+4. Hacer click en **Generate Certificate**
+5. QZ Tray genera y descarga dos archivos:
+   - `digital-certificate.txt` — el certificado público X.509 (PEM)
+   - `private-key.pem` — la llave privada PKCS#8 (PEM)
+
+> **Importante**: al generarlo desde el Site Manager, QZ Tray lo registra internamente
+> como trusted en ese mismo momento. Cualquier instalación de QZ Tray que reciba este
+> certificado lo aceptará sin diálogo.
+
+---
+
+### 11.2 Aplicar el certificado al proyecto
+
+**Paso 1 — Certificado público** (va al repositorio):
+
+```bash
+# Copiar el contenido de digital-certificate.txt a:
+public/qz-certificate.pem
+```
+
+El archivo debe quedar exactamente así, sin líneas extra al principio ni al final:
+
+```
+-----BEGIN CERTIFICATE-----
+MIIECzCCAvO... (contenido del certificado)
+-----END CERTIFICATE-----
+```
+
+Este archivo es **público y seguro para commitear a git**.
+
+**Paso 2 — Llave privada** (va como variable de entorno, NUNCA al repositorio):
+
+Formatear la llave en una sola línea con `\n` literales:
+
+```bash
+awk 'NF {printf "%s\\n", $0}' private-key.pem
+```
+
+El output tiene este formato (todo en una línea):
+
+```
+-----BEGIN PRIVATE KEY-----\nMIIEvAIBADA...\n-----END PRIVATE KEY-----\n
+```
+
+Guardar ese valor — se usa en los pasos siguientes.
+
+---
+
+### 11.3 Configurar en Cloudflare Workers (producción)
+
+El proyecto corre en Cloudflare Workers. La llave privada va como **secret**.
+
+**Opción A — Wrangler CLI** (recomendado):
+
+```bash
+wrangler secret put QZ_PRIVATE_KEY
+```
+
+Wrangler va a pedir el valor. Pegar el contenido **completo del archivo `private-key.pem`**
+(con saltos de línea reales, no los `\n` literales del paso anterior):
+
+```
+-----BEGIN PRIVATE KEY-----
+MIIEvAIBADANBgkqhkiG9w0BAQEFAASC...
+...
+-----END PRIVATE KEY-----
+```
+
+Presionar Enter y luego `Ctrl+D` para confirmar. Wrangler sube el secret encriptado.
+
+**Opción B — Dashboard de Cloudflare**:
+
+1. Ir a **dash.cloudflare.com** → **Workers & Pages** → seleccionar el worker del ERP
+2. Ir a **Settings → Variables**
+3. En la sección **Environment Variables**, hacer click en **Add variable**
+4. Nombre: `QZ_PRIVATE_KEY`
+5. Valor: pegar el contenido del archivo `private-key.pem` tal cual (con saltos de línea)
+6. Marcar **Encrypt** (para que sea un secret)
+7. Guardar y hacer **redeploy** del worker
+
+> **Nota**: el endpoint `/api/qz/sign` normaliza automáticamente tanto saltos de línea
+> reales como `\n` literales. Ambos formatos funcionan.
+
+---
+
+### 11.4 Configurar en Vercel (si aplica)
+
+Si en algún momento el proyecto se despliega en Vercel:
+
+1. Ir a **vercel.com** → proyecto → **Settings → Environment Variables**
+2. Agregar variable:
+   - **Key**: `QZ_PRIVATE_KEY`
+   - **Value**: pegar el contenido del `private-key.pem` (con saltos de línea reales)
+   - **Environment**: Production (y Preview si se quiere probar ahí)
+3. Hacer redeploy
+
+---
+
+### 11.5 Configurar entorno local de desarrollo
+
+En el archivo `.env.local` (en la raíz del proyecto, **nunca commitear**):
+
+```bash
+# Generar el valor formateado con \n literales:
+awk 'NF {printf "%s\\n", $0}' private-key.pem
+```
+
+Pegar el resultado en `.env.local`:
+
+```
+QZ_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvAIBADA...\n-----END PRIVATE KEY-----\n"
+```
+
+El mismo valor va en `.dev.vars` (para Wrangler en modo local).
+
+Reiniciar el servidor de desarrollo para que tome el nuevo valor:
+
+```bash
+npm run dev
+```
+
+---
+
+### 11.6 Renovar el certificado
+
+El certificado generado por el Site Manager tiene una fecha de expiración (visible en el
+archivo PEM). Cuando expire o si la llave privada se compromete:
+
+1. Repetir el proceso del **Paso 11.1** para generar un nuevo par
+2. Reemplazar `public/qz-certificate.pem` y commitear
+3. Actualizar `QZ_PRIVATE_KEY` en Cloudflare / Vercel con la nueva llave
+4. Desplegar
+
+> **Atención**: cada vez que se genera un nuevo par desde el Site Manager, QZ Tray
+> registra el **nuevo** certificado como trusted en esa computadora. El certificado
+> anterior deja de ser trusted automáticamente. Si hay múltiples instalaciones de QZ
+> Tray (varias cajas), hay que abrir el Site Manager en cada una y registrar el nuevo
+> certificado, o distribuirlo manualmente copiando el archivo al directorio de confianza
+> de QZ Tray en cada máquina.
+
+---
+
+### Resumen de archivos y variables
+
+| Elemento | Ubicación | Privado | Qué hacer |
+|---|---|---|---|
+| Certificado público | `public/qz-certificate.pem` | ❌ No | Commitear al repo |
+| Llave privada | `QZ_PRIVATE_KEY` (env var) | ✅ Sí | Secret en Cloudflare / Vercel |
+| Llave privada (local) | `.env.local` y `.dev.vars` | ✅ Sí | Nunca commitear, agregar a `.gitignore` |
+| Endpoint de firma | `app/routes/api.qz.sign.ts` | — | Ya está en el código |
 
 ---
 

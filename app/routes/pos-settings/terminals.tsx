@@ -22,7 +22,10 @@ import {
 } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
 import { posRepository } from '~/features/pos/server/repository'
-import { createTerminalSchema, updateTerminalSchema } from '~/features/pos/schemas'
+import {
+  createTerminalSchema,
+  updateTerminalSchema,
+} from '~/features/pos/schemas'
 import { requireAuth } from '~/server/auth/session.server'
 import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/terminals'
@@ -41,27 +44,36 @@ export async function loader({ request }: Route.LoaderArgs) {
     return { terminals: [], sucursales: [], businessPartners: [] }
   }
 
-  const [terminals, sucursales, businessPartners, companies] = await Promise.all([
-    posRepository.getTerminals(organizationId),
-    db
-      .select({ id: sucursalModel.id, name: sucursalModel.name, code: sucursalModel.code })
-      .from(sucursalModel)
-      .where(eq(sucursalModel.organizationId, organizationId))
-      .orderBy(sucursalModel.name),
-    db
-      .select({
-        id: businessPartnerModel.id,
-        name: businessPartnerModel.name,
-        nit: businessPartnerModel.nit,
-      })
-      .from(businessPartnerModel)
-      .where(eq(businessPartnerModel.organizationId, organizationId)),
-    db
-      .select({ id: companyModel.id, name: companyModel.name, nit: companyModel.nit })
-      .from(companyModel)
-      .where(eq(companyModel.organizationId, organizationId))
-      .orderBy(companyModel.name),
-  ])
+  const [terminals, sucursales, businessPartners, companies] =
+    await Promise.all([
+      posRepository.getTerminals(organizationId),
+      db
+        .select({
+          id: sucursalModel.id,
+          name: sucursalModel.name,
+          code: sucursalModel.code,
+        })
+        .from(sucursalModel)
+        .where(eq(sucursalModel.organizationId, organizationId))
+        .orderBy(sucursalModel.name),
+      db
+        .select({
+          id: businessPartnerModel.id,
+          name: businessPartnerModel.name,
+          nit: businessPartnerModel.nit,
+        })
+        .from(businessPartnerModel)
+        .where(eq(businessPartnerModel.organizationId, organizationId)),
+      db
+        .select({
+          id: companyModel.id,
+          name: companyModel.name,
+          nit: companyModel.nit,
+        })
+        .from(companyModel)
+        .where(eq(companyModel.organizationId, organizationId))
+        .orderBy(companyModel.name),
+    ])
 
   return { terminals, sucursales, businessPartners, companies, organizationId }
 }
@@ -187,7 +199,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
           />
           <Button variant='ghost' size='xs' type='submit'>
             <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-              {row.original.isActive ? t('common.active') : t('common.inactive')}
+              {row.original.isActive
+                ? t('common.active')
+                : t('common.inactive')}
             </Badge>
           </Button>
         </fetcher.Form>
@@ -197,7 +211,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
       accessorKey: 'autoGenerateInvoice',
       header: t('pos.autoInvoiceCol'),
       cell: ({ row }) => (
-        <Badge variant={row.original.autoGenerateInvoice ? 'default' : 'outline'}>
+        <Badge
+          variant={row.original.autoGenerateInvoice ? 'default' : 'outline'}
+        >
           {row.original.autoGenerateInvoice ? t('pos.yes') : t('pos.no')}
         </Badge>
       ),
@@ -216,7 +232,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
       header: t('pos.printMethodCol'),
       cell: ({ row }) => (
         <Badge variant='outline'>
-          {row.original.printMethod === 'qz-tray' ? 'QZ Tray' : t('pos.browserPrint')}
+          {row.original.printMethod === 'qz-tray'
+            ? 'QZ Tray'
+            : t('pos.browserPrint')}
         </Badge>
       ),
     },
@@ -296,7 +314,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <div>
-                  <label className='text-sm font-medium'>{t('pos.printerName')}</label>
+                  <label className='text-sm font-medium'>
+                    {t('pos.printerName')}
+                  </label>
                   <Input
                     name='printerName'
                     defaultValue={editingTerminal.printerName ?? ''}
@@ -306,7 +326,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <div>
-                  <label className='text-sm font-medium'>{t('pos.printMethod')}</label>
+                  <label className='text-sm font-medium'>
+                    {t('pos.printMethod')}
+                  </label>
                   <Select
                     name='printMethod'
                     defaultValue={editingTerminal.printMethod ?? 'qz-tray'}
@@ -316,7 +338,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='qz-tray'>QZ Tray (ESC/POS)</SelectItem>
-                      <SelectItem value='browser'>{t('pos.browserPrint')}</SelectItem>
+                      <SelectItem value='browser'>
+                        {t('pos.browserPrint')}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -388,7 +412,10 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
                     id='edit-isActive'
                     defaultChecked={editingTerminal.isActive}
                   />
-                  <label htmlFor='edit-isActive' className='text-sm font-medium'>
+                  <label
+                    htmlFor='edit-isActive'
+                    className='text-sm font-medium'
+                  >
                     {t('common.active')}
                   </label>
                 </div>
@@ -457,7 +484,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
 
             <div className='space-y-4'>
               <div>
-                <label className='text-sm font-medium'>{t('pos.terminalName')}</label>
+                <label className='text-sm font-medium'>
+                  {t('pos.terminalName')}
+                </label>
                 <Input
                   name='name'
                   placeholder={t('pos.terminalName')}
@@ -467,7 +496,9 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label className='text-sm font-medium'>{t('pos.printerName')}</label>
+                <label className='text-sm font-medium'>
+                  {t('pos.printerName')}
+                </label>
                 <Input
                   name='printerName'
                   placeholder='EPSON TM-T88'
@@ -476,14 +507,18 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label className='text-sm font-medium'>{t('pos.printMethod')}</label>
+                <label className='text-sm font-medium'>
+                  {t('pos.printMethod')}
+                </label>
                 <Select name='printMethod' defaultValue='qz-tray'>
                   <SelectTrigger className='mt-1'>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='qz-tray'>QZ Tray (ESC/POS)</SelectItem>
-                    <SelectItem value='browser'>{t('pos.browserPrint')}</SelectItem>
+                    <SelectItem value='browser'>
+                      {t('pos.browserPrint')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -547,7 +582,10 @@ export default function PosTerminals({ loaderData }: Route.ComponentProps) {
 
               <div className='flex items-center gap-3'>
                 <Switch name='autoPrintReceipt' id='autoPrintReceipt' />
-                <label htmlFor='autoPrintReceipt' className='text-sm font-medium'>
+                <label
+                  htmlFor='autoPrintReceipt'
+                  className='text-sm font-medium'
+                >
                   {t('pos.autoPrintReceipt')}
                 </label>
               </div>

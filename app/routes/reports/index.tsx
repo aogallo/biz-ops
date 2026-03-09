@@ -355,10 +355,10 @@ const reportTypes = [
 ]
 
 const datePresets = [
-  { value: 'today', label: 'Hoy' },
-  { value: 'this-month', label: 'Este Mes' },
-  { value: 'last-quarter', label: 'Último Trimestre' },
-  { value: 'fiscal-year', label: 'Año Fiscal' },
+  { value: 'today', label: 'Today' },
+  { value: 'this-month', label: 'This Month' },
+  { value: 'last-quarter', label: 'Last Quarter' },
+  { value: 'fiscal-year', label: 'Fiscal Year' },
 ]
 
 function getDateRangeFromPreset(preset: string): { from: Date; to: Date } {
@@ -538,7 +538,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   }))
 
   const partnerOptions = [
-    { value: 'all', label: 'Todos los Socios' },
+    { value: 'all', label: 'All Partners' },
     ...businessPartners.map((partner) => ({
       value: partner.id,
       label: partner.name,
@@ -546,7 +546,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   ]
 
   const staffOptions = [
-    { value: 'all', label: 'Todo el Personal' },
+    { value: 'all', label: 'All Staff' },
     ...staff.map((s) => ({
       value: s.id,
       label: s.name ?? 'Unknown',
@@ -633,30 +633,30 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-GT', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'GTQ',
+      currency: 'USD',
     }).format(amount)
   }
 
   const formatDateRange = () => {
     if (!dateRange?.from) return ''
-    const fromStr = dateRange.from.toLocaleDateString('es-GT', {
+    const fromStr = dateRange.from.toLocaleDateString('en-US', {
       month: 'short',
       day: '2-digit',
     })
     const toStr = dateRange.to
-      ? dateRange.to.toLocaleDateString('es-GT', {
+      ? dateRange.to.toLocaleDateString('en-US', {
           month: 'short',
           day: '2-digit',
         })
       : fromStr
-    return `Rango: ${fromStr} - ${toStr}`
+    return `Range: ${fromStr} - ${toStr}`
   }
 
   const selectedReportLabel =
     reportTypes.find((r) => r.value === selectedReportType)?.label ||
-    'Reporte Financiero'
+    'Financial Report'
 
   const isGenerating = generateFetcher.state !== 'idle'
   const isExporting = exportFetcher.state !== 'idle'
@@ -681,8 +681,8 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <TitleAndActions
-        title={`Reporte: ${selectedReportLabel}`}
-        subtitle='Configurá tus reportes financieros y previsualizá los datos.'
+        title={`${selectedReportLabel} Report`}
+        subtitle='Configure your multi-tenant financial reporting and preview data.'
       >
         <TitleAndActionsBody>
           <Button
@@ -691,14 +691,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             disabled={isExporting}
           >
             <DownloadIcon />
-            {isExporting ? 'Exportando...' : 'Exportar'}
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
           <Button
             onClick={() => handleGenerateReport(1)}
             disabled={isGenerating}
           >
             <PlayIcon />
-            {isGenerating ? 'Generando...' : 'Generar Reporte'}
+            {isGenerating ? 'Generating...' : 'Generate Report'}
           </Button>
         </TitleAndActionsBody>
       </TitleAndActions>
@@ -706,8 +706,8 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
       {/* Error Messages */}
       {(generateError || exportError) && (
         <div className='mb-4 rounded-md border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300'>
-          {generateError && <p>Error al generar: {generateError}</p>}
-          {exportError && <p>Error al exportar: {exportError}</p>}
+          {generateError && <p>Generate Error: {generateError}</p>}
+          {exportError && <p>Export Error: {exportError}</p>}
         </div>
       )}
 
@@ -734,7 +734,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 onValueChange={handleReportTypeChange}
               >
                 <SelectTrigger className='w-full sm:w-75'>
-                  <SelectValue placeholder='Seleccioná un tipo de reporte' />
+                  <SelectValue placeholder='Select report type' />
                 </SelectTrigger>
                 <SelectContent>
                   {reportTypes.map((type) => (
@@ -750,7 +750,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               {/* Date Range Presets */}
               <div className='space-y-3'>
                 <Label className='text-primary font-medium'>
-                  Períodos Predefinidos
+                  Date Range Presets
                 </Label>
                 <ToggleGroup
                   type='single'
@@ -775,15 +775,15 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
               {!isAppointmentReport && (
                 <div className='space-y-3'>
                   <Label className='text-primary font-medium'>
-                    Empresa / Sucursal
+                    Company / Branch
                   </Label>
                   <Combobox
                     options={companyOptions}
                     value={selectedCompanyId}
                     onValueChange={handleCompanyChange}
-                    placeholder='Seleccioná una empresa...'
-                    searchPlaceholder='Buscar empresas...'
-                    emptyMessage='No se encontraron empresas.'
+                    placeholder='Select a company...'
+                    searchPlaceholder='Search companies...'
+                    emptyMessage='No companies found.'
                   />
                 </div>
               )}
@@ -797,7 +797,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                     onValueChange={handleStaffChange}
                   >
                     <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='Todo el Personal' />
+                      <SelectValue placeholder='All Staff' />
                     </SelectTrigger>
                     <SelectContent>
                       {staffOptions.map((option) => (
@@ -815,14 +815,14 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
             {!isAppointmentReport && (
               <div className='space-y-3'>
                 <Label className='text-primary font-medium'>
-                  Filtro de Proveedor/Cliente
+                  Business Partner Filter
                 </Label>
                 <Select
                   value={selectedPartnerId || 'all'}
                   onValueChange={handlePartnerChange}
                 >
                   <SelectTrigger className='w-full sm:w-[300px]'>
-                    <SelectValue placeholder='Todos los Socios' />
+                    <SelectValue placeholder='All Partners' />
                   </SelectTrigger>
                   <SelectContent>
                     {partnerOptions.map((option) => (
@@ -915,19 +915,19 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 <p className='text-2xl font-bold text-green-600'>
                   {appointmentData.summary.completed}
                 </p>
-                <p className='text-muted-foreground text-xs'>Completadas</p>
+                <p className='text-muted-foreground text-xs'>Completed</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
                 <p className='text-2xl font-bold text-red-600'>
                   {appointmentData.summary.cancelled}
                 </p>
-                <p className='text-muted-foreground text-xs'>Canceladas</p>
+                <p className='text-muted-foreground text-xs'>Cancelled</p>
               </div>
               <div className='rounded-lg border p-3 text-center'>
                 <p className='text-2xl font-bold text-teal-600'>
                   {formatCurrency(appointmentData.summary.totalRevenue)}
                 </p>
-                <p className='text-muted-foreground text-xs'>Ingresos</p>
+                <p className='text-muted-foreground text-xs'>Revenue</p>
               </div>
             </div>
           )}
@@ -976,49 +976,49 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                   {isAppointmentReport ? (
                     <>
                       <TableHead className='text-primary font-semibold'>
-                        FECHA
+                        DATE
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        HORA
+                        TIME
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        PERSONAL
+                        STAFF
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        SERVICIO
+                        SERVICE
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        CLIENTE
+                        CLIENT
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        DURACIÓN
+                        DURATION
                       </TableHead>
                       <TableHead className='text-primary text-right font-semibold'>
-                        PRECIO
+                        PRICE
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        ESTADO
+                        STATUS
                       </TableHead>
                     </>
                   ) : (
                     <>
                       <TableHead className='text-primary font-semibold'>
-                        FECHA
+                        DATE
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        NRO. REF.
+                        REF NO
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        NOMBRE DE CUENTA
+                        ACCOUNT NAME
                       </TableHead>
                       <TableHead className='text-primary font-semibold'>
-                        DESCRIPCIÓN
+                        DESCRIPTION
                       </TableHead>
                       <TableHead className='text-primary text-right font-semibold'>
-                        DEBE
+                        DEBIT
                       </TableHead>
                       <TableHead className='text-primary text-right font-semibold'>
-                        HABER
+                        CREDIT
                       </TableHead>
                     </>
                   )}
@@ -1066,7 +1066,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                       <TableCell>{row.staffName}</TableCell>
                       <TableCell>{row.serviceName}</TableCell>
                       <TableCell>{row.clientName}</TableCell>
-                      <TableCell>{row.duration} min.</TableCell>
+                      <TableCell>{row.duration} min</TableCell>
                       <TableCell className='text-right'>
                         {row.price ? formatCurrency(Number(row.price)) : '-'}
                       </TableCell>
@@ -1112,7 +1112,7 @@ export default function JournalReport({ loaderData }: Route.ComponentProps) {
                 <TableFooter>
                   <TableRow>
                     <TableCell colSpan={4} className='text-right font-semibold'>
-                      TOTALES DE PÁGINA
+                      PAGE TOTALS
                     </TableCell>
                     <TableCell className='text-right font-bold text-teal-600'>
                       {formatCurrency(pageTotals.debit)}

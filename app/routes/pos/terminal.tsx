@@ -25,7 +25,10 @@ import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovement
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import { PosProductAttributesDialog } from '~/features/pos/components/PosProductAttributesDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
-import { buildReceiptHtml, printWithIframe } from '~/features/pos/utils/receipt-html'
+import {
+  buildReceiptHtml,
+  printWithIframe,
+} from '~/features/pos/utils/receipt-html'
 import { printWithQz } from '~/features/pos/utils/qz-print'
 import {
   type CartItem,
@@ -80,8 +83,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   // Get open session for this terminal — auto-close if stale (from a previous day)
-  let openSession: Awaited<ReturnType<typeof posRepository.getOpenSession>> | null =
-    await posRepository.getOpenSession(terminalId)
+  let openSession: Awaited<
+    ReturnType<typeof posRepository.getOpenSession>
+  > | null = await posRepository.getOpenSession(terminalId)
   let autoClosedStaleSession = false
 
   if (openSession && isStaleSession(new Date(openSession.openedAt))) {
@@ -359,7 +363,9 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const customerFetcher = useFetcher<typeof action>()
 
   const [cart, setCart] = useState<CartItem[]>([])
-  const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(null)
+  const [selectedCartItemId, setSelectedCartItemId] = useState<string | null>(
+    null
+  )
   const [numpadInput, setNumpadInput] = useState('')
   const [search, setSearch] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
@@ -377,7 +383,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const [closeShiftOpen, setCloseShiftOpen] = useState(false)
   const [cashMovementOpen, setCashMovementOpen] = useState(false)
   const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
-  const [attributeDialogProduct, setAttributeDialogProduct] = useState<PosProductForGrid | null>(null)
+  const [attributeDialogProduct, setAttributeDialogProduct] =
+    useState<PosProductForGrid | null>(null)
 
   // No cashier profile
   if (!cashier) {
@@ -446,7 +453,10 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             discountPercent: 0,
             ivaType: 'taxed' as const,
             ivaRate: 12,
-            productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE',
+            productType: product.productType as
+              | 'STOCK'
+              | 'MADE_TO_ORDER'
+              | 'SERVICE',
             stock: product.stock,
             selectedAttributes,
           },
@@ -876,10 +886,11 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       <PosProductAttributesDialog
         product={attributeDialogProduct}
         open={attributeDialogProduct !== null}
-        onOpenChange={(open) => { if (!open) setAttributeDialogProduct(null) }}
+        onOpenChange={(open) => {
+          if (!open) setAttributeDialogProduct(null)
+        }}
         onConfirm={handleAttributesConfirm}
       />
-
     </>
   )
 }

@@ -55,7 +55,9 @@ export function PosProductGrid({
 
       <div className='grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4'>
         {products.map((product) => {
-          const displayStock = sucursalId ? product.sucursalStock : product.stock
+          const displayStock = sucursalId
+            ? product.sucursalStock
+            : product.stock
           const isOutOfStock =
             product.productType === 'STOCK' &&
             (displayStock === null || displayStock <= 0)

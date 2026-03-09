@@ -107,16 +107,17 @@ export interface ReceiptData {
   printerName: string | null
 }
 
-export type CartItemLike = Pick<CartItem, 'quantity' | 'unitPrice' | 'discountPercent' | 'ivaType' | 'ivaRate'> & { stock?: number | null }
+export type CartItemLike = Pick<
+  CartItem,
+  'quantity' | 'unitPrice' | 'discountPercent' | 'ivaType' | 'ivaRate'
+> & { stock?: number | null }
 
 export function calculateLineTotals(item: CartItemLike) {
   const qty = item.quantity
   const price = item.unitPrice
   const grossSubtotal = qty * price
   const discountAmount =
-    item.discountPercent > 0
-      ? (grossSubtotal * item.discountPercent) / 100
-      : 0
+    item.discountPercent > 0 ? (grossSubtotal * item.discountPercent) / 100 : 0
   const subtotal = grossSubtotal - discountAmount
 
   let ivaAmount = 0

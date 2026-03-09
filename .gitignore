@@ -16,3 +16,11 @@ worker-configuration.d.ts
 
 !.dev.vars.example
 !.env.example
+
+# Local env overrides (contain secrets)
+.env.local
+.env.*.local
+
+# QZ Tray certificates (contain private key - never commit)
+qz-private-key.pem
+qz-private-key-pkcs8.pem

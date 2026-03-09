@@ -19,6 +19,7 @@ export const createTerminalSchema = insertTerminalSchema
     organizationId: z.string().uuid(),
     sucursalId: z.string().uuid().optional().nullable(),
     companyId: z.string().uuid().optional().nullable(),
+    printMethod: z.enum(['qz-tray', 'browser']).default('qz-tray'),
   })
 
 export const updateTerminalSchema = createTerminalSchema.partial()
@@ -60,7 +61,9 @@ export const checkoutSchema = z.object({
   idempotencyKey: z.string().uuid(),
   sessionId: z.string().uuid().optional(),
   lines: z.array(checkoutLineSchema).min(1, 'Cart cannot be empty'),
-  payments: z.array(checkoutPaymentSchema).min(1, 'At least one payment required'),
+  payments: z
+    .array(checkoutPaymentSchema)
+    .min(1, 'At least one payment required'),
   notes: z.string().optional(),
 })
 
@@ -68,7 +71,13 @@ export const checkoutSchema = z.object({
 export const insertCashierSchema = createInsertSchema(posCashierModel)
 
 export const createCashierSchema = insertCashierSchema
-  .omit({ id: true, createdAt: true, updatedAt: true, pinAttempts: true, pinLockedAt: true })
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    pinAttempts: true,
+    pinLockedAt: true,
+  })
   .extend({
     name: z.string().min(1, 'Name is required'),
     organizationId: z.string().uuid(),

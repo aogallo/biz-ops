@@ -65,6 +65,8 @@ export const posTerminalModel = pgTable('pos_terminal', {
   autoPrintReceipt: boolean('auto_print_receipt')
     .notNull()
     .default(false),
+  printerName: text('printer_name'),
+  printMethod: text('print_method').notNull().default('qz-tray'),
   defaultBusinessPartnerId: uuid('default_business_partner_id').references(
     () => businessPartnerModel.id
   ),

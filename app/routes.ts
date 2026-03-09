@@ -14,6 +14,7 @@ export default [
 
   // API Routes
   route('/api/auth/*', 'routes/api.auth.$.tsx'), // Required by Better Auth
+  route('/api/qz/sign', 'routes/api.qz.sign.ts'), // QZ Tray request signing
 
   // Action routes
   route('/action/set-theme', 'routes/action.set-theme.tsx'),

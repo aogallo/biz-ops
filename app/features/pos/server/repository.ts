@@ -58,6 +58,8 @@ export class PosRepository {
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
         autoPrintReceipt: posTerminalModel.autoPrintReceipt,
+        printerName: posTerminalModel.printerName,
+        printMethod: posTerminalModel.printMethod,
         sucursalId: posTerminalModel.sucursalId,
         sucursalName: sucursalModel.name,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
@@ -89,6 +91,8 @@ export class PosRepository {
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
         autoPrintReceipt: posTerminalModel.autoPrintReceipt,
+        printerName: posTerminalModel.printerName,
+        printMethod: posTerminalModel.printMethod,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
         sucursalName: sucursalModel.name,
         companyId: posTerminalModel.companyId,
@@ -235,7 +239,7 @@ export class PosRepository {
           .limit(1)
           .then((r) => r[0] ?? null),
         db
-          .select({ id: posTerminalModel.id, name: posTerminalModel.name })
+          .select({ id: posTerminalModel.id, name: posTerminalModel.name, printerName: posTerminalModel.printerName })
           .from(posTerminalModel)
           .where(eq(posTerminalModel.id, sale.terminalId))
           .limit(1)

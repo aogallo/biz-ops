@@ -412,7 +412,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       selectedAttributes?: Record<string, string>,
       priceAdjustment = 0
     ) => {
-      const attrsKey = selectedAttributes ? JSON.stringify(selectedAttributes) : ''
+      const attrsKey = JSON.stringify(selectedAttributes ?? {})
       setCart((prev) => {
         const existing = prev.find(
           (item) =>

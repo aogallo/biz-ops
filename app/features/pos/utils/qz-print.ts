@@ -4,7 +4,45 @@ import { buildEscPos } from './escpos-builder'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type T = (key: any, params?: any) => string
 
-export type QzPrintResult = { success: true } | { success: false; reason: string }
+export type QzPrintResult =
+  | { success: true }
+  | { success: false; reason: string }
+
+let qzInstance: typeof import('qz-tray') | null = null
+let securityConfigured = false
+
+async function getQz(): Promise<typeof import('qz-tray')> {
+  if (!qzInstance) {
+    qzInstance = await import('qz-tray')
+  }
+
+  const qz = qzInstance
+
+  if (!securityConfigured) {
+    qz.security.setCertificatePromise(async () => {
+      const r = await fetch('/qz-certificate.pem')
+      return r.text()
+    })
+
+    // Must use async function — QZ Tray checks constructor.name === "AsyncFunction"
+    // and uses a different code path for async vs regular functions.
+    qz.security.setSignaturePromise(async (toSign: string) => {
+      const r = await fetch('/api/qz/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toSign }),
+      })
+      const data: { signature?: string; error?: string } = await r.json()
+      if (!data.signature) throw new Error(data.error ?? 'Empty signature from server')
+      return data.signature
+    })
+
+    qz.security.setSignatureAlgorithm('SHA512')
+    securityConfigured = true
+  }
+
+  return qz
+}
 
 export async function printWithQz(
   receipt: ReceiptData,
@@ -20,7 +58,7 @@ export async function printWithQz(
 
   let qz: typeof import('qz-tray')
   try {
-    qz = await import('qz-tray')
+    qz = await getQz()
   } catch (e) {
     return { success: false, reason: `Failed to load qz-tray: ${String(e)}` }
   }

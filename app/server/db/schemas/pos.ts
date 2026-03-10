@@ -59,6 +59,8 @@ export const posTerminalModel = pgTable('pos_terminal', {
   sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
   name: text('name').notNull(),
   isActive: boolean('is_active').notNull().default(true),
+  invoicePrefix: text('invoice_prefix').notNull().default('T'),
+  nextInvoiceNumber: integer('next_invoice_number').notNull().default(1),
   autoGenerateInvoice: boolean('auto_generate_invoice')
     .notNull()
     .default(false),

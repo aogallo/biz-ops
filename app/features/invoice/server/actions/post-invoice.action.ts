@@ -1,5 +1,6 @@
 import { invoiceRepository } from '../repository'
 import { organizationConfigRepository } from '~/features/organization-config/server/repository'
+import { sucursalRepository } from '~/features/sucursal/server/repository/sucursal.repository'
 import { createJournalEntryAction } from '~/features/journal-entry/server/actions/create.action'
 import { stockMovementRepository } from '~/features/stock/server/repository'
 import type { Invoice } from '~/server/db/schemas/invoice'
@@ -98,11 +99,17 @@ export async function postInvoiceAction(
       }
     }
 
-    // Get next invoice number
-    const { formatted: invoiceNumber } =
-      await organizationConfigRepository.getNextManualInvoiceNumber(
-        invoice.organizationId
-      )
+    // Get next invoice number from sucursal
+    if (!invoice.sucursalId) {
+      return {
+        success: false,
+        error: 'Invoice must be assigned to a sucursal',
+      }
+    }
+
+    const { formatted: invoiceNumber } = await sucursalRepository.getNextInvoiceNumber(
+      invoice.sucursalId
+    )
 
     // Update invoice with number and status
     const updatedInvoice = await invoiceRepository.update(invoiceId, {

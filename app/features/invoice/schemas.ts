@@ -46,6 +46,7 @@ export const createDraftInvoiceSchema = z.object({
   companyId: z.string().uuid(),
   businessPartnerId: z.string().uuid(),
   accountingAccountId: z.string().uuid(),
+  sucursalId: z.string().uuid(),
   type: z.enum(['purchase', 'sale']),
   invoiceDate: z.coerce.date(),
   dueDate: z.coerce.date().optional().nullable(),

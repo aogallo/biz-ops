@@ -13,6 +13,7 @@ import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { companyModel } from '~/server/db/schemas/company'
 import { accountingAccountModel } from '~/server/db/schemas/accounting'
 import { productModel } from '~/server/db/schemas/products'
+import { sucursalModel } from '~/server/db/schemas/sucursal'
 
 export interface InvoiceWithLines extends Invoice {
   lines: InvoiceLine[]
@@ -28,6 +29,11 @@ export interface InvoiceWithLines extends Invoice {
     id: string
     name: string | null
     accountNumber: string | null
+  } | null
+  sucursal?: {
+    id: string
+    name: string
+    code: string
   } | null
 }
 
@@ -159,6 +165,11 @@ export class InvoiceRepository {
           name: accountingAccountModel.name,
           accountNumber: accountingAccountModel.accountNumber,
         },
+        sucursal: {
+          id: sucursalModel.id,
+          name: sucursalModel.name,
+          code: sucursalModel.code,
+        },
       })
       .from(invoiceModel)
       .leftJoin(
@@ -170,6 +181,7 @@ export class InvoiceRepository {
         accountingAccountModel,
         eq(invoiceModel.accountingAccountId, accountingAccountModel.id)
       )
+      .leftJoin(sucursalModel, eq(invoiceModel.sucursalId, sucursalModel.id))
       .where(and(...conditions))
       .orderBy(desc(invoiceModel.invoiceDate), desc(invoiceModel.createdAt))
       .limit(limit)
@@ -209,6 +221,7 @@ export class InvoiceRepository {
       businessPartner: i.businessPartner,
       company: i.company,
       accountingAccount: i.accountingAccount,
+      sucursal: i.sucursal?.id ? i.sucursal : null,
     }))
 
     return {
@@ -423,6 +436,7 @@ export class InvoiceRepository {
         businessPartner: { id: string; name: string; nit: string | null } | null
         company: { id: string; name: string } | null
         accountingAccount: { id: string; name: string | null; accountNumber: string | null } | null
+        sucursal: { id: string; name: string; code: string } | null
       })
     | null
   > {
@@ -434,43 +448,55 @@ export class InvoiceRepository {
 
     if (!invoice) return null
 
-    const lines = await this.getLinesWithProducts(id)
-
-    const [businessPartner] = await db
-      .select({
-        id: businessPartnerModel.id,
-        name: businessPartnerModel.name,
-        nit: businessPartnerModel.nit,
-      })
-      .from(businessPartnerModel)
-      .where(eq(businessPartnerModel.id, invoice.businessPartnerId))
-      .limit(1)
-
-    const [company] = await db
-      .select({
-        id: companyModel.id,
-        name: companyModel.name,
-      })
-      .from(companyModel)
-      .where(eq(companyModel.id, invoice.companyId))
-      .limit(1)
-
-    const [accountingAccount] = await db
-      .select({
-        id: accountingAccountModel.id,
-        name: accountingAccountModel.name,
-        accountNumber: accountingAccountModel.accountNumber,
-      })
-      .from(accountingAccountModel)
-      .where(eq(accountingAccountModel.id, invoice.accountingAccountId))
-      .limit(1)
+    const [lines, businessPartnerResult, companyResult, accountingAccountResult, sucursalResult] =
+      await Promise.all([
+        this.getLinesWithProducts(id),
+        db
+          .select({
+            id: businessPartnerModel.id,
+            name: businessPartnerModel.name,
+            nit: businessPartnerModel.nit,
+          })
+          .from(businessPartnerModel)
+          .where(eq(businessPartnerModel.id, invoice.businessPartnerId))
+          .limit(1),
+        db
+          .select({
+            id: companyModel.id,
+            name: companyModel.name,
+          })
+          .from(companyModel)
+          .where(eq(companyModel.id, invoice.companyId))
+          .limit(1),
+        db
+          .select({
+            id: accountingAccountModel.id,
+            name: accountingAccountModel.name,
+            accountNumber: accountingAccountModel.accountNumber,
+          })
+          .from(accountingAccountModel)
+          .where(eq(accountingAccountModel.id, invoice.accountingAccountId))
+          .limit(1),
+        invoice.sucursalId
+          ? db
+              .select({
+                id: sucursalModel.id,
+                name: sucursalModel.name,
+                code: sucursalModel.code,
+              })
+              .from(sucursalModel)
+              .where(eq(sucursalModel.id, invoice.sucursalId))
+              .limit(1)
+          : Promise.resolve([]),
+      ])
 
     return {
       ...invoice,
       lines,
-      businessPartner: businessPartner ?? null,
-      company: company ?? null,
-      accountingAccount: accountingAccount ?? null,
+      businessPartner: businessPartnerResult[0] ?? null,
+      company: companyResult[0] ?? null,
+      accountingAccount: accountingAccountResult[0] ?? null,
+      sucursal: sucursalResult[0] ?? null,
     }
   }
 

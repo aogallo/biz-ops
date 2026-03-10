@@ -46,16 +46,24 @@ export interface AccountOption {
   name: string | null
 }
 
+export interface SucursalOption {
+  id: string
+  name: string
+  code: string
+}
+
 interface InvoiceFormProps {
   mode: 'create' | 'view'
   companies: CompanyOption[]
   businessPartners: BusinessPartnerOption[]
   accounts: AccountOption[]
+  sucursales?: SucursalOption[]
   initialData?: {
     type: 'purchase' | 'sale'
     companyId: string
     businessPartnerId: string
     accountingAccountId?: string
+    sucursalId?: string
     invoiceDate: Date
     dueDate?: Date | null
     serie?: string | null
@@ -93,6 +101,7 @@ export function InvoiceForm({
   companies,
   businessPartners,
   accounts,
+  sucursales = [],
   initialData,
   actionData,
 }: InvoiceFormProps) {
@@ -110,6 +119,7 @@ export function InvoiceForm({
   const [accountingAccountId, setAccountingAccountId] = useState(
     initialData?.accountingAccountId ?? ''
   )
+  const [sucursalId, setSucursalId] = useState(initialData?.sucursalId ?? '')
   const [invoiceDate, setInvoiceDate] = useState<Date | undefined>(
     initialData?.invoiceDate ?? new Date()
   )
@@ -135,6 +145,12 @@ export function InvoiceForm({
   const accountOptions: ComboboxOption[] = accounts.map((account) => ({
     value: account.id,
     label: `${account.accountNumber ?? ''} ${account.name ?? ''}`.trim(),
+  }))
+
+  const sucursalOptions: ComboboxOption[] = sucursales.map((s) => ({
+    value: s.id,
+    label: s.name,
+    description: s.code,
   }))
 
   const isViewMode = mode === 'view'
@@ -174,6 +190,7 @@ export function InvoiceForm({
           <input type="hidden" name="companyId" value={companyId} />
           <input type="hidden" name="businessPartnerId" value={businessPartnerId} />
           <input type="hidden" name="accountingAccountId" value={accountingAccountId} />
+          <input type="hidden" name="sucursalId" value={sucursalId} />
           <input
             type="hidden"
             name="invoiceDate"
@@ -270,6 +287,27 @@ export function InvoiceForm({
               )}
             </div>
 
+            {/* Sucursal */}
+            {sucursales.length > 0 && (
+              <div className="space-y-2">
+                <Label>Sucursal *</Label>
+                <Combobox
+                  options={sucursalOptions}
+                  value={sucursalId}
+                  onValueChange={setSucursalId}
+                  placeholder="Seleccionar sucursal..."
+                  searchPlaceholder="Buscar sucursal..."
+                  emptyMessage="No se encontraron sucursales."
+                  disabled={isViewMode}
+                />
+                {actionData?.fieldErrors?.sucursalId && (
+                  <p className="text-destructive text-xs">
+                    {actionData.fieldErrors.sucursalId[0]}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Invoice Date */}
             <div className="space-y-2">
               <Label>Invoice Date *</Label>
@@ -363,7 +401,8 @@ export function InvoiceForm({
               <Button
                 type="submit"
                 disabled={
-                  isSubmitting || !companyId || !businessPartnerId || !accountingAccountId || !invoiceDate
+                  isSubmitting || !companyId || !businessPartnerId || !accountingAccountId || !invoiceDate ||
+                  (sucursales.length > 0 && !sucursalId)
                 }
               >
                 {isSubmitting ? 'Creating...' : 'Create Draft Invoice'}

@@ -21,6 +21,7 @@ import { timestamps } from './common'
 import { companyModel } from './company'
 import { productModel } from './products'
 import { satFileModel } from './sat-file'
+import { sucursalModel } from './sucursal'
 
 // Enums
 export const invoiceTypeEnum = pgEnum('invoice_type', ['purchase', 'sale'])
@@ -96,6 +97,8 @@ export const invoiceModel = pgTable('invoice', {
   source: invoiceSourceEnum('source').notNull().default('manual'),
   documentType: documentTypeEnum('document_type').default('FCE'),
   transactionType: transactionTypeEnum('transaction_type').default('L'),
+  sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
+  terminalId: uuid('terminal_id'),
   ...timestamps,
 })
 
@@ -150,6 +153,10 @@ export const invoiceRelations = relations(invoiceModel, ({ one, many }) => ({
   satFile: one(satFileModel, {
     fields: [invoiceModel.satFileId],
     references: [satFileModel.id],
+  }),
+  sucursal: one(sucursalModel, {
+    fields: [invoiceModel.sucursalId],
+    references: [sucursalModel.id],
   }),
   lines: many(invoiceLineModel),
 }))

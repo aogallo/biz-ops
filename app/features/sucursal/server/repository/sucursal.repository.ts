@@ -4,6 +4,12 @@ import { sucursalModel } from '~/server/db/schemas/sucursal'
 import { companyModel } from '~/server/db/schemas/company'
 import type { CreateSucursalInput, UpdateSucursalInput } from '../../schemas'
 
+export interface NextInvoiceNumberResult {
+  prefix: string
+  number: number
+  formatted: string
+}
+
 export class SucursalRepository {
   async getByOrganization(organizationId: string) {
     return await db
@@ -85,6 +91,28 @@ export class SucursalRepository {
       .where(eq(sucursalModel.id, id))
       .returning()
     return sucursal ?? null
+  }
+
+  async getNextInvoiceNumber(sucursalId: string): Promise<NextInvoiceNumberResult> {
+    const [result] = await db
+      .update(sucursalModel)
+      .set({
+        nextInvoiceNumber: sql`${sucursalModel.nextInvoiceNumber} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(sucursalModel.id, sucursalId))
+      .returning()
+
+    if (!result) {
+      throw new Error('Sucursal not found')
+    }
+
+    const currentNumber = result.nextInvoiceNumber - 1
+    return {
+      prefix: result.invoicePrefix,
+      number: currentNumber,
+      formatted: `${result.invoicePrefix}-${String(currentNumber).padStart(6, '0')}`,
+    }
   }
 }
 

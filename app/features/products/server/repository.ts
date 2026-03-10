@@ -1,12 +1,4 @@
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  ne,
-  sql,
-  type SQL,
-} from 'drizzle-orm'
+import { and, count, eq, ilike, ne, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
@@ -63,9 +55,7 @@ export class ProductsRepository {
     filters: ProductFilters,
     pagination: PaginationOptions
   ) {
-    const conditions: SQL[] = [
-      eq(productModel.organizationId, organizationId),
-    ]
+    const conditions: SQL[] = [eq(productModel.organizationId, organizationId)]
 
     if (filters.search) {
       conditions.push(
@@ -86,9 +76,7 @@ export class ProductsRepository {
         sql`${productModel.stock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
       )
     } else if (filters.stockStatus === 'normal') {
-      conditions.push(
-        sql`${productModel.stock} > ${productModel.minStock}`
-      )
+      conditions.push(sql`${productModel.stock} > ${productModel.minStock}`)
     }
 
     const whereClause = and(...conditions)
@@ -217,11 +205,7 @@ export class ProductsRepository {
     }
   }
 
-  async existsBySku(
-    organizationId: string,
-    sku: string,
-    excludeId?: string
-  ) {
+  async existsBySku(organizationId: string, sku: string, excludeId?: string) {
     const conditions = excludeId
       ? and(
           eq(productModel.organizationId, organizationId),
@@ -313,7 +297,9 @@ export class ProductsRepository {
           sql`${productModel.stock} <= ${productModel.minStock} AND ${productModel.minStock} > 0`
         )
       )
-      .orderBy(sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`)
+      .orderBy(
+        sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`
+      )
       .limit(limit)
   }
 }

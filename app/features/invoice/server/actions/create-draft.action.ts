@@ -23,6 +23,7 @@ export async function createDraftInvoiceAction(
       companyId: input.companyId,
       businessPartnerId: input.businessPartnerId,
       accountingAccountId: input.accountingAccountId,
+      sucursalId: input.sucursalId,
       type: input.type,
       invoiceDate: formatDateToString(input.invoiceDate),
       dueDate: input.dueDate ? formatDateToString(input.dueDate) : null,

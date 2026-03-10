@@ -1,4 +1,4 @@
-export { InvoiceForm, type CompanyOption, type BusinessPartnerOption, type AccountOption } from './InvoiceForm'
+export { InvoiceForm, type CompanyOption, type BusinessPartnerOption, type AccountOption, type SucursalOption } from './InvoiceForm'
 export { InvoiceLineTable } from './InvoiceLineTable'
 export { InvoiceLineRow, type InvoiceLineData } from './InvoiceLineRow'
 export { InvoiceSummary } from './InvoiceSummary'

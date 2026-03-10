@@ -720,6 +720,32 @@ export class PosRepository {
     return { ...cashier, sucursalId: sucursal.id, sucursalName: sucursal.name }
   }
 
+  async getNextTerminalInvoiceNumber(terminalId: string): Promise<{
+    prefix: string
+    number: number
+    formatted: string
+  }> {
+    const [result] = await db
+      .update(posTerminalModel)
+      .set({
+        nextInvoiceNumber: sql`${posTerminalModel.nextInvoiceNumber} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(posTerminalModel.id, terminalId))
+      .returning()
+
+    if (!result) {
+      throw new Error('POS terminal not found')
+    }
+
+    const currentNumber = result.nextInvoiceNumber - 1
+    return {
+      prefix: result.invoicePrefix,
+      number: currentNumber,
+      formatted: `${result.invoicePrefix}-${String(currentNumber).padStart(6, '0')}`,
+    }
+  }
+
   async verifyCashierPin(cashierId: string, pin: string) {
     const [cashier] = await db
       .select()

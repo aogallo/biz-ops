@@ -14,6 +14,7 @@ import { invoiceModel, invoiceLineModel } from '~/server/db/schemas/invoice'
 import { sucursalModel, sucursalInventoryModel } from '~/server/db/schemas/sucursal'
 import type { CheckoutInput } from '../../schemas'
 import { calculateLineTotals } from '../../types'
+import { posRepository } from '../repository'
 
 export async function createSaleAction(input: CheckoutInput) {
   // Check idempotency — return existing sale if already processed
@@ -219,8 +220,6 @@ export async function createSaleAction(input: CheckoutInput) {
     return {
       saleId: sale.id,
       saleNumber,
-      posPrefix: orgConfig.posPrefix,
-      nextPosSaleNumber: orgConfig.nextPosSaleNumber,
       defaultSalesAccountId: orgConfig.defaultSalesAccountId,
       lineData,
       saleSubtotal,
@@ -240,8 +239,6 @@ async function generateInvoiceIfConfigured(
   saleResult: {
     saleId: string
     saleNumber: string
-    posPrefix: string | null
-    nextPosSaleNumber: number
     defaultSalesAccountId: string | null
     lineData: Array<{
       lineNumber: number
@@ -287,7 +284,9 @@ async function generateInvoiceIfConfigured(
 
   if (!companyId) return // Cannot generate invoice without a company
 
-  const invoiceNumber = `${saleResult.posPrefix}-INV-${String(saleResult.nextPosSaleNumber).padStart(6, '0')}`
+  const { formatted: invoiceNumber } = await posRepository.getNextTerminalInvoiceNumber(
+    input.terminalId
+  )
 
   const [invoice] = await db
     .insert(invoiceModel)
@@ -304,6 +303,8 @@ async function generateInvoiceIfConfigured(
       total: String(saleResult.saleTotal),
       status: 'posted',
       source: 'manual',
+      sucursalId: input.sucursalId ?? null,
+      terminalId: input.terminalId,
     })
     .returning()
 

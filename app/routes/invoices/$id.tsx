@@ -215,6 +215,13 @@ export default function InvoiceShowPage({
                   <p className="text-muted-foreground text-sm">{t('invoices.company')}</p>
                   <p className="font-medium">{invoice.company?.name || '-'}</p>
                 </div>
+                {invoice.sucursal && (
+                  <div>
+                    <p className="text-muted-foreground text-sm">Sucursal</p>
+                    <p className="font-medium">{invoice.sucursal.name}</p>
+                    <p className="text-muted-foreground text-xs">{invoice.sucursal.code}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-muted-foreground text-sm">
                     {invoice.type === 'sale' ? t('invoices.customer') : t('invoices.vendor')}

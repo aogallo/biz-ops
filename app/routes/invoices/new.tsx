@@ -7,9 +7,11 @@ import {
   type AccountOption,
   type BusinessPartnerOption,
   type CompanyOption,
+  type SucursalOption,
 } from '~/features/invoice/components'
 import { createDraftInvoiceSchema } from '~/features/invoice/schemas'
 import { createDraftInvoiceAction } from '~/features/invoice/server/actions/create-draft.action'
+import { sucursalRepository } from '~/features/sucursal/server/repository/sucursal.repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types/new'
 
@@ -21,10 +23,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     return redirect('/invoices')
   }
 
-  const [companies, businessPartners, accounts] = await Promise.all([
+  const [companies, businessPartners, accounts, sucursales] = await Promise.all([
     companyRepository.getByOrganization(organizationId),
     businessPartnersRepository.getAllByOrganization(organizationId),
     accountsRepository.getAllByOrganization(organizationId),
+    sucursalRepository.getByOrganization(organizationId),
   ])
 
   return {
@@ -48,6 +51,15 @@ export async function loader({ request }: Route.LoaderArgs) {
         name: a.name,
       })
     ),
+    sucursales: sucursales
+      .filter((s) => s.isActive)
+      .map(
+        (s): SucursalOption => ({
+          id: s.id,
+          name: s.name,
+          code: s.code,
+        })
+      ),
   }
 }
 
@@ -66,6 +78,7 @@ export async function action({ request }: Route.ActionArgs) {
   const companyId = formData.get('companyId') as string
   const businessPartnerId = formData.get('businessPartnerId') as string
   const accountingAccountId = formData.get('accountingAccountId') as string
+  const sucursalId = formData.get('sucursalId') as string
   const invoiceDateStr = formData.get('invoiceDate') as string
   const dueDateStr = formData.get('dueDate') as string
 
@@ -96,6 +109,7 @@ export async function action({ request }: Route.ActionArgs) {
     companyId,
     businessPartnerId,
     accountingAccountId,
+    sucursalId,
     type,
     invoiceDate: new Date(invoiceDateStr),
     dueDate: dueDateStr ? new Date(dueDateStr) : null,
@@ -135,7 +149,7 @@ export default function NewInvoicePage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { companies, businessPartners, accounts } = loaderData
+  const { companies, businessPartners, accounts, sucursales } = loaderData
 
   return (
     <div className="container mx-auto py-6">
@@ -144,6 +158,7 @@ export default function NewInvoicePage({
         companies={companies}
         businessPartners={businessPartners}
         accounts={accounts}
+        sucursales={sucursales}
         actionData={actionData}
       />
     </div>

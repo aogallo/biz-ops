@@ -29,6 +29,12 @@ export const orderStatus = pgEnum('order_status', [
   'CANCELLED',
 ])
 
+export const orderDetailLineTypeEnum = pgEnum('order_detail_line_type', [
+  'product',
+  'combo',
+  'combo_item',
+])
+
 export const orderModel = pgTable('order', {
   id: uuid('id').primaryKey().defaultRandom(),
   organizationId: uuid('organization_id')
@@ -61,6 +67,9 @@ export const orderDetailModel = pgTable('order_detail', {
   unitPrice: numeric('unit_price', { precision: 12, scale: 2 }).notNull(),
   sourceType: orderSourceType('source_type').notNull(),
   lineTotal: numeric('line_total', { precision: 12, scale: 2 }).notNull(),
+  lineType: orderDetailLineTypeEnum('line_type').default('product'),
+  parentLineId: uuid('parent_line_id'),
+  comboTemplateId: uuid('combo_template_id').references(() => productModel.id),
   customAttributesJson: jsonb('custom_attributes_json'),
 })
 
@@ -90,17 +99,33 @@ export const orderRelations = relations(orderModel, ({ one, many }) => ({
   details: many(orderDetailModel),
 }))
 
-export const orderDetailRelations = relations(orderDetailModel, ({ one, many }) => ({
-  order: one(orderModel, {
-    fields: [orderDetailModel.orderId],
-    references: [orderModel.id],
-  }),
-  product: one(productModel, {
-    fields: [orderDetailModel.productId],
-    references: [productModel.id],
-  }),
-  recipients: many(orderRecipientModel),
-}))
+export const orderDetailRelations = relations(
+  orderDetailModel,
+  ({ one, many }) => ({
+    order: one(orderModel, {
+      fields: [orderDetailModel.orderId],
+      references: [orderModel.id],
+    }),
+    product: one(productModel, {
+      fields: [orderDetailModel.productId],
+      references: [productModel.id],
+    }),
+    comboTemplate: one(productModel, {
+      fields: [orderDetailModel.comboTemplateId],
+      references: [productModel.id],
+      relationName: 'orderDetailComboTemplate',
+    }),
+    parent: one(orderDetailModel, {
+      fields: [orderDetailModel.parentLineId],
+      references: [orderDetailModel.id],
+      relationName: 'orderDetailParent',
+    }),
+    children: many(orderDetailModel, {
+      relationName: 'orderDetailParent',
+    }),
+    recipients: many(orderRecipientModel),
+  })
+)
 
 export const orderRecipientRelations = relations(
   orderRecipientModel,

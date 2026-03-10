@@ -3,13 +3,18 @@ import {
   boolean,
   index,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   text,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
-import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-zod'
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from 'drizzle-zod'
 import type { z } from 'zod'
 import { organizationModel } from './auth'
 import { timestamps } from './common'
@@ -60,7 +65,7 @@ export const sucursalInventoryModel = pgTable(
     productId: uuid('product_id')
       .notNull()
       .references(() => productModel.id, { onDelete: 'cascade' }),
-    stock: integer('stock').notNull().default(0),
+    stock: numeric('stock', { precision: 12, scale: 4 }).notNull().default('0'),
     minStock: integer('min_stock').notNull().default(0),
     ...timestamps,
   },
@@ -86,7 +91,10 @@ export const inventoryMovementModel = pgTable(
       .notNull()
       .references(() => productModel.id),
     type: inventoryMovementTypeEnum('type').notNull(),
-    quantity: integer('quantity').notNull(),
+    quantity: numeric('quantity', { precision: 12, scale: 4 }).notNull(),
+    referenceType: text('reference_type'),
+    referenceId: uuid('reference_id'),
+    unitOfMeasureId: uuid('unit_of_measure_id'),
     notes: text('notes'),
     createdBy: uuid('created_by'),
     ...timestamps,
@@ -149,11 +157,15 @@ export const selectSucursalSchema = createSelectSchema(sucursalModel)
 export const insertSucursalSchema = createInsertSchema(sucursalModel)
 export const updateSucursalSchema = createUpdateSchema(sucursalModel)
 
-export const selectSucursalInventorySchema = createSelectSchema(sucursalInventoryModel)
-export const insertSucursalInventorySchema = createInsertSchema(sucursalInventoryModel)
+export const selectSucursalInventorySchema =
+  createSelectSchema(sucursalInventoryModel)
+export const insertSucursalInventorySchema =
+  createInsertSchema(sucursalInventoryModel)
 
-export const selectInventoryMovementSchema = createSelectSchema(inventoryMovementModel)
-export const insertInventoryMovementSchema = createInsertSchema(inventoryMovementModel)
+export const selectInventoryMovementSchema =
+  createSelectSchema(inventoryMovementModel)
+export const insertInventoryMovementSchema =
+  createInsertSchema(inventoryMovementModel)
 
 // Types
 export type Sucursal = z.infer<typeof selectSucursalSchema>

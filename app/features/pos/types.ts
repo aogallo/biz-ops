@@ -15,6 +15,12 @@ export interface ProductAttributesJson {
   attributes: ProductAttribute[]
 }
 
+export interface CartItemModification {
+  type: 'add' | 'remove' | 'substitute'
+  name: string
+  priceAdjustment: number
+}
+
 export interface CartItem {
   cartItemId: string // unique per cart line (allows same product with different attributes)
   productId: string
@@ -25,9 +31,15 @@ export interface CartItem {
   discountPercent: number
   ivaType: 'taxed' | 'exempt' | 'non_subject'
   ivaRate: number
-  productType: 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE'
+  productType: 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE' | 'ingredient' | 'recipe' | 'combo' | 'sale_item'
+  trackInventory?: boolean
   stock: number | null
   selectedAttributes?: Record<string, string>
+  // Combo system
+  lineType: 'product' | 'combo' | 'combo_item'
+  parentLineClientId?: string // reference to combo parent cartItemId
+  comboTemplateId?: string // productId of the combo template
+  modificationsJson?: CartItemModification[]
 }
 
 export interface CartTotals {
@@ -66,7 +78,7 @@ export interface PosProductForGrid {
   price: string
   stock: number | null
   imageUrl: string | null
-  productType: 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE'
+  productType: 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE' | 'ingredient' | 'recipe' | 'combo' | 'sale_item'
   categoryId: string | null
   categoryName: string | null
   categoryColor: string | null
@@ -131,7 +143,11 @@ export function calculateLineTotals(item: CartItemLike) {
 }
 
 export function calculateCartTotals(items: CartItem[]): CartTotals {
-  return items.reduce(
+  // combo_item lines have unitPrice: 0 — their price is absorbed in the parent combo line
+  // We skip them entirely to avoid double-counting
+  const billableItems = items.filter((item) => item.lineType !== 'combo_item')
+
+  return billableItems.reduce(
     (acc, item) => {
       const line = calculateLineTotals(item)
       return {

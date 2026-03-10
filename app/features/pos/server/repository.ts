@@ -172,7 +172,7 @@ export class PosRepository {
         categoryColor: productCategoryModel.color,
         attributesJson: sql<import('../types').ProductAttributesJson | null>`${productModel.attributesJson}`,
         sucursalStock: sucursalId
-          ? sucursalInventoryModel.stock
+          ? sql<number | null>`CAST(${sucursalInventoryModel.stock} AS float8)`
           : sql<number | null>`null`,
         otherSucursalesStock: sucursalId
           ? sql<{ name: string; stock: number }[] | null>`(

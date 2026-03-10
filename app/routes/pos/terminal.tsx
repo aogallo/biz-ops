@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useFetcher, redirect, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { posRepository } from '~/features/pos/server/repository'
+import { comboRepository } from '~/features/combo/server/repository'
+import { exchangeRateRepository } from '~/features/exchangeRate/server/repository'
 import { createSaleAction } from '~/features/pos/server/actions/create-sale.action'
 import { openSessionAction } from '~/features/pos/server/actions/open-session.action'
 import { closeSessionAction } from '~/features/pos/server/actions/close-session.action'
@@ -24,6 +26,7 @@ import { PosCloseShiftDialog } from '~/features/pos/components/PosCloseShiftDial
 import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovementDialog'
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import { PosProductAttributesDialog } from '~/features/pos/components/PosProductAttributesDialog'
+import { PosComboSelectionDialog, type PosComboDefinition } from '~/features/pos/components/PosComboSelectionDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
 import {
   buildReceiptHtml,
@@ -98,13 +101,27 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const sucursalId = terminal.sucursalId ?? undefined
 
-  const [products, categories, expectedCash] = await Promise.all([
+  const [products, categories, expectedCash, activeExchangeRate] = await Promise.all([
     posRepository.getProductsForPos(organizationId, sucursalId),
     posRepository.getCategories(organizationId),
     openSession
       ? posRepository.calculateExpectedCashForSession(openSession.id)
       : Promise.resolve(0),
+    exchangeRateRepository.getActiveRate(organizationId, 'USD', 'GTQ'),
   ])
+
+  // Fetch combo definitions for combo products
+  const comboProducts = products.filter((p) => p.productType === 'combo')
+  const comboDefsArray = await Promise.all(
+    comboProducts.map((p) => comboRepository.getComboForPos(p.id))
+  )
+  const comboDefinitions: Record<string, import('~/features/combo/server/repository').PosComboDefinition> = {}
+  for (let i = 0; i < comboProducts.length; i++) {
+    const def = comboDefsArray[i]
+    if (def) {
+      comboDefinitions[comboProducts[i].id] = def
+    }
+  }
 
   const cashierName = posSession?.cashierName ?? userSession?.user.name ?? ''
   const userId = userSession?.user.id ?? null
@@ -138,6 +155,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     openSession,
     autoClosedStaleSession,
     expectedCash,
+    comboDefinitions,
+    activeExchangeRate: activeExchangeRate ? Number(activeExchangeRate.rate) : null,
   }
 }
 
@@ -347,6 +366,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     openSession,
     autoClosedStaleSession,
     expectedCash,
+    comboDefinitions,
+    activeExchangeRate,
   } = loaderData
 
   const { t } = useTranslation()
@@ -385,6 +406,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
   const [attributeDialogProduct, setAttributeDialogProduct] =
     useState<PosProductForGrid | null>(null)
+  const [pendingComboProduct, setPendingComboProduct] = useState<PosProductForGrid | null>(null)
 
   // No cashier profile
   if (!cashier) {
@@ -424,6 +446,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         const existing = prev.find(
           (item) =>
             item.productId === product.id &&
+            item.lineType === 'product' &&
             JSON.stringify(item.selectedAttributes ?? {}) === attrsKey
         )
         if (existing) {
@@ -453,12 +476,11 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             discountPercent: 0,
             ivaType: 'taxed' as const,
             ivaRate: 12,
-            productType: product.productType as
-              | 'STOCK'
-              | 'MADE_TO_ORDER'
-              | 'SERVICE',
+            productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE' | 'ingredient' | 'recipe' | 'combo' | 'sale_item',
+            trackInventory: true,
             stock: product.stock,
             selectedAttributes,
+            lineType: 'product' as const,
           },
         ]
       })
@@ -467,9 +489,21 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     []
   )
 
+  const addComboToCart = useCallback(
+    (comboLine: import('~/features/pos/types').CartItem, childLines: import('~/features/pos/types').CartItem[]) => {
+      setCart((prev) => [...prev, comboLine, ...childLines])
+      setSelectedCartItemId(comboLine.cartItemId)
+      setPendingComboProduct(null)
+      setNumpadInput('')
+    },
+    []
+  )
+
   const handleProductClick = useCallback(
     (product: PosProductForGrid) => {
-      if (product.attributesJson?.attributes?.length) {
+      if (product.productType === 'combo') {
+        setPendingComboProduct(product)
+      } else if (product.attributesJson?.attributes?.length) {
         setAttributeDialogProduct(product)
       } else {
         addToCart(product)
@@ -555,7 +589,13 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   )
 
   const handleRemoveItem = useCallback((cartItemId: string) => {
-    setCart((prev) => prev.filter((item) => item.cartItemId !== cartItemId))
+    setCart((prev) =>
+      prev.filter(
+        (item) =>
+          item.cartItemId !== cartItemId &&
+          item.parentLineClientId !== cartItemId
+      )
+    )
   }, [])
 
   const handleBarcodeScan = useCallback(
@@ -607,6 +647,11 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           ivaType: item.ivaType,
           ivaRate: item.ivaRate,
           productType: item.productType,
+          trackInventory: item.trackInventory ?? true,
+          lineType: item.lineType ?? 'product',
+          parentLineClientId: item.parentLineClientId ?? null,
+          comboTemplateId: item.comboTemplateId ?? null,
+          modificationsJson: item.modificationsJson ?? null,
         })),
         payments,
       }
@@ -845,6 +890,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         total={totals.total}
         onConfirm={handleCheckout}
         isSubmitting={fetcher.state === 'submitting'}
+        activeExchangeRate={activeExchangeRate}
       />
 
       <PosReceiptPreview
@@ -891,6 +937,18 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         }}
         onConfirm={handleAttributesConfirm}
       />
+
+      {pendingComboProduct && comboDefinitions[pendingComboProduct.id] && (
+        <PosComboSelectionDialog
+          open={!!pendingComboProduct}
+          onOpenChange={(open) => {
+            if (!open) setPendingComboProduct(null)
+          }}
+          product={pendingComboProduct}
+          comboDef={comboDefinitions[pendingComboProduct.id] as PosComboDefinition}
+          onConfirm={addComboToCart}
+        />
+      )}
     </>
   )
 }

@@ -38,16 +38,41 @@ export function PosCart({
   const selectedItem = items.find((i) => i.cartItemId === selectedItemId)
   const numpadDisplay = numpadInput || (selectedItem ? String(selectedItem.quantity) : '')
 
+  // Build ordered render list: for each non-combo_item line, render it + its children
+  const renderItems: Array<{ item: CartItem; isComboChild: boolean }> = []
+  const comboChildren = new Map<string, CartItem[]>()
+
+  // First, group combo_item children by parentLineClientId
+  for (const item of items) {
+    if (item.lineType === 'combo_item' && item.parentLineClientId) {
+      const existing = comboChildren.get(item.parentLineClientId) ?? []
+      comboChildren.set(item.parentLineClientId, [...existing, item])
+    }
+  }
+
+  // Then build the ordered list
+  for (const item of items) {
+    if (item.lineType === 'combo_item') continue // rendered inline below parent
+    renderItems.push({ item, isComboChild: false })
+    const children = comboChildren.get(item.cartItemId) ?? []
+    for (const child of children) {
+      renderItems.push({ item: child, isComboChild: true })
+    }
+  }
+
+  // Count visible top-level items (excluding combo_item children)
+  const topLevelCount = items.filter((i) => i.lineType !== 'combo_item').length
+
   return (
     <div className='flex h-full flex-col'>
       <div className='flex-1 overflow-y-auto px-4'>
-        {items.length === 0 ? (
+        {renderItems.length === 0 ? (
           <div className='text-muted-foreground flex flex-col items-center justify-center py-12'>
             <ShoppingCart className='mb-2 size-8' />
             <p className='text-sm'>{t('pos.emptyCart')}</p>
           </div>
         ) : (
-          items.map((item) => (
+          renderItems.map(({ item, isComboChild }) => (
             <PosCartItem
               key={item.cartItemId}
               item={item}
@@ -55,6 +80,7 @@ export function PosCart({
               onRemove={onRemoveItem}
               isSelected={item.cartItemId === selectedItemId}
               onSelect={onItemSelect}
+              isComboChild={isComboChild}
             />
           ))
         )}
@@ -65,7 +91,7 @@ export function PosCart({
         onDigit={onNumpadDigit}
         onBackspace={onNumpadBackspace}
         onClear={onNumpadClear}
-        disabled={selectedItemId === null || items.length === 0}
+        disabled={selectedItemId === null || topLevelCount === 0}
       />
 
       <div className='mt-auto border-t px-4 pt-3 pb-4'>
@@ -96,10 +122,10 @@ export function PosCart({
         <Button
           className='mt-3 h-12 w-full text-base font-semibold'
           onClick={onCheckout}
-          disabled={items.length === 0}
+          disabled={topLevelCount === 0}
         >
-          {items.length > 0
-            ? t('pos.checkoutWithCount', { count: String(items.length) })
+          {topLevelCount > 0
+            ? t('pos.checkoutWithCount', { count: String(topLevelCount) })
             : t('pos.checkout')}
         </Button>
       </div>

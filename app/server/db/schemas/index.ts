@@ -70,6 +70,7 @@ import {
   orderRecipientRelations,
   orderSourceType,
   orderStatus,
+  orderDetailLineTypeEnum,
 } from './orders'
 import {
   quotationModel,
@@ -101,6 +102,7 @@ import {
   posPaymentMethodEnum,
   posSessionStatusEnum,
   posCashMovementTypeEnum,
+  posSaleLineTypeEnum,
 } from './pos'
 import {
   sucursalModel,
@@ -117,6 +119,39 @@ import {
   organizationModuleRelations,
   memberModuleAccessRelations,
 } from './modules'
+import {
+  unitOfMeasureModel,
+  unitOfMeasureRelations,
+  uomCategoryEnum,
+} from './unitOfMeasure'
+import {
+  recipeModel,
+  recipeItemModel,
+  recipeRelations,
+  recipeItemRelations,
+} from './recipe'
+import {
+  comboModel,
+  comboGroupModel,
+  comboGroupItemModel,
+  comboRelations,
+  comboGroupRelations,
+  comboGroupItemRelations,
+} from './combo'
+import {
+  kitchenStationModel,
+  kitchenTicketModel,
+  kitchenTicketItemModel,
+  kitchenStationRelations,
+  kitchenTicketRelations,
+  kitchenTicketItemRelations,
+  kitchenTicketStatusEnum,
+  kitchenItemStatusEnum,
+} from './kitchen'
+import {
+  exchangeRateModel,
+  exchangeRateRelations,
+} from './exchangeRate'
 
 export const schema = {
   // Auth tables
@@ -190,6 +225,26 @@ export const schema = {
   organizationModule: organizationModuleModel,
   memberModuleAccess: memberModuleAccessModel,
 
+  // Unit of measure tables
+  unitOfMeasure: unitOfMeasureModel,
+
+  // Recipe tables
+  recipe: recipeModel,
+  recipeItem: recipeItemModel,
+
+  // Combo tables
+  combo: comboModel,
+  comboGroup: comboGroupModel,
+  comboGroupItem: comboGroupItemModel,
+
+  // Kitchen tables
+  kitchenStation: kitchenStationModel,
+  kitchenTicket: kitchenTicketModel,
+  kitchenTicketItem: kitchenTicketItemModel,
+
+  // Exchange rate tables
+  exchangeRate: exchangeRateModel,
+
   // Relations
   memberRelations,
   memberRoleRelations,
@@ -227,6 +282,16 @@ export const schema = {
   inventoryMovementRelations,
   organizationModuleRelations,
   memberModuleAccessRelations,
+  unitOfMeasureRelations,
+  recipeRelations,
+  recipeItemRelations,
+  comboRelations,
+  comboGroupRelations,
+  comboGroupItemRelations,
+  kitchenStationRelations,
+  kitchenTicketRelations,
+  kitchenTicketItemRelations,
+  exchangeRateRelations,
 }
 
 // Re-export all schemas for easy access
@@ -249,6 +314,11 @@ export * from './pos'
 export * from './sucursal'
 export * from './common'
 export * from './modules'
+export * from './unitOfMeasure'
+export * from './recipe'
+export * from './combo'
+export * from './kitchen'
+export * from './exchangeRate'
 
 // Re-export enums
 export {
@@ -269,4 +339,9 @@ export {
   posSessionStatusEnum,
   posCashMovementTypeEnum,
   inventoryMovementTypeEnum,
+  uomCategoryEnum,
+  kitchenTicketStatusEnum,
+  kitchenItemStatusEnum,
+  posSaleLineTypeEnum,
+  orderDetailLineTypeEnum,
 }

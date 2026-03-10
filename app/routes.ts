@@ -39,6 +39,10 @@ export default [
       ]),
       route('/z-report/:id', './routes/pos/z-report/$id.tsx'),
     ]),
+    ...prefix('kitchen', [
+      index('./routes/kitchen/index.tsx'),
+      route('/:sucursalId', './routes/kitchen/$sucursalId.tsx'),
+    ]),
   ]),
 
   // App routes with sidebar layout
@@ -180,6 +184,7 @@ export default [
       index('./routes/pos-settings/index.tsx'),
       route('/terminals', './routes/pos-settings/terminals.tsx'),
       route('/cashiers', './routes/pos-settings/cashiers.tsx'),
+      route('/exchange-rates', './routes/pos-settings/exchange-rates.tsx'),
     ]),
 
     // Sucursal Routes
@@ -187,6 +192,13 @@ export default [
       index('./routes/sucursal/index.tsx'),
       route('/new', './routes/sucursal/create.tsx'),
       route('/:id/edit', './routes/sucursal/edit.tsx'),
+    ]),
+
+    // Unit of Measure Routes
+    ...prefix('unit-of-measure', [
+      index('./routes/unit-of-measure/index.tsx'),
+      route('/create', './routes/unit-of-measure/create.tsx'),
+      route('/:id/edit', './routes/unit-of-measure/edit.tsx'),
     ]),
 
     // Inventory Routes

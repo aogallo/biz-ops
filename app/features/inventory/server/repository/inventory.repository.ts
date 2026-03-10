@@ -44,7 +44,7 @@ export class InventoryRepository {
   async upsertSucursalStock(sucursalId: string, productId: string, delta: number) {
     const [entry] = await db
       .insert(sucursalInventoryModel)
-      .values({ sucursalId, productId, stock: delta })
+      .values({ sucursalId, productId, stock: String(delta) })
       .onConflictDoUpdate({
         target: [sucursalInventoryModel.sucursalId, sucursalInventoryModel.productId],
         set: {
@@ -59,11 +59,11 @@ export class InventoryRepository {
   async adjustSucursalStock(sucursalId: string, productId: string, newStock: number) {
     const [entry] = await db
       .insert(sucursalInventoryModel)
-      .values({ sucursalId, productId, stock: newStock })
+      .values({ sucursalId, productId, stock: String(newStock) })
       .onConflictDoUpdate({
         target: [sucursalInventoryModel.sucursalId, sucursalInventoryModel.productId],
         set: {
-          stock: newStock,
+          stock: String(newStock),
           updatedAt: new Date(),
         },
       })
@@ -96,7 +96,7 @@ export class InventoryRepository {
       // Add to sucursal inventory
       await tx
         .insert(sucursalInventoryModel)
-        .values({ sucursalId, productId, stock: quantity })
+        .values({ sucursalId, productId, stock: String(quantity) })
         .onConflictDoUpdate({
           target: [
             sucursalInventoryModel.sucursalId,
@@ -114,7 +114,7 @@ export class InventoryRepository {
         productId,
         sucursalId,
         type: 'transfer_to_sucursal',
-        quantity: -quantity,
+        quantity: String(-quantity),
         notes,
       })
 
@@ -124,7 +124,7 @@ export class InventoryRepository {
         productId,
         sucursalId,
         type: 'transfer_to_sucursal',
-        quantity,
+        quantity: String(quantity),
         notes,
       })
 
@@ -143,7 +143,7 @@ export class InventoryRepository {
   }) {
     const [movement] = await db
       .insert(inventoryMovementModel)
-      .values(data)
+      .values({ ...data, quantity: String(data.quantity) })
       .returning()
     return movement
   }

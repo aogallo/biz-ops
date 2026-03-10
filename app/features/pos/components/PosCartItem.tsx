@@ -11,6 +11,7 @@ interface PosCartItemProps {
   onRemove: (cartItemId: string) => void
   isSelected?: boolean
   onSelect?: (cartItemId: string) => void
+  isComboChild?: boolean
 }
 
 export function PosCartItem({
@@ -19,6 +20,7 @@ export function PosCartItem({
   onRemove,
   isSelected,
   onSelect,
+  isComboChild = false,
 }: PosCartItemProps) {
   const { t } = useTranslation()
   const { total } = calculateLineTotals(item)
@@ -26,6 +28,20 @@ export function PosCartItem({
   const attrEntries = item.selectedAttributes
     ? Object.entries(item.selectedAttributes)
     : []
+
+  if (isComboChild) {
+    return (
+      <div className='text-muted-foreground flex items-center gap-1 border-b py-1 pl-4 text-xs'>
+        <span className='mr-1 opacity-50'>└</span>
+        <span className='truncate'>{item.productName}</span>
+        {item.modificationsJson?.map((mod, i) => (
+          <span key={i} className='opacity-60'>
+            · {mod.name}
+          </span>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -42,9 +58,11 @@ export function PosCartItem({
             {attrEntries.map(([, v]) => v).join(' · ')}
           </p>
         )}
-        <p className='text-muted-foreground text-xs'>
-          Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}
-        </p>
+        {item.lineType !== 'combo' && (
+          <p className='text-muted-foreground text-xs'>
+            Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}
+          </p>
+        )}
       </div>
       <div className='flex items-center gap-1'>
         <Button

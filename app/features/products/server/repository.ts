@@ -69,14 +69,16 @@ export class ProductsRepository {
 
     if (filters.stockStatus === 'out') {
       conditions.push(
-        sql`(${productModel.stock} = 0 OR ${productModel.stock} IS NULL)`
+        sql`${productModel.stock} IS NOT NULL AND ${productModel.stock} = 0`
       )
     } else if (filters.stockStatus === 'low') {
       conditions.push(
-        sql`${productModel.stock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
+        sql`${productModel.stock} IS NOT NULL AND ${productModel.stock} > 0 AND ${productModel.minStock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
       )
     } else if (filters.stockStatus === 'normal') {
-      conditions.push(sql`${productModel.stock} > ${productModel.minStock}`)
+      conditions.push(
+        sql`(${productModel.stock} IS NULL OR ${productModel.minStock} = 0 OR ${productModel.stock} > ${productModel.minStock})`
+      )
     }
 
     const whereClause = and(...conditions)

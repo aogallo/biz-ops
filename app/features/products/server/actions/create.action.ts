@@ -26,6 +26,7 @@ export async function createProduct(request: Request) {
     imageUrl: formData.get('imageUrl') || null,
     categoryId: formData.get('categoryId') || null,
     productType: (formData.get('productType') as string) || 'STOCK',
+    trackInventory: formData.get('trackInventory') === 'true',
     attributesJson: formData.get('attributesJson')
       ? JSON.parse(formData.get('attributesJson') as string)
       : null,

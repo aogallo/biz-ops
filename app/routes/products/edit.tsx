@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Form, redirect, useActionData, useNavigation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
@@ -13,11 +14,33 @@ import type { AttributeDef } from '~/features/products/components/CustomAttribut
 import { categoriesRepository } from '~/features/categories/server/repository'
 import { updateProduct } from '~/features/products/server/actions/update.action'
 import { productsRepository } from '~/features/products/server/repository'
+import { cn } from '~/lib/utils'
 import { useTranslation } from '~/i18n/context'
 import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { redirectWithFlash } from '~/server/flash.server'
 import type { Route } from './+types/edit'
+
+type ProductType =
+  | 'STOCK'
+  | 'MADE_TO_ORDER'
+  | 'SERVICE'
+  | 'ingredient'
+  | 'recipe'
+  | 'combo'
+  | 'sale_item'
+
+const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  STOCK: 'Producto con stock',
+  MADE_TO_ORDER: 'Hecho a pedido',
+  SERVICE: 'Servicio',
+  ingredient: 'Ingrediente',
+  recipe: 'Receta',
+  combo: 'Combo / Menú',
+  sale_item: 'Item de venta',
+}
+
+const FORCED_NO_INVENTORY: ProductType[] = ['SERVICE', 'recipe', 'combo']
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -79,6 +102,24 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
   const inputClass =
     'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
 
+  const [productType, setProductType] = useState<ProductType>(
+    (product.productType as ProductType) ?? 'STOCK'
+  )
+  const [tracksInventory, setTracksInventory] = useState(
+    product.trackInventory ?? true
+  )
+
+  const isInventoryForced = FORCED_NO_INVENTORY.includes(productType)
+
+  function handleProductTypeChange(newType: ProductType) {
+    setProductType(newType)
+    if (newType === 'STOCK') {
+      setTracksInventory(true)
+    } else {
+      setTracksInventory(false)
+    }
+  }
+
   return (
     <div className='mx-auto max-w-4xl p-6'>
       <Card>
@@ -95,6 +136,36 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
                 {actionData.message}
               </div>
             )}
+
+            {/* Product Type */}
+            <div>
+              <label
+                htmlFor='productType'
+                className='mb-2 block text-sm font-medium'
+              >
+                Tipo de producto
+              </label>
+              <select
+                id='productType'
+                name='productType'
+                value={productType}
+                onChange={(e) =>
+                  handleProductTypeChange(e.target.value as ProductType)
+                }
+                className={inputClass}
+              >
+                {(
+                  Object.entries(PRODUCT_TYPE_LABELS) as [
+                    ProductType,
+                    string,
+                  ][]
+                ).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
@@ -196,57 +267,99 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
 
-            <div className='grid gap-6 sm:grid-cols-2'>
-              <div>
-                <label
-                  htmlFor='stock'
-                  className='mb-2 block text-sm font-medium'
-                >
-                  {t('products.stock')}
-                </label>
-                <input
-                  type='number'
-                  id='stock'
-                  name='stock'
-                  min='0'
-                  defaultValue={product.stock ?? 0}
-                  placeholder='0'
-                  className={inputClass}
-                />
-                {actionData &&
-                  'errors' in actionData &&
-                  actionData.errors?.stock && (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.stock}
-                    </p>
+            {/* Track Inventory toggle */}
+            <div>
+              <input
+                type='hidden'
+                name='trackInventory'
+                value={tracksInventory ? 'true' : 'false'}
+              />
+              <div className='flex items-center gap-3'>
+                <button
+                  type='button'
+                  role='switch'
+                  aria-checked={tracksInventory}
+                  disabled={isInventoryForced}
+                  onClick={() =>
+                    !isInventoryForced && setTracksInventory(!tracksInventory)
+                  }
+                  className={cn(
+                    'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+                    tracksInventory ? 'bg-amber-500' : 'bg-muted',
+                    isInventoryForced && 'cursor-not-allowed opacity-50'
                   )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor='minStock'
-                  className='mb-2 block text-sm font-medium'
                 >
-                  {t('products.minStock')}
-                </label>
-                <input
-                  type='number'
-                  id='minStock'
-                  name='minStock'
-                  min='0'
-                  defaultValue={product.minStock ?? 0}
-                  placeholder={t('products.minStockPlaceholder')}
-                  className={inputClass}
-                />
-                {actionData &&
-                  'errors' in actionData &&
-                  actionData.errors?.minStock && (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.minStock}
-                    </p>
+                  <span
+                    className={cn(
+                      'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform',
+                      tracksInventory ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+                <span className='text-sm font-medium'>
+                  Controla inventario
+                  {isInventoryForced && (
+                    <span className='text-muted-foreground ml-1.5 text-xs font-normal'>
+                      (no aplica para este tipo)
+                    </span>
                   )}
+                </span>
               </div>
             </div>
+
+            {tracksInventory && (
+              <div className='grid gap-6 sm:grid-cols-2'>
+                <div>
+                  <label
+                    htmlFor='stock'
+                    className='mb-2 block text-sm font-medium'
+                  >
+                    {t('products.stock')}
+                  </label>
+                  <input
+                    type='number'
+                    id='stock'
+                    name='stock'
+                    min='0'
+                    defaultValue={product.stock ?? 0}
+                    placeholder='0'
+                    className={inputClass}
+                  />
+                  {actionData &&
+                    'errors' in actionData &&
+                    actionData.errors?.stock && (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.stock}
+                      </p>
+                    )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='minStock'
+                    className='mb-2 block text-sm font-medium'
+                  >
+                    {t('products.minStock')}
+                  </label>
+                  <input
+                    type='number'
+                    id='minStock'
+                    name='minStock'
+                    min='0'
+                    defaultValue={product.minStock ?? 0}
+                    placeholder={t('products.minStockPlaceholder')}
+                    className={inputClass}
+                  />
+                  {actionData &&
+                    'errors' in actionData &&
+                    actionData.errors?.minStock && (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.minStock}
+                      </p>
+                    )}
+                </div>
+              </div>
+            )}
 
             <div>
               <label

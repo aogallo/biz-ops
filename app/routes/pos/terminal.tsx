@@ -26,7 +26,10 @@ import { PosCloseShiftDialog } from '~/features/pos/components/PosCloseShiftDial
 import { PosCashMovementDialog } from '~/features/pos/components/PosCashMovementDialog'
 import { PosCreateCustomerDialog } from '~/features/pos/components/PosCreateCustomerDialog'
 import { PosProductAttributesDialog } from '~/features/pos/components/PosProductAttributesDialog'
-import { PosComboSelectionDialog, type PosComboDefinition } from '~/features/pos/components/PosComboSelectionDialog'
+import {
+  PosComboSelectionDialog,
+  type PosComboDefinition,
+} from '~/features/pos/components/PosComboSelectionDialog'
 import type { ReceiptData } from '~/features/pos/components/PosReceiptPreview'
 import {
   buildReceiptHtml,
@@ -48,6 +51,7 @@ import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { db } from '~/server/db'
 import { and, eq } from 'drizzle-orm'
 import type { Route } from './+types/terminal'
+import { PosProductRecipeDialog } from '~/features/pos/components/PosProductRecipeDialog'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const [userSession, posSession] = await Promise.all([
@@ -101,21 +105,25 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const sucursalId = terminal.sucursalId ?? undefined
 
-  const [products, categories, expectedCash, activeExchangeRate] = await Promise.all([
-    posRepository.getProductsForPos(organizationId, sucursalId),
-    posRepository.getCategories(organizationId),
-    openSession
-      ? posRepository.calculateExpectedCashForSession(openSession.id)
-      : Promise.resolve(0),
-    exchangeRateRepository.getActiveRate(organizationId, 'USD', 'GTQ'),
-  ])
+  const [products, categories, expectedCash, activeExchangeRate] =
+    await Promise.all([
+      posRepository.getProductsForPos(organizationId, sucursalId),
+      posRepository.getCategories(organizationId),
+      openSession
+        ? posRepository.calculateExpectedCashForSession(openSession.id)
+        : Promise.resolve(0),
+      exchangeRateRepository.getActiveRate(organizationId, 'USD', 'GTQ'),
+    ])
 
   // Fetch combo definitions for combo products
   const comboProducts = products.filter((p) => p.productType === 'combo')
   const comboDefsArray = await Promise.all(
     comboProducts.map((p) => comboRepository.getComboForPos(p.id))
   )
-  const comboDefinitions: Record<string, import('~/features/combo/server/repository').PosComboDefinition> = {}
+  const comboDefinitions: Record<
+    string,
+    import('~/features/combo/server/repository').PosComboDefinition
+  > = {}
   for (let i = 0; i < comboProducts.length; i++) {
     const def = comboDefsArray[i]
     if (def) {
@@ -156,7 +164,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     autoClosedStaleSession,
     expectedCash,
     comboDefinitions,
-    activeExchangeRate: activeExchangeRate ? Number(activeExchangeRate.rate) : null,
+    activeExchangeRate: activeExchangeRate
+      ? Number(activeExchangeRate.rate)
+      : null,
   }
 }
 
@@ -379,6 +389,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       )
     }
   }, [autoClosedStaleSession])
+
   const navigate = useNavigate()
   const fetcher = useFetcher<typeof action>()
   const customerFetcher = useFetcher<typeof action>()
@@ -406,7 +417,10 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
   const [attributeDialogProduct, setAttributeDialogProduct] =
     useState<PosProductForGrid | null>(null)
-  const [pendingComboProduct, setPendingComboProduct] = useState<PosProductForGrid | null>(null)
+  const [pendingComboProduct, setPendingComboProduct] =
+    useState<PosProductForGrid | null>(null)
+  const [recipeDialogProduct, setRecipeDialogProduct] =
+    useState<PosProductForGrid | null>(null)
 
   // No cashier profile
   if (!cashier) {
@@ -476,7 +490,14 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             discountPercent: 0,
             ivaType: 'taxed' as const,
             ivaRate: 12,
-            productType: product.productType as 'STOCK' | 'MADE_TO_ORDER' | 'SERVICE' | 'ingredient' | 'recipe' | 'combo' | 'sale_item',
+            productType: product.productType as
+              | 'STOCK'
+              | 'MADE_TO_ORDER'
+              | 'SERVICE'
+              | 'ingredient'
+              | 'recipe'
+              | 'combo'
+              | 'sale_item',
             trackInventory: true,
             stock: product.stock,
             selectedAttributes,
@@ -490,7 +511,10 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
   )
 
   const addComboToCart = useCallback(
-    (comboLine: import('~/features/pos/types').CartItem, childLines: import('~/features/pos/types').CartItem[]) => {
+    (
+      comboLine: import('~/features/pos/types').CartItem,
+      childLines: import('~/features/pos/types').CartItem[]
+    ) => {
       setCart((prev) => [...prev, comboLine, ...childLines])
       setSelectedCartItemId(comboLine.cartItemId)
       setPendingComboProduct(null)
@@ -505,6 +529,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         setPendingComboProduct(product)
       } else if (product.attributesJson?.attributes?.length) {
         setAttributeDialogProduct(product)
+      } else if (product.productType === 'recipe') {
+        setRecipeDialogProduct(product)
       } else {
         addToCart(product)
       }
@@ -945,10 +971,20 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
             if (!open) setPendingComboProduct(null)
           }}
           product={pendingComboProduct}
-          comboDef={comboDefinitions[pendingComboProduct.id] as PosComboDefinition}
+          comboDef={
+            comboDefinitions[pendingComboProduct.id] as PosComboDefinition
+          }
           onConfirm={addComboToCart}
         />
       )}
+
+      <PosProductRecipeDialog
+        product={recipeDialogProduct}
+        open={recipeDialogProduct !== null}
+        onOpenChange={(open) => {
+          if (!open) setRecipeDialogProduct(null)
+        }}
+      />
     </>
   )
 }

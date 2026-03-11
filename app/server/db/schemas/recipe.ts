@@ -1,15 +1,13 @@
 import { relations } from 'drizzle-orm'
 import {
+  boolean,
   integer,
   numeric,
   pgTable,
   text,
   uuid,
 } from 'drizzle-orm/pg-core'
-import {
-  createInsertSchema,
-  createSelectSchema,
-} from 'drizzle-zod'
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type { z } from 'zod'
 import { timestamps } from './common'
 import { productModel } from './products'
@@ -38,6 +36,7 @@ export const recipeItemModel = pgTable('recipe_item', {
     () => unitOfMeasureModel.id
   ),
   notes: text('notes'),
+  isOptional: boolean('is_optional').default(false),
   ...timestamps,
 })
 

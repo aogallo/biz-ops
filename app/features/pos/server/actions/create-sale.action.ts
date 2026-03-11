@@ -11,7 +11,10 @@ import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
 import { organizationAccountingConfigModel } from '~/server/db/schemas/organizationConfig'
 import { invoiceModel, invoiceLineModel } from '~/server/db/schemas/invoice'
-import { sucursalModel, sucursalInventoryModel } from '~/server/db/schemas/sucursal'
+import {
+  sucursalModel,
+  sucursalInventoryModel,
+} from '~/server/db/schemas/sucursal'
 import type { CheckoutInput } from '../../schemas'
 import { calculateLineTotals } from '../../types'
 import { posRepository } from '../repository'
@@ -33,6 +36,7 @@ export async function createSaleAction(input: CheckoutInput) {
   // Pre-generate DB UUIDs for all lines to resolve parent line IDs
   // Map from clientId (cartItemId) → generated DB UUID
   const clientIdToDbId = new Map<string, string>()
+
   for (const line of input.lines) {
     const newId = crypto.randomUUID()
     if (line.parentLineClientId) {
@@ -43,7 +47,9 @@ export async function createSaleAction(input: CheckoutInput) {
       // We use productId + lineType as a composite key for combo parent lookup
       // But we need to track by the client-sent parentLineClientId reference
       // The combo parent sends its own cartItemId as parentLineClientId on children
-      line.productId + (line.lineType ?? 'product') + (line.parentLineClientId ?? ''),
+      line.productId +
+        (line.lineType ?? 'product') +
+        (line.parentLineClientId ?? ''),
       newId
     )
   }
@@ -80,7 +86,11 @@ export async function createSaleAction(input: CheckoutInput) {
       const trackInventory = line.trackInventory ?? true
 
       // Skip combo header lines and non-tracked inventory
-      if (line.productType === 'combo' || lineType === 'combo' || !trackInventory) {
+      if (
+        line.productType === 'combo' ||
+        lineType === 'combo' ||
+        !trackInventory
+      ) {
         continue
       }
 
@@ -211,7 +221,8 @@ export async function createSaleAction(input: CheckoutInput) {
       if ((input.lines[i].lineType ?? 'product') === 'combo_item') {
         const parentTemplateId = input.lines[i].comboTemplateId
         if (parentTemplateId) {
-          lineData[i].parentLineId = comboLinesByTemplateId.get(parentTemplateId) ?? null
+          lineData[i].parentLineId =
+            comboLinesByTemplateId.get(parentTemplateId) ?? null
         }
       }
     }
@@ -258,7 +269,9 @@ export async function createSaleAction(input: CheckoutInput) {
         changeAmount: payment.changeAmount
           ? String(payment.changeAmount)
           : null,
-        exchangeRate: payment.exchangeRate ? String(payment.exchangeRate) : null,
+        exchangeRate: payment.exchangeRate
+          ? String(payment.exchangeRate)
+          : null,
         reference: payment.reference ?? null,
       }))
     )
@@ -408,9 +421,8 @@ async function generateInvoiceIfConfigured(
 
   if (!companyId) return // Cannot generate invoice without a company
 
-  const { formatted: invoiceNumber } = await posRepository.getNextTerminalInvoiceNumber(
-    input.terminalId
-  )
+  const { formatted: invoiceNumber } =
+    await posRepository.getNextTerminalInvoiceNumber(input.terminalId)
 
   const [invoice] = await db
     .insert(invoiceModel)
@@ -433,7 +445,9 @@ async function generateInvoiceIfConfigured(
     .returning()
 
   // Insert invoice lines — skip combo_item lines (price absorbed in combo line)
-  const billableLines = saleResult.lineData.filter((l) => l.lineType !== 'combo_item')
+  const billableLines = saleResult.lineData.filter(
+    (l) => l.lineType !== 'combo_item'
+  )
 
   await db.insert(invoiceLineModel).values(
     billableLines.map((line) => ({

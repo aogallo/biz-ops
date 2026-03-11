@@ -17,8 +17,11 @@ export const recipeItemInputSchema = z.object({
 export const upsertRecipeSchema = z.object({
   productId: z.string().uuid(),
   servings: z.number().int().positive().default(1),
-  items: z.array(recipeItemInputSchema).min(1, 'At least one ingredient is required'),
+  items: z
+    .array(recipeItemInputSchema)
+    .min(1, 'At least one ingredient is required'),
 })
 
 export type RecipeItemInput = z.infer<typeof recipeItemInputSchema>
 export type UpsertRecipeInput = z.infer<typeof upsertRecipeSchema>
+export type RecipeItem = z.infer<typeof selectRecipeItemSchema>

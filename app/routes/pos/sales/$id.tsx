@@ -111,6 +111,17 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
                 >
                   <div>
                     <p className='font-medium'>{line.productName}</p>
+                    {line.modificationsJson &&
+                      (line.modificationsJson as Array<{ type: string; name: string }>).filter(
+                        (m) => m.type === 'remove'
+                      ).length > 0 && (
+                        <p className='text-muted-foreground text-xs'>
+                          {(line.modificationsJson as Array<{ type: string; name: string }>)
+                            .filter((m) => m.type === 'remove')
+                            .map((m) => `Sin ${m.name}`)
+                            .join(' · ')}
+                        </p>
+                      )}
                     <p className='text-muted-foreground text-xs'>
                       {Number(line.quantity)} x Q
                       {Number(line.unitPrice).toFixed(2)}

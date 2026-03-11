@@ -27,6 +27,11 @@ export function buildReceiptHtml(receipt: ReceiptData, t: T): string {
       (line) =>
         `<div style="margin-bottom:5px;">
       <div>${line.productName}</div>
+      ${
+        line.modifications?.length
+          ? `<div style="font-size:10px;opacity:0.75;">${line.modifications.map((m) => `· Sin ${m}`).join(' ')}</div>`
+          : ''
+      }
       <div style="display:flex;justify-content:space-between;">
         <span>${Number(line.quantity)} x Q${Number(line.unitPrice).toFixed(2)}</span>
         <span>Q${Number(line.total).toFixed(2)}</span>

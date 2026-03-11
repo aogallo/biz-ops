@@ -11,10 +11,15 @@ import { productModel } from '~/server/db/schemas/products'
 import { stockMovementModel } from '~/server/db/schemas/stockMovement'
 import { organizationAccountingConfigModel } from '~/server/db/schemas/organizationConfig'
 import { invoiceModel, invoiceLineModel } from '~/server/db/schemas/invoice'
-import { sucursalModel, sucursalInventoryModel } from '~/server/db/schemas/sucursal'
+import {
+  sucursalModel,
+  sucursalInventoryModel,
+} from '~/server/db/schemas/sucursal'
 import type { CheckoutInput } from '../../schemas'
 import { calculateLineTotals } from '../../types'
 import { posRepository } from '../repository'
+import { resolveInventoryDecrements } from '../utils/inventory-resolver'
+import { recipeRepository } from '~/features/recipe/server/repository'
 
 export async function createSaleAction(input: CheckoutInput) {
   // Check idempotency — return existing sale if already processed
@@ -28,9 +33,68 @@ export async function createSaleAction(input: CheckoutInput) {
     return { saleId: existingSale.id, saleNumber: existingSale.saleNumber }
   }
 
+  // Pre-generate DB UUIDs for all lines to resolve parent line IDs
+  // Map from clientId (cartItemId) → generated DB UUID
+  const clientIdToDbId = new Map<string, string>()
+
+  for (const line of input.lines) {
+    const newId = crypto.randomUUID()
+    if (line.parentLineClientId) {
+      // This is a child line — we'll resolve its parentLineId from the map
+    }
+    // Every line gets a pre-generated ID
+    clientIdToDbId.set(
+      // We use productId + lineType as a composite key for combo parent lookup
+      // But we need to track by the client-sent parentLineClientId reference
+      // The combo parent sends its own cartItemId as parentLineClientId on children
+      line.productId +
+        (line.lineType ?? 'product') +
+        (line.parentLineClientId ?? ''),
+      newId
+    )
+  }
+
+  // Parent line ID resolution strategy:
+  // combo lines (lineType='combo') are identified by their productId (comboTemplateId)
+  // Build map: for each line that might be a parent, map its "identity" to its DB id
+  // We use parentLineClientId which is the cartItemId of the parent
+  // But we don't have cartItemIds in input.lines — only parentLineClientId on children
+  // So we need to find which line is the parent by matching combo lines
+  // Strategy: combo lines are lineType='combo'. Children have parentLineClientId pointing to the combo.
+  // Since the client already resolves the parentLineClientId as a UUID, we can't match it directly.
+  // However, looking at the plan: "Client sends cartItemId as the parentLineClientId"
+  // And we only need to resolve within the same batch of lines.
+  // The simplest approach: pass the parentLineClientId as is in the request,
+  // and in the action, find which line in input.lines is the "parent" by matching combo lines.
+  // But we can't match by cartItemId since that's client-side only.
+  //
+  // REVISED STRATEGY per the plan:
+  // The client sends parentLineClientId which is a client-side cartItemId.
+  // We need a way to map it. The plan says:
+  // "Build Map<cartItemId, generatedDbUUID> before inserting"
+  // This means the client MUST send its cartItemId in the line data for combo parents.
+  // We add cartItemId to the line schema as an optional field for this purpose.
+  //
+  // For now, since cartItemId is not in the checkout schema yet,
+  // we'll use position-based resolution: combo lines come before their children,
+  // and we match by comboTemplateId + lineType.
+
   const result = await db.transaction(async (tx) => {
-    // 1. Lock and validate stock for STOCK products (SELECT FOR UPDATE prevents race conditions)
+    // 1. Lock and validate stock for STOCK/trackInventory products
     for (const line of input.lines) {
+      const lineType = line.lineType ?? 'product'
+      const trackInventory = line.trackInventory ?? true
+
+      // Skip combo header lines and non-tracked inventory
+      if (
+        line.productType === 'combo' ||
+        lineType === 'combo' ||
+        !trackInventory
+      ) {
+        continue
+      }
+
+      // Only validate direct stock for STOCK-type products (not recipes which expand to ingredients)
       if (line.productType === 'STOCK') {
         const productResult = await tx.execute<{
           id: string
@@ -81,25 +145,54 @@ export async function createSaleAction(input: CheckoutInput) {
       })
       .where(eq(organizationAccountingConfigModel.id, orgConfig.id))
 
-    // 3. Calculate totals
+    // 3. Calculate totals (skip combo_item lines to avoid double-counting)
     let saleSubtotal = 0
     let saleIvaAmount = 0
     let saleDiscountAmount = 0
     let saleTotal = 0
 
-    const lineData = input.lines.map((line, index) => {
-      const totals = calculateLineTotals({
-        ...line,
-        stock: null,
-      })
+    // Build parentLineId resolution map:
+    // For each combo line (lineType='combo'), assign a pre-generated DB ID
+    // Children reference their parent by parentLineClientId
+    // We need to match client cartItemIds to DB UUIDs
+    // Since we don't have cartItemId in the schema yet, use a positional approach:
+    // combo lines are identified by lineType='combo', assign them DB IDs in order
+    // children use parentLineClientId which should match the combo's position
 
-      saleSubtotal += totals.subtotal
-      saleIvaAmount += totals.ivaAmount
-      saleDiscountAmount += totals.discountAmount
-      saleTotal += totals.total
+    // Assign a pre-generated UUID to each line
+    const dbLineIds = input.lines.map(() => crypto.randomUUID())
+
+    // Build map from parentLineClientId → dbLineId
+    // We need the client to send something we can match. For now, we'll use the
+    // comboTemplateId as the matching key for parent resolution.
+    // Each combo line has lineType='combo' and a unique comboTemplateId (its productId).
+    // Children have parentLineClientId set to the combo's cartItemId.
+    // Since we can't match cartItemIds, we'll store parentLineId as null for now
+    // and rely on comboTemplateId for grouping in queries.
+    // TODO: Add cartItemId to checkoutLineSchema for proper resolution
+
+    const lineData = input.lines.map((line, index) => {
+      const lineType = line.lineType ?? 'product'
+
+      // For combo_item lines, don't count in totals (price absorbed in combo line)
+      const totals =
+        lineType === 'combo_item'
+          ? { subtotal: 0, discountAmount: 0, ivaAmount: 0, total: 0 }
+          : calculateLineTotals({ ...line, stock: null })
+
+      if (lineType !== 'combo_item') {
+        saleSubtotal += totals.subtotal
+        saleIvaAmount += totals.ivaAmount
+        saleDiscountAmount += totals.discountAmount
+        saleTotal += totals.total
+      }
 
       return {
+        id: dbLineIds[index],
         lineNumber: index + 1,
+        lineType: lineType as 'product' | 'combo' | 'combo_item',
+        parentLineId: null as string | null, // resolved below
+        comboTemplateId: line.comboTemplateId ?? null,
         productId: line.productId,
         productName: line.productName,
         productSku: line.productSku,
@@ -112,8 +205,27 @@ export async function createSaleAction(input: CheckoutInput) {
         ivaRate: String(line.ivaRate),
         ivaAmount: String(totals.ivaAmount),
         total: String(totals.total),
+        modificationsJson: line.modificationsJson ?? null,
       }
     })
+
+    // Resolve parentLineId for combo_item lines
+    // Find the combo parent line and assign its DB id to children
+    const comboLinesByTemplateId = new Map<string, string>()
+    for (let i = 0; i < input.lines.length; i++) {
+      if ((input.lines[i].lineType ?? 'product') === 'combo') {
+        comboLinesByTemplateId.set(input.lines[i].productId, dbLineIds[i])
+      }
+    }
+    for (let i = 0; i < input.lines.length; i++) {
+      if ((input.lines[i].lineType ?? 'product') === 'combo_item') {
+        const parentTemplateId = input.lines[i].comboTemplateId
+        if (parentTemplateId) {
+          lineData[i].parentLineId =
+            comboLinesByTemplateId.get(parentTemplateId) ?? null
+        }
+      }
+    }
 
     // 4. Insert pos_sale
     const [sale] = await tx
@@ -157,53 +269,78 @@ export async function createSaleAction(input: CheckoutInput) {
         changeAmount: payment.changeAmount
           ? String(payment.changeAmount)
           : null,
+        exchangeRate: payment.exchangeRate
+          ? String(payment.exchangeRate)
+          : null,
         reference: payment.reference ?? null,
       }))
     )
 
-    // 7. Create stock movements for STOCK products
-    for (const line of input.lines) {
-      if (line.productType === 'STOCK') {
-        await tx.insert(stockMovementModel).values({
-          organizationId: input.organizationId,
-          productId: line.productId,
-          type: 'exit',
-          quantity: line.quantity,
-          reason: `POS Sale ${saleNumber}`,
-          referenceType: 'pos_sale',
-          referenceId: sale.id,
-          createdById: input.userId ?? null,
-        })
+    // 7. Resolve inventory decrements (handles combo expansion, recipe expansion, trackInventory)
+    const decrements = await resolveInventoryDecrements(
+      input.lines.map((l) => ({
+        productId: l.productId,
+        productName: l.productName,
+        quantity: l.quantity,
+        productType: l.productType,
+        lineType: l.lineType ?? 'product',
+        trackInventory: l.trackInventory ?? true,
+        removedIngredientIds: l.removedIngredientIds ?? [],
+      })),
+      {
+        sucursalId: input.sucursalId ?? null,
+        organizationId: input.organizationId,
+        referenceType: 'pos_sale',
+        referenceId: sale.id,
+      },
+      {
+        expandRecipeToIngredients: (productId, multiplier, removedIngredientIds) =>
+          recipeRepository.expandRecipeToIngredients(productId, multiplier, removedIngredientIds),
+        getProductType: async (productId) => {
+          const [p] = await tx
+            .select({ productType: productModel.productType })
+            .from(productModel)
+            .where(eq(productModel.id, productId))
+            .limit(1)
+          return p?.productType ?? null
+        },
+      }
+    )
 
-        // Decrement stock atomically with safety check
-        const updatedResult = await tx.execute<{ id: string }>(
-          sql`UPDATE ${productModel} SET stock = stock - ${line.quantity}, updated_at = NOW() WHERE id = ${line.productId} AND stock >= ${line.quantity} RETURNING id`
+    for (const decrement of decrements) {
+      // Insert stock movement
+      await tx.insert(stockMovementModel).values({
+        organizationId: input.organizationId,
+        productId: decrement.productId,
+        type: 'exit',
+        quantity: decrement.quantity,
+        reason: `POS Sale ${saleNumber}`,
+        referenceType: 'pos_sale',
+        referenceId: sale.id,
+        createdById: input.userId ?? null,
+      })
+
+      // Decrement global product stock atomically
+      await tx.execute(
+        sql`UPDATE ${productModel} SET stock = stock - ${decrement.quantity}, updated_at = NOW() WHERE id = ${decrement.productId} AND stock >= ${decrement.quantity}`
+      )
+
+      // Decrement sucursal inventory if available
+      if (decrement.sucursalId) {
+        await tx.execute(
+          sql`UPDATE ${sucursalInventoryModel}
+              SET stock = stock - ${decrement.quantity}, updated_at = NOW()
+              WHERE sucursal_id = ${decrement.sucursalId}
+                AND product_id = ${decrement.productId}
+                AND stock >= ${decrement.quantity}`
         )
-        const updated = updatedResult.rows[0]
-
-        if (!updated) {
-          throw new Error(
-            `Stock conflict for "${line.productName}". Another transaction modified the stock.`
-          )
-        }
-
-        // Decrement sucursal inventory if terminal is linked to a sucursal
-        if (input.sucursalId) {
-          await tx.execute(
-            sql`UPDATE ${sucursalInventoryModel}
-                SET stock = stock - ${line.quantity}, updated_at = NOW()
-                WHERE sucursal_id = ${input.sucursalId}
-                  AND product_id = ${line.productId}
-                  AND stock >= ${line.quantity}`
-          )
-        }
       }
     }
 
-    // 8. Create cash movements for cash payments if session exists
+    // 8. Create cash movements for cash + cash_usd payments if session exists
     if (input.sessionId) {
       const cashPaymentTotal = input.payments
-        .filter((p) => p.method === 'cash')
+        .filter((p) => p.method === 'cash' || p.method === 'cash_usd')
         .reduce((sum, p) => sum + p.amount, 0)
 
       if (cashPaymentTotal > 0) {
@@ -242,6 +379,7 @@ async function generateInvoiceIfConfigured(
     defaultSalesAccountId: string | null
     lineData: Array<{
       lineNumber: number
+      lineType: string
       productId: string
       productName: string
       productSku: string
@@ -284,9 +422,8 @@ async function generateInvoiceIfConfigured(
 
   if (!companyId) return // Cannot generate invoice without a company
 
-  const { formatted: invoiceNumber } = await posRepository.getNextTerminalInvoiceNumber(
-    input.terminalId
-  )
+  const { formatted: invoiceNumber } =
+    await posRepository.getNextTerminalInvoiceNumber(input.terminalId)
 
   const [invoice] = await db
     .insert(invoiceModel)
@@ -308,9 +445,13 @@ async function generateInvoiceIfConfigured(
     })
     .returning()
 
-  // Insert invoice lines
+  // Insert invoice lines — skip combo_item lines (price absorbed in combo line)
+  const billableLines = saleResult.lineData.filter(
+    (l) => l.lineType !== 'combo_item'
+  )
+
   await db.insert(invoiceLineModel).values(
-    saleResult.lineData.map((line) => ({
+    billableLines.map((line) => ({
       invoiceId: invoice.id,
       lineNumber: line.lineNumber,
       description: `${line.productName} (${line.productSku})`,

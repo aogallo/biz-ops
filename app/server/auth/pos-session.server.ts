@@ -18,15 +18,20 @@ const posSessionStorage = createCookieSessionStorage({
   },
 })
 
-export async function getPosSession(request: Request): Promise<PosCashierSession | null> {
+export async function getPosSession(
+  request: Request
+): Promise<PosCashierSession | null> {
   try {
-    const session = await posSessionStorage.getSession(request.headers.get('Cookie'))
+    const session = await posSessionStorage.getSession(
+      request.headers.get('Cookie')
+    )
     const cashierId = session.get('cashierId')
     const cashierName = session.get('cashierName')
     const organizationId = session.get('organizationId')
     const sucursalId = session.get('sucursalId')
 
-    if (!cashierId || !cashierName || !organizationId || !sucursalId) return null
+    if (!cashierId || !cashierName || !organizationId || !sucursalId)
+      return null
 
     return { cashierId, cashierName, organizationId, sucursalId }
   } catch {
@@ -38,7 +43,9 @@ export async function setPosSession(
   request: Request,
   data: PosCashierSession
 ): Promise<string> {
-  const session = await posSessionStorage.getSession(request.headers.get('Cookie'))
+  const session = await posSessionStorage.getSession(
+    request.headers.get('Cookie')
+  )
   session.set('cashierId', data.cashierId)
   session.set('cashierName', data.cashierName)
   session.set('organizationId', data.organizationId)
@@ -47,6 +54,8 @@ export async function setPosSession(
 }
 
 export async function clearPosSession(request: Request): Promise<string> {
-  const session = await posSessionStorage.getSession(request.headers.get('Cookie'))
+  const session = await posSessionStorage.getSession(
+    request.headers.get('Cookie')
+  )
   return posSessionStorage.destroySession(session)
 }

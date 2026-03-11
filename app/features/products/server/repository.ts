@@ -1,12 +1,4 @@
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  ne,
-  sql,
-  type SQL,
-} from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, ne, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
@@ -63,9 +55,7 @@ export class ProductsRepository {
     filters: ProductFilters,
     pagination: PaginationOptions
   ) {
-    const conditions: SQL[] = [
-      eq(productModel.organizationId, organizationId),
-    ]
+    const conditions: SQL[] = [eq(productModel.organizationId, organizationId)]
 
     if (filters.search) {
       conditions.push(
@@ -79,15 +69,15 @@ export class ProductsRepository {
 
     if (filters.stockStatus === 'out') {
       conditions.push(
-        sql`(${productModel.stock} = 0 OR ${productModel.stock} IS NULL)`
+        sql`${productModel.stock} IS NOT NULL AND ${productModel.stock} = 0`
       )
     } else if (filters.stockStatus === 'low') {
       conditions.push(
-        sql`${productModel.stock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
+        sql`${productModel.stock} IS NOT NULL AND ${productModel.stock} > 0 AND ${productModel.minStock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
       )
     } else if (filters.stockStatus === 'normal') {
       conditions.push(
-        sql`${productModel.stock} > ${productModel.minStock}`
+        sql`(${productModel.stock} IS NULL OR ${productModel.minStock} = 0 OR ${productModel.stock} > ${productModel.minStock})`
       )
     }
 
@@ -217,11 +207,7 @@ export class ProductsRepository {
     }
   }
 
-  async existsBySku(
-    organizationId: string,
-    sku: string,
-    excludeId?: string
-  ) {
+  async existsBySku(organizationId: string, sku: string, excludeId?: string) {
     const conditions = excludeId
       ? and(
           eq(productModel.organizationId, organizationId),
@@ -296,6 +282,40 @@ export class ProductsRepository {
     }
   }
 
+  async getByType(organizationId: string, productType: string) {
+    return await db
+      .select({
+        id: productModel.id,
+        name: productModel.name,
+        sku: productModel.sku,
+      })
+      .from(productModel)
+      .where(
+        and(
+          eq(productModel.organizationId, organizationId),
+          eq(productModel.productType, productType as 'ingredient')
+        )
+      )
+      .orderBy(productModel.name)
+  }
+
+  async getByTypes(organizationId: string, productTypes: string[]) {
+    return await db
+      .select({
+        id: productModel.id,
+        name: productModel.name,
+        sku: productModel.sku,
+      })
+      .from(productModel)
+      .where(
+        and(
+          eq(productModel.organizationId, organizationId),
+          inArray(productModel.productType, productTypes as ['STOCK'])
+        )
+      )
+      .orderBy(productModel.name)
+  }
+
   async getLowStockProducts(organizationId: string, limit = 5) {
     return await db
       .select({
@@ -313,7 +333,9 @@ export class ProductsRepository {
           sql`${productModel.stock} <= ${productModel.minStock} AND ${productModel.minStock} > 0`
         )
       )
-      .orderBy(sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`)
+      .orderBy(
+        sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`
+      )
       .limit(limit)
   }
 }

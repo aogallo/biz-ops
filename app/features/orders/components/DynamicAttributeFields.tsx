@@ -65,7 +65,7 @@ export function DynamicAttributeFields({
                 className={inputClass}
               >
                 <option value=''>Select...</option>
-                {def.options?.map((opt) => (
+                {def.options?.map((opt: string) => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>

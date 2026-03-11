@@ -269,9 +269,9 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
                       <td className='px-4 py-3 font-mono text-xs'>{item.productSku}</td>
                       <td className='px-4 py-3 text-center font-medium'>{item.stock}</td>
                       <td className='px-4 py-3 text-center'>
-                        {item.stock === 0 ? (
+                        {Number(item.stock) === 0 ? (
                           <Badge variant='destructive'>Sin stock</Badge>
-                        ) : item.stock <= item.minStock ? (
+                        ) : Number(item.stock) <= item.minStock ? (
                           <Badge variant='outline' className='text-amber-600'>Stock bajo</Badge>
                         ) : (
                           <Badge variant='default'>OK</Badge>

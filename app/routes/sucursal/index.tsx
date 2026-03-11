@@ -59,12 +59,22 @@ const columns: ColumnDef<SucursalRow>[] = [
     id: 'actions',
     header: 'Acciones',
     cell: ({ row }) => (
-      <Link
-        to={`/sucursal/${row.original.id}/edit`}
-        className='text-primary text-sm hover:underline'
-      >
-        Editar
-      </Link>
+      <div className='flex items-center gap-3'>
+        <Link
+          to={`/sucursal/${row.original.id}/edit`}
+          className='text-primary text-sm hover:underline'
+        >
+          Editar
+        </Link>
+        <a
+          href={`/kitchen/${row.original.id}`}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-muted-foreground text-sm hover:underline'
+        >
+          Cocina
+        </a>
+      </div>
     ),
   },
 ]

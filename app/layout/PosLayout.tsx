@@ -8,6 +8,7 @@ import { isSuperAdmin } from '~/server/permissions'
 import type { Route } from './+types/PosLayout'
 
 export async function loader({ request }: Route.LoaderArgs) {
+  try {
   const [userSession, posSession] = await Promise.all([
     getOptionalAuth(request),
     getPosSession(request),
@@ -74,6 +75,22 @@ export async function loader({ request }: Route.LoaderArgs) {
     organizations,
     posSession: null,
   }
+  } catch (error) {
+    if (error instanceof Response) throw error
+    throw redirect('/pos-login')
+  }
+}
+
+export function ErrorBoundary() {
+  return (
+    <div className='flex h-screen flex-col items-center justify-center gap-4'>
+      <h1 className='text-2xl font-bold'>Ocurrió un error</h1>
+      <p className='text-muted-foreground'>Intentá ingresar nuevamente.</p>
+      <a href='/pos-login' className='text-primary hover:underline'>
+        Ir al login POS
+      </a>
+    </div>
+  )
 }
 
 export default function PosLayout({ loaderData }: Route.ComponentProps) {

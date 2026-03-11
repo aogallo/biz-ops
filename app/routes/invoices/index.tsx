@@ -176,6 +176,14 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         },
       },
       {
+        accessorKey: 'sucursal',
+        header: 'Sucursal',
+        cell: ({ row }) => {
+          const sucursal = row.original.sucursal
+          return <div>{sucursal?.name || '-'}</div>
+        },
+      },
+      {
         accessorKey: 'total',
         header: () => <div className="text-right">{t('invoices.total')}</div>,
         cell: ({ row }) => {

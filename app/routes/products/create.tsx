@@ -15,6 +15,27 @@ import {
   Upload,
   AlertCircle,
 } from 'lucide-react'
+
+type ProductType =
+  | 'STOCK'
+  | 'MADE_TO_ORDER'
+  | 'SERVICE'
+  | 'ingredient'
+  | 'recipe'
+  | 'combo'
+  | 'sale_item'
+
+const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  STOCK: 'Producto con stock',
+  MADE_TO_ORDER: 'Hecho a pedido',
+  SERVICE: 'Servicio',
+  ingredient: 'Ingrediente',
+  recipe: 'Receta',
+  combo: 'Combo / Menú',
+  sale_item: 'Item de venta',
+}
+
+const FORCED_NO_INVENTORY: ProductType[] = ['SERVICE', 'recipe', 'combo']
 import { Button } from '~/components/ui/button'
 import { categoriesRepository } from '~/features/categories/server/repository'
 import { createProduct } from '~/features/products/server/actions/create.action'
@@ -52,6 +73,19 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
   const { t } = useTranslation()
 
   const [dragOver, setDragOver] = useState(false)
+  const [productType, setProductType] = useState<ProductType>('STOCK')
+  const [tracksInventory, setTracksInventory] = useState(true)
+
+  const isInventoryForced = FORCED_NO_INVENTORY.includes(productType)
+
+  function handleProductTypeChange(newType: ProductType) {
+    setProductType(newType)
+    if (newType === 'STOCK') {
+      setTracksInventory(true)
+    } else {
+      setTracksInventory(false)
+    }
+  }
 
   return (
     <div className='space-y-6 p-6'>
@@ -87,6 +121,36 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div className='space-y-4'>
+                {/* Product Type */}
+                <div>
+                  <label
+                    htmlFor='productType'
+                    className='mb-1.5 block text-sm font-medium'
+                  >
+                    Tipo de producto
+                  </label>
+                  <select
+                    id='productType'
+                    name='productType'
+                    value={productType}
+                    onChange={(e) =>
+                      handleProductTypeChange(e.target.value as ProductType)
+                    }
+                    className={inputClass}
+                  >
+                    {(
+                      Object.entries(PRODUCT_TYPE_LABELS) as [
+                        ProductType,
+                        string,
+                      ][]
+                    ).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className='grid gap-4 sm:grid-cols-2'>
                   {/* SKU */}
                   <div>
@@ -234,65 +298,108 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                 </h2>
               </div>
 
-              <div className='grid gap-4 sm:grid-cols-2'>
-                {/* Initial Stock */}
-                <div>
-                  <label
-                    htmlFor='stock'
-                    className='mb-1.5 block text-sm font-medium'
-                  >
-                    {t('products.initialStock')}
-                  </label>
-                  <input
-                    type='number'
-                    id='stock'
-                    name='stock'
-                    min='0'
-                    defaultValue='0'
+              {/* Track Inventory toggle */}
+              <div className='mb-4'>
+                <input
+                  type='hidden'
+                  name='trackInventory'
+                  value={tracksInventory ? 'true' : 'false'}
+                />
+                <div className='flex items-center gap-3'>
+                  <button
+                    type='button'
+                    role='switch'
+                    aria-checked={tracksInventory}
+                    disabled={isInventoryForced}
+                    onClick={() =>
+                      !isInventoryForced &&
+                      setTracksInventory(!tracksInventory)
+                    }
                     className={cn(
-                      inputClass,
-                      actionData?.errors?.stock &&
-                        'border-destructive focus-visible:ring-destructive'
+                      'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+                      tracksInventory ? 'bg-amber-500' : 'bg-muted',
+                      isInventoryForced && 'cursor-not-allowed opacity-50'
                     )}
-                  />
-                  {actionData?.errors?.stock && (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.stock}
-                    </p>
-                  )}
-                </div>
-
-                {/* Min Stock */}
-                <div>
-                  <label
-                    htmlFor='minStock'
-                    className='mb-1.5 block text-sm font-medium'
                   >
-                    {t('products.minStock')}
-                  </label>
-                  <input
-                    type='number'
-                    id='minStock'
-                    name='minStock'
-                    min='0'
-                    defaultValue='5'
-                    className={cn(
-                      inputClass,
-                      actionData?.errors?.minStock &&
-                        'border-destructive focus-visible:ring-destructive'
+                    <span
+                      className={cn(
+                        'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform',
+                        tracksInventory ? 'translate-x-6' : 'translate-x-1'
+                      )}
+                    />
+                  </button>
+                  <span className='text-sm font-medium'>
+                    Controla inventario
+                    {isInventoryForced && (
+                      <span className='text-muted-foreground ml-1.5 text-xs font-normal'>
+                        (no aplica para este tipo)
+                      </span>
                     )}
-                  />
-                  {actionData?.errors?.minStock ? (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.minStock}
-                    </p>
-                  ) : (
-                    <p className='text-muted-foreground mt-1 text-xs'>
-                      {t('products.minStockHelper')}
-                    </p>
-                  )}
+                  </span>
                 </div>
               </div>
+
+              {tracksInventory && (
+                <div className='grid gap-4 sm:grid-cols-2'>
+                  {/* Initial Stock */}
+                  <div>
+                    <label
+                      htmlFor='stock'
+                      className='mb-1.5 block text-sm font-medium'
+                    >
+                      {t('products.initialStock')}
+                    </label>
+                    <input
+                      type='number'
+                      id='stock'
+                      name='stock'
+                      min='0'
+                      defaultValue='0'
+                      className={cn(
+                        inputClass,
+                        actionData?.errors?.stock &&
+                          'border-destructive focus-visible:ring-destructive'
+                      )}
+                    />
+                    {actionData?.errors?.stock && (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.stock}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Min Stock */}
+                  <div>
+                    <label
+                      htmlFor='minStock'
+                      className='mb-1.5 block text-sm font-medium'
+                    >
+                      {t('products.minStock')}
+                    </label>
+                    <input
+                      type='number'
+                      id='minStock'
+                      name='minStock'
+                      min='0'
+                      defaultValue='5'
+                      className={cn(
+                        inputClass,
+                        actionData?.errors?.minStock &&
+                          'border-destructive focus-visible:ring-destructive'
+                      )}
+                    />
+                    {actionData?.errors?.minStock ? (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.minStock}
+                      </p>
+                    ) : (
+                      <p className='text-muted-foreground mt-1 text-xs'>
+                        {t('products.minStockHelper')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* Custom Attributes */}

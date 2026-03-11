@@ -5,6 +5,7 @@ import {
   eq,
   ilike,
   inArray,
+  notInArray,
   or,
   sql,
   type SQL,
@@ -35,7 +36,12 @@ import type {
   CreateCashierInput,
   UpdateCashierInput,
 } from '../schemas'
-import type { PosProductForGrid, PosTerminalWithSucursal } from '../types'
+import type {
+  PosProductForGrid,
+  PosRecipeForGrid,
+  PosTerminalWithSucursal,
+} from '../types'
+import { recipeItemModel, recipeModel } from '~/server/db/schemas'
 
 export class PosRepository {
   // ── Terminal CRUD ──
@@ -58,6 +64,8 @@ export class PosRepository {
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
         autoPrintReceipt: posTerminalModel.autoPrintReceipt,
+        printerName: posTerminalModel.printerName,
+        printMethod: posTerminalModel.printMethod,
         sucursalId: posTerminalModel.sucursalId,
         sucursalName: sucursalModel.name,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
@@ -69,10 +77,7 @@ export class PosRepository {
         sucursalModel,
         eq(posTerminalModel.sucursalId, sucursalModel.id)
       )
-      .leftJoin(
-        companyModel,
-        eq(posTerminalModel.companyId, companyModel.id)
-      )
+      .leftJoin(companyModel, eq(posTerminalModel.companyId, companyModel.id))
       .where(and(...conditions))
       .orderBy(posTerminalModel.name)
 
@@ -89,6 +94,8 @@ export class PosRepository {
         isActive: posTerminalModel.isActive,
         autoGenerateInvoice: posTerminalModel.autoGenerateInvoice,
         autoPrintReceipt: posTerminalModel.autoPrintReceipt,
+        printerName: posTerminalModel.printerName,
+        printMethod: posTerminalModel.printMethod,
         defaultBusinessPartnerId: posTerminalModel.defaultBusinessPartnerId,
         sucursalName: sucursalModel.name,
         companyId: posTerminalModel.companyId,
@@ -99,10 +106,7 @@ export class PosRepository {
         sucursalModel,
         eq(posTerminalModel.sucursalId, sucursalModel.id)
       )
-      .leftJoin(
-        companyModel,
-        eq(posTerminalModel.companyId, companyModel.id)
-      )
+      .leftJoin(companyModel, eq(posTerminalModel.companyId, companyModel.id))
       .where(eq(posTerminalModel.id, id))
       .limit(1)
 
@@ -142,7 +146,10 @@ export class PosRepository {
     categoryId?: string,
     search?: string
   ): Promise<PosProductForGrid[]> {
-    const conditions: SQL[] = [eq(productModel.organizationId, organizationId)]
+    const conditions: SQL[] = [
+      eq(productModel.organizationId, organizationId),
+      notInArray(productModel.productType, ['ingredient', 'sale_item']),
+    ]
 
     if (categoryId) {
       conditions.push(eq(productModel.categoryId, categoryId))
@@ -154,7 +161,34 @@ export class PosRepository {
       )
     }
 
-    return await db
+    const recipeItemsSubquery = db
+      .select({
+        productId: recipeModel.productId,
+        recipeItems: sql<PosRecipeForGrid[]>`
+          json_agg(
+            json_build_object(
+              'id', ${recipeItemModel.id},
+              'name', ${productModel.name},
+              'recipeId', ${recipeItemModel.recipeId},
+              'ingredientProductId', ${recipeItemModel.ingredientProductId},
+              'quantity', ${recipeItemModel.quantity},
+              'unitOfMeasureId', ${recipeItemModel.unitOfMeasureId},
+              'notes', ${recipeItemModel.notes},
+              'isOptional', ${recipeItemModel.isOptional}
+            )
+          )
+        `.as('recipe_items'),
+      })
+      .from(recipeModel)
+      .leftJoin(recipeItemModel, eq(recipeModel.id, recipeItemModel.recipeId))
+      .leftJoin(
+        productModel,
+        eq(recipeItemModel.ingredientProductId, productModel.id)
+      )
+      .groupBy(recipeModel.productId)
+      .as('recipe_items')
+
+    const products = await db
       .select({
         id: productModel.id,
         name: productModel.name,
@@ -166,9 +200,12 @@ export class PosRepository {
         categoryId: productModel.categoryId,
         categoryName: productCategoryModel.name,
         categoryColor: productCategoryModel.color,
-        attributesJson: sql<import('../types').ProductAttributesJson | null>`${productModel.attributesJson}`,
+        trackInventory: productModel.trackInventory,
+        attributesJson: sql<
+          import('../types').ProductAttributesJson | null
+        >`${productModel.attributesJson}`,
         sucursalStock: sucursalId
-          ? sucursalInventoryModel.stock
+          ? sql<number | null>`CAST(${sucursalInventoryModel.stock} AS float8)`
           : sql<number | null>`null`,
         otherSucursalesStock: sucursalId
           ? sql<{ name: string; stock: number }[] | null>`(
@@ -180,11 +217,16 @@ export class PosRepository {
                 AND si.stock > 0
             )`
           : sql<null>`null`,
+        recipeItems: recipeItemsSubquery.recipeItems,
       })
       .from(productModel)
       .leftJoin(
         productCategoryModel,
         eq(productModel.categoryId, productCategoryModel.id)
+      )
+      .leftJoin(
+        recipeItemsSubquery,
+        eq(recipeItemsSubquery.productId, productModel.id)
       )
       .leftJoin(
         sucursalInventoryModel,
@@ -197,6 +239,9 @@ export class PosRepository {
       )
       .where(and(...conditions))
       .orderBy(productModel.name)
+      .groupBy()
+
+    return products
   }
 
   // ── Sales ──
@@ -235,7 +280,11 @@ export class PosRepository {
           .limit(1)
           .then((r) => r[0] ?? null),
         db
-          .select({ id: posTerminalModel.id, name: posTerminalModel.name })
+          .select({
+            id: posTerminalModel.id,
+            name: posTerminalModel.name,
+            printerName: posTerminalModel.printerName,
+          })
           .from(posTerminalModel)
           .where(eq(posTerminalModel.id, sale.terminalId))
           .limit(1)
@@ -714,6 +763,32 @@ export class PosRepository {
     }
 
     return { ...cashier, sucursalId: sucursal.id, sucursalName: sucursal.name }
+  }
+
+  async getNextTerminalInvoiceNumber(terminalId: string): Promise<{
+    prefix: string
+    number: number
+    formatted: string
+  }> {
+    const [result] = await db
+      .update(posTerminalModel)
+      .set({
+        nextInvoiceNumber: sql`${posTerminalModel.nextInvoiceNumber} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(posTerminalModel.id, terminalId))
+      .returning()
+
+    if (!result) {
+      throw new Error('POS terminal not found')
+    }
+
+    const currentNumber = result.nextInvoiceNumber - 1
+    return {
+      prefix: result.invoicePrefix,
+      number: currentNumber,
+      formatted: `${result.invoicePrefix}-${String(currentNumber).padStart(6, '0')}`,
+    }
   }
 
   async verifyCashierPin(cashierId: string, pin: string) {

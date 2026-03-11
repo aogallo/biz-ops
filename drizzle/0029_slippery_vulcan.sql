@@ -1,0 +1,1 @@
+ALTER TABLE "recipe_item" ADD COLUMN "is_optional" boolean DEFAULT false;

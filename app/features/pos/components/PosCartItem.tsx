@@ -11,6 +11,7 @@ interface PosCartItemProps {
   onRemove: (cartItemId: string) => void
   isSelected?: boolean
   onSelect?: (cartItemId: string) => void
+  isComboChild?: boolean
 }
 
 export function PosCartItem({
@@ -19,6 +20,7 @@ export function PosCartItem({
   onRemove,
   isSelected,
   onSelect,
+  isComboChild = false,
 }: PosCartItemProps) {
   const { t } = useTranslation()
   const { total } = calculateLineTotals(item)
@@ -27,10 +29,24 @@ export function PosCartItem({
     ? Object.entries(item.selectedAttributes)
     : []
 
+  if (isComboChild) {
+    return (
+      <div className='text-muted-foreground flex items-center gap-1 border-b py-1 pl-4 text-xs'>
+        <span className='mr-1 opacity-50'>└</span>
+        <span className='truncate'>{item.productName}</span>
+        {item.modificationsJson?.map((mod, i) => (
+          <span key={i} className='opacity-60'>
+            · {mod.name}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
-        'flex items-center gap-2 border-b py-2 cursor-pointer rounded-sm px-1 -mx-1 transition-colors',
+        '-mx-1 flex cursor-pointer items-center gap-2 rounded-sm border-b px-1 py-2 transition-colors',
         isSelected && 'bg-primary/10'
       )}
       onClick={() => onSelect?.(item.cartItemId)}
@@ -42,9 +58,18 @@ export function PosCartItem({
             {attrEntries.map(([, v]) => v).join(' · ')}
           </p>
         )}
-        <p className='text-muted-foreground text-xs'>
-          Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}
-        </p>
+        {item.productType === 'recipe' &&
+          item.modificationsJson &&
+          item.modificationsJson.length > 0 && (
+            <p className='text-muted-foreground truncate text-xs'>
+              {item.modificationsJson.map((m) => `Sin ${m.name}`).join(' · ')}
+            </p>
+          )}
+        {item.lineType !== 'combo' && (
+          <p className='text-muted-foreground text-xs'>
+            Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}
+          </p>
+        )}
       </div>
       <div className='flex items-center gap-1'>
         <Button

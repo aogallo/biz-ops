@@ -64,13 +64,29 @@ describe('createDraftInvoiceSchema', () => {
     companyId: 'b2c3d4e5-f6a7-4901-bcde-f12345678901',
     businessPartnerId: 'c3d4e5f6-a7b8-4012-8def-123456789012',
     accountingAccountId: 'd4e5f6a7-b8c9-4123-9efa-234567890123',
+    sucursalId: 'e5f6a7b8-c9d0-4234-abef-345678901234',
     type: 'sale' as const,
     invoiceDate: new Date(),
   }
 
-  test('accepts valid draft', () => {
+  test('accepts valid draft with sucursalId', () => {
     const result = createDraftInvoiceSchema.safeParse(validDraft)
     expect(result.success).toBe(true)
+  })
+
+  test('rejects draft without sucursalId', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { sucursalId: _sid, ...withoutSucursal } = validDraft
+    const result = createDraftInvoiceSchema.safeParse(withoutSucursal)
+    expect(result.success).toBe(false)
+  })
+
+  test('rejects invalid sucursalId uuid', () => {
+    const result = createDraftInvoiceSchema.safeParse({
+      ...validDraft,
+      sucursalId: 'not-a-uuid',
+    })
+    expect(result.success).toBe(false)
   })
 
   test('rejects invalid type', () => {

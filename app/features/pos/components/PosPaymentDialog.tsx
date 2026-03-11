@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, FileText, Trash2 } from 'lucide-react'
+import { Banknote, CreditCard, DollarSign, FileText, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import {
@@ -20,9 +20,10 @@ interface PosPaymentDialogProps {
   total: number
   onConfirm: (payments: CheckoutPayment[]) => void
   isSubmitting: boolean
+  activeExchangeRate?: number | null
 }
 
-type PaymentMethod = 'cash' | 'card' | 'check'
+type PaymentMethod = 'cash' | 'card' | 'check' | 'cash_usd'
 
 const QUICK_AMOUNTS = [1, 5, 10, 20, 50, 100, 200, 500]
 
@@ -32,11 +33,15 @@ export function PosPaymentDialog({
   total,
   onConfirm,
   isSubmitting,
+  activeExchangeRate,
 }: PosPaymentDialogProps) {
   const { t } = useTranslation()
   const [method, setMethod] = useState<PaymentMethod>('cash')
   const [amount, setAmount] = useState('')
   const [reference, setReference] = useState('')
+  const [exchangeRateInput, setExchangeRateInput] = useState(
+    String(activeExchangeRate ?? '')
+  )
   const [payments, setPayments] = useState<CheckoutPayment[]>([])
 
   const paidSoFar = payments.reduce((sum, p) => sum + p.amount, 0)
@@ -44,34 +49,37 @@ export function PosPaymentDialog({
   const currentAmount = Number(amount) || 0
 
   // For single cash payment (no split), track received/change
-  const isSingleCashPayment = payments.length === 0 && method === 'cash'
+  const isSingleCashPayment = payments.length === 0 && (method === 'cash' || method === 'cash_usd')
   const change = isSingleCashPayment
     ? Math.max(0, currentAmount - total)
-    : method === 'cash' && currentAmount > remaining
+    : (method === 'cash' || method === 'cash_usd') && currentAmount > remaining
       ? currentAmount - remaining
       : 0
 
   const canAddPayment =
-    method === 'cash'
+    method === 'cash' || method === 'cash_usd'
       ? currentAmount > 0
       : method === 'card' || reference.length > 0
 
   const canConfirm = remaining <= 0
 
   function handleAddPayment() {
-    const paymentAmount =
-      method === 'cash'
-        ? Math.min(currentAmount, remaining)
-        : Math.min(currentAmount || remaining, remaining)
+    const isCash = method === 'cash' || method === 'cash_usd'
+    const paymentAmount = isCash
+      ? Math.min(currentAmount, remaining)
+      : Math.min(currentAmount || remaining, remaining)
 
     const payment: CheckoutPayment = {
       method,
       amount: paymentAmount,
-      ...(method === 'cash' && {
+      ...(isCash && {
         receivedAmount: currentAmount,
         changeAmount: Math.max(0, currentAmount - paymentAmount),
       }),
-      ...(method !== 'cash' && reference && { reference }),
+      ...(method === 'cash_usd' && exchangeRateInput && {
+        exchangeRate: Number(exchangeRateInput),
+      }),
+      ...(method !== 'cash' && method !== 'cash_usd' && reference && { reference }),
     }
 
     setPayments((prev) => [...prev, payment])
@@ -87,17 +95,19 @@ export function PosPaymentDialog({
     if (payments.length > 0) {
       onConfirm(payments)
     } else if (isSingleCashPayment && currentAmount >= total) {
-      // Single full cash payment
+      const isCashUsd = method === 'cash_usd'
       onConfirm([
         {
-          method: 'cash',
+          method,
           amount: total,
           receivedAmount: currentAmount,
           changeAmount: change,
+          ...(isCashUsd && exchangeRateInput && {
+            exchangeRate: Number(exchangeRateInput),
+          }),
         },
       ])
-    } else if (method !== 'cash') {
-      // Single card/check payment
+    } else if (method !== 'cash' && method !== 'cash_usd') {
       onConfirm([
         {
           method,
@@ -112,13 +122,13 @@ export function PosPaymentDialog({
     setAmount(String(amt))
   }
 
-  // Reset state when dialog opens/closes
   function handleOpenChange(isOpen: boolean) {
     if (!isOpen) {
       setPayments([])
       setAmount('')
       setReference('')
       setMethod('cash')
+      setExchangeRateInput(String(activeExchangeRate ?? ''))
     }
     onOpenChange(isOpen)
   }
@@ -129,6 +139,8 @@ export function PosPaymentDialog({
       : isSingleCashPayment
         ? currentAmount >= total
         : method === 'card' || reference.length > 0
+
+  const isCashMethod = method === 'cash' || method === 'cash_usd'
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -156,7 +168,7 @@ export function PosPaymentDialog({
                   key={i}
                   className='bg-muted/50 flex items-center justify-between rounded-md px-3 py-1.5 text-sm'
                 >
-                  <span className='capitalize'>{t(`pos.${p.method}`)}</span>
+                  <span className='capitalize'>{p.method === 'cash_usd' ? 'USD' : t(`pos.${p.method}`)}</span>
                   <div className='flex items-center gap-2'>
                     <span className='font-medium tabular-nums'>
                       Q{p.amount.toFixed(2)}
@@ -190,7 +202,7 @@ export function PosPaymentDialog({
           {/* Payment method selector (only show if remaining > 0) */}
           {remaining > 0 && (
             <>
-              <div className='grid grid-cols-3 gap-2'>
+              <div className='grid grid-cols-4 gap-2'>
                 <Button
                   variant={method === 'cash' ? 'default' : 'outline'}
                   onClick={() => setMethod('cash')}
@@ -198,6 +210,14 @@ export function PosPaymentDialog({
                 >
                   <Banknote className='size-5' />
                   <span className='text-xs'>{t('pos.cash')}</span>
+                </Button>
+                <Button
+                  variant={method === 'cash_usd' ? 'default' : 'outline'}
+                  onClick={() => setMethod('cash_usd')}
+                  className='h-auto flex-col gap-1 py-3'
+                >
+                  <DollarSign className='size-5' />
+                  <span className='text-xs'>USD</span>
                 </Button>
                 <Button
                   variant={method === 'card' ? 'default' : 'outline'}
@@ -217,12 +237,30 @@ export function PosPaymentDialog({
                 </Button>
               </div>
 
-              {/* Cash calculator */}
-              {method === 'cash' && (
+              {/* Cash (GTQ) calculator */}
+              {isCashMethod && (
                 <div className='space-y-3'>
+                  {/* Exchange rate input for USD */}
+                  {method === 'cash_usd' && (
+                    <div>
+                      <label className='text-sm font-medium'>
+                        Tipo de cambio (GTQ por USD)
+                      </label>
+                      <Input
+                        type='number'
+                        step='0.01'
+                        min='0'
+                        value={exchangeRateInput}
+                        onChange={(e) => setExchangeRateInput(e.target.value)}
+                        placeholder='7.80'
+                        className='mt-1 text-right tabular-nums'
+                      />
+                    </div>
+                  )}
                   <div>
                     <label className='text-sm font-medium'>
                       {t('pos.receivedAmount')}
+                      {method === 'cash_usd' && ' (GTQ)'}
                     </label>
                     <Input
                       type='number'
@@ -298,7 +336,7 @@ export function PosPaymentDialog({
               )}
 
               {/* Card / Check reference */}
-              {method !== 'cash' && (
+              {!isCashMethod && (
                 <div className='space-y-3'>
                   <div>
                     <label className='text-sm font-medium'>

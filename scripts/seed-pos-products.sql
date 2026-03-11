@@ -7,7 +7,7 @@
 
 DO $$
 DECLARE
-  v_org_id UUID := 'f87b837e-73f7-43df-9e28-faa2d2a30979';  -- << CAMBIAR ESTO
+  v_org_id UUID := '';  -- << CAMBIAR ESTO
 
   -- Categoría IDs
   cat_hamburguesas UUID;

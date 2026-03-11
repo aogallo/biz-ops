@@ -30,6 +30,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const { flash } = getFlash(request)
 
   const organizationId = session.session.activeOrganizationId
+
   if (!organizationId) {
     return {
       products: [],
@@ -104,7 +105,10 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, t('products.title'))
-    XLSX.writeFile(wb, `products-export-${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(
+      wb,
+      `products-export-${new Date().toISOString().split('T')[0]}.xlsx`
+    )
   }, [products, t])
 
   const currentCategoryId = searchParams.get('categoryId') || ''
@@ -162,9 +166,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
         header: () => <div className='text-right'>{t('products.price')}</div>,
         cell: ({ row }) => {
           const price = row.getValue('price') as string | number
-          return (
-            <div className='text-right'>${Number(price).toFixed(2)}</div>
-          )
+          return <div className='text-right'>${Number(price).toFixed(2)}</div>
         },
       },
       {
@@ -183,7 +185,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
                   isOut
                     ? 'text-destructive font-medium'
                     : isLow
-                      ? 'text-amber-600 font-medium'
+                      ? 'font-medium text-amber-600'
                       : 'text-green-600'
                 }
               >
@@ -236,9 +238,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
           <h1 className='text-2xl font-bold'>{t('products.title')}</h1>
           <p className='text-muted-foreground'>
             {t('products.manage')}
-            {total > 0 && (
-              <span className='ml-2 text-xs'>({total} total)</span>
-            )}
+            {total > 0 && <span className='ml-2 text-xs'>({total} total)</span>}
           </p>
         </div>
         <div className='flex gap-2'>
@@ -318,7 +318,10 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
                 {t('common.previous')}
               </Button>
               <span className='text-muted-foreground text-sm'>
-                {t('common.pageOf' as TranslationKey, { page: String(page), total: String(totalPages) })}
+                {t('common.pageOf' as TranslationKey, {
+                  page: String(page),
+                  total: String(totalPages),
+                })}
               </span>
               <Button
                 variant='outline'

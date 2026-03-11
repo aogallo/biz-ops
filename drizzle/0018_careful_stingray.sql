@@ -40,19 +40,51 @@ CREATE TABLE IF NOT EXISTS "sucursal" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "pos_cashier" RENAME COLUMN "company_id" TO "sucursal_id";--> statement-breakpoint
-ALTER TABLE "pos_sale" RENAME COLUMN "company_id" TO "sucursal_id";--> statement-breakpoint
-ALTER TABLE "pos_session" RENAME COLUMN "company_id" TO "sucursal_id";--> statement-breakpoint
-ALTER TABLE "pos_terminal" RENAME COLUMN "company_id" TO "sucursal_id";--> statement-breakpoint
-ALTER TABLE "pos_cashier" DROP CONSTRAINT "pos_cashier_company_id_company_id_fk";
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_cashier' AND column_name = 'company_id'
+  ) THEN
+    ALTER TABLE "pos_cashier" RENAME COLUMN "company_id" TO "sucursal_id";
+  END IF;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "pos_sale" DROP CONSTRAINT "pos_sale_company_id_company_id_fk";
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_sale' AND column_name = 'company_id'
+  ) THEN
+    ALTER TABLE "pos_sale" RENAME COLUMN "company_id" TO "sucursal_id";
+  END IF;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "pos_session" DROP CONSTRAINT "pos_session_company_id_company_id_fk";
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_session' AND column_name = 'company_id'
+  ) THEN
+    ALTER TABLE "pos_session" RENAME COLUMN "company_id" TO "sucursal_id";
+  END IF;
+END $$;
 --> statement-breakpoint
-ALTER TABLE "pos_terminal" DROP CONSTRAINT "pos_terminal_company_id_company_id_fk";
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_terminal' AND column_name = 'company_id'
+  ) THEN
+    ALTER TABLE "pos_terminal" RENAME COLUMN "company_id" TO "sucursal_id";
+  END IF;
+END $$;
 --> statement-breakpoint
-DROP INDEX "cashier_pin_company_idx";--> statement-breakpoint
+ALTER TABLE "pos_cashier" DROP CONSTRAINT IF EXISTS "pos_cashier_company_id_company_id_fk";
+--> statement-breakpoint
+ALTER TABLE "pos_sale" DROP CONSTRAINT IF EXISTS "pos_sale_company_id_company_id_fk";
+--> statement-breakpoint
+ALTER TABLE "pos_session" DROP CONSTRAINT IF EXISTS "pos_session_company_id_company_id_fk";
+--> statement-breakpoint
+ALTER TABLE "pos_terminal" DROP CONSTRAINT IF EXISTS "pos_terminal_company_id_company_id_fk";
+--> statement-breakpoint
+DROP INDEX IF EXISTS "cashier_pin_company_idx";--> statement-breakpoint
 DO $$ BEGIN
   ALTER TABLE "inventory_movement" ADD CONSTRAINT "inventory_movement_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION WHEN duplicate_object THEN null; END $$;--> statement-breakpoint
@@ -81,8 +113,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS "sucursal_inventory_sucursal_product_idx" ON "
 CREATE INDEX IF NOT EXISTS "sucursal_inventory_sucursal_idx" ON "sucursal_inventory" USING btree ("sucursal_id");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "sucursal_code_org_idx" ON "sucursal" USING btree ("organization_id","code");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "sucursal_org_active_idx" ON "sucursal" USING btree ("organization_id","is_active");--> statement-breakpoint
-ALTER TABLE "pos_cashier" ADD CONSTRAINT "pos_cashier_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "pos_sale" ADD CONSTRAINT "pos_sale_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "pos_session" ADD CONSTRAINT "pos_session_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "pos_terminal" ADD CONSTRAINT "pos_terminal_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE UNIQUE INDEX "cashier_pin_sucursal_idx" ON "pos_cashier" USING btree ("sucursal_id","pin");
+DO $$ BEGIN
+  ALTER TABLE "pos_cashier" ADD CONSTRAINT "pos_cashier_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "pos_sale" ADD CONSTRAINT "pos_sale_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "pos_session" ADD CONSTRAINT "pos_session_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+  ALTER TABLE "pos_terminal" ADD CONSTRAINT "pos_terminal_sucursal_id_sucursal_id_fk" FOREIGN KEY ("sucursal_id") REFERENCES "public"."sucursal"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "cashier_pin_sucursal_idx" ON "pos_cashier" USING btree ("sucursal_id","pin");

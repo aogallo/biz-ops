@@ -7,7 +7,7 @@
 
 DO $$
 DECLARE
-  v_org_id UUID := 'f87b837e-73f7-43df-9e28-faa2d2a30979';  -- << CAMBIAR ESTO
+  v_org_id UUID := '';  -- << CAMBIAR ESTO
 
   -- Categoría IDs
   cat_hamburguesas UUID;
@@ -338,11 +338,11 @@ BEGIN
             "key": "size",
             "type": "button",
             "values": [
-              { "label": "XS" },
-              { "label": "S" },
-              { "label": "M" },
-              { "label": "L" },
-              { "label": "XL", "priceAdjustment": 15 },
+              { "label": "XS",  "priceAdjustment": 0  },
+              { "label": "S",   "priceAdjustment": 0  },
+              { "label": "M",   "priceAdjustment": 0  },
+              { "label": "L",   "priceAdjustment": 0  },
+              { "label": "XL",  "priceAdjustment": 15 },
               { "label": "2XL", "priceAdjustment": 25 },
               { "label": "3XL", "priceAdjustment": 35 }
             ]
@@ -350,13 +350,13 @@ BEGIN
           {
             "name": "Color",
             "key": "color",
-            "type": "color",
+            "type": "button",
             "values": [
-              { "label": "Blanco", "hex": "#F5F5F5" },
-              { "label": "Negro", "hex": "#1a1a1a" },
-              { "label": "Rojo", "hex": "#EF4444", "priceAdjustment": 10 },
-              { "label": "Azul Marino", "hex": "#1E3A5F", "priceAdjustment": 10 },
-              { "label": "Verde", "hex": "#22C55E", "priceAdjustment": 10 }
+              { "label": "Blanco",     "priceAdjustment": 0  },
+              { "label": "Negro",      "priceAdjustment": 0  },
+              { "label": "Rojo",       "priceAdjustment": 10 },
+              { "label": "Azul Marino","priceAdjustment": 10 },
+              { "label": "Verde",      "priceAdjustment": 10 }
             ]
           }
         ]
@@ -375,12 +375,12 @@ BEGIN
             "key": "size",
             "type": "button",
             "values": [
-              { "label": "35" },
-              { "label": "36" },
-              { "label": "37" },
-              { "label": "38" },
-              { "label": "39" },
-              { "label": "40" },
+              { "label": "35", "priceAdjustment": 0  },
+              { "label": "36", "priceAdjustment": 0  },
+              { "label": "37", "priceAdjustment": 0  },
+              { "label": "38", "priceAdjustment": 0  },
+              { "label": "39", "priceAdjustment": 0  },
+              { "label": "40", "priceAdjustment": 0  },
               { "label": "41", "priceAdjustment": 50 },
               { "label": "42", "priceAdjustment": 50 },
               { "label": "43", "priceAdjustment": 50 }
@@ -389,12 +389,12 @@ BEGIN
           {
             "name": "Color",
             "key": "color",
-            "type": "color",
+            "type": "button",
             "values": [
-              { "label": "Blanco", "hex": "#F5F5F5" },
-              { "label": "Negro", "hex": "#1a1a1a" },
-              { "label": "Gris", "hex": "#6B7280", "priceAdjustment": 25 },
-              { "label": "Rojo", "hex": "#EF4444", "priceAdjustment": 50 }
+              { "label": "Blanco", "priceAdjustment": 0  },
+              { "label": "Negro",  "priceAdjustment": 0  },
+              { "label": "Gris",   "priceAdjustment": 25 },
+              { "label": "Rojo",   "priceAdjustment": 50 }
             ]
           }
         ]

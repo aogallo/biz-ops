@@ -19,75 +19,95 @@ import type { Route } from './+types/AppLayout'
 
 // Add loader to require authentication and load permissions
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
-  const userId = session.user.id
-  const organizationId = session.session.activeOrganizationId
+  try {
+    const session = await requireAuth(request)
+    const userId = session.user.id
+    const organizationId = session.session.activeOrganizationId
 
-  // Get memberId for module access lookup
-  const memberRow = organizationId
-    ? await db
-        .select({ id: memberModel.id })
-        .from(memberModel)
-        .where(
-          and(
-            eq(memberModel.userId, userId),
-            eq(memberModel.organizationId, organizationId)
+    // Get memberId for module access lookup
+    const memberRow = organizationId
+      ? await db
+          .select({ id: memberModel.id })
+          .from(memberModel)
+          .where(
+            and(
+              eq(memberModel.userId, userId),
+              eq(memberModel.organizationId, organizationId)
+            )
           )
-        )
-        .limit(1)
-        .then((rows) => rows[0])
-    : null
+          .limit(1)
+          .then((rows) => rows[0])
+      : null
 
-  const memberId = memberRow?.id ?? null
+    const memberId = memberRow?.id ?? null
 
-  // Fetch permissions, super admin status, and low stock count in parallel
-  const [permissions, isSuperAdminUser, lowStockCount, moduleAccess] =
-    await Promise.all([
-      organizationId
-        ? getUserPermissions(userId, organizationId)
-        : Promise.resolve([]),
-      isSuperAdmin(userId),
-      organizationId
-        ? productsRepository.countLowStock(organizationId)
-        : Promise.resolve(0),
-      memberId && organizationId
-        ? modulesRepository.getAccessibleModulesForMember(memberId, organizationId)
-        : Promise.resolve([]),
-    ])
+    // Fetch permissions, super admin status, and low stock count in parallel
+    const [permissions, isSuperAdminUser, lowStockCount, moduleAccess] =
+      await Promise.all([
+        organizationId
+          ? getUserPermissions(userId, organizationId)
+          : Promise.resolve([]),
+        isSuperAdmin(userId),
+        organizationId
+          ? productsRepository.countLowStock(organizationId)
+          : Promise.resolve(0),
+        memberId && organizationId
+          ? modulesRepository.getAccessibleModulesForMember(
+              memberId,
+              organizationId
+            )
+          : Promise.resolve([]),
+      ])
 
-  // Fetch all organizations for super admin, or just user's organizations
-  let organizations: Organization[] = []
-  if (isSuperAdminUser) {
-    // Super admin sees ALL organizations
-    organizations = await organizationRepository.getAll()
-  } else {
-    // Regular users see only their member organizations
-    const userOrgs = await getUserOrganizations(userId)
-    organizations = userOrgs.map((org) => ({
-      id: org.organization.id,
-      name: org.organization.name,
-      slug: org.organization.slug,
-      isAdmin: org.organization.isAdmin,
-      logo: org.organization.logo,
-      createdAt: org.organization.createdAt,
-    }))
+    // Fetch all organizations for super admin, or just user's organizations
+    let organizations: Organization[] = []
+    if (isSuperAdminUser) {
+      // Super admin sees ALL organizations
+      organizations = await organizationRepository.getAll()
+    } else {
+      // Regular users see only their member organizations
+      const userOrgs = await getUserOrganizations(userId)
+      organizations = userOrgs.map((org) => ({
+        id: org.organization.id,
+        name: org.organization.name,
+        slug: org.organization.slug,
+        isAdmin: org.organization.isAdmin,
+        logo: org.organization.logo,
+        createdAt: org.organization.createdAt,
+      }))
+    }
+
+    // Redirect to welcome page if user has no organizations (and is not super admin)
+    if (!isSuperAdminUser && organizations.length === 0) {
+      throw redirect('/welcome')
+    }
+
+    return {
+      session,
+      permissions: {
+        list: permissions,
+        isSuperAdmin: isSuperAdminUser,
+      },
+      organizations,
+      lowStockCount,
+      moduleAccess,
+    }
+  } catch (error) {
+    if (error instanceof Response) throw error
+    throw redirect('/login')
   }
+}
 
-  // Redirect to welcome page if user has no organizations (and is not super admin)
-  if (!isSuperAdminUser && organizations.length === 0) {
-    throw redirect('/welcome')
-  }
-
-  return {
-    session,
-    permissions: {
-      list: permissions,
-      isSuperAdmin: isSuperAdminUser,
-    },
-    organizations,
-    lowStockCount,
-    moduleAccess,
-  }
+export function ErrorBoundary() {
+  return (
+    <div className='flex h-screen flex-col items-center justify-center gap-4'>
+      <h1 className='text-2xl font-bold'>Ocurrió un error</h1>
+      <p className='text-muted-foreground'>Intentá ingresar nuevamente.</p>
+      <a href='/login' className='text-primary hover:underline'>
+        Ir al login
+      </a>
+    </div>
+  )
 }
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
@@ -110,10 +130,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         <AppSidebar lowStockCount={loaderData.lowStockCount} />
         <div className='bg-background flex min-h-screen flex-1 flex-col'>
           <SiteHeader />
-          <main
-            className='page-container flex-1'
-            aria-busy={isPageNavigation}
-          >
+          <main className='page-container flex-1' aria-busy={isPageNavigation}>
             {isPageNavigation ? <PageSkeleton /> : <Outlet />}
           </main>
         </div>

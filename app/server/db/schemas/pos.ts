@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -36,6 +37,7 @@ export const posPaymentMethodEnum = pgEnum('pos_payment_method', [
   'cash',
   'card',
   'check',
+  'cash_usd',
 ])
 
 export const posSessionStatusEnum = pgEnum('pos_session_status', [
@@ -50,6 +52,12 @@ export const posCashMovementTypeEnum = pgEnum('pos_cash_movement_type', [
   'deposit',
 ])
 
+export const posSaleLineTypeEnum = pgEnum('pos_sale_line_type', [
+  'product',
+  'combo',
+  'combo_item',
+])
+
 // POS Terminal
 export const posTerminalModel = pgTable('pos_terminal', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -59,12 +67,20 @@ export const posTerminalModel = pgTable('pos_terminal', {
   sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
   name: text('name').notNull(),
   isActive: boolean('is_active').notNull().default(true),
+  invoicePrefix: text('invoice_prefix').notNull().default('T'),
+  nextInvoiceNumber: integer('next_invoice_number').notNull().default(1),
   autoGenerateInvoice: boolean('auto_generate_invoice')
     .notNull()
     .default(false),
   autoPrintReceipt: boolean('auto_print_receipt')
     .notNull()
     .default(false),
+  printerName: text('printer_name'),
+  printMethod: text('print_method').notNull().default('qz-tray'),
+  kitchenPrinterName: text('kitchen_printer_name'),
+  kitchenPrinterHost: text('kitchen_printer_host'),
+  kitchenPrinterPort: integer('kitchen_printer_port'),
+  kitchenPrintMethod: text('kitchen_print_method'),
   defaultBusinessPartnerId: uuid('default_business_partner_id').references(
     () => businessPartnerModel.id
   ),
@@ -121,6 +137,9 @@ export const posSaleLineModel = pgTable('pos_sale_line', {
     .notNull()
     .references(() => posSaleModel.id, { onDelete: 'cascade' }),
   lineNumber: integer('line_number').notNull(),
+  lineType: posSaleLineTypeEnum('line_type').notNull().default('product'),
+  parentLineId: uuid('parent_line_id'),
+  comboTemplateId: uuid('combo_template_id').references(() => productModel.id),
   productId: uuid('product_id')
     .notNull()
     .references(() => productModel.id),
@@ -145,6 +164,7 @@ export const posSaleLineModel = pgTable('pos_sale_line', {
     .notNull()
     .default('0'),
   total: numeric('total', { precision: 12, scale: 2 }).notNull(),
+  modificationsJson: jsonb('modifications_json'),
   ...timestamps,
 })
 
@@ -158,6 +178,7 @@ export const posPaymentModel = pgTable('pos_payment', {
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   receivedAmount: numeric('received_amount', { precision: 12, scale: 2 }),
   changeAmount: numeric('change_amount', { precision: 12, scale: 2 }),
+  exchangeRate: numeric('exchange_rate', { precision: 10, scale: 4 }),
   reference: text('reference'),
   ...timestamps,
 })
@@ -322,16 +343,32 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
   payments: many(posPaymentModel),
 }))
 
-export const posSaleLineRelations = relations(posSaleLineModel, ({ one }) => ({
-  sale: one(posSaleModel, {
-    fields: [posSaleLineModel.saleId],
-    references: [posSaleModel.id],
-  }),
-  product: one(productModel, {
-    fields: [posSaleLineModel.productId],
-    references: [productModel.id],
-  }),
-}))
+export const posSaleLineRelations = relations(
+  posSaleLineModel,
+  ({ one, many }) => ({
+    sale: one(posSaleModel, {
+      fields: [posSaleLineModel.saleId],
+      references: [posSaleModel.id],
+    }),
+    product: one(productModel, {
+      fields: [posSaleLineModel.productId],
+      references: [productModel.id],
+    }),
+    comboTemplate: one(productModel, {
+      fields: [posSaleLineModel.comboTemplateId],
+      references: [productModel.id],
+      relationName: 'comboTemplate',
+    }),
+    parent: one(posSaleLineModel, {
+      fields: [posSaleLineModel.parentLineId],
+      references: [posSaleLineModel.id],
+      relationName: 'parentLine',
+    }),
+    children: many(posSaleLineModel, {
+      relationName: 'parentLine',
+    }),
+  })
+)
 
 export const posPaymentRelations = relations(posPaymentModel, ({ one }) => ({
   sale: one(posSaleModel, {
@@ -445,6 +482,7 @@ export type InsertPosCashMovement = z.infer<typeof insertPosCashMovementSchema>
 export type PosZReport = z.infer<typeof selectPosZReportSchema>
 export type InsertPosZReport = z.infer<typeof insertPosZReportSchema>
 export type PosSaleStatus = 'completed' | 'voided' | 'refunded'
-export type PosPaymentMethod = 'cash' | 'card' | 'check'
+export type PosPaymentMethod = 'cash' | 'card' | 'check' | 'cash_usd'
 export type PosSessionStatus = 'open' | 'closed'
 export type PosCashMovementType = 'sale' | 'refund' | 'withdrawal' | 'deposit'
+export type PosSaleLineType = 'product' | 'combo' | 'combo_item'

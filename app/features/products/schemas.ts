@@ -27,6 +27,18 @@ export const insertProductSchema = createInsertSchema(productModel, {
     .nullable(),
   imageUrl: z.string().url('Must be a valid URL').optional().nullable(),
   categoryId: z.string().uuid('Invalid category').optional().nullable(),
+  productType: z
+    .enum([
+      'STOCK',
+      'MADE_TO_ORDER',
+      'SERVICE',
+      'ingredient',
+      'recipe',
+      'combo',
+      'sale_item',
+    ])
+    .default('STOCK'),
+  trackInventory: z.boolean().default(true),
 })
 
 export const selectProductSchema = createSelectSchema(productModel)

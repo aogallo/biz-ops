@@ -57,6 +57,11 @@ export function PosReceiptContent({ receipt }: PosReceiptContentProps) {
         {receipt.lines.map((line, i) => (
           <div key={i} className='mb-1'>
             <p>{line.productName}</p>
+            {line.modifications?.length ? (
+              <p className='opacity-75' style={{ fontSize: '10px' }}>
+                {line.modifications.map((m) => `· Sin ${m}`).join(' ')}
+              </p>
+            ) : null}
             <div className='flex justify-between'>
               <span>
                 {Number(line.quantity)} x Q{Number(line.unitPrice).toFixed(2)}

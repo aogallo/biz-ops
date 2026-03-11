@@ -9,48 +9,20 @@ import {
 } from '~/components/ui/dialog'
 import { useTranslation } from '~/i18n/context'
 import { PosReceiptContent } from './PosReceiptContent'
-
-interface ReceiptLine {
-  productName: string
-  productSku: string
-  quantity: string
-  unitPrice: string
-  total: string
-}
-
-interface ReceiptPayment {
-  method: string
-  amount: string
-  receivedAmount: string | null
-  changeAmount: string | null
-}
-
-interface ReceiptData {
-  saleNumber: string
-  terminalName: string | null
-  cashierName: string | null
-  customerName: string | null
-  customerNit: string | null
-  date: string
-  lines: ReceiptLine[]
-  payments: ReceiptPayment[]
-  subtotal: string
-  ivaAmount: string
-  discountAmount: string
-  total: string
-  currency: string
-}
+import type { ReceiptData } from '~/features/pos/types'
 
 interface PosReceiptPreviewProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   receipt: ReceiptData | null
+  onPrint: (receipt: ReceiptData) => void
 }
 
 export function PosReceiptPreview({
   open,
   onOpenChange,
   receipt,
+  onPrint,
 }: PosReceiptPreviewProps) {
   const { t } = useTranslation()
 
@@ -69,14 +41,22 @@ export function PosReceiptPreview({
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             {t('pos.close')}
           </Button>
-          <Button onClick={() => window.print()} className='gap-1.5'>
-            <Printer className='size-4' />
-            {t('pos.print')}
-          </Button>
+          <div className='flex items-center gap-3'>
+            {receipt.printerName && (
+              <span className='text-muted-foreground flex items-center gap-1 text-sm'>
+                <Printer className='size-3.5' />
+                {receipt.printerName}
+              </span>
+            )}
+            <Button onClick={() => onPrint(receipt)} className='gap-1.5'>
+              <Printer className='size-4' />
+              {t('pos.print')}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   )
 }
 
-export type { ReceiptData }
+export type { ReceiptData } from '~/features/pos/types'

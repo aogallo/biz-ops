@@ -5,6 +5,7 @@ import {
   eq,
   ilike,
   inArray,
+  notInArray,
   or,
   sql,
   type SQL,
@@ -146,7 +147,10 @@ export class PosRepository {
     categoryId?: string,
     search?: string
   ): Promise<PosProductForGrid[]> {
-    const conditions: SQL[] = [eq(productModel.organizationId, organizationId)]
+    const conditions: SQL[] = [
+      eq(productModel.organizationId, organizationId),
+      notInArray(productModel.productType, ['ingredient', 'sale_item']),
+    ]
 
     if (categoryId) {
       conditions.push(eq(productModel.categoryId, categoryId))

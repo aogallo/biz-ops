@@ -1,4 +1,4 @@
-import { and, count, eq, ilike, ne, sql, type SQL } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, ne, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { productModel } from '~/server/db/schemas/products'
 import { productCategoryModel } from '~/server/db/schemas/productCategory'
@@ -280,6 +280,40 @@ export class ProductsRepository {
       lowStockCount: stats?.lowStockCount ?? 0,
       outOfStockCount: stats?.outOfStockCount ?? 0,
     }
+  }
+
+  async getByType(organizationId: string, productType: string) {
+    return await db
+      .select({
+        id: productModel.id,
+        name: productModel.name,
+        sku: productModel.sku,
+      })
+      .from(productModel)
+      .where(
+        and(
+          eq(productModel.organizationId, organizationId),
+          eq(productModel.productType, productType as 'ingredient')
+        )
+      )
+      .orderBy(productModel.name)
+  }
+
+  async getByTypes(organizationId: string, productTypes: string[]) {
+    return await db
+      .select({
+        id: productModel.id,
+        name: productModel.name,
+        sku: productModel.sku,
+      })
+      .from(productModel)
+      .where(
+        and(
+          eq(productModel.organizationId, organizationId),
+          inArray(productModel.productType, productTypes as ['STOCK'])
+        )
+      )
+      .orderBy(productModel.name)
   }
 
   async getLowStockProducts(organizationId: string, limit = 5) {

@@ -148,10 +148,7 @@ import {
   kitchenTicketStatusEnum,
   kitchenItemStatusEnum,
 } from './kitchen'
-import {
-  exchangeRateModel,
-  exchangeRateRelations,
-} from './exchangeRate'
+import { exchangeRateModel, exchangeRateRelations } from './exchangeRate'
 
 export const schema = {
   // Auth tables

@@ -36,7 +36,8 @@ export function PosCart({
   const { t } = useTranslation()
 
   const selectedItem = items.find((i) => i.cartItemId === selectedItemId)
-  const numpadDisplay = numpadInput || (selectedItem ? String(selectedItem.quantity) : '')
+  const numpadDisplay =
+    numpadInput || (selectedItem ? String(selectedItem.quantity) : '')
 
   // Build ordered render list: for each non-combo_item line, render it + its children
   const renderItems: Array<{ item: CartItem; isComboChild: boolean }> = []
@@ -103,7 +104,7 @@ export function PosCart({
           {totals.discountAmount > 0 && (
             <div className='flex justify-between'>
               <span className='text-muted-foreground'>{t('pos.discount')}</span>
-              <span className='tabular-nums text-destructive'>
+              <span className='text-destructive tabular-nums'>
                 -Q{totals.discountAmount.toFixed(2)}
               </span>
             </div>

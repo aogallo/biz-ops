@@ -227,7 +227,12 @@ export async function action({ request }: Route.ActionArgs) {
                     unitPrice: l.unitPrice,
                     total: l.total,
                     modifications: l.modificationsJson
-                      ? (l.modificationsJson as Array<{ type: string; name: string }>)
+                      ? (
+                          l.modificationsJson as Array<{
+                            type: string
+                            name: string
+                          }>
+                        )
                           .filter((m) => m.type === 'remove')
                           .map((m) => m.name)
                       : undefined,

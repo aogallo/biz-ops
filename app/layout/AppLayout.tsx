@@ -52,7 +52,10 @@ export async function loader({ request }: Route.LoaderArgs) {
           ? productsRepository.countLowStock(organizationId)
           : Promise.resolve(0),
         memberId && organizationId
-          ? modulesRepository.getAccessibleModulesForMember(memberId, organizationId)
+          ? modulesRepository.getAccessibleModulesForMember(
+              memberId,
+              organizationId
+            )
           : Promise.resolve([]),
       ])
 
@@ -127,10 +130,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         <AppSidebar lowStockCount={loaderData.lowStockCount} />
         <div className='bg-background flex min-h-screen flex-1 flex-col'>
           <SiteHeader />
-          <main
-            className='page-container flex-1'
-            aria-busy={isPageNavigation}
-          >
+          <main className='page-container flex-1' aria-busy={isPageNavigation}>
             {isPageNavigation ? <PageSkeleton /> : <Outlet />}
           </main>
         </div>

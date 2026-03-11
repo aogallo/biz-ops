@@ -46,7 +46,7 @@ export function PosCartItem({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 border-b py-2 cursor-pointer rounded-sm px-1 -mx-1 transition-colors',
+        '-mx-1 flex cursor-pointer items-center gap-2 rounded-sm border-b px-1 py-2 transition-colors',
         isSelected && 'bg-primary/10'
       )}
       onClick={() => onSelect?.(item.cartItemId)}

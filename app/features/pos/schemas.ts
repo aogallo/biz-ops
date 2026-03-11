@@ -39,18 +39,31 @@ export const checkoutLineSchema = z.object({
   discountPercent: z.number().min(0).max(100).default(0),
   ivaType: z.enum(['taxed', 'exempt', 'non_subject']).default('taxed'),
   ivaRate: z.number().default(12),
-  productType: z.enum(['STOCK', 'MADE_TO_ORDER', 'SERVICE', 'ingredient', 'recipe', 'combo', 'sale_item']).default('STOCK'),
+  productType: z
+    .enum([
+      'STOCK',
+      'MADE_TO_ORDER',
+      'SERVICE',
+      'ingredient',
+      'recipe',
+      'combo',
+      'sale_item',
+    ])
+    .default('STOCK'),
   trackInventory: z.boolean().default(true),
   lineType: z.enum(['product', 'combo', 'combo_item']).default('product'),
   parentLineClientId: z.string().optional().nullable(),
   comboTemplateId: z.string().uuid().optional().nullable(),
-  modificationsJson: z.array(
-    z.object({
-      type: z.enum(['add', 'remove', 'substitute']),
-      name: z.string(),
-      priceAdjustment: z.number().default(0),
-    })
-  ).optional().nullable(),
+  modificationsJson: z
+    .array(
+      z.object({
+        type: z.enum(['add', 'remove', 'substitute']),
+        name: z.string(),
+        priceAdjustment: z.number().default(0),
+      })
+    )
+    .optional()
+    .nullable(),
   removedIngredientIds: z.array(z.string().uuid()).optional().nullable(),
 })
 

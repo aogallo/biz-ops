@@ -1,7 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { DataTable } from '~/components/dataTable/DataTable'
+import { DataTableSearch } from '~/components/dataTable/DataTableSearch'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
@@ -113,6 +114,10 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
 
   const currentCategoryId = searchParams.get('categoryId') || ''
   const currentStockStatus = searchParams.get('stockStatus') || ''
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get('search') || ''
+  )
+  const isFirstRender = useRef(true)
 
   const updateFilter = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams)
@@ -124,6 +129,17 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
     newParams.delete('page') // Reset to page 1 on filter change
     setSearchParams(newParams)
   }
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    const timer = setTimeout(() => {
+      updateFilter('search', searchInput)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   const columns = useMemo<ColumnDef<Product>[]>(
     () => [
@@ -257,6 +273,12 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
 
       {/* Filters */}
       <div className='mb-4 flex flex-wrap gap-3'>
+        <DataTableSearch
+          value={searchInput}
+          onChange={setSearchInput}
+          placeholder={t('products.searchPlaceholder')}
+        />
+
         <select
           value={currentCategoryId}
           onChange={(e) => updateFilter('categoryId', e.target.value)}
@@ -295,12 +317,7 @@ export default function ProductsIndex({ loaderData }: Route.ComponentProps) {
         </div>
       ) : (
         <>
-          <DataTable
-            columns={columns}
-            data={products}
-            enableSearch
-            searchPlaceholder={t('products.searchPlaceholder')}
-          />
+          <DataTable columns={columns} data={products} />
 
           {/* Server-side pagination */}
           {totalPages > 1 && (

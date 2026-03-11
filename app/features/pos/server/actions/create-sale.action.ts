@@ -20,6 +20,7 @@ import { calculateLineTotals } from '../../types'
 import { posRepository } from '../repository'
 import { resolveInventoryDecrements } from '../utils/inventory-resolver'
 import { recipeRepository } from '~/features/recipe/server/repository'
+import { createKitchenTicketAction } from '~/features/kitchen/server/actions/create-kitchen-ticket.action'
 
 export async function createSaleAction(input: CheckoutInput) {
   // Check idempotency — return existing sale if already processed
@@ -367,6 +368,29 @@ export async function createSaleAction(input: CheckoutInput) {
 
   // 9. Auto-generate invoice OUTSIDE the main transaction (reduces lock duration)
   await generateInvoiceIfConfigured(input, result)
+
+  // 10. Create kitchen ticket (outside transaction — non-blocking)
+  if (input.sucursalId) {
+    const kitchenItems = result.lineData
+      .filter((l) => l.lineType !== 'combo_item')
+      .map((l) => ({
+        productId: l.productId,
+        productName: l.productName,
+        quantity: Number(l.quantity),
+        stationId: null,
+        modificationsJson: l.modificationsJson ?? null,
+      }))
+
+    if (kitchenItems.length > 0) {
+      await createKitchenTicketAction({
+        organizationId: input.organizationId,
+        sucursalId: input.sucursalId,
+        saleId: result.saleId,
+        notes: input.notes ?? null,
+        items: kitchenItems,
+      })
+    }
+  }
 
   return { saleId: result.saleId, saleNumber: result.saleNumber }
 }

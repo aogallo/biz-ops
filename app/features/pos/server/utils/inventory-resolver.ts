@@ -6,6 +6,7 @@ export interface CheckoutLineForInventory {
   productType: string
   lineType?: string
   trackInventory?: boolean
+  removedIngredientIds?: string[] | null
 }
 
 export interface ResolvedInventoryDecrement {
@@ -21,7 +22,8 @@ export interface ResolvedInventoryDecrement {
 interface InventoryResolverDeps {
   expandRecipeToIngredients: (
     productId: string,
-    multiplier: number
+    multiplier: number,
+    removedIngredientIds?: string[]
   ) => Promise<
     Array<{
       ingredientProductId: string
@@ -71,10 +73,11 @@ export async function resolveInventoryDecrements(
     }
 
     if (line.productType === 'recipe') {
-      // Expand recipe into its ingredients
+      // Expand recipe into its ingredients (skipping removed ones)
       const ingredients = await deps.expandRecipeToIngredients(
         line.productId,
-        line.quantity
+        line.quantity,
+        line.removedIngredientIds ?? []
       )
       for (const ingredient of ingredients) {
         if (!ingredient.trackInventory) continue

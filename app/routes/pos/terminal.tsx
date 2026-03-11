@@ -453,16 +453,22 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     (
       product: PosProductForGrid,
       selectedAttributes?: Record<string, string>,
-      priceAdjustment = 0
+      priceAdjustment = 0,
+      removedIngredientIds?: string[]
     ) => {
       const attrsKey = JSON.stringify(selectedAttributes ?? {})
       setCart((prev) => {
-        const existing = prev.find(
-          (item) =>
-            item.productId === product.id &&
-            item.lineType === 'product' &&
-            JSON.stringify(item.selectedAttributes ?? {}) === attrsKey
-        )
+        // For recipe products with removed ingredients, always add as new line
+        const hasRemovals =
+          removedIngredientIds && removedIngredientIds.length > 0
+        const existing = hasRemovals
+          ? undefined
+          : prev.find(
+              (item) =>
+                item.productId === product.id &&
+                item.lineType === 'product' &&
+                JSON.stringify(item.selectedAttributes ?? {}) === attrsKey
+            )
         if (existing) {
           const max =
             product.productType === 'STOCK' && product.stock !== null
@@ -478,6 +484,16 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         }
         const newCartItemId = crypto.randomUUID()
         setSelectedCartItemId(newCartItemId)
+        const modifications = removedIngredientIds?.map((id) => {
+          const ingredient = product.recipeItems?.find(
+            (r) => r.ingredientProductId === id
+          )
+          return {
+            type: 'remove' as const,
+            name: ingredient?.name ?? id,
+            priceAdjustment: 0,
+          }
+        })
         return [
           ...prev,
           {
@@ -498,10 +514,18 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
               | 'recipe'
               | 'combo'
               | 'sale_item',
-            trackInventory: true,
+            trackInventory: product.trackInventory ?? true,
             stock: product.stock,
             selectedAttributes,
             lineType: 'product' as const,
+            removedIngredientIds:
+              removedIngredientIds && removedIngredientIds.length > 0
+                ? removedIngredientIds
+                : undefined,
+            modificationsJson:
+              modifications && modifications.length > 0
+                ? modifications
+                : undefined,
           },
         ]
       })
@@ -530,12 +554,26 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       } else if (product.attributesJson?.attributes?.length) {
         setAttributeDialogProduct(product)
       } else if (product.productType === 'recipe') {
-        setRecipeDialogProduct(product)
+        const hasOptional = product.recipeItems?.some((i) => i.isOptional)
+        if (hasOptional) {
+          setRecipeDialogProduct(product)
+        } else {
+          addToCart(product)
+        }
       } else {
         addToCart(product)
       }
     },
     [addToCart]
+  )
+
+  const handleRecipeConfirm = useCallback(
+    (removedIngredientIds: string[]) => {
+      if (!recipeDialogProduct) return
+      addToCart(recipeDialogProduct, undefined, 0, removedIngredientIds)
+      setRecipeDialogProduct(null)
+    },
+    [recipeDialogProduct, addToCart]
   )
 
   const handleAttributesConfirm = useCallback(
@@ -678,6 +716,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           parentLineClientId: item.parentLineClientId ?? null,
           comboTemplateId: item.comboTemplateId ?? null,
           modificationsJson: item.modificationsJson ?? null,
+          removedIngredientIds: item.removedIngredientIds ?? null,
         })),
         payments,
       }
@@ -984,6 +1023,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         onOpenChange={(open) => {
           if (!open) setRecipeDialogProduct(null)
         }}
+        onConfirm={handleRecipeConfirm}
       />
     </>
   )

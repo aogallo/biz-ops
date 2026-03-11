@@ -285,6 +285,7 @@ export async function createSaleAction(input: CheckoutInput) {
         productType: l.productType,
         lineType: l.lineType ?? 'product',
         trackInventory: l.trackInventory ?? true,
+        removedIngredientIds: l.removedIngredientIds ?? [],
       })),
       {
         sucursalId: input.sucursalId ?? null,
@@ -293,8 +294,8 @@ export async function createSaleAction(input: CheckoutInput) {
         referenceId: sale.id,
       },
       {
-        expandRecipeToIngredients: (productId, multiplier) =>
-          recipeRepository.expandRecipeToIngredients(productId, multiplier),
+        expandRecipeToIngredients: (productId, multiplier, removedIngredientIds) =>
+          recipeRepository.expandRecipeToIngredients(productId, multiplier, removedIngredientIds),
         getProductType: async (productId) => {
           const [p] = await tx
             .select({ productType: productModel.productType })

@@ -51,6 +51,7 @@ export const checkoutLineSchema = z.object({
       priceAdjustment: z.number().default(0),
     })
   ).optional().nullable(),
+  removedIngredientIds: z.array(z.string().uuid()).optional().nullable(),
 })
 
 export const checkoutPaymentSchema = z.object({

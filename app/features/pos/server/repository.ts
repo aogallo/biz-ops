@@ -200,6 +200,7 @@ export class PosRepository {
         categoryId: productModel.categoryId,
         categoryName: productCategoryModel.name,
         categoryColor: productCategoryModel.color,
+        trackInventory: productModel.trackInventory,
         attributesJson: sql<
           import('../types').ProductAttributesJson | null
         >`${productModel.attributesJson}`,

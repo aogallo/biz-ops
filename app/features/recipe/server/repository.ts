@@ -91,7 +91,8 @@ export class RecipeRepository {
 
   async expandRecipeToIngredients(
     productId: string,
-    multiplier: number = 1
+    multiplier: number = 1,
+    removedIngredientIds: string[] = []
   ): Promise<IngredientUsage[]> {
     const recipe = await this.findByProductId(productId)
     if (!recipe) return []
@@ -99,6 +100,9 @@ export class RecipeRepository {
     const results: IngredientUsage[] = []
 
     for (const item of recipe.items) {
+      // Skip removed ingredients
+      if (removedIngredientIds.includes(item.ingredientProductId)) continue
+
       // Check if ingredient is itself a recipe (nested expansion)
       const [ingredient] = await db
         .select({

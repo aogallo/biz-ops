@@ -47,6 +47,7 @@ export interface CartItem {
   parentLineClientId?: string // reference to combo parent cartItemId
   comboTemplateId?: string // productId of the combo template
   modificationsJson?: CartItemModification[]
+  removedIngredientIds?: string[]
 }
 
 export interface CartTotals {
@@ -104,6 +105,7 @@ export interface PosProductForGrid {
     | 'recipe'
     | 'combo'
     | 'sale_item'
+  trackInventory: boolean
   categoryId: string | null
   categoryName: string | null
   categoryColor: string | null

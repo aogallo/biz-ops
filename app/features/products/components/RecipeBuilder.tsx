@@ -1,71 +1,43 @@
-import { useState } from 'react'
-import { useFetcher } from 'react-router'
 import { Plus, Trash2, ChefHat } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
-interface RecipeItem {
+export interface RecipeRow {
   id: string
   ingredientProductId: string
   quantity: number
+  isOptional: boolean
 }
 
 interface RecipeBuilderProps {
-  productSku: string
-  recipeData: {
-    items: Array<{
-      ingredientProductId: string
-      quantity: string | number
-    }>
-  } | null
+  rows: RecipeRow[]
+  onChange: (rows: RecipeRow[]) => void
   ingredientProducts: Array<{ id: string; name: string; sku: string }>
 }
 
 export function RecipeBuilder({
-  productSku,
-  recipeData,
+  rows,
+  onChange,
   ingredientProducts,
 }: RecipeBuilderProps) {
-  const fetcher = useFetcher()
-  const [rows, setRows] = useState<RecipeItem[]>(
-    recipeData?.items.map((item) => ({
-      id: crypto.randomUUID(),
-      ingredientProductId: item.ingredientProductId,
-      quantity: Number(item.quantity),
-    })) ?? []
-  )
-
   function addRow() {
-    setRows((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), ingredientProductId: '', quantity: 1 },
+    onChange([
+      ...rows,
+      {
+        id: crypto.randomUUID(),
+        ingredientProductId: '',
+        quantity: 1,
+        isOptional: false,
+      },
     ])
   }
 
   function removeRow(id: string) {
-    setRows((prev) => prev.filter((r) => r.id !== id))
+    onChange(rows.filter((r) => r.id !== id))
   }
 
-  function updateRow(id: string, patch: Partial<RecipeItem>) {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+  function updateRow(id: string, patch: Partial<RecipeRow>) {
+    onChange(rows.map((r) => (r.id === id ? { ...r, ...patch } : r)))
   }
-
-  function handleSave() {
-    const validRows = rows.filter((r) => r.ingredientProductId && r.quantity > 0)
-    fetcher.submit(
-      {
-        _intent: 'upsert-recipe',
-        items: JSON.stringify(
-          validRows.map((r) => ({
-            ingredientProductId: r.ingredientProductId,
-            quantity: r.quantity,
-          }))
-        ),
-      },
-      { method: 'post', action: `/products/${productSku}/edit` }
-    )
-  }
-
-  const isSaving = fetcher.state !== 'idle'
 
   return (
     <section className='rounded-xl bg-card p-6 shadow-sm'>
@@ -75,7 +47,8 @@ export function RecipeBuilder({
           <div>
             <h2 className='font-semibold'>Ingredientes de la receta</h2>
             <p className='text-muted-foreground text-xs'>
-              Ingredientes que se descuentan del inventario al vender este producto
+              Ingredientes que se descuentan del inventario al vender este
+              producto
             </p>
           </div>
         </div>
@@ -90,18 +63,6 @@ export function RecipeBuilder({
           Agregar ingrediente
         </Button>
       </div>
-
-      {fetcher.data?.message && (
-        <div
-          className={`mb-4 rounded-md p-3 text-sm ${
-            fetcher.data.success
-              ? 'bg-green-500/10 text-green-700 dark:text-green-400'
-              : 'bg-destructive/10 text-destructive'
-          }`}
-        >
-          {fetcher.data.message}
-        </div>
-      )}
 
       {rows.length === 0 ? (
         <div className='rounded-lg border border-dashed border-border/50 p-6 text-center'>
@@ -120,6 +81,9 @@ export function RecipeBuilder({
                 <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
                   Cantidad
                 </th>
+                <th className='px-4 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                  Opcional
+                </th>
                 <th className='px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground'>
                   Acción
                 </th>
@@ -132,7 +96,9 @@ export function RecipeBuilder({
                     <select
                       value={row.ingredientProductId}
                       onChange={(e) =>
-                        updateRow(row.id, { ingredientProductId: e.target.value })
+                        updateRow(row.id, {
+                          ingredientProductId: e.target.value,
+                        })
                       }
                       className='w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
                     >
@@ -156,6 +122,16 @@ export function RecipeBuilder({
                       className='w-28 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
                     />
                   </td>
+                  <td className='px-4 py-3 text-center'>
+                    <input
+                      type='checkbox'
+                      checked={row.isOptional}
+                      onChange={(e) =>
+                        updateRow(row.id, { isOptional: e.target.checked })
+                      }
+                      className='h-4 w-4 cursor-pointer rounded border-input accent-amber-500'
+                    />
+                  </td>
                   <td className='px-4 py-3 text-right'>
                     <button
                       type='button'
@@ -171,17 +147,6 @@ export function RecipeBuilder({
           </table>
         </div>
       )}
-
-      <div className='mt-4 flex justify-end'>
-        <Button
-          type='button'
-          onClick={handleSave}
-          disabled={isSaving || rows.length === 0}
-          className='gap-2'
-        >
-          {isSaving ? 'Guardando...' : 'Guardar receta'}
-        </Button>
-      </div>
     </section>
   )
 }

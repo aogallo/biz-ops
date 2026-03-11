@@ -12,6 +12,7 @@ export const recipeItemInputSchema = z.object({
   quantity: z.number().positive('Quantity must be positive'),
   unitOfMeasureId: z.string().uuid().optional().nullable(),
   notes: z.string().optional().nullable(),
+  isOptional: z.boolean().default(false),
 })
 
 export const upsertRecipeSchema = z.object({

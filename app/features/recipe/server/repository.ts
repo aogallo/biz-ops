@@ -33,6 +33,7 @@ export class RecipeRepository {
         unitName: unitOfMeasureModel.name,
         unitAbbreviation: unitOfMeasureModel.abbreviation,
         notes: recipeItemModel.notes,
+        isOptional: recipeItemModel.isOptional,
       })
       .from(recipeItemModel)
       .leftJoin(productModel, eq(recipeItemModel.ingredientProductId, productModel.id))
@@ -81,6 +82,7 @@ export class RecipeRepository {
             quantity: String(item.quantity),
             unitOfMeasureId: item.unitOfMeasureId ?? null,
             notes: item.notes ?? null,
+            isOptional: item.isOptional ?? false,
           }))
         )
       }

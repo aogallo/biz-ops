@@ -5,12 +5,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '~/components/ui/card'
 import { CustomAttributesEditor } from '~/features/products/components/CustomAttributesEditor'
-import { RecipeBuilder } from '~/features/products/components/RecipeBuilder'
+import { RecipeBuilder, type RecipeRow } from '~/features/products/components/RecipeBuilder'
 import { ComboBuilder } from '~/features/products/components/ComboBuilder'
 import { categoriesRepository } from '~/features/categories/server/repository'
 import { updateProduct } from '~/features/products/server/actions/update.action'
@@ -111,31 +110,6 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await clonedRequest.formData()
   const intent = formData.get('_intent')
 
-  if (intent === 'upsert-recipe') {
-    const itemsJson = formData.get('items')
-    if (!itemsJson) return { success: false, message: 'No items provided' }
-
-    let rawItems: unknown[]
-    try {
-      rawItems = JSON.parse(itemsJson as string)
-    } catch {
-      return { success: false, message: 'Invalid items JSON' }
-    }
-
-    const parsed = upsertRecipeSchema.safeParse({
-      productId: product.id,
-      servings: 1,
-      items: rawItems,
-    })
-
-    if (!parsed.success) {
-      return { success: false, message: 'Datos de receta inválidos' }
-    }
-
-    await recipeRepository.upsertRecipe(parsed.data)
-    return { success: true, message: 'Receta guardada correctamente' }
-  }
-
   if (intent === 'upsert-combo') {
     const groupsJson = formData.get('groups')
     if (!groupsJson) return { success: false, message: 'No groups provided' }
@@ -158,6 +132,31 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     await comboRepository.upsertCombo(parsed.data)
     return { success: true, message: 'Combo guardado correctamente' }
+  }
+
+  // If product is a recipe, upsert recipe items from the form
+  if (product.productType === 'recipe') {
+    const recipeItemsJson = formData.get('recipeItems')
+    if (recipeItemsJson) {
+      let rawItems: unknown[]
+      try {
+        rawItems = JSON.parse(recipeItemsJson as string)
+      } catch {
+        return { success: false, message: 'Datos de receta inválidos' }
+      }
+
+      const parsed = upsertRecipeSchema.safeParse({
+        productId: product.id,
+        servings: 1,
+        items: rawItems,
+      })
+
+      if (!parsed.success) {
+        return { success: false, message: 'Datos de receta inválidos' }
+      }
+
+      await recipeRepository.upsertRecipe(parsed.data)
+    }
   }
 
   // Default: update product fields
@@ -190,6 +189,14 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
   const [tracksInventory, setTracksInventory] = useState(
     product.trackInventory ?? true
   )
+  const [recipeRows, setRecipeRows] = useState<RecipeRow[]>(
+    recipeData?.items.map((item) => ({
+      id: crypto.randomUUID(),
+      ingredientProductId: item.ingredientProductId,
+      quantity: Number(item.quantity),
+      isOptional: item.isOptional ?? false,
+    })) ?? []
+  )
 
   const isInventoryForced = FORCED_NO_INVENTORY.includes(productType)
 
@@ -204,12 +211,13 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className='mx-auto max-w-4xl space-y-6 p-6'>
+      <Form method='post'>
       <Card>
         <CardHeader>
           <CardTitle>Editar producto</CardTitle>
           <CardDescription>Modificá los datos del producto</CardDescription>
         </CardHeader>
-        <Form method='post'>
+        <div>
           <CardContent className='space-y-6'>
             {actionData?.message && !actionData.success && (
               <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
@@ -456,23 +464,30 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
               initialAttributes={product.attributesJson}
             />
           </CardContent>
-          <CardFooter className='flex justify-end gap-3 border-t pt-6'>
-            <Button type='button' variant='outline' asChild>
-              <a href={`/products/${product.sku}`}>Cancelar</a>
-            </Button>
-            <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
-          </CardFooter>
-        </Form>
+        </div>
       </Card>
 
       {product.productType === 'recipe' && (
-        <RecipeBuilder
-          productSku={product.sku}
-          recipeData={recipeData}
-          ingredientProducts={ingredientProducts}
-        />
+        <>
+          <input
+            type='hidden'
+            name='recipeItems'
+            value={JSON.stringify(
+              recipeRows
+                .filter((r) => r.ingredientProductId && r.quantity > 0)
+                .map((r) => ({
+                  ingredientProductId: r.ingredientProductId,
+                  quantity: r.quantity,
+                  isOptional: r.isOptional,
+                }))
+            )}
+          />
+          <RecipeBuilder
+            rows={recipeRows}
+            onChange={setRecipeRows}
+            ingredientProducts={ingredientProducts}
+          />
+        </>
       )}
 
       {product.productType === 'combo' && (
@@ -482,6 +497,16 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
           availableProducts={availableProducts}
         />
       )}
+
+      <div className='flex justify-end gap-3'>
+        <Button type='button' variant='outline' asChild>
+          <a href={`/products/${product.sku}`}>Cancelar</a>
+        </Button>
+        <Button type='submit' disabled={isSubmitting}>
+          {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+        </Button>
+      </div>
+      </Form>
     </div>
   )
 }

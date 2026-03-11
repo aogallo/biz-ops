@@ -218,13 +218,20 @@ export async function action({ request }: Route.ActionArgs) {
                 customerName: sale.businessPartner?.name ?? null,
                 customerNit: sale.businessPartner?.nit ?? null,
                 date: new Date(sale.createdAt).toLocaleString('es-GT'),
-                lines: sale.lines.map((l) => ({
-                  productName: l.productName,
-                  productSku: l.productSku,
-                  quantity: l.quantity,
-                  unitPrice: l.unitPrice,
-                  total: l.total,
-                })),
+                lines: sale.lines
+                  .filter((l) => l.lineType !== 'combo_item')
+                  .map((l) => ({
+                    productName: l.productName,
+                    productSku: l.productSku,
+                    quantity: l.quantity,
+                    unitPrice: l.unitPrice,
+                    total: l.total,
+                    modifications: l.modificationsJson
+                      ? (l.modificationsJson as Array<{ type: string; name: string }>)
+                          .filter((m) => m.type === 'remove')
+                          .map((m) => m.name)
+                      : undefined,
+                  })),
                 payments: sale.payments.map((p) => ({
                   method: p.method,
                   amount: p.amount,

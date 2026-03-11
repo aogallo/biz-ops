@@ -58,6 +58,13 @@ export function PosCartItem({
             {attrEntries.map(([, v]) => v).join(' · ')}
           </p>
         )}
+        {item.productType === 'recipe' &&
+          item.modificationsJson &&
+          item.modificationsJson.length > 0 && (
+            <p className='text-muted-foreground truncate text-xs'>
+              {item.modificationsJson.map((m) => `Sin ${m.name}`).join(' · ')}
+            </p>
+          )}
         {item.lineType !== 'combo' && (
           <p className='text-muted-foreground text-xs'>
             Q{item.unitPrice.toFixed(2)} {t('pos.perUnit')}

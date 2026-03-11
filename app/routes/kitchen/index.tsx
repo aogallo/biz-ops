@@ -1,7 +1,7 @@
 import { redirect } from 'react-router'
 
 export async function loader() {
-  return redirect('/pos')
+  return redirect('/sucursal')
 }
 
 export default function KitchenIndex() {

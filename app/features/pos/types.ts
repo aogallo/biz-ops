@@ -121,6 +121,7 @@ export interface ReceiptLine {
   quantity: string
   unitPrice: string
   total: string
+  modifications?: string[]
 }
 
 export interface ReceiptPayment {

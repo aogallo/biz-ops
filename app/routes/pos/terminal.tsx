@@ -115,8 +115,9 @@ export async function loader({ request }: Route.LoaderArgs) {
         ? posRepository.calculateExpectedCashForSession(openSession.id)
         : Promise.resolve(0),
       exchangeRateRepository.getActiveRate(organizationId, 'USD', 'GTQ'),
-      (await import('~/features/pos/server/repository/tables.repository'))
-        .posTablesRepository.getTables(organizationId, sucursalId),
+      (
+        await import('~/features/pos/server/repository/tables.repository')
+      ).posTablesRepository.getTables(organizationId, sucursalId),
     ])
 
   // Fetch combo definitions for combo products
@@ -442,7 +443,9 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
 
   // Table / order type selection
   const [selectedTable, setSelectedTable] = useState<PosTable | null>(null)
-  const [orderType, setOrderType] = useState<'dine_in' | 'takeout' | 'delivery' | null>(null)
+  const [orderType, setOrderType] = useState<
+    'dine_in' | 'takeout' | 'delivery' | null
+  >(null)
   const hasTables = (tables as PosTable[]).length > 0
   // Show table selection when session is open and no order type chosen yet
   const showTableSelection = !!openSession && hasTables && orderType === null
@@ -947,57 +950,57 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           onTakeout={handleTakeout}
         />
       ) : (
-      <div className='flex flex-1 overflow-hidden'>
-        {/* Left panel: Products */}
-        <div className='flex flex-1 flex-col gap-3 overflow-hidden border-r p-4'>
-          <PosProductSearch
-            value={search}
-            onChange={setSearch}
-            onBarcodeScanned={handleBarcodeScan}
-          />
-          <PosProductGrid
-            products={filteredProducts}
-            categories={categories}
-            selectedCategoryId={selectedCategoryId}
-            onCategoryChange={setSelectedCategoryId}
-            onProductClick={handleProductClick}
-            sucursalId={terminal.sucursalId}
-          />
-        </div>
-
-        {/* Right panel: Cart */}
-        <div className='flex w-80 flex-col border-l lg:w-96'>
-          <div className='border-b p-3'>
-            <PosCustomerSearch
-              selectedCustomer={selectedCustomer}
-              customers={customers}
-              onSearch={handleCustomerSearch}
-              onSelect={setSelectedCustomer}
-              onCreateCustomer={() => setCreateCustomerOpen(true)}
+        <div className='flex flex-1 overflow-hidden'>
+          {/* Left panel: Products */}
+          <div className='flex flex-1 flex-col gap-3 overflow-hidden border-r p-4'>
+            <PosProductSearch
+              value={search}
+              onChange={setSearch}
+              onBarcodeScanned={handleBarcodeScan}
+            />
+            <PosProductGrid
+              products={filteredProducts}
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onCategoryChange={setSelectedCategoryId}
+              onProductClick={handleProductClick}
+              sucursalId={terminal.sucursalId}
             />
           </div>
 
-          {fetcherData && 'error' in fetcherData && fetcherData.error && (
-            <div className='mx-4 mt-2 rounded-md bg-red-50 p-2 text-sm text-red-600 dark:bg-red-950/30'>
-              {fetcherData.error}
+          {/* Right panel: Cart */}
+          <div className='flex w-80 flex-col border-l lg:w-96'>
+            <div className='border-b p-3'>
+              <PosCustomerSearch
+                selectedCustomer={selectedCustomer}
+                customers={customers}
+                onSearch={handleCustomerSearch}
+                onSelect={setSelectedCustomer}
+                onCreateCustomer={() => setCreateCustomerOpen(true)}
+              />
             </div>
-          )}
 
-          <PosCart
-            items={cart}
-            totals={totals}
-            onQuantityChange={handleQuantityChange}
-            onRemoveItem={handleRemoveItem}
-            onCheckout={() => setPaymentOpen(true)}
-            selectedItemId={selectedCartItemId}
-            onItemSelect={handleItemSelect}
-            numpadInput={numpadInput}
-            onNumpadDigit={handleNumpadDigit}
-            onNumpadBackspace={handleNumpadBackspace}
-            onNumpadClear={handleNumpadClear}
-          />
+            {fetcherData && 'error' in fetcherData && fetcherData.error && (
+              <div className='mx-4 mt-2 rounded-md bg-red-50 p-2 text-sm text-red-600 dark:bg-red-950/30'>
+                {fetcherData.error}
+              </div>
+            )}
+
+            <PosCart
+              items={cart}
+              totals={totals}
+              onQuantityChange={handleQuantityChange}
+              onRemoveItem={handleRemoveItem}
+              onCheckout={() => setPaymentOpen(true)}
+              selectedItemId={selectedCartItemId}
+              onItemSelect={handleItemSelect}
+              numpadInput={numpadInput}
+              onNumpadDigit={handleNumpadDigit}
+              onNumpadBackspace={handleNumpadBackspace}
+              onNumpadClear={handleNumpadClear}
+            />
+          </div>
         </div>
-      </div>
       )}
 
       <PosPaymentDialog

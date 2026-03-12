@@ -29,9 +29,11 @@ export interface KitchenTicketWithItems {
   }>
 }
 
-export { KitchenRepository }
-class KitchenRepository {
-  async getNextTicketNumber(sucursalId: string | null, organizationId: string): Promise<number> {
+export class KitchenRepository {
+  async getNextTicketNumber(
+    sucursalId: string | null,
+    organizationId: string
+  ): Promise<number> {
     // Get max ticket number for this sucursal today and increment
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -47,7 +49,9 @@ class KitchenRepository {
         )
 
     const [result] = await db
-      .select({ max: sql<number>`COALESCE(MAX(${kitchenTicketModel.ticketNumber}), 0)` })
+      .select({
+        max: sql<number>`COALESCE(MAX(${kitchenTicketModel.ticketNumber}), 0)`,
+      })
       .from(kitchenTicketModel)
       .where(condition)
 
@@ -110,7 +114,11 @@ class KitchenRepository {
       .where(
         and(
           eq(kitchenTicketModel.sucursalId, sucursalId),
-          inArray(kitchenTicketModel.status, ['pending', 'in_progress', 'ready'])
+          inArray(kitchenTicketModel.status, [
+            'pending',
+            'in_progress',
+            'ready',
+          ])
         )
       )
       .orderBy(kitchenTicketModel.ticketNumber)

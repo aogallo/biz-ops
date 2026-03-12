@@ -5,7 +5,11 @@ import {
   organizationModuleModel,
 } from '~/server/db/schemas/modules'
 import { memberModel } from '~/server/db/schemas/auth'
-import { APP_MODULES, type ModuleAccessLevel, type ModuleKey } from '../constants'
+import {
+  APP_MODULES,
+  type ModuleAccessLevel,
+  type ModuleKey,
+} from '../constants'
 
 export class ModulesRepository {
   async getOrgModules(organizationId: string) {
@@ -141,7 +145,12 @@ export class ModulesRepository {
   ) {
     for (const moduleKey of APP_MODULES) {
       const level = access[moduleKey] ?? 'none'
-      await this.setMemberModuleAccess(memberId, organizationId, moduleKey, level)
+      await this.setMemberModuleAccess(
+        memberId,
+        organizationId,
+        moduleKey,
+        level
+      )
     }
   }
 
@@ -159,7 +168,12 @@ export class ModulesRepository {
     for (const member of members) {
       const currentLevel = await this.getMemberAccessLevel(member.id, moduleKey)
       if (currentLevel === 'none') {
-        await this.setMemberModuleAccess(member.id, organizationId, moduleKey, 'user')
+        await this.setMemberModuleAccess(
+          member.id,
+          organizationId,
+          moduleKey,
+          'user'
+        )
       }
     }
   }
@@ -175,7 +189,12 @@ export class ModulesRepository {
       .where(eq(memberModel.organizationId, organizationId))
 
     for (const member of members) {
-      await this.setMemberModuleAccess(member.id, organizationId, moduleKey, 'none')
+      await this.setMemberModuleAccess(
+        member.id,
+        organizationId,
+        moduleKey,
+        'none'
+      )
     }
   }
 

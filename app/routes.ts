@@ -99,7 +99,10 @@ export default [
       index('./routes/users/index.tsx'),
       route('/invite', './routes/users/invite.tsx'),
       route('/:memberId/roles', './routes/users/$memberId.roles.tsx'),
-      route('/:memberId/module-permissions', './routes/users/$memberId.module-permissions.tsx'),
+      route(
+        '/:memberId/module-permissions',
+        './routes/users/$memberId.module-permissions.tsx'
+      ),
     ]),
 
     // Roles Routes

@@ -28,9 +28,22 @@ import { sucursalModel } from './sucursal'
 
 // Enums
 export const posSaleStatusEnum = pgEnum('pos_sale_status', [
+  'open',
   'completed',
   'voided',
   'refunded',
+])
+
+export const posOrderTypeEnum = pgEnum('pos_order_type', [
+  'dine_in',
+  'takeout',
+  'delivery',
+])
+
+export const posTableStatusEnum = pgEnum('pos_table_status', [
+  'available',
+  'occupied',
+  'reserved',
 ])
 
 export const posPaymentMethodEnum = pgEnum('pos_payment_method', [
@@ -58,77 +71,113 @@ export const posSaleLineTypeEnum = pgEnum('pos_sale_line_type', [
   'combo_item',
 ])
 
+// POS Table (Mesa)
+export const posTableModel = pgTable(
+  'pos_table',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizationModel.id),
+    sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
+    number: text('number').notNull(), // "1", "A1", "Terraza 3", etc.
+    capacity: integer('capacity'), // número de asientos
+    status: posTableStatusEnum('status').notNull().default('available'),
+    isActive: boolean('is_active').notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    index('pos_table_org_idx').on(table.organizationId, table.isActive),
+    index('pos_table_sucursal_idx').on(table.sucursalId, table.status),
+  ]
+)
+
 // POS Terminal
-export const posTerminalModel = pgTable('pos_terminal', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: uuid('organization_id')
-    .notNull()
-    .references(() => organizationModel.id),
-  sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
-  name: text('name').notNull(),
-  isActive: boolean('is_active').notNull().default(true),
-  invoicePrefix: text('invoice_prefix').notNull().default('T'),
-  nextInvoiceNumber: integer('next_invoice_number').notNull().default(1),
-  autoGenerateInvoice: boolean('auto_generate_invoice')
-    .notNull()
-    .default(false),
-  autoPrintReceipt: boolean('auto_print_receipt')
-    .notNull()
-    .default(false),
-  printerName: text('printer_name'),
-  printMethod: text('print_method').notNull().default('qz-tray'),
-  kitchenPrinterName: text('kitchen_printer_name'),
-  kitchenPrinterHost: text('kitchen_printer_host'),
-  kitchenPrinterPort: integer('kitchen_printer_port'),
-  kitchenPrintMethod: text('kitchen_print_method'),
-  defaultBusinessPartnerId: uuid('default_business_partner_id').references(
-    () => businessPartnerModel.id
-  ),
-  companyId: uuid('company_id').references(() => companyModel.id),
-  ...timestamps,
-}, (table) => [
-  index('pos_terminal_org_active_idx').on(table.organizationId, table.isActive),
-])
+export const posTerminalModel = pgTable(
+  'pos_terminal',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizationModel.id),
+    sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
+    name: text('name').notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    invoicePrefix: text('invoice_prefix').notNull().default('T'),
+    nextInvoiceNumber: integer('next_invoice_number').notNull().default(1),
+    autoGenerateInvoice: boolean('auto_generate_invoice')
+      .notNull()
+      .default(false),
+    autoPrintReceipt: boolean('auto_print_receipt').notNull().default(false),
+    printerName: text('printer_name'),
+    printMethod: text('print_method').notNull().default('qz-tray'),
+    kitchenPrinterName: text('kitchen_printer_name'),
+    kitchenPrinterHost: text('kitchen_printer_host'),
+    kitchenPrinterPort: integer('kitchen_printer_port'),
+    kitchenPrintMethod: text('kitchen_print_method'),
+    defaultBusinessPartnerId: uuid('default_business_partner_id').references(
+      () => businessPartnerModel.id
+    ),
+    companyId: uuid('company_id').references(() => companyModel.id),
+    ...timestamps,
+  },
+  (table) => [
+    index('pos_terminal_org_active_idx').on(
+      table.organizationId,
+      table.isActive
+    ),
+  ]
+)
 
 // POS Sale
-export const posSaleModel = pgTable('pos_sale', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: uuid('organization_id')
-    .notNull()
-    .references(() => organizationModel.id),
-  sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
-  terminalId: uuid('terminal_id')
-    .notNull()
-    .references(() => posTerminalModel.id),
-  cashierId: uuid('cashier_id')
-    .notNull()
-    .references(() => posCashierModel.id),
-  sessionId: uuid('session_id'),
-  businessPartnerId: uuid('business_partner_id')
-    .notNull()
-    .references(() => businessPartnerModel.id),
-  saleNumber: text('sale_number').notNull(),
-  idempotencyKey: uuid('idempotency_key'),
-  status: posSaleStatusEnum('status').notNull().default('completed'),
-  subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull(),
-  ivaAmount: numeric('iva_amount', { precision: 12, scale: 2 })
-    .notNull()
-    .default('0'),
-  discountAmount: numeric('discount_amount', { precision: 12, scale: 2 })
-    .notNull()
-    .default('0'),
-  total: numeric('total', { precision: 12, scale: 2 }).notNull(),
-  currency: text('currency').notNull().default('GTQ'),
-  companyId: uuid('company_id').references(() => companyModel.id),
-  invoiceId: uuid('invoice_id').references(() => invoiceModel.id),
-  notes: text('notes'),
-  ...timestamps,
-}, (table) => [
-  uniqueIndex('pos_sale_idempotency_key_idx').on(table.idempotencyKey),
-  index('pos_sale_terminal_created_idx').on(table.terminalId, table.createdAt),
-  index('pos_sale_status_idx').on(table.status),
-  index('pos_sale_org_created_idx').on(table.organizationId, table.createdAt),
-])
+export const posSaleModel = pgTable(
+  'pos_sale',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizationModel.id),
+    sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
+    terminalId: uuid('terminal_id')
+      .notNull()
+      .references(() => posTerminalModel.id),
+    cashierId: uuid('cashier_id')
+      .notNull()
+      .references(() => posCashierModel.id),
+    sessionId: uuid('session_id'),
+    businessPartnerId: uuid('business_partner_id')
+      .notNull()
+      .references(() => businessPartnerModel.id),
+    tableId: uuid('table_id').references(() => posTableModel.id),
+    orderType: posOrderTypeEnum('order_type').notNull().default('takeout'),
+    coverCount: integer('cover_count'),
+    saleNumber: text('sale_number').notNull(),
+    idempotencyKey: uuid('idempotency_key'),
+    status: posSaleStatusEnum('status').notNull().default('completed'),
+    subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull(),
+    ivaAmount: numeric('iva_amount', { precision: 12, scale: 2 })
+      .notNull()
+      .default('0'),
+    discountAmount: numeric('discount_amount', { precision: 12, scale: 2 })
+      .notNull()
+      .default('0'),
+    total: numeric('total', { precision: 12, scale: 2 }).notNull(),
+    currency: text('currency').notNull().default('GTQ'),
+    companyId: uuid('company_id').references(() => companyModel.id),
+    invoiceId: uuid('invoice_id').references(() => invoiceModel.id),
+    notes: text('notes'),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex('pos_sale_idempotency_key_idx').on(table.idempotencyKey),
+    index('pos_sale_terminal_created_idx').on(
+      table.terminalId,
+      table.createdAt
+    ),
+    index('pos_sale_status_idx').on(table.status),
+    index('pos_sale_org_created_idx').on(table.organizationId, table.createdAt),
+  ]
+)
 
 // POS Sale Line
 export const posSaleLineModel = pgTable('pos_sale_line', {
@@ -282,6 +331,18 @@ export const posZReportModel = pgTable('pos_z_report', {
 })
 
 // Relations
+export const posTableRelations = relations(posTableModel, ({ one, many }) => ({
+  organization: one(organizationModel, {
+    fields: [posTableModel.organizationId],
+    references: [organizationModel.id],
+  }),
+  sucursal: one(sucursalModel, {
+    fields: [posTableModel.sucursalId],
+    references: [sucursalModel.id],
+  }),
+  sales: many(posSaleModel),
+}))
+
 export const posTerminalRelations = relations(
   posTerminalModel,
   ({ one, many }) => ({
@@ -310,6 +371,10 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
   organization: one(organizationModel, {
     fields: [posSaleModel.organizationId],
     references: [organizationModel.id],
+  }),
+  table: one(posTableModel, {
+    fields: [posSaleModel.tableId],
+    references: [posTableModel.id],
   }),
   sucursal: one(sucursalModel, {
     fields: [posSaleModel.sucursalId],
@@ -438,6 +503,10 @@ export const posZReportRelations = relations(posZReportModel, ({ one }) => ({
 }))
 
 // Schemas
+export const selectPosTableSchema = createSelectSchema(posTableModel)
+export const insertPosTableSchema = createInsertSchema(posTableModel)
+export const updatePosTableSchema = createUpdateSchema(posTableModel)
+
 export const selectPosTerminalSchema = createSelectSchema(posTerminalModel)
 export const insertPosTerminalSchema = createInsertSchema(posTerminalModel)
 export const updatePosTerminalSchema = createUpdateSchema(posTerminalModel)
@@ -458,13 +527,21 @@ export const updatePosCashierSchema = createUpdateSchema(posCashierModel)
 export const selectPosSessionSchema = createSelectSchema(posSessionModel)
 export const insertPosSessionSchema = createInsertSchema(posSessionModel)
 
-export const selectPosCashMovementSchema = createSelectSchema(posCashMovementModel)
-export const insertPosCashMovementSchema = createInsertSchema(posCashMovementModel)
+export const selectPosCashMovementSchema =
+  createSelectSchema(posCashMovementModel)
+export const insertPosCashMovementSchema =
+  createInsertSchema(posCashMovementModel)
 
 export const selectPosZReportSchema = createSelectSchema(posZReportModel)
 export const insertPosZReportSchema = createInsertSchema(posZReportModel)
 
 // Types
+export type PosTable = z.infer<typeof selectPosTableSchema>
+export type InsertPosTable = z.infer<typeof insertPosTableSchema>
+export type UpdatePosTable = z.infer<typeof updatePosTableSchema>
+export type PosTableStatus = 'available' | 'occupied' | 'reserved'
+export type PosOrderType = 'dine_in' | 'takeout' | 'delivery'
+
 export type PosTerminal = z.infer<typeof selectPosTerminalSchema>
 export type InsertPosTerminal = z.infer<typeof insertPosTerminalSchema>
 export type PosSale = z.infer<typeof selectPosSaleSchema>

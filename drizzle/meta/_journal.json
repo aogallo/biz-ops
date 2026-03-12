@@ -211,6 +211,13 @@
       "when": 1773259704134,
       "tag": "0029_slippery_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1773292789688,
+      "tag": "0030_rainy_turbo",
+      "breakpoints": true
     }
   ]
 }

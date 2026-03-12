@@ -2,11 +2,11 @@ import { Form, useActionData } from 'react-router'
 import { exchangeRateRepository } from '~/features/exchangeRate/server/repository'
 import { setExchangeRateSchema } from '~/features/exchangeRate/schemas'
 import { setExchangeRateAction } from '~/features/exchangeRate/server/actions/set-exchange-rate.action'
-import { requireAuth } from '~/server/auth/session.server'
+import { requireModule } from '~/server/auth/module.server'
 import type { Route } from './+types/exchange-rates'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
+  const session = await requireModule(request, 'pos')
   const organizationId = session.session.activeOrganizationId!
 
   const [activeUsdRate, rateHistory] = await Promise.all([
@@ -18,7 +18,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await requireAuth(request)
+  const session = await requireModule(request, 'pos')
   const organizationId = session.session.activeOrganizationId!
   const formData = await request.formData()
 

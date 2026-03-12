@@ -73,11 +73,13 @@ const makeSelectChain = (resolvedValue: unknown) => {
 describe('requireModule', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  test('super admin bypasses module check', async () => {
-    mockRequireAuth.mockResolvedValue(makeSession({ isSuperAdmin: true }))
+  test('super admin bypasses module check and returns session', async () => {
+    const session = makeSession({ isSuperAdmin: true })
+    mockRequireAuth.mockResolvedValue(session)
 
-    await expect(requireModule(makeRequest(), 'pos')).resolves.not.toThrow()
+    const result = await requireModule(makeRequest(), 'pos')
 
+    expect(result).toEqual(session)
     expect(mockGetMemberAccessLevel).not.toHaveBeenCalled()
   })
 
@@ -97,24 +99,28 @@ describe('requireModule', () => {
     await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(Response)
   })
 
-  test('allows access when member has user access', async () => {
-    mockRequireAuth.mockResolvedValue(makeSession())
+  test('allows access when member has user access and returns session', async () => {
+    const session = makeSession()
+    mockRequireAuth.mockResolvedValue(session)
     ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(
       makeSelectChain([{ id: 'member-1' }])
     )
     mockGetMemberAccessLevel.mockResolvedValue('user')
 
-    await expect(requireModule(makeRequest(), 'pos')).resolves.not.toThrow()
+    const result = await requireModule(makeRequest(), 'pos')
+    expect(result).toEqual(session)
   })
 
-  test('allows access when member has admin access', async () => {
-    mockRequireAuth.mockResolvedValue(makeSession())
+  test('allows access when member has admin access and returns session', async () => {
+    const session = makeSession()
+    mockRequireAuth.mockResolvedValue(session)
     ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(
       makeSelectChain([{ id: 'member-1' }])
     )
     mockGetMemberAccessLevel.mockResolvedValue('admin')
 
-    await expect(requireModule(makeRequest(), 'pos')).resolves.not.toThrow()
+    const result = await requireModule(makeRequest(), 'pos')
+    expect(result).toEqual(session)
   })
 
   test('redirects when member record not found', async () => {

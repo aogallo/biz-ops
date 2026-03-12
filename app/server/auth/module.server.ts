@@ -4,18 +4,19 @@ import { db } from '~/server/db'
 import { memberModel } from '~/server/db/schemas/auth'
 import { modulesRepository } from '~/features/modules/server/repository'
 import type { ModuleKey } from '~/features/modules/constants'
-import { requireAuth } from './session.server'
+import { requireAuth, type SessionData } from './session.server'
 
 /**
  * Guard that ensures the current user has access to a specific module.
+ * Returns the session so it can replace requireAuth in loaders/actions.
  * Super admins bypass this check.
  * Throws a redirect to /home if access is denied.
  */
-export async function requireModule(request: Request, moduleKey: ModuleKey): Promise<void> {
+export async function requireModule(request: Request, moduleKey: ModuleKey): Promise<SessionData> {
   const session = await requireAuth(request)
 
   // Super admin bypasses all module checks
-  if (session.user.isSuperAdmin) return
+  if (session.user.isSuperAdmin) return session
 
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) {
@@ -43,4 +44,6 @@ export async function requireModule(request: Request, moduleKey: ModuleKey): Pro
   if (accessLevel === 'none') {
     throw redirect('/home')
   }
+
+  return session
 }

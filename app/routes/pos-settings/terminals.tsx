@@ -26,7 +26,7 @@ import {
   createTerminalSchema,
   updateTerminalSchema,
 } from '~/features/pos/schemas'
-import { requireAuth } from '~/server/auth/session.server'
+import { requireModule } from '~/server/auth/module.server'
 import { useTranslation } from '~/i18n/context'
 import type { Route } from './+types/terminals'
 import type { PosTerminalWithSucursal } from '~/features/pos/types'
@@ -37,7 +37,7 @@ import { companyModel } from '~/server/db/schemas/company'
 import { eq } from 'drizzle-orm'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request)
+  const session = await requireModule(request, 'pos')
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
@@ -79,7 +79,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  await requireAuth(request)
+  await requireModule(request, 'pos')
   const formData = await request.formData()
   const intent = formData.get('intent')
 

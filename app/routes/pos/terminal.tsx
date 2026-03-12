@@ -52,6 +52,8 @@ import { db } from '~/server/db'
 import { and, eq } from 'drizzle-orm'
 import type { Route } from './+types/terminal'
 import { PosProductRecipeDialog } from '~/features/pos/components/PosProductRecipeDialog'
+import { PosTableSelectionView } from '~/features/pos/components/PosTableSelectionView'
+import type { PosTable } from '~/server/db/schemas/pos'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const [userSession, posSession] = await Promise.all([
@@ -105,7 +107,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const sucursalId = terminal.sucursalId ?? undefined
 
-  const [products, categories, expectedCash, activeExchangeRate] =
+  const [products, categories, expectedCash, activeExchangeRate, tables] =
     await Promise.all([
       posRepository.getProductsForPos(organizationId, sucursalId),
       posRepository.getCategories(organizationId),
@@ -113,6 +115,8 @@ export async function loader({ request }: Route.LoaderArgs) {
         ? posRepository.calculateExpectedCashForSession(openSession.id)
         : Promise.resolve(0),
       exchangeRateRepository.getActiveRate(organizationId, 'USD', 'GTQ'),
+      (await import('~/features/pos/server/repository/tables.repository'))
+        .posTablesRepository.getTables(organizationId, sucursalId),
     ])
 
   // Fetch combo definitions for combo products
@@ -167,6 +171,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     activeExchangeRate: activeExchangeRate
       ? Number(activeExchangeRate.rate)
       : null,
+    tables,
   }
 }
 
@@ -390,6 +395,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     expectedCash,
     comboDefinitions,
     activeExchangeRate,
+    tables,
   } = loaderData
 
   const { t } = useTranslation()
@@ -433,6 +439,26 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     useState<PosProductForGrid | null>(null)
   const [recipeDialogProduct, setRecipeDialogProduct] =
     useState<PosProductForGrid | null>(null)
+
+  // Table / order type selection
+  const [selectedTable, setSelectedTable] = useState<PosTable | null>(null)
+  const [orderType, setOrderType] = useState<'dine_in' | 'takeout' | 'delivery' | null>(null)
+  const hasTables = (tables as PosTable[]).length > 0
+  // Show table selection when session is open and no order type chosen yet
+  const showTableSelection = !!openSession && hasTables && orderType === null
+
+  const handleSelectTable = (table: PosTable) => {
+    setSelectedTable(table)
+    setOrderType('dine_in')
+  }
+  const handleTakeout = () => {
+    setSelectedTable(null)
+    setOrderType('takeout')
+  }
+  const resetTableSelection = () => {
+    setSelectedTable(null)
+    setOrderType(null)
+  }
 
   // No cashier profile
   if (!cashier) {
@@ -713,6 +739,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         businessPartnerId,
         idempotencyKey: crypto.randomUUID(),
         sessionId: openSession?.id,
+        tableId: selectedTable?.id ?? null,
+        orderType: orderType ?? 'takeout',
         lines: cart.map((item) => ({
           productId: item.productId,
           productName: item.productName,
@@ -747,6 +775,8 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
       cashierId,
       userId,
       openSession,
+      selectedTable,
+      orderType,
       fetcher,
       t,
     ]
@@ -858,6 +888,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
     setNumpadInput('')
     setSelectedCustomer(null)
     setPaymentOpen(false)
+    resetTableSelection()
 
     if (terminal.autoPrintReceipt) {
       handlePrint(receipt)
@@ -909,6 +940,13 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
         onCashMovement={() => setCashMovementOpen(true)}
       />
 
+      {showTableSelection ? (
+        <PosTableSelectionView
+          tables={tables as PosTable[]}
+          onSelectTable={handleSelectTable}
+          onTakeout={handleTakeout}
+        />
+      ) : (
       <div className='flex flex-1 overflow-hidden'>
         {/* Left panel: Products */}
         <div className='flex flex-1 flex-col gap-3 overflow-hidden border-r p-4'>
@@ -960,6 +998,7 @@ export default function PosTerminal({ loaderData }: Route.ComponentProps) {
           />
         </div>
       </div>
+      )}
 
       <PosPaymentDialog
         open={paymentOpen}

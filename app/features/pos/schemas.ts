@@ -105,6 +105,9 @@ export const checkoutSchema = z.object({
   businessPartnerId: z.string().uuid(),
   idempotencyKey: z.string().uuid(),
   sessionId: z.string().uuid().optional(),
+  tableId: z.string().uuid().optional().nullable(),
+  orderType: z.enum(['dine_in', 'takeout', 'delivery']).optional().default('takeout'),
+  coverCount: z.number().int().positive().optional().nullable(),
   lines: z.array(checkoutLineSchema).min(1, 'Cart cannot be empty'),
   payments: z
     .array(checkoutPaymentSchema)

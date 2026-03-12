@@ -28,9 +28,22 @@ import { sucursalModel } from './sucursal'
 
 // Enums
 export const posSaleStatusEnum = pgEnum('pos_sale_status', [
+  'open',
   'completed',
   'voided',
   'refunded',
+])
+
+export const posOrderTypeEnum = pgEnum('pos_order_type', [
+  'dine_in',
+  'takeout',
+  'delivery',
+])
+
+export const posTableStatusEnum = pgEnum('pos_table_status', [
+  'available',
+  'occupied',
+  'reserved',
 ])
 
 export const posPaymentMethodEnum = pgEnum('pos_payment_method', [
@@ -57,6 +70,27 @@ export const posSaleLineTypeEnum = pgEnum('pos_sale_line_type', [
   'combo',
   'combo_item',
 ])
+
+// POS Table (Mesa)
+export const posTableModel = pgTable(
+  'pos_table',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizationModel.id),
+    sucursalId: uuid('sucursal_id').references(() => sucursalModel.id),
+    number: text('number').notNull(), // "1", "A1", "Terraza 3", etc.
+    capacity: integer('capacity'), // número de asientos
+    status: posTableStatusEnum('status').notNull().default('available'),
+    isActive: boolean('is_active').notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    index('pos_table_org_idx').on(table.organizationId, table.isActive),
+    index('pos_table_sucursal_idx').on(table.sucursalId, table.status),
+  ]
+)
 
 // POS Terminal
 export const posTerminalModel = pgTable('pos_terminal', {
@@ -107,6 +141,9 @@ export const posSaleModel = pgTable('pos_sale', {
   businessPartnerId: uuid('business_partner_id')
     .notNull()
     .references(() => businessPartnerModel.id),
+  tableId: uuid('table_id').references(() => posTableModel.id),
+  orderType: posOrderTypeEnum('order_type').notNull().default('takeout'),
+  coverCount: integer('cover_count'),
   saleNumber: text('sale_number').notNull(),
   idempotencyKey: uuid('idempotency_key'),
   status: posSaleStatusEnum('status').notNull().default('completed'),
@@ -282,6 +319,18 @@ export const posZReportModel = pgTable('pos_z_report', {
 })
 
 // Relations
+export const posTableRelations = relations(posTableModel, ({ one, many }) => ({
+  organization: one(organizationModel, {
+    fields: [posTableModel.organizationId],
+    references: [organizationModel.id],
+  }),
+  sucursal: one(sucursalModel, {
+    fields: [posTableModel.sucursalId],
+    references: [sucursalModel.id],
+  }),
+  sales: many(posSaleModel),
+}))
+
 export const posTerminalRelations = relations(
   posTerminalModel,
   ({ one, many }) => ({
@@ -310,6 +359,10 @@ export const posSaleRelations = relations(posSaleModel, ({ one, many }) => ({
   organization: one(organizationModel, {
     fields: [posSaleModel.organizationId],
     references: [organizationModel.id],
+  }),
+  table: one(posTableModel, {
+    fields: [posSaleModel.tableId],
+    references: [posTableModel.id],
   }),
   sucursal: one(sucursalModel, {
     fields: [posSaleModel.sucursalId],
@@ -438,6 +491,10 @@ export const posZReportRelations = relations(posZReportModel, ({ one }) => ({
 }))
 
 // Schemas
+export const selectPosTableSchema = createSelectSchema(posTableModel)
+export const insertPosTableSchema = createInsertSchema(posTableModel)
+export const updatePosTableSchema = createUpdateSchema(posTableModel)
+
 export const selectPosTerminalSchema = createSelectSchema(posTerminalModel)
 export const insertPosTerminalSchema = createInsertSchema(posTerminalModel)
 export const updatePosTerminalSchema = createUpdateSchema(posTerminalModel)
@@ -465,6 +522,12 @@ export const selectPosZReportSchema = createSelectSchema(posZReportModel)
 export const insertPosZReportSchema = createInsertSchema(posZReportModel)
 
 // Types
+export type PosTable = z.infer<typeof selectPosTableSchema>
+export type InsertPosTable = z.infer<typeof insertPosTableSchema>
+export type UpdatePosTable = z.infer<typeof updatePosTableSchema>
+export type PosTableStatus = 'available' | 'occupied' | 'reserved'
+export type PosOrderType = 'dine_in' | 'takeout' | 'delivery'
+
 export type PosTerminal = z.infer<typeof selectPosTerminalSchema>
 export type InsertPosTerminal = z.infer<typeof insertPosTerminalSchema>
 export type PosSale = z.infer<typeof selectPosSaleSchema>

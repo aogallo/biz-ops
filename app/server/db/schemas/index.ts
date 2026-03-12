@@ -82,6 +82,7 @@ import {
   quotationStatus,
 } from './quotations'
 import {
+  posTableModel,
   posTerminalModel,
   posSaleModel,
   posSaleLineModel,
@@ -204,6 +205,7 @@ export const schema = {
   quotationRecipient: quotationRecipientModel,
 
   // POS tables
+  posTable: posTableModel,
   posTerminal: posTerminalModel,
   posSale: posSaleModel,
   posSaleLine: posSaleLineModel,
@@ -266,6 +268,7 @@ export const schema = {
   quotationRelations,
   quotationDetailRelations,
   quotationRecipientRelations,
+  posTableRelations,
   posTerminalRelations,
   posSaleRelations,
   posSaleLineRelations,

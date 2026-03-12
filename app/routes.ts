@@ -99,7 +99,10 @@ export default [
       index('./routes/users/index.tsx'),
       route('/invite', './routes/users/invite.tsx'),
       route('/:memberId/roles', './routes/users/$memberId.roles.tsx'),
-      route('/:memberId/module-permissions', './routes/users/$memberId.module-permissions.tsx'),
+      route(
+        '/:memberId/module-permissions',
+        './routes/users/$memberId.module-permissions.tsx'
+      ),
     ]),
 
     // Roles Routes
@@ -185,6 +188,7 @@ export default [
       route('/terminals', './routes/pos-settings/terminals.tsx'),
       route('/cashiers', './routes/pos-settings/cashiers.tsx'),
       route('/exchange-rates', './routes/pos-settings/exchange-rates.tsx'),
+      route('/tables', './routes/pos-settings/tables.tsx'),
     ]),
 
     // Sucursal Routes

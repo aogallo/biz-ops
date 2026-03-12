@@ -238,6 +238,9 @@ export async function createSaleAction(input: CheckoutInput) {
         terminalId: input.terminalId,
         cashierId: input.cashierId,
         sessionId: input.sessionId,
+        tableId: input.tableId ?? null,
+        orderType: input.orderType ?? 'takeout',
+        coverCount: input.coverCount ?? null,
         businessPartnerId: input.businessPartnerId,
         saleNumber,
         idempotencyKey: input.idempotencyKey,
@@ -295,8 +298,16 @@ export async function createSaleAction(input: CheckoutInput) {
         referenceId: sale.id,
       },
       {
-        expandRecipeToIngredients: (productId, multiplier, removedIngredientIds) =>
-          recipeRepository.expandRecipeToIngredients(productId, multiplier, removedIngredientIds),
+        expandRecipeToIngredients: (
+          productId,
+          multiplier,
+          removedIngredientIds
+        ) =>
+          recipeRepository.expandRecipeToIngredients(
+            productId,
+            multiplier,
+            removedIngredientIds
+          ),
         getProductType: async (productId) => {
           const [p] = await tx
             .select({ productType: productModel.productType })
@@ -390,6 +401,13 @@ export async function createSaleAction(input: CheckoutInput) {
         items: kitchenItems,
       })
     }
+  }
+
+  // 11. Release table if this was a dine-in order
+  if (input.tableId) {
+    const { posTablesRepository } =
+      await import('~/features/pos/server/repository/tables.repository')
+    await posTablesRepository.updateTableStatus(input.tableId, 'available')
   }
 
   return { saleId: result.saleId, saleNumber: result.saleNumber }

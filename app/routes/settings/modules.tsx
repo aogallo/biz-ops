@@ -49,11 +49,25 @@ export async function action({ request }: Route.ActionArgs) {
     return { error: 'Invalid data' }
   }
 
+  const isActive = result.data.isActive as boolean
+
   await modulesRepository.setOrgModuleActive(
     result.data.organizationId,
     result.data.moduleKey,
-    result.data.isActive as boolean
+    isActive
   )
+
+  if (isActive) {
+    await modulesRepository.autoGrantMemberAccess(
+      result.data.organizationId,
+      result.data.moduleKey
+    )
+  } else {
+    await modulesRepository.revokeAllMembersAccess(
+      result.data.organizationId,
+      result.data.moduleKey
+    )
+  }
 
   return redirectWithFlash('/settings/modules', {
     type: 'success',
@@ -120,7 +134,11 @@ export default function ModulesSettingsPage({
                     </div>
                   </div>
                   <Form method='post'>
-                    <input type='hidden' name='organizationId' value={organizationId} />
+                    <input
+                      type='hidden'
+                      name='organizationId'
+                      value={organizationId}
+                    />
                     <input type='hidden' name='moduleKey' value={moduleKey} />
                     <input
                       type='hidden'

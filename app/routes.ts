@@ -185,6 +185,7 @@ export default [
       route('/terminals', './routes/pos-settings/terminals.tsx'),
       route('/cashiers', './routes/pos-settings/cashiers.tsx'),
       route('/exchange-rates', './routes/pos-settings/exchange-rates.tsx'),
+      route('/tables', './routes/pos-settings/tables.tsx'),
     ]),
 
     // Sucursal Routes

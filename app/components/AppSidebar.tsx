@@ -257,6 +257,12 @@ export const navigationItems = [
         icon: Users,
       },
       {
+        name: 'Tables',
+        nameKey: 'sidebar.items.posTables' as TranslationKey,
+        path: '/pos-settings/tables',
+        icon: Shapes,
+      },
+      {
         name: 'sucursal',
         nameKey: 'sidebar.items.sucursal' as TranslationKey,
         path: '/sucursal',

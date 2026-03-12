@@ -54,10 +54,16 @@ function useElapsed(createdAt: Date | string | null) {
   useEffect(() => {
     if (!createdAt) return
     const update = () => {
-      const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 1000)
+      const diff = Math.floor(
+        (Date.now() - new Date(createdAt).getTime()) / 1000
+      )
       if (diff < 60) setElapsed(`${diff}s`)
-      else if (diff < 3600) setElapsed(`${Math.floor(diff / 60)}m ${diff % 60}s`)
-      else setElapsed(`${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m`)
+      else if (diff < 3600)
+        setElapsed(`${Math.floor(diff / 60)}m ${diff % 60}s`)
+      else
+        setElapsed(
+          `${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m`
+        )
     }
     update()
     const id = setInterval(update, 1000)
@@ -111,16 +117,18 @@ function TicketCard({
     : 0
 
   return (
-    <div className={cn('rounded-xl border-2 p-4 space-y-3', borderClass, bgClass)}>
+    <div
+      className={cn('space-y-3 rounded-xl border-2 p-4', borderClass, bgClass)}
+    >
       {/* Header */}
       <div className='flex items-start justify-between gap-2'>
         <div>
           <span className={cn('text-2xl font-bold', accentClass)}>
             #{ticket.ticketNumber}
           </span>
-          <div className='flex items-center gap-2 mt-0.5'>
+          <div className='mt-0.5 flex items-center gap-2'>
             {ticket.tableNumber ? (
-              <span className='text-xs font-medium bg-white/10 px-2 py-0.5 rounded-full'>
+              <span className='rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium'>
                 Mesa {ticket.tableNumber}
               </span>
             ) : (
@@ -130,7 +138,7 @@ function TicketCard({
               <span
                 className={cn(
                   'text-xs tabular-nums',
-                  elapsedSecs > 600 ? 'text-red-400 font-bold' : 'text-gray-400'
+                  elapsedSecs > 600 ? 'font-bold text-red-400' : 'text-gray-400'
                 )}
               >
                 {elapsed}
@@ -151,7 +159,7 @@ function TicketCard({
               nextStatus === 'in_progress' &&
                 'bg-yellow-500 text-black hover:bg-yellow-400',
               nextStatus === 'ready' &&
-                'bg-green-500 text-white hover:bg-green-400 disabled:opacity-40 disabled:cursor-not-allowed',
+                'bg-green-500 text-white hover:bg-green-400 disabled:cursor-not-allowed disabled:opacity-40',
               nextStatus === 'served' &&
                 'bg-gray-500 text-white hover:bg-gray-400'
             )}
@@ -163,7 +171,7 @@ function TicketCard({
 
       {/* Notes */}
       {ticket.notes && (
-        <p className='text-xs text-gray-300 italic border-l-2 border-gray-600 pl-2'>
+        <p className='border-l-2 border-gray-600 pl-2 text-xs text-gray-300 italic'>
           {ticket.notes}
         </p>
       )}
@@ -187,18 +195,23 @@ function TicketCard({
                     <input type='hidden' name='status' value='ready' />
                     <button
                       type='submit'
-                      className='size-5 rounded border border-gray-500 text-xs hover:border-green-400 hover:text-green-400 flex items-center justify-center flex-shrink-0'
+                      className='flex size-5 flex-shrink-0 items-center justify-center rounded border border-gray-500 text-xs hover:border-green-400 hover:text-green-400'
                     >
                       ✓
                     </button>
                   </form>
                 )}
                 {isDone && (
-                  <span className='size-5 flex items-center justify-center text-green-400 flex-shrink-0'>
+                  <span className='flex size-5 flex-shrink-0 items-center justify-center text-green-400'>
                     ✓
                   </span>
                 )}
-                <span className={cn('text-sm', isDone && 'line-through text-gray-500')}>
+                <span
+                  className={cn(
+                    'text-sm',
+                    isDone && 'text-gray-500 line-through'
+                  )}
+                >
                   <span className='text-base font-bold'>{item.quantity}×</span>{' '}
                   {item.productName}
                 </span>
@@ -275,24 +288,29 @@ export default function KitchenDisplay({ loaderData }: Route.ComponentProps) {
         <h1 className='text-xl font-bold tracking-tight'>Cocina</h1>
         <div className='flex items-center gap-3 text-sm text-gray-400'>
           <span>
-            {total} pedido{total !== 1 ? 's' : ''} activo{total !== 1 ? 's' : ''}
+            {total} pedido{total !== 1 ? 's' : ''} activo
+            {total !== 1 ? 's' : ''}
           </span>
-          <span className='size-2 rounded-full bg-green-500 animate-pulse' />
+          <span className='size-2 animate-pulse rounded-full bg-green-500' />
         </div>
       </div>
 
-      <div className='flex flex-1 overflow-hidden divide-x divide-gray-800'>
+      <div className='flex flex-1 divide-x divide-gray-800 overflow-hidden'>
         {COLUMNS.map((col) => {
           const colTickets = tickets.filter((t) => t.status === col.status)
           return (
-            <div key={col.status} className='flex flex-1 flex-col min-w-0'>
-              <div className='border-b border-gray-800 px-4 py-2 flex items-center justify-between'>
-                <h2 className={cn('font-semibold', col.labelClass)}>{col.label}</h2>
-                <span className='text-xs text-gray-500'>{colTickets.length}</span>
+            <div key={col.status} className='flex min-w-0 flex-1 flex-col'>
+              <div className='flex items-center justify-between border-b border-gray-800 px-4 py-2'>
+                <h2 className={cn('font-semibold', col.labelClass)}>
+                  {col.label}
+                </h2>
+                <span className='text-xs text-gray-500'>
+                  {colTickets.length}
+                </span>
               </div>
-              <div className='flex-1 overflow-y-auto p-3 space-y-3'>
+              <div className='flex-1 space-y-3 overflow-y-auto p-3'>
                 {colTickets.length === 0 ? (
-                  <p className='text-center text-xs text-gray-600 mt-8'>
+                  <p className='mt-8 text-center text-xs text-gray-600'>
                     {col.emptyText}
                   </p>
                 ) : (

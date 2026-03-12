@@ -33,9 +33,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function KitchenIndex() {
   return (
     <div className='flex h-screen items-center justify-center bg-gray-950 text-white'>
-      <div className='text-center space-y-2'>
+      <div className='space-y-2 text-center'>
         <h2 className='text-xl font-bold'>Sin sucursales configuradas</h2>
-        <p className='text-gray-400 text-sm'>
+        <p className='text-sm text-gray-400'>
           Configurá una sucursal en Ajustes para usar el display de cocina.
         </p>
       </div>

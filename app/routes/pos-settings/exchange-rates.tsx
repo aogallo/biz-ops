@@ -40,12 +40,15 @@ export async function action({ request }: Route.ActionArgs) {
     return { success: true }
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : 'Error al guardar la tasa',
+      error:
+        error instanceof Error ? error.message : 'Error al guardar la tasa',
     }
   }
 }
 
-export default function ExchangeRatesPage({ loaderData }: Route.ComponentProps) {
+export default function ExchangeRatesPage({
+  loaderData,
+}: Route.ComponentProps) {
   const { activeUsdRate, rateHistory } = loaderData
   const actionData = useActionData<typeof action>()
 
@@ -72,7 +75,9 @@ export default function ExchangeRatesPage({ loaderData }: Route.ComponentProps) 
           <p className='mb-3 text-sm text-red-600'>{actionData.error}</p>
         )}
         {actionData && 'success' in actionData && (
-          <p className='mb-3 text-sm text-green-600'>Tasa actualizada correctamente</p>
+          <p className='mb-3 text-sm text-green-600'>
+            Tasa actualizada correctamente
+          </p>
         )}
         <Form method='post' className='flex gap-3'>
           <input
@@ -87,7 +92,7 @@ export default function ExchangeRatesPage({ loaderData }: Route.ComponentProps) 
           />
           <button
             type='submit'
-            className='rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90'
+            className='bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium'
           >
             Guardar
           </button>
@@ -99,15 +104,24 @@ export default function ExchangeRatesPage({ loaderData }: Route.ComponentProps) 
         <div className='rounded-lg border p-4'>
           <h2 className='mb-3 font-semibold'>Historial</h2>
           <div className='space-y-2'>
-            {rateHistory.slice(-10).reverse().map((r) => (
-              <div key={r.id} className='flex justify-between text-sm'>
-                <span className='text-muted-foreground'>{r.effectiveDate}</span>
-                <span className={r.isActive ? 'font-bold' : 'text-muted-foreground'}>
-                  Q{Number(r.rate).toFixed(4)}
-                  {r.isActive && ' (activa)'}
-                </span>
-              </div>
-            ))}
+            {rateHistory
+              .slice(-10)
+              .reverse()
+              .map((r) => (
+                <div key={r.id} className='flex justify-between text-sm'>
+                  <span className='text-muted-foreground'>
+                    {r.effectiveDate}
+                  </span>
+                  <span
+                    className={
+                      r.isActive ? 'font-bold' : 'text-muted-foreground'
+                    }
+                  >
+                    Q{Number(r.rate).toFixed(4)}
+                    {r.isActive && ' (activa)'}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
       )}

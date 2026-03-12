@@ -134,7 +134,11 @@ export default function ModulesSettingsPage({
                     </div>
                   </div>
                   <Form method='post'>
-                    <input type='hidden' name='organizationId' value={organizationId} />
+                    <input
+                      type='hidden'
+                      name='organizationId'
+                      value={organizationId}
+                    />
                     <input type='hidden' name='moduleKey' value={moduleKey} />
                     <input
                       type='hidden'

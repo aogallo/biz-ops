@@ -7,7 +7,11 @@ import { inventoryRepository } from '~/features/inventory/server/repository/inve
 import { transferToSucursalAction } from '~/features/inventory/server/actions/transfer-to-sucursal.action'
 import { adjustSucursalStockAction } from '~/features/inventory/server/actions/adjust-inventory.action'
 import { ingressSucursalStockAction } from '~/features/inventory/server/actions/ingress-sucursal-stock.action'
-import { transferToSucursalSchema, adjustSucursalStockSchema, ingressSucursalStockSchema } from '~/features/inventory/schemas'
+import {
+  transferToSucursalSchema,
+  adjustSucursalStockSchema,
+  ingressSucursalStockSchema,
+} from '~/features/inventory/schemas'
 import { productModel } from '~/server/db/schemas/products'
 import { db } from '~/server/db'
 import { eq } from 'drizzle-orm'
@@ -19,7 +23,14 @@ import type { Route } from './+types/index'
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const organizationId = session.session.activeOrganizationId
-  if (!organizationId) return { sucursales: [], inventory: [], products: [], organizationId: '', selectedSucursalId: null }
+  if (!organizationId)
+    return {
+      sucursales: [],
+      inventory: [],
+      products: [],
+      organizationId: '',
+      selectedSucursalId: null,
+    }
 
   const url = new URL(request.url)
   const selectedSucursalId = url.searchParams.get('sucursalId')
@@ -27,7 +38,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const [sucursales, products] = await Promise.all([
     sucursalRepository.getByOrganization(organizationId),
     db
-      .select({ id: productModel.id, name: productModel.name, sku: productModel.sku, stock: productModel.stock, productType: productModel.productType })
+      .select({
+        id: productModel.id,
+        name: productModel.name,
+        sku: productModel.sku,
+        stock: productModel.stock,
+        productType: productModel.productType,
+      })
       .from(productModel)
       .where(eq(productModel.organizationId, organizationId))
       .orderBy(productModel.name),
@@ -58,14 +75,21 @@ export async function action({ request }: Route.ActionArgs) {
     })
 
     if (!result.success) {
-      return { error: 'Datos inválidos: ' + JSON.stringify(result.error.flatten().fieldErrors) }
+      return {
+        error:
+          'Datos inválidos: ' +
+          JSON.stringify(result.error.flatten().fieldErrors),
+      }
     }
 
     try {
       await transferToSucursalAction(result.data)
       return { success: 'Transferencia realizada exitosamente' }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Error en la transferencia' }
+      return {
+        error:
+          error instanceof Error ? error.message : 'Error en la transferencia',
+      }
     }
   }
 
@@ -86,7 +110,9 @@ export async function action({ request }: Route.ActionArgs) {
       await adjustSucursalStockAction(result.data)
       return { success: 'Stock ajustado exitosamente' }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Error al ajustar' }
+      return {
+        error: error instanceof Error ? error.message : 'Error al ajustar',
+      }
     }
   }
 
@@ -100,14 +126,20 @@ export async function action({ request }: Route.ActionArgs) {
     })
 
     if (!result.success) {
-      return { error: 'Datos inválidos: ' + JSON.stringify(result.error.flatten().fieldErrors) }
+      return {
+        error:
+          'Datos inválidos: ' +
+          JSON.stringify(result.error.flatten().fieldErrors),
+      }
     }
 
     try {
       await ingressSucursalStockAction(result.data)
       return { success: 'Ingreso de stock realizado exitosamente' }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Error en el ingreso' }
+      return {
+        error: error instanceof Error ? error.message : 'Error en el ingreso',
+      }
     }
   }
 
@@ -136,17 +168,21 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
   const selectedSucursal = sucursales.find((s) => s.id === selectedSucursalId)
 
   return (
-    <div className='flex-1 p-6 space-y-6'>
+    <div className='flex-1 space-y-6 p-6'>
       <TitleAndActions title='Inventario por Sucursal' />
 
       {/* Selector de sucursal */}
       <div>
-        <label className='mb-2 block text-sm font-medium'>Seleccioná una sucursal</label>
+        <label className='mb-2 block text-sm font-medium'>
+          Seleccioná una sucursal
+        </label>
         <select
-          className='border-input bg-background rounded-md border px-3 py-2 text-sm w-64'
+          className='border-input bg-background w-64 rounded-md border px-3 py-2 text-sm'
           value={selectedSucursalId ?? ''}
           onChange={(e) =>
-            setSearchParams(e.target.value ? { sucursalId: e.target.value } : {})
+            setSearchParams(
+              e.target.value ? { sucursalId: e.target.value } : {}
+            )
           }
         >
           <option value=''>— Elegir sucursal —</option>
@@ -159,41 +195,65 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
       </div>
 
       {isLoadingInventory && (
-        <div className='flex items-center gap-2 text-sm text-muted-foreground animate-pulse'>
-          <div className='h-4 w-4 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin' />
+        <div className='text-muted-foreground flex animate-pulse items-center gap-2 text-sm'>
+          <div className='border-muted-foreground h-4 w-4 animate-spin rounded-full border-2 border-t-transparent' />
           Cargando inventario...
         </div>
       )}
 
       {!isLoadingInventory && selectedSucursalId && selectedSucursal && (
-        <div className='space-y-6 animate-in fade-in-0 slide-in-from-bottom-2 duration-300'>
+        <div className='animate-in fade-in-0 slide-in-from-bottom-2 space-y-6 duration-300'>
           {/* Transfer form */}
-          <div className='rounded-lg border p-4 space-y-4'>
-            <h3 className='font-semibold'>Transferir stock de org → {selectedSucursal.name}</h3>
+          <div className='space-y-4 rounded-lg border p-4'>
+            <h3 className='font-semibold'>
+              Transferir stock de org → {selectedSucursal.name}
+            </h3>
             <fetcher.Form method='post' className='grid gap-4 sm:grid-cols-4'>
               <input type='hidden' name='intent' value='transfer' />
-              <input type='hidden' name='sucursalId' value={selectedSucursalId} />
+              <input
+                type='hidden'
+                name='sucursalId'
+                value={selectedSucursalId}
+              />
 
               <div>
-                <label className='mb-1 block text-xs font-medium'>Producto</label>
+                <label className='mb-1 block text-xs font-medium'>
+                  Producto
+                </label>
                 <select name='productId' required className={inputClass}>
                   <option value=''>Seleccionar...</option>
-                  {products.filter(p => p.productType === 'STOCK').map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} (stock: {p.stock ?? 0})
-                    </option>
-                  ))}
+                  {products
+                    .filter((p) => p.productType === 'STOCK')
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (stock: {p.stock ?? 0})
+                      </option>
+                    ))}
                 </select>
               </div>
 
               <div>
-                <label className='mb-1 block text-xs font-medium'>Cantidad</label>
-                <input type='number' name='quantity' min='1' required className={inputClass} placeholder='1' />
+                <label className='mb-1 block text-xs font-medium'>
+                  Cantidad
+                </label>
+                <input
+                  type='number'
+                  name='quantity'
+                  min='1'
+                  required
+                  className={inputClass}
+                  placeholder='1'
+                />
               </div>
 
               <div>
                 <label className='mb-1 block text-xs font-medium'>Notas</label>
-                <input type='text' name='notes' className={inputClass} placeholder='Opcional' />
+                <input
+                  type='text'
+                  name='notes'
+                  className={inputClass}
+                  placeholder='Opcional'
+                />
               </div>
 
               <div className='flex items-end'>
@@ -205,40 +265,73 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
           </div>
 
           {/* Ingreso directo form */}
-          <div className='rounded-lg border p-4 space-y-4'>
+          <div className='space-y-4 rounded-lg border p-4'>
             <div>
-              <h3 className='font-semibold'>Ingreso directo a {selectedSucursal.name}</h3>
-              <p className='text-muted-foreground text-xs mt-0.5'>Agrega stock directamente a la sucursal sin descontar del inventario central (ej: recepción de mercancía).</p>
+              <h3 className='font-semibold'>
+                Ingreso directo a {selectedSucursal.name}
+              </h3>
+              <p className='text-muted-foreground mt-0.5 text-xs'>
+                Agrega stock directamente a la sucursal sin descontar del
+                inventario central (ej: recepción de mercancía).
+              </p>
             </div>
             <fetcher.Form method='post' className='grid gap-4 sm:grid-cols-4'>
               <input type='hidden' name='intent' value='ingress' />
-              <input type='hidden' name='sucursalId' value={selectedSucursalId} />
+              <input
+                type='hidden'
+                name='sucursalId'
+                value={selectedSucursalId}
+              />
 
               <div>
-                <label className='mb-1 block text-xs font-medium'>Producto</label>
+                <label className='mb-1 block text-xs font-medium'>
+                  Producto
+                </label>
                 <select name='productId' required className={inputClass}>
                   <option value=''>Seleccionar...</option>
-                  {products.filter(p => p.productType === 'STOCK').map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
+                  {products
+                    .filter((p) => p.productType === 'STOCK')
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 
               <div>
-                <label className='mb-1 block text-xs font-medium'>Cantidad a ingresar</label>
-                <input type='number' name='quantity' min='1' required className={inputClass} placeholder='1' />
+                <label className='mb-1 block text-xs font-medium'>
+                  Cantidad a ingresar
+                </label>
+                <input
+                  type='number'
+                  name='quantity'
+                  min='1'
+                  required
+                  className={inputClass}
+                  placeholder='1'
+                />
               </div>
 
               <div>
                 <label className='mb-1 block text-xs font-medium'>Notas</label>
-                <input type='text' name='notes' className={inputClass} placeholder='Opcional' />
+                <input
+                  type='text'
+                  name='notes'
+                  className={inputClass}
+                  placeholder='Opcional'
+                />
               </div>
 
               <div className='flex items-end'>
-                <Button type='submit' variant='outline' disabled={fetcher.state !== 'idle'}>
-                  {fetcher.state !== 'idle' ? 'Ingresando...' : 'Ingresar stock'}
+                <Button
+                  type='submit'
+                  variant='outline'
+                  disabled={fetcher.state !== 'idle'}
+                >
+                  {fetcher.state !== 'idle'
+                    ? 'Ingresando...'
+                    : 'Ingresar stock'}
                 </Button>
               </div>
             </fetcher.Form>
@@ -246,50 +339,82 @@ export default function InventoryIndex({ loaderData }: Route.ComponentProps) {
 
           {/* Inventory table */}
           <div className='rounded-lg border'>
-            <div className='p-4 border-b'>
-              <h3 className='font-semibold'>Inventario en {selectedSucursal.name}</h3>
+            <div className='border-b p-4'>
+              <h3 className='font-semibold'>
+                Inventario en {selectedSucursal.name}
+              </h3>
             </div>
             {inventory.length === 0 ? (
-              <p className='text-muted-foreground p-4 text-sm'>Sin productos en esta sucursal. Transferí stock desde arriba.</p>
+              <p className='text-muted-foreground p-4 text-sm'>
+                Sin productos en esta sucursal. Transferí stock desde arriba.
+              </p>
             ) : (
               <table className='w-full text-sm'>
                 <thead>
-                  <tr className='border-b bg-muted/50'>
-                    <th className='px-4 py-3 text-left font-medium'>Producto</th>
+                  <tr className='bg-muted/50 border-b'>
+                    <th className='px-4 py-3 text-left font-medium'>
+                      Producto
+                    </th>
                     <th className='px-4 py-3 text-left font-medium'>SKU</th>
                     <th className='px-4 py-3 text-center font-medium'>Stock</th>
-                    <th className='px-4 py-3 text-center font-medium'>Estado</th>
-                    <th className='px-4 py-3 text-center font-medium'>Ajustar</th>
+                    <th className='px-4 py-3 text-center font-medium'>
+                      Estado
+                    </th>
+                    <th className='px-4 py-3 text-center font-medium'>
+                      Ajustar
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {inventory.map((item) => (
                     <tr key={item.id} className='border-b last:border-0'>
                       <td className='px-4 py-3'>{item.productName}</td>
-                      <td className='px-4 py-3 font-mono text-xs'>{item.productSku}</td>
-                      <td className='px-4 py-3 text-center font-medium'>{item.stock}</td>
+                      <td className='px-4 py-3 font-mono text-xs'>
+                        {item.productSku}
+                      </td>
+                      <td className='px-4 py-3 text-center font-medium'>
+                        {item.stock}
+                      </td>
                       <td className='px-4 py-3 text-center'>
                         {Number(item.stock) === 0 ? (
                           <Badge variant='destructive'>Sin stock</Badge>
                         ) : Number(item.stock) <= item.minStock ? (
-                          <Badge variant='outline' className='text-amber-600'>Stock bajo</Badge>
+                          <Badge variant='outline' className='text-amber-600'>
+                            Stock bajo
+                          </Badge>
                         ) : (
                           <Badge variant='default'>OK</Badge>
                         )}
                       </td>
                       <td className='px-4 py-3 text-center'>
-                        <fetcher.Form method='post' className='flex items-center gap-2 justify-center'>
+                        <fetcher.Form
+                          method='post'
+                          className='flex items-center justify-center gap-2'
+                        >
                           <input type='hidden' name='intent' value='adjust' />
-                          <input type='hidden' name='sucursalId' value={selectedSucursalId} />
-                          <input type='hidden' name='productId' value={item.productId} />
+                          <input
+                            type='hidden'
+                            name='sucursalId'
+                            value={selectedSucursalId}
+                          />
+                          <input
+                            type='hidden'
+                            name='productId'
+                            value={item.productId}
+                          />
                           <input
                             type='number'
                             name='newStock'
                             min='0'
                             defaultValue={item.stock}
-                            className='border-input bg-background w-20 rounded border px-2 py-1 text-sm text-center'
+                            className='border-input bg-background w-20 rounded border px-2 py-1 text-center text-sm'
                           />
-                          <Button type='submit' variant='outline' size='sm' disabled={fetcher.state !== 'idle'}>
+                          <Button
+                            type='submit'
+                            variant='outline'
+                            size='sm'
+                            disabled={fetcher.state !== 'idle'}
+                          >
                             Ajustar
                           </Button>
                         </fetcher.Form>

@@ -127,9 +127,7 @@ export default function CreateRole() {
       <Card>
         <CardHeader>
           <CardTitle>{t('roles.createNew')}</CardTitle>
-          <CardDescription>
-            {t('roles.createDescription')}
-          </CardDescription>
+          <CardDescription>{t('roles.createDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
@@ -141,7 +139,10 @@ export default function CreateRole() {
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('roles.nameLabel')}
                 </label>
                 <input
@@ -195,13 +196,15 @@ export default function CreateRole() {
                 </p>
               )}
               <div className='rounded-lg border'>
-                {Object.entries(permissionsByResource).map(([resource, perms]) => (
-                  <PermissionSection
-                    key={resource}
-                    resource={resource}
-                    perms={perms}
-                  />
-                ))}
+                {Object.entries(permissionsByResource).map(
+                  ([resource, perms]) => (
+                    <PermissionSection
+                      key={resource}
+                      resource={resource}
+                      perms={perms}
+                    />
+                  )
+                )}
               </div>
             </div>
           </CardContent>

@@ -57,7 +57,10 @@ function parseDate(dateStr: string | undefined): string | undefined {
   return isNaN(date.getTime()) ? undefined : date.toISOString().split('T')[0]
 }
 
-function buildConditions(organizationId: string, input: AppointmentReportInput) {
+function buildConditions(
+  organizationId: string,
+  input: AppointmentReportInput
+) {
   const conditions = [eq(appointmentModel.organizationId, organizationId)]
 
   const dateFrom = parseDate(input.dateFrom)
@@ -65,7 +68,8 @@ function buildConditions(organizationId: string, input: AppointmentReportInput) 
 
   if (dateFrom) conditions.push(gte(appointmentModel.date, dateFrom))
   if (dateTo) conditions.push(lte(appointmentModel.date, dateTo))
-  if (input.staffId) conditions.push(eq(appointmentModel.staffId, input.staffId))
+  if (input.staffId)
+    conditions.push(eq(appointmentModel.staffId, input.staffId))
 
   return and(...conditions)
 }
@@ -95,7 +99,10 @@ export async function generateAppointmentReportAction(
       duration: serviceModel.duration,
     })
     .from(appointmentModel)
-    .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+    .innerJoin(
+      businessPartnerModel,
+      eq(appointmentModel.clientId, businessPartnerModel.id)
+    )
     .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
     .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
     .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -169,7 +176,10 @@ export async function exportAppointmentReportAction(
       duration: serviceModel.duration,
     })
     .from(appointmentModel)
-    .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+    .innerJoin(
+      businessPartnerModel,
+      eq(appointmentModel.clientId, businessPartnerModel.id)
+    )
     .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
     .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
     .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -177,7 +187,17 @@ export async function exportAppointmentReportAction(
     .orderBy(appointmentModel.date, appointmentModel.startTime)
 
   // Generate CSV
-  const headers = ['Date', 'Start Time', 'End Time', 'Staff', 'Service', 'Client', 'Duration (min)', 'Price', 'Status']
+  const headers = [
+    'Date',
+    'Start Time',
+    'End Time',
+    'Staff',
+    'Service',
+    'Client',
+    'Duration (min)',
+    'Price',
+    'Status',
+  ]
   const rows = data.map((row) => [
     row.date,
     row.startTime,
@@ -190,7 +210,10 @@ export async function exportAppointmentReportAction(
     row.status,
   ])
 
-  const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n')
+  const csv = [
+    headers.join(','),
+    ...rows.map((r) => r.map((c) => `"${c}"`).join(',')),
+  ].join('\n')
   const csvBase64 = btoa(unescape(encodeURIComponent(csv)))
 
   const dateFrom = parseDate(input.dateFrom) ?? 'all'

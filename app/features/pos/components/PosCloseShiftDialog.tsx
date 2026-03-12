@@ -50,7 +50,9 @@ export function PosCloseShiftDialog({
 
         <div className='space-y-4'>
           <div>
-            <label className='text-sm font-medium'>{t('pos.closingCash')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.closingCash')}
+            </label>
             <Input
               type='number'
               step='0.01'
@@ -67,17 +69,25 @@ export function PosCloseShiftDialog({
 
           <div className='space-y-2 text-sm'>
             <div className='flex justify-between'>
-              <span className='text-muted-foreground'>{t('pos.expectedCash')}</span>
-              <span className='tabular-nums font-medium'>
+              <span className='text-muted-foreground'>
+                {t('pos.expectedCash')}
+              </span>
+              <span className='font-medium tabular-nums'>
                 Q{expectedCash.toFixed(2)}
               </span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-muted-foreground'>{t('pos.cashDifference')}</span>
+              <span className='text-muted-foreground'>
+                {t('pos.cashDifference')}
+              </span>
               <span
                 className={cn(
-                  'tabular-nums font-bold',
-                  difference < 0 ? 'text-red-600' : difference > 0 ? 'text-green-600' : ''
+                  'font-bold tabular-nums',
+                  difference < 0
+                    ? 'text-red-600'
+                    : difference > 0
+                      ? 'text-green-600'
+                      : ''
                 )}
               >
                 Q{difference.toFixed(2)}

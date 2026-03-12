@@ -10,8 +10,17 @@ interface CalendarDayViewProps {
 
 // Generate time slots from 08:00 to 18:00
 const TIME_SLOTS = [
-  '08:00', '09:00', '10:00', '11:00', '12:00',
-  '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
 ]
 
 function isToday(date: Date): boolean {
@@ -43,8 +52,10 @@ function getTopFromTime(time: string): number {
 
 // Calculate height from duration
 function getHeightFromDuration(startTime: string, endTime: string): number {
-  const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1])
-  const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1])
+  const startMinutes =
+    parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1])
+  const endMinutes =
+    parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1])
   const durationMinutes = endMinutes - startMinutes
   return (durationMinutes / 60) * 64 // 64px per hour
 }
@@ -59,33 +70,36 @@ export function CalendarDayView({
   const today = isToday(currentDate)
 
   return (
-    <div className="rounded-lg border bg-card overflow-auto">
+    <div className='bg-card overflow-auto rounded-lg border'>
       {/* Day header */}
-      <div className="sticky top-0 z-10 bg-card border-b p-4">
-        <div className="flex items-center gap-3">
+      <div className='bg-card sticky top-0 z-10 border-b p-4'>
+        <div className='flex items-center gap-3'>
           <div
             className={cn(
               'text-3xl font-bold',
-              today && 'bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center'
+              today &&
+                'bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full'
             )}
           >
             {currentDate.getDate()}
           </div>
           <div>
-            <div className="text-lg font-semibold">{formatDayHeader(currentDate)}</div>
-            {today && <div className="text-sm text-primary">Today</div>}
+            <div className='text-lg font-semibold'>
+              {formatDayHeader(currentDate)}
+            </div>
+            {today && <div className='text-primary text-sm'>Today</div>}
           </div>
         </div>
       </div>
 
       {/* Time grid */}
-      <div className="flex">
+      <div className='flex'>
         {/* Time column */}
-        <div className="w-20 shrink-0 border-r">
+        <div className='w-20 shrink-0 border-r'>
           {TIME_SLOTS.map((time) => (
             <div
               key={time}
-              className="h-16 border-b px-2 text-xs text-muted-foreground text-right pr-3"
+              className='text-muted-foreground h-16 border-b px-2 pr-3 text-right text-xs'
               style={{ lineHeight: '16px' }}
             >
               {time}
@@ -94,10 +108,13 @@ export function CalendarDayView({
         </div>
 
         {/* Day column */}
-        <div className={cn('flex-1 relative', today && 'bg-primary/5')}>
+        <div className={cn('relative flex-1', today && 'bg-primary/5')}>
           {/* Time slot grid lines */}
           {TIME_SLOTS.map((time) => (
-            <div key={time} className="h-16 border-b border-dashed border-muted/50" />
+            <div
+              key={time}
+              className='border-muted/50 h-16 border-b border-dashed'
+            />
           ))}
 
           {/* Appointments */}
@@ -108,7 +125,7 @@ export function CalendarDayView({
             return (
               <div
                 key={apt.id}
-                className="absolute left-2 right-2 z-10"
+                className='absolute right-2 left-2 z-10'
                 style={{
                   top: `${top}px`,
                   height: `${Math.max(height, 32)}px`,

@@ -17,7 +17,10 @@ export async function action({ request }: Route.ActionArgs) {
   })
 
   if (!result.success) {
-    return { error: 'Datos inválidos', fieldErrors: result.error.flatten().fieldErrors }
+    return {
+      error: 'Datos inválidos',
+      fieldErrors: result.error.flatten().fieldErrors,
+    }
   }
 
   try {
@@ -41,16 +44,27 @@ export default function CreateUnitOfMeasure() {
 
       <Form method='post' className='space-y-4'>
         <div>
-          <label className='block text-sm font-medium mb-1'>Nombre</label>
-          <input name='name' className='w-full rounded border px-3 py-2 text-sm' required />
+          <label className='mb-1 block text-sm font-medium'>Nombre</label>
+          <input
+            name='name'
+            className='w-full rounded border px-3 py-2 text-sm'
+            required
+          />
         </div>
         <div>
-          <label className='block text-sm font-medium mb-1'>Abreviatura</label>
-          <input name='abbreviation' className='w-full rounded border px-3 py-2 text-sm' required />
+          <label className='mb-1 block text-sm font-medium'>Abreviatura</label>
+          <input
+            name='abbreviation'
+            className='w-full rounded border px-3 py-2 text-sm'
+            required
+          />
         </div>
         <div>
-          <label className='block text-sm font-medium mb-1'>Categoría</label>
-          <select name='category' className='w-full rounded border px-3 py-2 text-sm'>
+          <label className='mb-1 block text-sm font-medium'>Categoría</label>
+          <select
+            name='category'
+            className='w-full rounded border px-3 py-2 text-sm'
+          >
             <option value='count'>Conteo</option>
             <option value='weight'>Peso</option>
             <option value='volume'>Volumen</option>
@@ -58,10 +72,16 @@ export default function CreateUnitOfMeasure() {
           </select>
         </div>
         <div className='flex gap-3'>
-          <a href='/unit-of-measure' className='rounded border px-4 py-2 text-sm'>
+          <a
+            href='/unit-of-measure'
+            className='rounded border px-4 py-2 text-sm'
+          >
             Cancelar
           </a>
-          <button type='submit' className='rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground'>
+          <button
+            type='submit'
+            className='bg-primary text-primary-foreground rounded px-4 py-2 text-sm font-medium'
+          >
             Crear
           </button>
         </div>

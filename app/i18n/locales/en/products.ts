@@ -21,18 +21,21 @@ export const products = {
   'products.stockStatus.outOfStock': 'Out of stock',
   'products.manage': 'Manage your product catalog and inventory',
   'products.export': 'Export',
-  'products.noProducts': 'No products found. Create your first product to get started.',
+  'products.noProducts':
+    'No products found. Create your first product to get started.',
   'products.createNew': 'Create New Product',
   'products.createDescription': 'Add a new product to your inventory',
   'products.skuLabel': 'SKU (Stock Keeping Unit) *',
   'products.skuPlaceholder': 'PROD-001',
-  'products.skuHelper': 'Unique identifier for this product in your organization',
+  'products.skuHelper':
+    'Unique identifier for this product in your organization',
   'products.namePlaceholder': 'Premium Widget',
   'products.pricePlaceholder': '99.99',
   'products.noCategory': 'No category',
   'products.initialStock': 'Initial Stock',
   'products.minStockPlaceholder': '10',
-  'products.minStockHelper': "You'll get alerts when stock falls below this level",
+  'products.minStockHelper':
+    "You'll get alerts when stock falls below this level",
   'products.descriptionPlaceholder': 'Product description...',
   'products.imageUrlPlaceholder': 'https://example.com/image.jpg',
   'products.editDescription': 'Update the details for this product',
@@ -56,16 +59,20 @@ export const products = {
   'products.created': 'Created',
   'products.lastUpdated': 'Last Updated',
   'products.scanTitle': 'Scan Product QR',
-  'products.scanDescription': 'Use your device camera to scan a product QR code',
+  'products.scanDescription':
+    'Use your device camera to scan a product QR code',
   'products.allStockStatus': 'All Stock Status',
   'products.nameLabel': 'Product Name *',
   'products.customField.title': 'Add Field',
   'products.generalInformation': 'General Information',
-  'products.generalInformationDesc': 'Product identification and pricing details.',
+  'products.generalInformationDesc':
+    'Product identification and pricing details.',
   'products.inventoryControl': 'Inventory Control',
-  'products.inventoryControlDesc': 'Define starting stock levels and low-stock thresholds.',
+  'products.inventoryControlDesc':
+    'Define starting stock levels and low-stock thresholds.',
   'products.customAttributes': 'Custom Attributes (JSON)',
-  'products.customAttributesDesc': 'Define dynamic attributes for use in orders and specialized reporting.',
+  'products.customAttributesDesc':
+    'Define dynamic attributes for use in orders and specialized reporting.',
   'products.addAttribute': 'Add Attribute',
   'products.fieldName': 'Field Name',
   'products.fieldType': 'Field Type',
@@ -76,8 +83,10 @@ export const products = {
   'products.imageUrlAlternative': 'Image URL (Alternative)',
   'products.quickTips': 'Quick Tips',
   'products.tip.sku': 'Use a unique SKU to prevent inventory conflicts.',
-  'products.tip.image': 'High-quality images (1080×1080) perform better in sales channels.',
-  'products.tip.attributes': 'Custom attributes help filter products in the customer portal.',
+  'products.tip.image':
+    'High-quality images (1080×1080) perform better in sales channels.',
+  'products.tip.attributes':
+    'Custom attributes help filter products in the customer portal.',
   'products.noCustomAttributes': 'No custom attributes yet.',
   // Product type labels
   'products.productType': 'Product Type',
@@ -94,27 +103,35 @@ export const products = {
   'products.trackInventoryNA': '(not applicable for this type)',
   // Variants / Attributes
   'products.attributesVariants': 'Variants / Attributes',
-  'products.attributesVariantsDesc': 'Product options with price adjustment (e.g. Size, Extras)',
+  'products.attributesVariantsDesc':
+    'Product options with price adjustment (e.g. Size, Extras)',
   'products.addOption': 'Add option',
-  'products.attributeNamePlaceholder': 'Attribute name (e.g. Size, Extras, Doneness)',
+  'products.attributeNamePlaceholder':
+    'Attribute name (e.g. Size, Extras, Doneness)',
   'products.optionLabelPlaceholder': 'Option (e.g. Large, With cheese, Medium)',
-  'products.noAttributesYet': 'No attributes. Add one to enable option selection in POS.',
+  'products.noAttributesYet':
+    'No attributes. Add one to enable option selection in POS.',
   'products.noOptionsForAttr': 'No options yet.',
   'products.priceAdjustment': 'Price adj.',
   // Recipe
   'products.recipeIngredients': 'Recipe Ingredients',
-  'products.recipeIngredientsDesc': 'Ingredients consumed from inventory when this product is sold',
+  'products.recipeIngredientsDesc':
+    'Ingredients consumed from inventory when this product is sold',
   'products.addIngredient': 'Add ingredient',
   'products.selectIngredient': 'Select ingredient...',
-  'products.noIngredients': 'No ingredients configured. Add the components of this recipe.',
+  'products.noIngredients':
+    'No ingredients configured. Add the components of this recipe.',
   'products.quantity': 'Quantity',
   // Combo
   'products.comboGroups': 'Combo Groups',
-  'products.comboGroupsDesc': 'Choice groups shown in POS when adding this combo',
+  'products.comboGroupsDesc':
+    'Choice groups shown in POS when adding this combo',
   'products.addGroup': 'Add group',
   'products.addOptionToGroup': 'Add option to group',
-  'products.noGroupsYet': 'No groups configured. Add at least one (e.g. Drink, Side).',
-  'products.noGroupOptionsYet': 'No options yet. Add the available products for this group.',
+  'products.noGroupsYet':
+    'No groups configured. Add at least one (e.g. Drink, Side).',
+  'products.noGroupOptionsYet':
+    'No options yet. Add the available products for this group.',
   'products.groupNamePlaceholder': 'Group name (e.g. Drink, Side)',
   'products.required': 'Required',
   'products.selectProduct': 'Search product...',
@@ -123,5 +140,6 @@ export const products = {
   'products.max': 'Max',
   'products.default': 'Default',
   // Delete confirm
-  'products.deleteConfirm': 'Are you sure you want to delete "{{name}}"? This action cannot be undone.',
+  'products.deleteConfirm':
+    'Are you sure you want to delete "{{name}}"? This action cannot be undone.',
 } as const

@@ -75,9 +75,7 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
       <Card>
         <CardHeader>
           <CardTitle>{t('accounts.editTitle')}</CardTitle>
-          <CardDescription>
-            {t('accounts.editDescription')}
-          </CardDescription>
+          <CardDescription>{t('accounts.editDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
@@ -117,7 +115,10 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('accounts.nameLabel')}
                 </label>
                 <input
@@ -129,11 +130,13 @@ export default function EditAccount({ loaderData }: Route.ComponentProps) {
                   placeholder={t('accounts.namePlaceholder')}
                   className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
-                {actionData && 'errors' in actionData && actionData.errors?.name && (
-                  <p className='text-destructive mt-1 text-xs'>
-                    {actionData.errors.name}
-                  </p>
-                )}
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors?.name && (
+                    <p className='text-destructive mt-1 text-xs'>
+                      {actionData.errors.name}
+                    </p>
+                  )}
               </div>
             </div>
           </CardContent>

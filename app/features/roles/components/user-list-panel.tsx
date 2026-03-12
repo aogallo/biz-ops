@@ -52,11 +52,13 @@ export function UserListPanel({
       <CardHeader className='pb-3'>
         <div className='flex items-center justify-between'>
           <CardTitle className='text-lg'>
-            Users ({searchQuery ? `${users.length} of ${allUsersCount}` : users.length})
+            Users (
+            {searchQuery ? `${users.length} of ${allUsersCount}` : users.length}
+            )
           </CardTitle>
         </div>
         <div className='relative'>
-          <Search className='text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2' />
+          <Search className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2' />
           <Input
             placeholder='Search by name or email...'
             value={searchQuery}
@@ -75,18 +77,27 @@ export function UserListPanel({
                 key={user.memberId}
                 type='button'
                 onClick={() => onSelectUser(user.memberId)}
-                className={`w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted/50 ${
+                className={`hover:bg-muted/50 w-full rounded-lg border p-3 text-left transition-colors ${
                   isSelected ? 'border-primary bg-primary/5' : ''
                 }`}
               >
                 <div className='flex items-start gap-3'>
                   <Avatar className='h-10 w-10'>
-                    <AvatarImage src={user.image || undefined} alt={user.name || user.email} />
-                    <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
+                    <AvatarImage
+                      src={user.image || undefined}
+                      alt={user.name || user.email}
+                    />
+                    <AvatarFallback>
+                      {getInitials(user.name, user.email)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className='min-w-0 flex-1'>
-                    <p className='truncate font-medium'>{user.name || 'Unnamed User'}</p>
-                    <p className='text-muted-foreground truncate text-sm'>{user.email}</p>
+                    <p className='truncate font-medium'>
+                      {user.name || 'Unnamed User'}
+                    </p>
+                    <p className='text-muted-foreground truncate text-sm'>
+                      {user.email}
+                    </p>
                     {user.roles.length > 0 && (
                       <div className='mt-1 flex flex-wrap gap-1'>
                         {user.roles.map((role) => (
@@ -101,7 +112,9 @@ export function UserListPanel({
                       </div>
                     )}
                     {user.roles.length === 0 && (
-                      <p className='text-muted-foreground mt-1 text-xs italic'>No roles assigned</p>
+                      <p className='text-muted-foreground mt-1 text-xs italic'>
+                        No roles assigned
+                      </p>
                     )}
                   </div>
                 </div>
@@ -111,7 +124,9 @@ export function UserListPanel({
 
           {users.length === 0 && (
             <div className='text-muted-foreground py-8 text-center'>
-              {searchQuery ? 'No users match your search' : 'No users in this organization'}
+              {searchQuery
+                ? 'No users match your search'
+                : 'No users in this organization'}
             </div>
           )}
         </div>

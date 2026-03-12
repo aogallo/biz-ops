@@ -24,7 +24,10 @@ export async function updateQuotationStatusAction(
   const formData = await request.formData()
   const newStatus = formData.get('status') as QuotationStatus
 
-  if (!newStatus || !['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED'].includes(newStatus)) {
+  if (
+    !newStatus ||
+    !['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED'].includes(newStatus)
+  ) {
     return { success: false, message: 'Invalid status' }
   }
 
@@ -47,7 +50,10 @@ export async function updateQuotationStatusAction(
   }
 
   try {
-    const updated = await quotationsRepository.updateStatus(quotationId, newStatus)
+    const updated = await quotationsRepository.updateStatus(
+      quotationId,
+      newStatus
+    )
     return { success: true, data: updated }
   } catch (error) {
     return {

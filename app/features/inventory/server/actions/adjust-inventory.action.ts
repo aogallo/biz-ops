@@ -1,7 +1,9 @@
 import { inventoryRepository } from '../repository/inventory.repository'
 import type { AdjustSucursalStockInput } from '../../schemas'
 
-export async function adjustSucursalStockAction(input: AdjustSucursalStockInput) {
+export async function adjustSucursalStockAction(
+  input: AdjustSucursalStockInput
+) {
   const entry = await inventoryRepository.adjustSucursalStock(
     input.sucursalId,
     input.productId,

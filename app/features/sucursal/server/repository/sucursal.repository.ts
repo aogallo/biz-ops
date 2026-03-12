@@ -93,7 +93,9 @@ export class SucursalRepository {
     return sucursal ?? null
   }
 
-  async getNextInvoiceNumber(sucursalId: string): Promise<NextInvoiceNumberResult> {
+  async getNextInvoiceNumber(
+    sucursalId: string
+  ): Promise<NextInvoiceNumberResult> {
     const [result] = await db
       .update(sucursalModel)
       .set({

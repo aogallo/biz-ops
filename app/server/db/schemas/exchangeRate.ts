@@ -8,10 +8,7 @@ import {
   text,
   uuid,
 } from 'drizzle-orm/pg-core'
-import {
-  createInsertSchema,
-  createSelectSchema,
-} from 'drizzle-zod'
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type { z } from 'zod'
 import { organizationModel, userModel } from './auth'
 import { timestamps } from './common'

@@ -94,7 +94,9 @@ function wrapText(
 /**
  * Generate PDF for journal report following "Diario General" format
  */
-export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Array> {
+export async function generateJournalPDF(
+  data: PDFReportData
+): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
@@ -116,7 +118,10 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
   function drawPageHeader() {
     // Company name
     page.drawText(data.companyName.toUpperCase(), {
-      x: MARGIN_LEFT + contentWidth / 2 - (data.companyName.length * TITLE_FONT_SIZE * AVG_CHAR_WIDTH) / 2,
+      x:
+        MARGIN_LEFT +
+        contentWidth / 2 -
+        (data.companyName.length * TITLE_FONT_SIZE * AVG_CHAR_WIDTH) / 2,
       y: yPosition,
       size: TITLE_FONT_SIZE,
       font: boldFont,
@@ -126,7 +131,10 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
 
     // Report title
     page.drawText(reportTitle, {
-      x: MARGIN_LEFT + contentWidth / 2 - (reportTitle.length * TITLE_FONT_SIZE * AVG_CHAR_WIDTH) / 2,
+      x:
+        MARGIN_LEFT +
+        contentWidth / 2 -
+        (reportTitle.length * TITLE_FONT_SIZE * AVG_CHAR_WIDTH) / 2,
       y: yPosition,
       size: TITLE_FONT_SIZE,
       font: boldFont,
@@ -253,25 +261,48 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
    */
   function drawEntry(entry: PDFJournalEntry) {
     // Wrap entry description
-    const entryDescLines = wrapText(entry.description, WIDTH_ENTRY_DESC, DATA_FONT_SIZE, AVG_CHAR_WIDTH)
+    const entryDescLines = wrapText(
+      entry.description,
+      WIDTH_ENTRY_DESC,
+      DATA_FONT_SIZE,
+      AVG_CHAR_WIDTH
+    )
 
     // Calculate the height needed for each line in the entry
     let totalLinesNeeded = 0
     const lineWrappedData: { accountName: string[]; lineDesc: string[] }[] = []
 
     for (const line of entry.lines) {
-      const accountNameLines = wrapText(line.accountName, WIDTH_ACCOUNT_NAME, DATA_FONT_SIZE, AVG_CHAR_WIDTH)
-      const lineDescLines = wrapText(line.description || '', WIDTH_LINE_DESC, DATA_FONT_SIZE, AVG_CHAR_WIDTH)
-      const maxLines = Math.max(accountNameLines.length, lineDescLines.length, 1)
+      const accountNameLines = wrapText(
+        line.accountName,
+        WIDTH_ACCOUNT_NAME,
+        DATA_FONT_SIZE,
+        AVG_CHAR_WIDTH
+      )
+      const lineDescLines = wrapText(
+        line.description || '',
+        WIDTH_LINE_DESC,
+        DATA_FONT_SIZE,
+        AVG_CHAR_WIDTH
+      )
+      const maxLines = Math.max(
+        accountNameLines.length,
+        lineDescLines.length,
+        1
+      )
       totalLinesNeeded += maxLines
-      lineWrappedData.push({ accountName: accountNameLines, lineDesc: lineDescLines })
+      lineWrappedData.push({
+        accountName: accountNameLines,
+        lineDesc: lineDescLines,
+      })
     }
 
     // Include entry description lines and subtotal
     const entryDescHeight = entryDescLines.length * DATA_ROW_HEIGHT
     const linesHeight = totalLinesNeeded * DATA_ROW_HEIGHT
     const subtotalHeight = DATA_ROW_HEIGHT + ENTRY_SPACING + 6 // Extra for double line
-    const totalEntryHeight = Math.max(entryDescHeight, linesHeight) + subtotalHeight
+    const totalEntryHeight =
+      Math.max(entryDescHeight, linesHeight) + subtotalHeight
 
     checkNewPage(totalEntryHeight)
 
@@ -301,13 +332,23 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
     })
 
     // Draw wrapped entry description
-    drawWrappedText(entryDescLines, MARGIN_LEFT + COL_ENTRY_DESC, yPosition, DATA_FONT_SIZE, font)
+    drawWrappedText(
+      entryDescLines,
+      MARGIN_LEFT + COL_ENTRY_DESC,
+      yPosition,
+      DATA_FONT_SIZE,
+      font
+    )
 
     // Draw lines for this entry
     for (let i = 0; i < entry.lines.length; i++) {
       const line = entry.lines[i]
       const wrappedData = lineWrappedData[i]
-      const maxLines = Math.max(wrappedData.accountName.length, wrappedData.lineDesc.length, 1)
+      const maxLines = Math.max(
+        wrappedData.accountName.length,
+        wrappedData.lineDesc.length,
+        1
+      )
 
       // Account number
       page.drawText(line.accountNumber || '', {
@@ -319,10 +360,22 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
       })
 
       // Account name (wrapped)
-      drawWrappedText(wrappedData.accountName, MARGIN_LEFT + COL_ACCOUNT_NAME, yPosition, DATA_FONT_SIZE, font)
+      drawWrappedText(
+        wrappedData.accountName,
+        MARGIN_LEFT + COL_ACCOUNT_NAME,
+        yPosition,
+        DATA_FONT_SIZE,
+        font
+      )
 
       // Line description (wrapped)
-      drawWrappedText(wrappedData.lineDesc, MARGIN_LEFT + COL_LINE_DESC, yPosition, DATA_FONT_SIZE, font)
+      drawWrappedText(
+        wrappedData.lineDesc,
+        MARGIN_LEFT + COL_LINE_DESC,
+        yPosition,
+        DATA_FONT_SIZE,
+        font
+      )
 
       // Debit (right aligned)
       if (line.debit > 0) {
@@ -365,7 +418,8 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
 
     // Subtotal debit (right aligned)
     const subtotalDebitText = formatCurrency(entry.subtotalDebit)
-    const subtotalDebitWidth = subtotalDebitText.length * SUBTOTAL_FONT_SIZE * AVG_CHAR_WIDTH
+    const subtotalDebitWidth =
+      subtotalDebitText.length * SUBTOTAL_FONT_SIZE * AVG_CHAR_WIDTH
     page.drawText(subtotalDebitText, {
       x: MARGIN_LEFT + COL_DEBIT + WIDTH_DEBIT - subtotalDebitWidth,
       y: yPosition,
@@ -376,7 +430,8 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
 
     // Subtotal credit (right aligned)
     const subtotalCreditText = formatCurrency(entry.subtotalCredit)
-    const subtotalCreditWidth = subtotalCreditText.length * SUBTOTAL_FONT_SIZE * AVG_CHAR_WIDTH
+    const subtotalCreditWidth =
+      subtotalCreditText.length * SUBTOTAL_FONT_SIZE * AVG_CHAR_WIDTH
     page.drawText(subtotalCreditText, {
       x: MARGIN_LEFT + COL_CREDIT + WIDTH_CREDIT - subtotalCreditWidth,
       y: yPosition,
@@ -440,7 +495,8 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
 
     // Grand total debit (right aligned)
     const grandDebitText = formatCurrency(data.grandTotalDebit)
-    const grandDebitWidth = grandDebitText.length * HEADER_FONT_SIZE * AVG_CHAR_WIDTH
+    const grandDebitWidth =
+      grandDebitText.length * HEADER_FONT_SIZE * AVG_CHAR_WIDTH
     page.drawText(grandDebitText, {
       x: MARGIN_LEFT + COL_DEBIT + WIDTH_DEBIT - grandDebitWidth,
       y: yPosition,
@@ -451,7 +507,8 @@ export async function generateJournalPDF(data: PDFReportData): Promise<Uint8Arra
 
     // Grand total credit (right aligned)
     const grandCreditText = formatCurrency(data.grandTotalCredit)
-    const grandCreditWidth = grandCreditText.length * HEADER_FONT_SIZE * AVG_CHAR_WIDTH
+    const grandCreditWidth =
+      grandCreditText.length * HEADER_FONT_SIZE * AVG_CHAR_WIDTH
     page.drawText(grandCreditText, {
       x: MARGIN_LEFT + COL_CREDIT + WIDTH_CREDIT - grandCreditWidth,
       y: yPosition,

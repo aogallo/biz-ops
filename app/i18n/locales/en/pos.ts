@@ -3,7 +3,8 @@ export const pos = {
   'pos.title': 'Point of Sale',
   'pos.welcome': 'Welcome, {{name}}. Select a terminal to begin.',
   'pos.noTerminals': 'No terminals configured',
-  'pos.noTerminalsDescription': 'Set up at least one terminal from the settings section.',
+  'pos.noTerminalsDescription':
+    'Set up at least one terminal from the settings section.',
   'pos.configureTerminals': 'Configure Terminals',
   'pos.backToErp': 'Back to ERP',
 
@@ -164,7 +165,8 @@ export const pos = {
   'pos.createCashier': 'Create Cashier',
   'pos.editCashier': 'Edit Cashier',
   'pos.noCashier': 'No cashier profile found',
-  'pos.noCashierDescription': 'You need a cashier profile to use POS. Contact your administrator.',
+  'pos.noCashierDescription':
+    'You need a cashier profile to use POS. Contact your administrator.',
 
   // Create customer from terminal
   'pos.createCustomerTitle': 'New Customer',
@@ -179,7 +181,8 @@ export const pos = {
   'pos.noJournalEntry': 'No journal entry (accounts not configured)',
 
   // Errors
-  'pos.noCustomerSelected': 'No customer selected and no default customer configured for this terminal.',
+  'pos.noCustomerSelected':
+    'No customer selected and no default customer configured for this terminal.',
   'pos.errorProcessing': 'Error processing sale',
   'pos.errorVoiding': 'Error voiding sale',
 } as const

@@ -7,7 +7,11 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
-import type { PosProductForGrid, ProductAttribute, ProductAttributeValue } from '../types'
+import type {
+  PosProductForGrid,
+  ProductAttribute,
+  ProductAttributeValue,
+} from '../types'
 
 interface PosProductAttributesDialogProps {
   product: PosProductForGrid | null
@@ -145,7 +149,9 @@ function AttributeValueButton({
         title={value.label}
         className={cn(
           'h-9 w-9 rounded-full border-2 transition-all',
-          isSelected ? 'border-primary scale-110 shadow-md' : 'border-transparent hover:border-muted-foreground/50'
+          isSelected
+            ? 'border-primary scale-110 shadow-md'
+            : 'hover:border-muted-foreground/50 border-transparent'
         )}
         style={{ backgroundColor: value.hex ?? '#ccc' }}
       />

@@ -42,7 +42,10 @@ export async function createPermission(request: Request) {
   if (exists) {
     return {
       success: false,
-      message: translateServer(locale, 'messages.permissions.duplicateResourceAction'),
+      message: translateServer(
+        locale,
+        'messages.permissions.duplicateResourceAction'
+      ),
     }
   }
 

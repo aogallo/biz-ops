@@ -28,7 +28,9 @@ export function ProductQRCode({ productName, sku }: Props) {
       }
     }
     generate()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [sku])
 
   const handlePrint = () => {

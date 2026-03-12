@@ -9,72 +9,79 @@ import type { Route } from './+types/PosLayout'
 
 export async function loader({ request }: Route.LoaderArgs) {
   try {
-  const [userSession, posSession] = await Promise.all([
-    getOptionalAuth(request),
-    getPosSession(request),
-  ])
+    const [userSession, posSession] = await Promise.all([
+      getOptionalAuth(request),
+      getPosSession(request),
+    ])
 
-  if (!userSession && !posSession) {
-    throw redirect('/pos-login')
-  }
-
-  // POS cookie session — build minimal AuthProvider data
-  if (!userSession && posSession) {
-    return {
-      session: {
-        session: {
-          userId: '',
-          token: '',
-          expiresAt: new Date(),
-          activeOrganizationId: posSession.organizationId,
-        },
-        user: {
-          id: '',
-          email: '',
-          emailVerified: false,
-          name: posSession.cashierName,
-          image: null,
-          isSuperAdmin: false,
-        },
-      },
-      permissions: { list: [], isSuperAdmin: false },
-      organizations: [],
-      posSession,
+    if (!userSession && !posSession) {
+      throw redirect('/pos-login')
     }
-  }
 
-  // Better Auth session
-  const userId = userSession!.user.id
-  const isSuperAdminUser = await isSuperAdmin(userId)
+    // POS cookie session — build minimal AuthProvider data
+    if (!userSession && posSession) {
+      return {
+        session: {
+          session: {
+            userId: '',
+            token: '',
+            expiresAt: new Date(),
+            activeOrganizationId: posSession.organizationId,
+          },
+          user: {
+            id: '',
+            email: '',
+            emailVerified: false,
+            name: posSession.cashierName,
+            image: null,
+            isSuperAdmin: false,
+          },
+        },
+        permissions: { list: [], isSuperAdmin: false },
+        organizations: [],
+        posSession,
+      }
+    }
 
-  let organizations: Array<{ id: string; name: string; slug: string; isAdmin?: boolean; logo: string | null; createdAt: Date }> = []
-  if (isSuperAdminUser) {
-    organizations = await organizationRepository.getAll()
-  } else {
-    const userOrgs = await getUserOrganizations(userId)
-    organizations = userOrgs.map((org) => ({
-      id: org.organization.id,
-      name: org.organization.name,
-      slug: org.organization.slug,
-      isAdmin: org.organization.isAdmin,
-      logo: org.organization.logo,
-      createdAt: org.organization.createdAt,
-    }))
-  }
+    // Better Auth session
+    const userId = userSession!.user.id
+    const isSuperAdminUser = await isSuperAdmin(userId)
 
-  if (!isSuperAdminUser && organizations.length === 0) {
-    throw redirect('/welcome')
-  }
+    let organizations: Array<{
+      id: string
+      name: string
+      slug: string
+      isAdmin?: boolean
+      logo: string | null
+      createdAt: Date
+    }> = []
+    if (isSuperAdminUser) {
+      organizations = await organizationRepository.getAll()
+    } else {
+      const userOrgs = await getUserOrganizations(userId)
+      organizations = userOrgs.map((org) => ({
+        id: org.organization.id,
+        name: org.organization.name,
+        slug: org.organization.slug,
+        isAdmin: org.organization.isAdmin,
+        logo: org.organization.logo,
+        createdAt: org.organization.createdAt,
+      }))
+    }
 
-  return {
-    session: userSession!,
-    permissions: {
-      list: [],
-      isSuperAdmin: isSuperAdminUser,
-    },
-    organizations,
-    posSession: null,
-  }
+    if (!isSuperAdminUser && organizations.length === 0) {
+      throw redirect('/welcome')
+    }
+
+    return {
+      session: userSession!,
+      permissions: {
+        list: [],
+        isSuperAdmin: isSuperAdminUser,
+      },
+      organizations,
+      posSession: null,
+    }
   } catch (error) {
     if (error instanceof Response) throw error
     throw redirect('/pos-login')

@@ -70,37 +70,43 @@ export const quotationRecipientModel = pgTable('quotation_recipient', {
 })
 
 // Relations
-export const quotationRelations = relations(quotationModel, ({ one, many }) => ({
-  organization: one(organizationModel, {
-    fields: [quotationModel.organizationId],
-    references: [organizationModel.id],
-  }),
-  company: one(companyModel, {
-    fields: [quotationModel.companyId],
-    references: [companyModel.id],
-  }),
-  businessPartner: one(businessPartnerModel, {
-    fields: [quotationModel.businessPartnerId],
-    references: [businessPartnerModel.id],
-  }),
-  convertedOrder: one(orderModel, {
-    fields: [quotationModel.convertedOrderId],
-    references: [orderModel.id],
-  }),
-  details: many(quotationDetailModel),
-}))
+export const quotationRelations = relations(
+  quotationModel,
+  ({ one, many }) => ({
+    organization: one(organizationModel, {
+      fields: [quotationModel.organizationId],
+      references: [organizationModel.id],
+    }),
+    company: one(companyModel, {
+      fields: [quotationModel.companyId],
+      references: [companyModel.id],
+    }),
+    businessPartner: one(businessPartnerModel, {
+      fields: [quotationModel.businessPartnerId],
+      references: [businessPartnerModel.id],
+    }),
+    convertedOrder: one(orderModel, {
+      fields: [quotationModel.convertedOrderId],
+      references: [orderModel.id],
+    }),
+    details: many(quotationDetailModel),
+  })
+)
 
-export const quotationDetailRelations = relations(quotationDetailModel, ({ one, many }) => ({
-  quotation: one(quotationModel, {
-    fields: [quotationDetailModel.quotationId],
-    references: [quotationModel.id],
-  }),
-  product: one(productModel, {
-    fields: [quotationDetailModel.productId],
-    references: [productModel.id],
-  }),
-  recipients: many(quotationRecipientModel),
-}))
+export const quotationDetailRelations = relations(
+  quotationDetailModel,
+  ({ one, many }) => ({
+    quotation: one(quotationModel, {
+      fields: [quotationDetailModel.quotationId],
+      references: [quotationModel.id],
+    }),
+    product: one(productModel, {
+      fields: [quotationDetailModel.productId],
+      references: [productModel.id],
+    }),
+    recipients: many(quotationRecipientModel),
+  })
+)
 
 export const quotationRecipientRelations = relations(
   quotationRecipientModel,

@@ -111,7 +111,9 @@ export default function ManageMemberRoles({
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('users.manageRoles')} - {member.userName}</CardTitle>
+          <CardTitle>
+            {t('users.manageRoles')} - {member.userName}
+          </CardTitle>
           <CardDescription>
             Select the roles to assign to {member.userEmail}. The user will have
             combined permissions from all selected roles.

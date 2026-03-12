@@ -27,15 +27,15 @@ export function NoAccessMessage({
     <div className='flex items-center justify-center py-12'>
       <Card className='w-full max-w-md'>
         <CardHeader className='text-center'>
-          <div className='mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-muted'>
-            <Lock className='size-6 text-muted-foreground' />
+          <div className='bg-muted mx-auto mb-4 flex size-12 items-center justify-center rounded-full'>
+            <Lock className='text-muted-foreground size-6' />
           </div>
           <CardTitle>{t('common.accessRequired')}</CardTitle>
           <CardDescription className='text-base'>
             {message || defaultMessage}
           </CardDescription>
         </CardHeader>
-        <CardContent className='text-center text-sm text-muted-foreground'>
+        <CardContent className='text-muted-foreground text-center text-sm'>
           {t('common.contactAdmin')}
         </CardContent>
       </Card>

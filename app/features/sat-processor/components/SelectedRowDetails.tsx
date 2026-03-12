@@ -21,7 +21,7 @@ export function SelectedRowDetails({
   const fetcher = useFetcher()
   const isUpdating = fetcher.state !== 'idle'
   const [itemType, setItemType] = useState<'goods' | 'services' | null>(
-    selectedRow?.itemType as 'goods' | 'services' | null ?? null
+    (selectedRow?.itemType as 'goods' | 'services' | null) ?? null
   )
   const [selectedAccountId, setSelectedAccountId] = useState<string>(
     selectedRow?.accountingAccountId ?? 'none'
@@ -29,7 +29,7 @@ export function SelectedRowDetails({
 
   // Sync state when selectedRow changes
   useEffect(() => {
-    setItemType(selectedRow?.itemType as 'goods' | 'services' | null ?? null)
+    setItemType((selectedRow?.itemType as 'goods' | 'services' | null) ?? null)
     setSelectedAccountId(selectedRow?.accountingAccountId ?? 'none')
   }, [selectedRow?.id])
 
@@ -51,7 +51,9 @@ export function SelectedRowDetails({
     if (!selectedRow) return
 
     if (!itemType) {
-      toast.error('Seleccioná el Tipo de Operación (Bien o Servicio) antes de asignar una cuenta.')
+      toast.error(
+        'Seleccioná el Tipo de Operación (Bien o Servicio) antes de asignar una cuenta.'
+      )
       return
     }
 

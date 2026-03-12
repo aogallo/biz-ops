@@ -1,4 +1,10 @@
-import { Banknote, CreditCard, DollarSign, FileText, Trash2 } from 'lucide-react'
+import {
+  Banknote,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Trash2,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import {
@@ -49,7 +55,8 @@ export function PosPaymentDialog({
   const currentAmount = Number(amount) || 0
 
   // For single cash payment (no split), track received/change
-  const isSingleCashPayment = payments.length === 0 && (method === 'cash' || method === 'cash_usd')
+  const isSingleCashPayment =
+    payments.length === 0 && (method === 'cash' || method === 'cash_usd')
   const change = isSingleCashPayment
     ? Math.max(0, currentAmount - total)
     : (method === 'cash' || method === 'cash_usd') && currentAmount > remaining
@@ -76,10 +83,13 @@ export function PosPaymentDialog({
         receivedAmount: currentAmount,
         changeAmount: Math.max(0, currentAmount - paymentAmount),
       }),
-      ...(method === 'cash_usd' && exchangeRateInput && {
-        exchangeRate: Number(exchangeRateInput),
-      }),
-      ...(method !== 'cash' && method !== 'cash_usd' && reference && { reference }),
+      ...(method === 'cash_usd' &&
+        exchangeRateInput && {
+          exchangeRate: Number(exchangeRateInput),
+        }),
+      ...(method !== 'cash' &&
+        method !== 'cash_usd' &&
+        reference && { reference }),
     }
 
     setPayments((prev) => [...prev, payment])
@@ -102,9 +112,10 @@ export function PosPaymentDialog({
           amount: total,
           receivedAmount: currentAmount,
           changeAmount: change,
-          ...(isCashUsd && exchangeRateInput && {
-            exchangeRate: Number(exchangeRateInput),
-          }),
+          ...(isCashUsd &&
+            exchangeRateInput && {
+              exchangeRate: Number(exchangeRateInput),
+            }),
         },
       ])
     } else if (method !== 'cash' && method !== 'cash_usd') {
@@ -168,7 +179,9 @@ export function PosPaymentDialog({
                   key={i}
                   className='bg-muted/50 flex items-center justify-between rounded-md px-3 py-1.5 text-sm'
                 >
-                  <span className='capitalize'>{p.method === 'cash_usd' ? 'USD' : t(`pos.${p.method}`)}</span>
+                  <span className='capitalize'>
+                    {p.method === 'cash_usd' ? 'USD' : t(`pos.${p.method}`)}
+                  </span>
                   <div className='flex items-center gap-2'>
                     <span className='font-medium tabular-nums'>
                       Q{p.amount.toFixed(2)}

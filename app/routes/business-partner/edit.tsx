@@ -78,9 +78,7 @@ export default function EditBusinessPartner({
       <Card>
         <CardHeader>
           <CardTitle>{t('partners.editTitle')}</CardTitle>
-          <CardDescription>
-            {t('partners.editDescription')}
-          </CardDescription>
+          <CardDescription>{t('partners.editDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
@@ -92,7 +90,10 @@ export default function EditBusinessPartner({
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.nameLabel')}
                 </label>
                 <input
@@ -112,18 +113,31 @@ export default function EditBusinessPartner({
               </div>
 
               <div>
-                <label htmlFor='type' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='type'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.typeLabel')}
                 </label>
                 <input type='hidden' name='type' value={partnerType} />
-                <Select value={partnerType} onValueChange={setPartnerType} required>
+                <Select
+                  value={partnerType}
+                  onValueChange={setPartnerType}
+                  required
+                >
                   <SelectTrigger className='w-full'>
                     <SelectValue placeholder={t('partners.typePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='client'>{t('partners.type.client')}</SelectItem>
-                    <SelectItem value='vendor'>{t('partners.type.vendor')}</SelectItem>
-                    <SelectItem value='both'>{t('partners.type.both')}</SelectItem>
+                    <SelectItem value='client'>
+                      {t('partners.type.client')}
+                    </SelectItem>
+                    <SelectItem value='vendor'>
+                      {t('partners.type.vendor')}
+                    </SelectItem>
+                    <SelectItem value='both'>
+                      {t('partners.type.both')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {actionData?.errors?.type && (
@@ -139,7 +153,10 @@ export default function EditBusinessPartner({
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='email' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='email'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.email')}
                 </label>
                 <input
@@ -161,7 +178,10 @@ export default function EditBusinessPartner({
               </div>
 
               <div>
-                <label htmlFor='phone' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='phone'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.phone')}
                 </label>
                 <input
@@ -207,7 +227,9 @@ export default function EditBusinessPartner({
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Button type='button' variant='outline' asChild>
-              <a href={`/business-partners/${partner.id}`}>{t('common.cancel')}</a>
+              <a href={`/business-partners/${partner.id}`}>
+                {t('common.cancel')}
+              </a>
             </Button>
             <Button type='submit' disabled={isSubmitting || !partnerType}>
               {isSubmitting ? t('partners.saving') : t('partners.saveChanges')}

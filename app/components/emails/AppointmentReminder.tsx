@@ -21,7 +21,14 @@ interface AppointmentReminderProps {
 }
 
 const AppointmentReminderEmail = (props: AppointmentReminderProps) => {
-  const { clientName, staffName, serviceName, date, startTime, organizationName } = props
+  const {
+    clientName,
+    staffName,
+    serviceName,
+    date,
+    startTime,
+    organizationName,
+  } = props
 
   return (
     <Html lang='en' dir='ltr'>
@@ -40,7 +47,8 @@ const AppointmentReminderEmail = (props: AppointmentReminderProps) => {
               </Text>
 
               <Text className='mb-5 text-[16px] text-gray-700'>
-                This is a friendly reminder about your upcoming appointment tomorrow.
+                This is a friendly reminder about your upcoming appointment
+                tomorrow.
               </Text>
 
               <Section className='mb-8 rounded-lg bg-blue-50 p-6'>
@@ -62,7 +70,8 @@ const AppointmentReminderEmail = (props: AppointmentReminderProps) => {
               </Section>
 
               <Text className='mb-5 text-[16px] text-gray-700'>
-                If you need to reschedule or cancel, please contact us as soon as possible.
+                If you need to reschedule or cancel, please contact us as soon
+                as possible.
               </Text>
 
               <Text className='mb-8 text-[16px] text-gray-700'>

@@ -113,7 +113,12 @@ const importExentosServicios = sql<number>`COALESCE(SUM(
 
 function buildConditions(
   organizationId: string,
-  params: { companyId?: string; dateFrom?: Date; dateTo?: Date; type: 'sale' | 'purchase' }
+  params: {
+    companyId?: string
+    dateFrom?: Date
+    dateTo?: Date
+    type: 'sale' | 'purchase'
+  }
 ) {
   const conditions = [
     eq(invoiceModel.organizationId, organizationId),
@@ -125,10 +130,14 @@ function buildConditions(
     conditions.push(eq(invoiceModel.companyId, params.companyId))
   }
   if (params.dateFrom) {
-    conditions.push(gte(invoiceModel.invoiceDate, params.dateFrom.toISOString().split('T')[0]))
+    conditions.push(
+      gte(invoiceModel.invoiceDate, params.dateFrom.toISOString().split('T')[0])
+    )
   }
   if (params.dateTo) {
-    conditions.push(lte(invoiceModel.invoiceDate, params.dateTo.toISOString().split('T')[0]))
+    conditions.push(
+      lte(invoiceModel.invoiceDate, params.dateTo.toISOString().split('T')[0])
+    )
   }
 
   return and(...conditions)
@@ -176,8 +185,14 @@ export class LedgerReportRepository {
         totalDocumento: sql<number>`COALESCE(SUM(${invoiceLineModel.total}::numeric), 0)`,
       })
       .from(invoiceModel)
-      .innerJoin(businessPartnerModel, eq(invoiceModel.businessPartnerId, businessPartnerModel.id))
-      .innerJoin(invoiceLineModel, eq(invoiceLineModel.invoiceId, invoiceModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(invoiceModel.businessPartnerId, businessPartnerModel.id)
+      )
+      .innerJoin(
+        invoiceLineModel,
+        eq(invoiceLineModel.invoiceId, invoiceModel.id)
+      )
       .where(whereClause)
       .groupBy(
         invoiceModel.id,
@@ -208,7 +223,10 @@ export class LedgerReportRepository {
         totalDocumento: sql<number>`COALESCE(SUM(${invoiceLineModel.total}::numeric), 0)`,
       })
       .from(invoiceModel)
-      .innerJoin(invoiceLineModel, eq(invoiceLineModel.invoiceId, invoiceModel.id))
+      .innerJoin(
+        invoiceLineModel,
+        eq(invoiceLineModel.invoiceId, invoiceModel.id)
+      )
       .where(whereClause)
 
     const grandTotals: LedgerGrandTotals = {
@@ -217,7 +235,9 @@ export class LedgerReportRepository {
       localExentosBienes: Number(totalsResult?.localExentosBienes ?? 0),
       localExentosServicios: Number(totalsResult?.localExentosServicios ?? 0),
       importGravadosBienes: Number(totalsResult?.importGravadosBienes ?? 0),
-      importGravadosServicios: Number(totalsResult?.importGravadosServicios ?? 0),
+      importGravadosServicios: Number(
+        totalsResult?.importGravadosServicios ?? 0
+      ),
       importExentosBienes: Number(totalsResult?.importExentosBienes ?? 0),
       importExentosServicios: Number(totalsResult?.importExentosServicios ?? 0),
       ivaAmount: Number(totalsResult?.ivaAmount ?? 0),
@@ -288,8 +308,14 @@ export class LedgerReportRepository {
         totalDocumento: sql<number>`COALESCE(SUM(${invoiceLineModel.total}::numeric), 0)`,
       })
       .from(invoiceModel)
-      .innerJoin(businessPartnerModel, eq(invoiceModel.businessPartnerId, businessPartnerModel.id))
-      .innerJoin(invoiceLineModel, eq(invoiceLineModel.invoiceId, invoiceModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(invoiceModel.businessPartnerId, businessPartnerModel.id)
+      )
+      .innerJoin(
+        invoiceLineModel,
+        eq(invoiceLineModel.invoiceId, invoiceModel.id)
+      )
       .where(whereClause)
       .groupBy(
         invoiceModel.id,
@@ -321,13 +347,18 @@ export class LedgerReportRepository {
     const grandTotals = mappedData.reduce<LedgerGrandTotals>(
       (acc, row) => ({
         localGravadosBienes: acc.localGravadosBienes + row.localGravadosBienes,
-        localGravadosServicios: acc.localGravadosServicios + row.localGravadosServicios,
+        localGravadosServicios:
+          acc.localGravadosServicios + row.localGravadosServicios,
         localExentosBienes: acc.localExentosBienes + row.localExentosBienes,
-        localExentosServicios: acc.localExentosServicios + row.localExentosServicios,
-        importGravadosBienes: acc.importGravadosBienes + row.importGravadosBienes,
-        importGravadosServicios: acc.importGravadosServicios + row.importGravadosServicios,
+        localExentosServicios:
+          acc.localExentosServicios + row.localExentosServicios,
+        importGravadosBienes:
+          acc.importGravadosBienes + row.importGravadosBienes,
+        importGravadosServicios:
+          acc.importGravadosServicios + row.importGravadosServicios,
         importExentosBienes: acc.importExentosBienes + row.importExentosBienes,
-        importExentosServicios: acc.importExentosServicios + row.importExentosServicios,
+        importExentosServicios:
+          acc.importExentosServicios + row.importExentosServicios,
         ivaAmount: acc.ivaAmount + row.ivaAmount,
         totalDocumento: acc.totalDocumento + row.totalDocumento,
       }),

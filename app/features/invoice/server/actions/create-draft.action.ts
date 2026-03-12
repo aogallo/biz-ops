@@ -45,7 +45,9 @@ export async function createDraftInvoiceAction(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Failed to create draft invoice',
+        error instanceof Error
+          ? error.message
+          : 'Failed to create draft invoice',
     }
   }
 }

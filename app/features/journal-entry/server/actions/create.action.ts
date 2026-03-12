@@ -52,7 +52,9 @@ export async function createJournalEntryAction(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Failed to create journal entry',
+        error instanceof Error
+          ? error.message
+          : 'Failed to create journal entry',
     }
   }
 }

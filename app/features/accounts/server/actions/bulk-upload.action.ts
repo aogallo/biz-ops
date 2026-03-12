@@ -57,7 +57,9 @@ export async function bulkUploadAccounts(
     return {
       success: false,
       message:
-        error instanceof Error ? error.message : translateServer(locale, 'messages.accounts.bulkUploadError'),
+        error instanceof Error
+          ? error.message
+          : translateServer(locale, 'messages.accounts.bulkUploadError'),
     }
   }
 }

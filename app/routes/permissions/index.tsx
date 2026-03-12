@@ -61,13 +61,12 @@ export default function PermissionsIndex({ loaderData }: Route.ComponentProps) {
     {
       accessorKey: 'isSystem',
       header: t('common.type'),
-      cell: ({ row }) => (
+      cell: ({ row }) =>
         row.getValue('isSystem') ? (
           <Badge variant='secondary'>{t('common.system')}</Badge>
         ) : (
           <Badge>{t('common.custom')}</Badge>
-        )
-      ),
+        ),
       filterFn: (row, id, value) => {
         return value === undefined || row.getValue(id) === value
       },
@@ -104,9 +103,7 @@ export default function PermissionsIndex({ loaderData }: Route.ComponentProps) {
       <div className='mb-6 flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-bold'>{t('permissions.title')}</h1>
-          <p className='text-muted-foreground'>
-            {t('permissions.manage')}
-          </p>
+          <p className='text-muted-foreground'>{t('permissions.manage')}</p>
         </div>
         {isSuperAdmin && (
           <Link to='/permissions/new'>

@@ -123,7 +123,12 @@ export async function generateGeneralLedgerPDF(
 
   function drawPageHeader() {
     // Company name
-    drawCentered(data.companyName.toUpperCase(), yPosition, TITLE_FONT_SIZE, boldFont)
+    drawCentered(
+      data.companyName.toUpperCase(),
+      yPosition,
+      TITLE_FONT_SIZE,
+      boldFont
+    )
     yPosition -= TITLE_FONT_SIZE + 3
 
     // Report title
@@ -224,7 +229,11 @@ export async function generateGeneralLedgerPDF(
 
       yPosition -= DATA_ROW_HEIGHT
     } else if (row.rowType === 'transaction') {
-      const descLines = wrapText(row.description, COL_WIDTH.descripcion, DATA_FONT_SIZE)
+      const descLines = wrapText(
+        row.description,
+        COL_WIDTH.descripcion,
+        DATA_FONT_SIZE
+      )
       const rowHeight = Math.max(descLines.length, 1) * DATA_ROW_HEIGHT
       checkNewPage(rowHeight)
 
@@ -311,8 +320,14 @@ export async function generateGeneralLedgerPDF(
 
       // Separator line above total
       page.drawLine({
-        start: { x: MARGIN_LEFT + COL.cargos, y: yPosition + DATA_ROW_HEIGHT - 2 },
-        end: { x: PAGE_WIDTH - MARGIN_RIGHT, y: yPosition + DATA_ROW_HEIGHT - 2 },
+        start: {
+          x: MARGIN_LEFT + COL.cargos,
+          y: yPosition + DATA_ROW_HEIGHT - 2,
+        },
+        end: {
+          x: PAGE_WIDTH - MARGIN_RIGHT,
+          y: yPosition + DATA_ROW_HEIGHT - 2,
+        },
         thickness: 0.3,
         color: rgb(0.5, 0.5, 0.5),
       })

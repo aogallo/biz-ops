@@ -17,7 +17,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   // Find journal entry linked to this session
   const [journalEntry] = await db
-    .select({ id: journalEntryModel.id, entryNumber: journalEntryModel.entryNumber })
+    .select({
+      id: journalEntryModel.id,
+      entryNumber: journalEntryModel.entryNumber,
+    })
     .from(journalEntryModel)
     .where(eq(journalEntryModel.sourcePosSessionId, report.sessionId))
     .limit(1)
@@ -55,7 +58,9 @@ export default function ZReportView({ loaderData }: Route.ComponentProps) {
         <div id='z-report' className='bg-card space-y-4 rounded-lg border p-6'>
           <div className='text-center'>
             <h2 className='text-lg font-bold'>{t('pos.zReport')}</h2>
-            <p className='text-muted-foreground text-sm'>{report.terminalName}</p>
+            <p className='text-muted-foreground text-sm'>
+              {report.terminalName}
+            </p>
           </div>
 
           <Separator />
@@ -89,7 +94,7 @@ export default function ZReportView({ loaderData }: Route.ComponentProps) {
             {rows.map((row) => (
               <div key={row.label} className='flex justify-between text-sm'>
                 <span className='text-muted-foreground'>{row.label}</span>
-                <span className='tabular-nums font-medium'>
+                <span className='font-medium tabular-nums'>
                   Q{Number(row.value ?? 0).toFixed(2)}
                 </span>
               </div>
@@ -100,20 +105,26 @@ export default function ZReportView({ loaderData }: Route.ComponentProps) {
 
           <div className='space-y-2'>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>{t('pos.openingCash')}</span>
-              <span className='tabular-nums font-medium'>
+              <span className='text-muted-foreground'>
+                {t('pos.openingCash')}
+              </span>
+              <span className='font-medium tabular-nums'>
                 Q{Number(report.openingCash ?? 0).toFixed(2)}
               </span>
             </div>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>{t('pos.expectedCash')}</span>
-              <span className='tabular-nums font-medium'>
+              <span className='text-muted-foreground'>
+                {t('pos.expectedCash')}
+              </span>
+              <span className='font-medium tabular-nums'>
                 Q{Number(report.expectedCash ?? 0).toFixed(2)}
               </span>
             </div>
             <div className='flex justify-between text-sm'>
-              <span className='text-muted-foreground'>{t('pos.closingCash')}</span>
-              <span className='tabular-nums font-medium'>
+              <span className='text-muted-foreground'>
+                {t('pos.closingCash')}
+              </span>
+              <span className='font-medium tabular-nums'>
                 Q{Number(report.closingCash ?? 0).toFixed(2)}
               </span>
             </div>
@@ -132,14 +143,20 @@ export default function ZReportView({ loaderData }: Route.ComponentProps) {
                 <div>
                   <p className='text-muted-foreground'>{t('pos.firstOrder')}</p>
                   <p className='font-medium'>
-                    {new Date(report.firstOrderTime).toLocaleTimeString('es-GT')}
+                    {new Date(report.firstOrderTime).toLocaleTimeString(
+                      'es-GT'
+                    )}
                   </p>
                 </div>
                 {report.lastOrderTime && (
                   <div>
-                    <p className='text-muted-foreground'>{t('pos.lastOrder')}</p>
+                    <p className='text-muted-foreground'>
+                      {t('pos.lastOrder')}
+                    </p>
                     <p className='font-medium'>
-                      {new Date(report.lastOrderTime).toLocaleTimeString('es-GT')}
+                      {new Date(report.lastOrderTime).toLocaleTimeString(
+                        'es-GT'
+                      )}
                     </p>
                   </div>
                 )}

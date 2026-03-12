@@ -39,9 +39,7 @@ export default function CreateAccount() {
       <Card>
         <CardHeader>
           <CardTitle>{t('accounts.createNew')}</CardTitle>
-          <CardDescription>
-            {t('accounts.createDescription')}
-          </CardDescription>
+          <CardDescription>{t('accounts.createDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
@@ -78,7 +76,10 @@ export default function CreateAccount() {
               </div>
 
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('accounts.nameLabel')}
                 </label>
                 <input

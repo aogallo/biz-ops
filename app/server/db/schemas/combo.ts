@@ -7,10 +7,7 @@ import {
   text,
   uuid,
 } from 'drizzle-orm/pg-core'
-import {
-  createInsertSchema,
-  createSelectSchema,
-} from 'drizzle-zod'
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type { z } from 'zod'
 import { timestamps } from './common'
 import { productModel } from './products'
@@ -90,8 +87,10 @@ export const selectComboSchema = createSelectSchema(comboModel)
 export const insertComboSchema = createInsertSchema(comboModel)
 export const selectComboGroupSchema = createSelectSchema(comboGroupModel)
 export const insertComboGroupSchema = createInsertSchema(comboGroupModel)
-export const selectComboGroupItemSchema = createSelectSchema(comboGroupItemModel)
-export const insertComboGroupItemSchema = createInsertSchema(comboGroupItemModel)
+export const selectComboGroupItemSchema =
+  createSelectSchema(comboGroupItemModel)
+export const insertComboGroupItemSchema =
+  createInsertSchema(comboGroupItemModel)
 
 export type Combo = z.infer<typeof selectComboSchema>
 export type InsertCombo = z.infer<typeof insertComboSchema>

@@ -21,7 +21,8 @@ export async function action({ request }: Route.ActionArgs) {
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to send reminders',
+      error:
+        error instanceof Error ? error.message : 'Failed to send reminders',
     }
   }
 }

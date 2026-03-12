@@ -1,5 +1,11 @@
 import { useEffect } from 'react'
-import { Form, Link, redirect, useActionData, useNavigation } from 'react-router'
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from 'react-router'
 import { toast } from 'sonner'
 import { requireAuth } from '~/server/auth/session.server'
 import { sucursalRepository } from '~/features/sucursal/server/repository/sucursal.repository'
@@ -63,7 +69,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     throw redirect('/sucursal')
   } catch (error) {
     if (error instanceof Response) throw error
-    return { error: error instanceof Error ? error.message : 'Error al actualizar' }
+    return {
+      error: error instanceof Error ? error.message : 'Error al actualizar',
+    }
   }
 }
 
@@ -74,7 +82,11 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
   const isSubmitting = navigation.state === 'submitting'
 
   useEffect(() => {
-    if (actionData && 'error' in actionData && typeof actionData.error === 'string') {
+    if (
+      actionData &&
+      'error' in actionData &&
+      typeof actionData.error === 'string'
+    ) {
       toast.error(actionData.error)
     }
   }, [actionData])
@@ -87,13 +99,18 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
       <Card>
         <CardHeader>
           <CardTitle>Editar Sucursal</CardTitle>
-          <CardDescription>Actualizá los datos de {sucursal.name}.</CardDescription>
+          <CardDescription>
+            Actualizá los datos de {sucursal.name}.
+          </CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Nombre *
                 </label>
                 <input
@@ -107,7 +124,10 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='code' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='code'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Código POS *
                 </label>
                 <input
@@ -123,7 +143,10 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='companyId' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='companyId'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Empresa
                 </label>
                 <select
@@ -142,7 +165,10 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='phone' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='phone'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Teléfono
                 </label>
                 <input
@@ -156,7 +182,10 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div>
-              <label htmlFor='address' className='mb-2 block text-sm font-medium'>
+              <label
+                htmlFor='address'
+                className='mb-2 block text-sm font-medium'
+              >
                 Dirección
               </label>
               <input
@@ -170,7 +199,11 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
 
             <div>
               <label className='mb-2 block text-sm font-medium'>Estado</label>
-              <select name='isActive' defaultValue={sucursal.isActive ? 'true' : 'false'} className={inputClass}>
+              <select
+                name='isActive'
+                defaultValue={sucursal.isActive ? 'true' : 'false'}
+                className={inputClass}
+              >
                 <option value='true'>Activa</option>
                 <option value='false'>Inactiva</option>
               </select>

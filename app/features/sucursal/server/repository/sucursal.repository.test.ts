@@ -35,12 +35,14 @@ describe('SucursalRepository.getNextInvoiceNumber', () => {
   })
 
   test('returns prefix, decremented number, and zero-padded formatted string', async () => {
-    const mockReturning = vi.fn().mockResolvedValue([
-      { invoicePrefix: 'SUA', nextInvoiceNumber: 2 },
-    ])
+    const mockReturning = vi
+      .fn()
+      .mockResolvedValue([{ invoicePrefix: 'SUA', nextInvoiceNumber: 2 }])
     const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
     const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
-    ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue({ set: mockSet })
+    ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: mockSet,
+    })
 
     const result = await repo.getNextInvoiceNumber('some-sucursal-id')
 
@@ -50,12 +52,14 @@ describe('SucursalRepository.getNextInvoiceNumber', () => {
   })
 
   test('formats number with 6 zero-padded digits', async () => {
-    const mockReturning = vi.fn().mockResolvedValue([
-      { invoicePrefix: 'T01', nextInvoiceNumber: 101 },
-    ])
+    const mockReturning = vi
+      .fn()
+      .mockResolvedValue([{ invoicePrefix: 'T01', nextInvoiceNumber: 101 }])
     const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
     const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
-    ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue({ set: mockSet })
+    ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: mockSet,
+    })
 
     const result = await repo.getNextInvoiceNumber('some-sucursal-id')
 
@@ -67,7 +71,9 @@ describe('SucursalRepository.getNextInvoiceNumber', () => {
     const mockReturning = vi.fn().mockResolvedValue([])
     const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning })
     const mockSet = vi.fn().mockReturnValue({ where: mockWhere })
-    ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue({ set: mockSet })
+    ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: mockSet,
+    })
 
     await expect(repo.getNextInvoiceNumber('nonexistent-id')).rejects.toThrow(
       'Sucursal not found'

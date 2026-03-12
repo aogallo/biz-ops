@@ -69,9 +69,7 @@ export class StockMovementRepository {
     page = 1,
     pageSize = 10
   ) {
-    const conditions = [
-      eq(stockMovementModel.organizationId, organizationId),
-    ]
+    const conditions = [eq(stockMovementModel.organizationId, organizationId)]
 
     if (filters.productId) {
       conditions.push(eq(stockMovementModel.productId, filters.productId))
@@ -80,10 +78,14 @@ export class StockMovementRepository {
       conditions.push(eq(stockMovementModel.type, filters.type))
     }
     if (filters.dateFrom) {
-      conditions.push(gte(stockMovementModel.movementDate, new Date(filters.dateFrom)))
+      conditions.push(
+        gte(stockMovementModel.movementDate, new Date(filters.dateFrom))
+      )
     }
     if (filters.dateTo) {
-      conditions.push(lte(stockMovementModel.movementDate, new Date(filters.dateTo)))
+      conditions.push(
+        lte(stockMovementModel.movementDate, new Date(filters.dateTo))
+      )
     }
 
     const whereClause = and(...conditions)
@@ -112,7 +114,10 @@ export class StockMovementRepository {
         createdByName: userModel.name,
       })
       .from(stockMovementModel)
-      .innerJoin(productModel, eq(stockMovementModel.productId, productModel.id))
+      .innerJoin(
+        productModel,
+        eq(stockMovementModel.productId, productModel.id)
+      )
       .leftJoin(userModel, eq(stockMovementModel.createdById, userModel.id))
       .where(whereClause)
       .orderBy(desc(stockMovementModel.movementDate))
@@ -159,7 +164,10 @@ export class StockMovementRepository {
         productSku: productModel.sku,
       })
       .from(stockMovementModel)
-      .innerJoin(productModel, eq(stockMovementModel.productId, productModel.id))
+      .innerJoin(
+        productModel,
+        eq(stockMovementModel.productId, productModel.id)
+      )
       .where(eq(stockMovementModel.organizationId, organizationId))
       .orderBy(desc(stockMovementModel.movementDate))
       .limit(limit)

@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm'
-import { boolean, integer, numeric, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import { organizationModel } from './auth'
 import { timestamps } from './common'
 

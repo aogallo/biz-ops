@@ -24,7 +24,9 @@ export function LandingFooter() {
 
           {/* Product */}
           <div>
-            <h3 className='mb-3 text-sm font-semibold'>{t('landing.footer.product')}</h3>
+            <h3 className='mb-3 text-sm font-semibold'>
+              {t('landing.footer.product')}
+            </h3>
             <ul className='space-y-2'>
               <li>
                 <a
@@ -47,7 +49,9 @@ export function LandingFooter() {
 
           {/* Legal */}
           <div>
-            <h3 className='mb-3 text-sm font-semibold'>{t('landing.footer.legal')}</h3>
+            <h3 className='mb-3 text-sm font-semibold'>
+              {t('landing.footer.legal')}
+            </h3>
             <ul className='space-y-2'>
               <li>
                 <span className='text-muted-foreground text-sm'>
@@ -64,7 +68,9 @@ export function LandingFooter() {
 
           {/* Contact */}
           <div>
-            <h3 className='mb-3 text-sm font-semibold'>{t('landing.footer.contact')}</h3>
+            <h3 className='mb-3 text-sm font-semibold'>
+              {t('landing.footer.contact')}
+            </h3>
             <ul className='space-y-2'>
               <li>
                 <span className='text-muted-foreground text-sm'>
@@ -77,7 +83,9 @@ export function LandingFooter() {
 
         <div className='mt-8 flex items-center justify-between border-t pt-8'>
           <p className='text-muted-foreground text-sm'>
-            {t('landing.footer.copyright', { year: new Date().getFullYear().toString() })}
+            {t('landing.footer.copyright', {
+              year: new Date().getFullYear().toString(),
+            })}
           </p>
           <ModeToggle />
         </div>

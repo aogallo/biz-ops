@@ -11,9 +11,15 @@ export class InventoryReportsRepository {
   async getStockValueByCategory(organizationId: string) {
     return await db
       .select({
-        categoryName: sql<string>`COALESCE(${productCategoryModel.name}, 'Uncategorized')`.as('category_name'),
+        categoryName:
+          sql<string>`COALESCE(${productCategoryModel.name}, 'Uncategorized')`.as(
+            'category_name'
+          ),
         categoryColor: productCategoryModel.color,
-        totalValue: sql<number>`COALESCE(SUM(${productModel.stock} * ${productModel.price}), 0)`.as('total_value'),
+        totalValue:
+          sql<number>`COALESCE(SUM(${productModel.stock} * ${productModel.price}), 0)`.as(
+            'total_value'
+          ),
         productCount: count(),
       })
       .from(productModel)
@@ -37,9 +43,18 @@ export class InventoryReportsRepository {
     return await db
       .select({
         date: sql<string>`DATE(${stockMovementModel.movementDate})`.as('date'),
-        entries: sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'entry')`.as('entries'),
-        exits: sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'exit')`.as('exits'),
-        adjustments: sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'adjustment')`.as('adjustments'),
+        entries:
+          sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'entry')`.as(
+            'entries'
+          ),
+        exits:
+          sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'exit')`.as(
+            'exits'
+          ),
+        adjustments:
+          sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'adjustment')`.as(
+            'adjustments'
+          ),
       })
       .from(stockMovementModel)
       .where(
@@ -62,8 +77,14 @@ export class InventoryReportsRepository {
         productName: productModel.name,
         productSku: productModel.sku,
         totalMovements: count(),
-        totalEntries: sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'entry')`.as('entries'),
-        totalExits: sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'exit')`.as('exits'),
+        totalEntries:
+          sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'entry')`.as(
+            'entries'
+          ),
+        totalExits:
+          sql<number>`COUNT(*) FILTER (WHERE ${stockMovementModel.type} = 'exit')`.as(
+            'exits'
+          ),
       })
       .from(stockMovementModel)
       .innerJoin(

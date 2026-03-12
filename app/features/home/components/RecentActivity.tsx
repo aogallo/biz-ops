@@ -31,7 +31,9 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
   return (
     <Card>
       <CardHeader className='flex flex-row items-center justify-between pb-3'>
-        <CardTitle className='text-base font-semibold'>Recent Activity</CardTitle>
+        <CardTitle className='text-base font-semibold'>
+          Recent Activity
+        </CardTitle>
         <Button variant='link' asChild className='h-auto p-0'>
           <Link to='/reports'>View all</Link>
         </Button>
@@ -53,7 +55,9 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
                 </div>
                 <div>
                   <p className='text-sm font-medium'>{activity.title}</p>
-                  <p className='text-muted-foreground text-xs'>{activity.subtitle}</p>
+                  <p className='text-muted-foreground text-xs'>
+                    {activity.subtitle}
+                  </p>
                 </div>
               </div>
               <span className='text-muted-foreground text-xs whitespace-nowrap'>

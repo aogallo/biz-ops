@@ -24,11 +24,17 @@ export async function convertToOrderAction(
   }
 
   if (quotation.status !== 'ACCEPTED') {
-    return { success: false, message: 'Only accepted quotations can be converted to orders' }
+    return {
+      success: false,
+      message: 'Only accepted quotations can be converted to orders',
+    }
   }
 
   if (quotation.convertedOrderId) {
-    return { success: false, message: 'This quotation has already been converted to an order' }
+    return {
+      success: false,
+      message: 'This quotation has already been converted to an order',
+    }
   }
 
   try {
@@ -45,7 +51,10 @@ export async function convertToOrderAction(
         quantity: d.quantity,
         unitPrice: d.unitPrice,
         sourceType: d.sourceType,
-        customAttributesJson: d.customAttributesJson as Record<string, unknown> | null,
+        customAttributesJson: d.customAttributesJson as Record<
+          string,
+          unknown
+        > | null,
         recipients: d.recipients.map((r) => ({
           name: r.name,
           metadataJson: r.metadataJson as Record<string, unknown> | null,
@@ -62,7 +71,9 @@ export async function convertToOrderAction(
     return {
       success: false,
       message:
-        error instanceof Error ? error.message : 'Failed to convert quotation to order',
+        error instanceof Error
+          ? error.message
+          : 'Failed to convert quotation to order',
     }
   }
 }

@@ -2,10 +2,7 @@ import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { permissionsRepository } from '../repository'
 
-export async function deletePermission(
-  request: Request,
-  permissionId: string
-) {
+export async function deletePermission(request: Request, permissionId: string) {
   const session = await requireAuth(request)
   const locale = getLocaleFromRequest(request)
 
@@ -27,14 +24,18 @@ export async function deletePermission(
   }
 
   // Check if deletable
-  const { canDelete, reason } = await permissionsRepository.canDelete(
-    permissionId
-  )
+  const { canDelete, reason } =
+    await permissionsRepository.canDelete(permissionId)
 
   if (!canDelete) {
     return {
       success: false,
-      message: reason || translateServer(locale, 'messages.permissions.systemPermissionProtected'),
+      message:
+        reason ||
+        translateServer(
+          locale,
+          'messages.permissions.systemPermissionProtected'
+        ),
     }
   }
 

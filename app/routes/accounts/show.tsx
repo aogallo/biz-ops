@@ -102,9 +102,7 @@ export default function ShowAccount({ loaderData }: Route.ComponentProps) {
         <Card>
           <CardHeader>
             <CardTitle>{t('accounts.information')}</CardTitle>
-            <CardDescription>
-              {t('accounts.infoDescription')}
-            </CardDescription>
+            <CardDescription>{t('accounts.infoDescription')}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>

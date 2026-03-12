@@ -11,9 +11,7 @@ const LabeledField = ({ label, value }: LabeledFieldProps) => {
       <p className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
         {label}
       </p>
-      <p className='text-base font-semibold text-foreground'>
-        {value || '—'}
-      </p>
+      <p className='text-foreground text-base font-semibold'>{value || '—'}</p>
     </div>
   )
 }
@@ -40,15 +38,21 @@ const LegalInformation = ({ company }: LegalInformationProps) => {
 
   return (
     <section>
-      <h3 className='flex items-center gap-2 text-lg font-semibold text-foreground'>
+      <h3 className='text-foreground flex items-center gap-2 text-lg font-semibold'>
         <Layers className='size-5 text-teal-500' />
         Legal Information
       </h3>
       <div className='mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2'>
         <LabeledField label='Registered Entity Name' value={company.name} />
         <LabeledField label='Tax Identification Number' value={company.nit} />
-        <LabeledField label='Company Type' value={company.companyType || 'Sociedad Anónima'} />
-        <LabeledField label='Date of Incorporation' value={formatDate(company.incorporationDate) || 'January 15, 2018'} />
+        <LabeledField
+          label='Company Type'
+          value={company.companyType || 'Sociedad Anónima'}
+        />
+        <LabeledField
+          label='Date of Incorporation'
+          value={formatDate(company.incorporationDate) || 'January 15, 2018'}
+        />
       </div>
     </section>
   )

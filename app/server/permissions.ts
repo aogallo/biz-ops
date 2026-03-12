@@ -1,6 +1,11 @@
 import { and, eq } from 'drizzle-orm'
 import { db } from './db'
-import { memberModel, memberRoleModel, organizationModel, roleModel } from './db/schemas/auth'
+import {
+  memberModel,
+  memberRoleModel,
+  organizationModel,
+  roleModel,
+} from './db/schemas/auth'
 
 export const SUPER_ADMIN_ROLE = 'super-admin'
 export const ADMIN_ROLE = 'admin'

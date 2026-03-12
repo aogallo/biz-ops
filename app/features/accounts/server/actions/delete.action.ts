@@ -44,7 +44,8 @@ export async function deleteAccount(request: Request, accountId: string) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to delete account',
+      message:
+        error instanceof Error ? error.message : 'Failed to delete account',
     }
   }
 }

@@ -69,7 +69,9 @@ export function PosProductRecipeDialog({
                     <FieldContent className='flex flex-row items-center gap-2'>
                       <Switch
                         id={ingredient.ingredientProductId}
-                        checked={!removedIds.has(ingredient.ingredientProductId)}
+                        checked={
+                          !removedIds.has(ingredient.ingredientProductId)
+                        }
                         onCheckedChange={() =>
                           handleToggle(ingredient.ingredientProductId)
                         }

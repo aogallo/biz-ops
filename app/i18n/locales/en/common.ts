@@ -51,9 +51,12 @@ export const common = {
   'common.hide': 'Hide',
   'common.toggleColumns': 'Toggle columns',
   'common.accessRequired': 'Access Required',
-  'common.noPermission': "You don't have permission to access {{feature}}. Please contact your organization administrator to request access.",
-  'common.noPermissionGeneric': "You don't have permission to access this page. Please contact your organization administrator to request access.",
-  'common.contactAdmin': 'If you believe this is an error, please contact your administrator.',
+  'common.noPermission':
+    "You don't have permission to access {{feature}}. Please contact your organization administrator to request access.",
+  'common.noPermissionGeneric':
+    "You don't have permission to access this page. Please contact your organization administrator to request access.",
+  'common.contactAdmin':
+    'If you believe this is an error, please contact your administrator.',
   'common.notifications': 'Notifications',
   'common.profile': 'Profile',
   'common.settings': 'Settings',

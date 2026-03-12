@@ -92,7 +92,9 @@ export async function updateJournalEntryAction(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Failed to update journal entry',
+        error instanceof Error
+          ? error.message
+          : 'Failed to update journal entry',
     }
   }
 }

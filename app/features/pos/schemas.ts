@@ -6,7 +6,26 @@ import {
   posSaleLineModel,
   posPaymentModel,
   posCashierModel,
+  posTableModel,
 } from '~/server/db/schemas/pos'
+
+// Table (Mesa) schemas
+export const insertTableSchema = createInsertSchema(posTableModel)
+export const selectTableSchema = createSelectSchema(posTableModel)
+
+export const createTableSchema = insertTableSchema
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({
+    number: z.string().min(1, 'El número de mesa es requerido'),
+    organizationId: z.string().uuid(),
+    sucursalId: z.string().uuid().optional().nullable(),
+    capacity: z.coerce.number().int().positive().optional().nullable(),
+  })
+
+export const updateTableSchema = createTableSchema.partial()
+
+export type CreateTableInput = z.infer<typeof createTableSchema>
+export type UpdateTableInput = z.infer<typeof updateTableSchema>
 
 // Terminal schemas
 export const insertTerminalSchema = createInsertSchema(posTerminalModel)
@@ -86,6 +105,9 @@ export const checkoutSchema = z.object({
   businessPartnerId: z.string().uuid(),
   idempotencyKey: z.string().uuid(),
   sessionId: z.string().uuid().optional(),
+  tableId: z.string().uuid().optional().nullable(),
+  orderType: z.enum(['dine_in', 'takeout', 'delivery']).optional().default('takeout'),
+  coverCount: z.number().int().positive().optional().nullable(),
   lines: z.array(checkoutLineSchema).min(1, 'Cart cannot be empty'),
   payments: z
     .array(checkoutPaymentSchema)

@@ -4,6 +4,7 @@ import {
   kitchenTicketModel,
   kitchenTicketItemModel,
 } from '~/server/db/schemas/kitchen'
+import { posSaleModel, posTableModel } from '~/server/db/schemas/pos'
 import type { CreateKitchenTicketInput } from '../schemas'
 
 export interface KitchenTicketWithItems {
@@ -15,6 +16,8 @@ export interface KitchenTicketWithItems {
   ticketNumber: number
   notes: string | null
   createdAt: Date | null
+  tableNumber: string | null
+  orderType: string | null
   items: Array<{
     id: string
     productId: string | null
@@ -26,7 +29,8 @@ export interface KitchenTicketWithItems {
   }>
 }
 
-export class KitchenRepository {
+export { KitchenRepository }
+class KitchenRepository {
   async getNextTicketNumber(sucursalId: string | null, organizationId: string): Promise<number> {
     // Get max ticket number for this sucursal today and increment
     const today = new Date()
@@ -86,27 +90,43 @@ export class KitchenRepository {
   }
 
   async getOpenTickets(sucursalId: string): Promise<KitchenTicketWithItems[]> {
-    const tickets = await db
-      .select()
+    // Join with sale + table to get table number and order type
+    const rows = await db
+      .select({
+        id: kitchenTicketModel.id,
+        organizationId: kitchenTicketModel.organizationId,
+        sucursalId: kitchenTicketModel.sucursalId,
+        saleId: kitchenTicketModel.saleId,
+        status: kitchenTicketModel.status,
+        ticketNumber: kitchenTicketModel.ticketNumber,
+        notes: kitchenTicketModel.notes,
+        createdAt: kitchenTicketModel.createdAt,
+        tableNumber: posTableModel.number,
+        orderType: posSaleModel.orderType,
+      })
       .from(kitchenTicketModel)
+      .leftJoin(posSaleModel, eq(kitchenTicketModel.saleId, posSaleModel.id))
+      .leftJoin(posTableModel, eq(posSaleModel.tableId, posTableModel.id))
       .where(
         and(
           eq(kitchenTicketModel.sucursalId, sucursalId),
-          inArray(kitchenTicketModel.status, ['pending', 'in_progress'])
+          inArray(kitchenTicketModel.status, ['pending', 'in_progress', 'ready'])
         )
       )
       .orderBy(kitchenTicketModel.ticketNumber)
 
-    if (tickets.length === 0) return []
+    if (rows.length === 0) return []
 
-    const ticketIds = tickets.map((t) => t.id)
+    const ticketIds = rows.map((t) => t.id)
     const items = await db
       .select()
       .from(kitchenTicketItemModel)
       .where(inArray(kitchenTicketItemModel.ticketId, ticketIds))
 
-    return tickets.map((ticket) => ({
+    return rows.map((ticket) => ({
       ...ticket,
+      tableNumber: ticket.tableNumber ?? null,
+      orderType: ticket.orderType ?? null,
       items: items
         .filter((i) => i.ticketId === ticket.id)
         .map((i) => ({

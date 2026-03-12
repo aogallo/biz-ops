@@ -245,6 +245,12 @@ export const navigationItems = [
         icon: Monitor,
       },
       {
+        name: 'Kitchen',
+        nameKey: 'sidebar.items.kitchen' as TranslationKey,
+        path: '/kitchen',
+        icon: Drumstick,
+      },
+      {
         name: 'Terminals',
         nameKey: 'sidebar.items.posTerminals' as TranslationKey,
         path: '/pos-settings/terminals',

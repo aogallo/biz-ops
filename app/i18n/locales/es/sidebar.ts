@@ -50,6 +50,7 @@ export const sidebar = {
   'sidebar.items.posCashiers': 'Cajeros',
   'sidebar.items.posTerminals': 'Terminales',
   'sidebar.items.posTables': 'Mesas',
+  'sidebar.items.kitchen': 'Cocina',
   'sidebar.items.sucursal': 'Sucursal',
   'sidebar.items.inventorySucursal': 'Inventario por Sucursal',
   'sidebar.items.modules': 'Módulos',

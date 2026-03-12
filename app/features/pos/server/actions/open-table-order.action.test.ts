@@ -40,14 +40,14 @@ describe('openTableOrderAction', () => {
   beforeEach(() => vi.clearAllMocks())
 
   test('throws if table not found', async () => {
-    mockRepo.getTableById.mockResolvedValue(null)
+    mockRepo.getTableById.mockResolvedValue(null as never)
 
     await expect(openTableOrderAction(makeInput())).rejects.toThrow('Table not found')
   })
 
   test('throws if table already has an open order', async () => {
-    mockRepo.getTableById.mockResolvedValue({ id: 'table-1', status: 'available' })
-    mockRepo.getActiveOrderForTable.mockResolvedValue({ id: 'sale-existing', status: 'open' })
+    mockRepo.getTableById.mockResolvedValue({ id: 'table-1', status: 'available' } as never)
+    mockRepo.getActiveOrderForTable.mockResolvedValue({ id: 'sale-existing', status: 'open' } as never)
 
     await expect(openTableOrderAction(makeInput())).rejects.toThrow('Table already has an open order')
   })
@@ -56,9 +56,9 @@ describe('openTableOrderAction', () => {
     const table = { id: 'table-1', number: '1', status: 'available' }
     const newSale = { id: 'sale-1', status: 'open', tableId: 'table-1' }
 
-    mockRepo.getTableById.mockResolvedValue(table)
-    mockRepo.getActiveOrderForTable.mockResolvedValue(null)
-    mockRepo.updateTableStatus.mockResolvedValue({ ...table, status: 'occupied' })
+    mockRepo.getTableById.mockResolvedValue(table as never)
+    mockRepo.getActiveOrderForTable.mockResolvedValue(null as never)
+    mockRepo.updateTableStatus.mockResolvedValue({ ...table, status: 'occupied' } as never)
 
     const { db } = await import('~/server/db')
     ;(db.transaction as ReturnType<typeof vi.fn>).mockImplementation(

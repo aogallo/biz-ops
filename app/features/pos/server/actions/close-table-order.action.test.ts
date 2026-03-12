@@ -35,7 +35,7 @@ describe('closeTableOrderAction', () => {
   beforeEach(() => vi.clearAllMocks())
 
   test('throws if no open order on table', async () => {
-    mockRepo.getActiveOrderForTable.mockResolvedValue(null)
+    mockRepo.getActiveOrderForTable.mockResolvedValue(null as never)
 
     await expect(closeTableOrderAction(makeInput())).rejects.toThrow('No open order found for this table')
   })
@@ -44,8 +44,8 @@ describe('closeTableOrderAction', () => {
     const openSale = { id: 'sale-1', status: 'open', tableId: 'table-1' }
     const closedSale = { ...openSale, status: 'completed' }
 
-    mockRepo.getActiveOrderForTable.mockResolvedValue(openSale)
-    mockRepo.updateTableStatus.mockResolvedValue({ id: 'table-1', status: 'available' })
+    mockRepo.getActiveOrderForTable.mockResolvedValue(openSale as never)
+    mockRepo.updateTableStatus.mockResolvedValue({ id: 'table-1', status: 'available' } as never)
 
     const { db } = await import('~/server/db')
     ;(db.transaction as ReturnType<typeof vi.fn>).mockImplementation(

@@ -22,7 +22,10 @@ export class AppointmentsRepository {
    * Create a new appointment
    */
   async create(data: CreateAppointmentData) {
-    const [appointment] = await db.insert(appointmentModel).values(data).returning()
+    const [appointment] = await db
+      .insert(appointmentModel)
+      .values(data)
+      .returning()
     return appointment
   }
 
@@ -51,7 +54,10 @@ export class AppointmentsRepository {
         staffName: userModel.name,
       })
       .from(appointmentModel)
-      .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(appointmentModel.clientId, businessPartnerModel.id)
+      )
       .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
       .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
       .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -62,7 +68,11 @@ export class AppointmentsRepository {
   /**
    * Get appointments for a date range
    */
-  async getByDateRange(organizationId: string, startDate: string, endDate: string) {
+  async getByDateRange(
+    organizationId: string,
+    startDate: string,
+    endDate: string
+  ) {
     return await db
       .select({
         id: appointmentModel.id,
@@ -84,7 +94,10 @@ export class AppointmentsRepository {
         staffName: userModel.name,
       })
       .from(appointmentModel)
-      .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(appointmentModel.clientId, businessPartnerModel.id)
+      )
       .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
       .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
       .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -165,7 +178,10 @@ export class AppointmentsRepository {
         staffName: userModel.name,
       })
       .from(appointmentModel)
-      .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(appointmentModel.clientId, businessPartnerModel.id)
+      )
       .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
       .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
       .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -183,7 +199,10 @@ export class AppointmentsRepository {
   /**
    * Update appointment
    */
-  async update(id: string, data: Partial<Omit<CreateAppointmentData, 'organizationId'>>) {
+  async update(
+    id: string,
+    data: Partial<Omit<CreateAppointmentData, 'organizationId'>>
+  ) {
     const [appointment] = await db
       .update(appointmentModel)
       .set({ ...data, updatedAt: new Date() })
@@ -196,7 +215,10 @@ export class AppointmentsRepository {
   /**
    * Update appointment status
    */
-  async updateStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled' | 'completed') {
+  async updateStatus(
+    id: string,
+    status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  ) {
     const [appointment] = await db
       .update(appointmentModel)
       .set({ status, updatedAt: new Date() })
@@ -221,7 +243,11 @@ export class AppointmentsRepository {
   /**
    * Get appointments for a specific staff member on a date
    */
-  async getByStaffAndDate(organizationId: string, staffId: string, date: string) {
+  async getByStaffAndDate(
+    organizationId: string,
+    staffId: string,
+    date: string
+  ) {
     return await db
       .select()
       .from(appointmentModel)

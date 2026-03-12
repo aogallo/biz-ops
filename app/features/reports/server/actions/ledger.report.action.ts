@@ -1,6 +1,4 @@
-import {
-  ledgerReportRepository,
-} from '~/features/invoice/server/ledger-report.repository'
+import { ledgerReportRepository } from '~/features/invoice/server/ledger-report.repository'
 import type { GenerateReportInput, ExportReportInput } from '../../schemas'
 import type {
   GenerateLedgerReportResult,
@@ -84,12 +82,15 @@ async function exportLedgerAction(
   const parsedDateFrom = parseDate(dateFrom)
   const parsedDateTo = parseDate(dateTo)
 
-  const result = await ledgerReportRepository.getAllForPdfExport(organizationId, {
-    companyId,
-    dateFrom: parsedDateFrom,
-    dateTo: parsedDateTo,
-    type,
-  })
+  const result = await ledgerReportRepository.getAllForPdfExport(
+    organizationId,
+    {
+      companyId,
+      dateFrom: parsedDateFrom,
+      dateTo: parsedDateTo,
+      type,
+    }
+  )
 
   const dateFromStr = parsedDateFrom
     ? formatDate(parsedDateFrom)
@@ -114,7 +115,9 @@ async function exportLedgerAction(
   const pdfBytes = await generateLedgerPDF(pdfData)
   const pdfBase64 = btoa(String.fromCharCode(...pdfBytes))
 
-  const fromStr = dateFrom ? new Date(dateFrom).toISOString().split('T')[0] : 'all'
+  const fromStr = dateFrom
+    ? new Date(dateFrom).toISOString().split('T')[0]
+    : 'all'
   const toStr = dateTo ? new Date(dateTo).toISOString().split('T')[0] : 'all'
   const prefix = reportType === 'sales' ? 'libro-ventas' : 'libro-compras'
   const filename = `${prefix}-${fromStr}-to-${toStr}.pdf`

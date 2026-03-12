@@ -50,9 +50,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 }
 
-export default function InventoryReport({
-  loaderData,
-}: Route.ComponentProps) {
+export default function InventoryReport({ loaderData }: Route.ComponentProps) {
   const { stockByCategory, movementTrends, topProducts } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -74,7 +72,10 @@ export default function InventoryReport({
       now.getMonth(),
       now.getDate() - days
     )
-    updateDateRange(from.toISOString().split('T')[0], now.toISOString().split('T')[0])
+    updateDateRange(
+      from.toISOString().split('T')[0],
+      now.toISOString().split('T')[0]
+    )
   }
 
   return (

@@ -58,14 +58,20 @@ export function PosComboSelectionDialog({
       const defaults = group.items
         .filter((i) => i.isDefault)
         .map((i) => i.productId)
-      initial[group.id] = defaults.length > 0 ? defaults : [group.items[0]?.productId ?? '']
+      initial[group.id] =
+        defaults.length > 0 ? defaults : [group.items[0]?.productId ?? '']
     }
     return initial
   }, [comboDef.groups])
 
-  const [selections, setSelections] = useState<Record<string, string[]>>(initSelections)
+  const [selections, setSelections] =
+    useState<Record<string, string[]>>(initSelections)
 
-  const handleSelect = (groupId: string, productId: string, maxSelect: number) => {
+  const handleSelect = (
+    groupId: string,
+    productId: string,
+    maxSelect: number
+  ) => {
     setSelections((prev) => {
       const current = prev[groupId] ?? []
       if (maxSelect === 1) {
@@ -164,12 +170,10 @@ export function PosComboSelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className='sm:max-w-lg max-h-[90vh] overflow-y-auto'>
+      <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-lg'>
         <DialogHeader>
           <DialogTitle>{product.name}</DialogTitle>
-          <p className='text-muted-foreground text-sm'>
-            Personalizá tu combo
-          </p>
+          <p className='text-muted-foreground text-sm'>Personalizá tu combo</p>
         </DialogHeader>
 
         <div className='space-y-6'>
@@ -212,8 +216,8 @@ export function PosComboSelectionDialog({
                       </span>
                       {item.priceAdjustment !== 0 && (
                         <span className='text-muted-foreground text-xs'>
-                          {item.priceAdjustment > 0 ? '+' : ''}
-                          Q{item.priceAdjustment.toFixed(2)}
+                          {item.priceAdjustment > 0 ? '+' : ''}Q
+                          {item.priceAdjustment.toFixed(2)}
                         </span>
                       )}
                     </button>

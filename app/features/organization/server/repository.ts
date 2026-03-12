@@ -1,33 +1,33 @@
-import { eq } from "drizzle-orm";
-import { db } from "~/server/db";
-import { organizationModel } from "~/server/db/schemas/auth";
-import type { OrganizationCreate } from "../schemas";
+import { eq } from 'drizzle-orm'
+import { db } from '~/server/db'
+import { organizationModel } from '~/server/db/schemas/auth'
+import type { OrganizationCreate } from '../schemas'
 
 class OrganizationRepository {
   async create(data: OrganizationCreate) {
-    const response = await db
-      .insert(organizationModel)
-      .values(data)
-      .returning();
-    return response[0];
+    const response = await db.insert(organizationModel).values(data).returning()
+    return response[0]
   }
 
   async getAll() {
-    return await db.select().from(organizationModel);
+    return await db.select().from(organizationModel)
   }
 
   async getById(id: string) {
     const data = await db
       .select()
       .from(organizationModel)
-      .where(eq(organizationModel.id, id));
+      .where(eq(organizationModel.id, id))
 
-    if (data.length === 0) return null;
+    if (data.length === 0) return null
 
-    return data[0];
+    return data[0]
   }
 
-  async updateById(id: string, data: Partial<typeof organizationModel.$inferInsert>) {
+  async updateById(
+    id: string,
+    data: Partial<typeof organizationModel.$inferInsert>
+  ) {
     const [org] = await db
       .update(organizationModel)
       .set(data)
@@ -38,10 +38,10 @@ class OrganizationRepository {
 
   async delete(id: string) {
     try {
-      await db.delete(organizationModel).where(eq(organizationModel.id, id));
-      return true;
+      await db.delete(organizationModel).where(eq(organizationModel.id, id))
+      return true
     } catch {
-      return false;
+      return false
     }
   }
 
@@ -49,12 +49,12 @@ class OrganizationRepository {
     const data = await db
       .select()
       .from(organizationModel)
-      .where(eq(organizationModel.slug, slug));
+      .where(eq(organizationModel.slug, slug))
 
-    if (data.length === 0) return null;
+    if (data.length === 0) return null
 
-    return data[0];
+    return data[0]
   }
 }
 
-export const organizationRepository = new OrganizationRepository();
+export const organizationRepository = new OrganizationRepository()

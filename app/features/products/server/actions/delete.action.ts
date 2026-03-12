@@ -44,7 +44,8 @@ export async function deleteProduct(request: Request, productId: string) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to delete product',
+      message:
+        error instanceof Error ? error.message : 'Failed to delete product',
     }
   }
 }

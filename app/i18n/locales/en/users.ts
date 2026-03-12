@@ -9,14 +9,18 @@ export const users = {
   'users.verified': 'Verified',
   'users.pending': 'Pending',
   'users.pendingInvitations': 'Pending Invitations',
-  'users.pendingDescription': "Users who have been invited but haven't accepted yet",
+  'users.pendingDescription':
+    "Users who have been invited but haven't accepted yet",
   'users.manageRoles': 'Manage roles',
   'users.noOrganizations': 'No Organizations Found',
-  'users.noOrganizationsDescription': 'You need to be a member of at least one organization to manage users.',
+  'users.noOrganizationsDescription':
+    'You need to be a member of at least one organization to manage users.',
   'users.createOrganization': 'Create Organization',
   'users.inviteTitle': 'User Invitation',
-  'users.inviteDescription': 'Send an invitation email to add a new user to your organization',
-  'users.inviteNote': 'The user will receive an email with instructions to create their account',
+  'users.inviteDescription':
+    'Send an invitation email to add a new user to your organization',
+  'users.inviteNote':
+    'The user will receive an email with instructions to create their account',
   'users.emailLabel': 'Email *',
   'users.emailPlaceholder': 'user@example.com',
   'users.emailHelper': 'The email address where the invitation will be sent',
@@ -24,7 +28,8 @@ export const users = {
   'users.organizationHelper': 'The organization the user will be invited to',
   'users.roleLabel': 'Role',
   'users.rolePlaceholder': 'Select role (defaults to member)',
-  'users.roleHelper': 'The role that will be assigned to the user in your organization',
+  'users.roleHelper':
+    'The role that will be assigned to the user in your organization',
   'users.sendInvitation': 'Send Invitation',
   'users.sending': 'Sending...',
   'users.selectOrganization': 'Select organization',

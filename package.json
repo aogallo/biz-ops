@@ -128,6 +128,9 @@
     "wrangler": "^4.59.1"
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "*.{ts,tsx}": [
+      "npx eslint . --fix --max-warnings 0 --config eslint.config.ts",
+      "prettier --write"
+    ]
   }
 }

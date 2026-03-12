@@ -13,8 +13,7 @@ export const insertStockMovementSchema = createInsertSchema(
   }
 )
 
-export const selectStockMovementSchema =
-  createSelectSchema(stockMovementModel)
+export const selectStockMovementSchema = createSelectSchema(stockMovementModel)
 
 export const createStockMovementSchema = insertStockMovementSchema.omit({
   id: true,
@@ -22,7 +21,5 @@ export const createStockMovementSchema = insertStockMovementSchema.omit({
   updatedAt: true,
 })
 
-export type CreateStockMovementInput = z.infer<
-  typeof createStockMovementSchema
->
+export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>
 export type StockMovement = z.infer<typeof selectStockMovementSchema>

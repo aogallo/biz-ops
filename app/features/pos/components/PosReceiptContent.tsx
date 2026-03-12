@@ -13,7 +13,8 @@ export function PosReceiptContent({ receipt }: PosReceiptContentProps) {
   const { t } = useTranslation()
 
   const totalReceived = receipt.payments.reduce(
-    (sum, p) => sum + (p.receivedAmount !== null ? Number(p.receivedAmount) : 0),
+    (sum, p) =>
+      sum + (p.receivedAmount !== null ? Number(p.receivedAmount) : 0),
     0
   )
   const totalChange = receipt.payments.reduce(

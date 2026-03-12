@@ -59,7 +59,8 @@ export async function createProduct(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to create product',
+      message:
+        error instanceof Error ? error.message : 'Failed to create product',
     }
   }
 }

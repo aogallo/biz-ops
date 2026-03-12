@@ -165,7 +165,7 @@ export default function NewJournalEntryPage({
 
   return (
     <JournalEntryForm
-      mode="create"
+      mode='create'
       companies={companies}
       accounts={accounts}
       recentAccounts={recentAccounts}

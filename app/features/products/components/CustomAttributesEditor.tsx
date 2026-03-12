@@ -72,7 +72,9 @@ function parseInitialAttributes(initial: unknown): InternalAttribute[] {
     })
 }
 
-function toAttributesJson(attrs: InternalAttribute[]): ProductAttributesJson | null {
+function toAttributesJson(
+  attrs: InternalAttribute[]
+): ProductAttributesJson | null {
   const valid = attrs.filter((a) => a.name.trim())
   if (valid.length === 0) return null
 
@@ -99,7 +101,9 @@ interface CustomAttributesEditorProps {
   initialAttributes?: unknown
 }
 
-export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEditorProps) {
+export function CustomAttributesEditor({
+  initialAttributes,
+}: CustomAttributesEditorProps) {
   const [attributes, setAttributes] = useState<InternalAttribute[]>(() =>
     parseInitialAttributes(initialAttributes)
   )
@@ -145,13 +149,19 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
     )
   }
 
-  function updateValue(attrId: string, valueId: string, patch: Partial<InternalValue>) {
+  function updateValue(
+    attrId: string,
+    valueId: string,
+    patch: Partial<InternalValue>
+  ) {
     setAttributes((prev) =>
       prev.map((a) =>
         a.id === attrId
           ? {
               ...a,
-              values: a.values.map((v) => (v.id === valueId ? { ...v, ...patch } : v)),
+              values: a.values.map((v) =>
+                v.id === valueId ? { ...v, ...patch } : v
+              ),
             }
           : a
       )
@@ -162,7 +172,7 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
   const serialized = attributesJson ? JSON.stringify(attributesJson) : null
 
   return (
-    <section className='rounded-xl bg-card p-6 shadow-sm'>
+    <section className='bg-card rounded-xl p-6 shadow-sm'>
       {serialized && (
         <input type='hidden' name='attributesJson' value={serialized} />
       )}
@@ -190,9 +200,10 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
       </div>
 
       {attributes.length === 0 ? (
-        <div className='rounded-lg border border-dashed border-border/50 p-6 text-center'>
+        <div className='border-border/50 rounded-lg border border-dashed p-6 text-center'>
           <p className='text-muted-foreground text-sm'>
-            Sin atributos. Añadí uno para habilitar selección de opciones en el POS.
+            Sin atributos. Añadí uno para habilitar selección de opciones en el
+            POS.
           </p>
         </div>
       ) : (
@@ -200,15 +211,15 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
           {attributes.map((attr) => (
             <div
               key={attr.id}
-              className='overflow-hidden rounded-lg border border-border/50'
+              className='border-border/50 overflow-hidden rounded-lg border'
             >
-              <div className='flex items-center gap-3 bg-muted/30 px-4 py-3'>
+              <div className='bg-muted/30 flex items-center gap-3 px-4 py-3'>
                 <input
                   type='text'
                   value={attr.name}
                   onChange={(e) => updateAttributeName(attr.id, e.target.value)}
                   placeholder='Nombre del atributo (ej: Tamaño, Extras, Cocción)'
-                  className='flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+                  className='border-input bg-background focus:ring-ring flex-1 rounded-md border px-2.5 py-1.5 text-sm focus:ring-2 focus:outline-none'
                 />
                 <button
                   type='button'
@@ -221,7 +232,9 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
 
               <div className='space-y-2 px-4 py-3'>
                 {attr.values.length === 0 ? (
-                  <p className='text-muted-foreground text-xs'>Sin opciones todavía.</p>
+                  <p className='text-muted-foreground text-xs'>
+                    Sin opciones todavía.
+                  </p>
                 ) : (
                   attr.values.map((val) => (
                     <div key={val.id} className='flex items-center gap-2'>
@@ -229,10 +242,12 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
                         type='text'
                         value={val.label}
                         onChange={(e) =>
-                          updateValue(attr.id, val.id, { label: e.target.value })
+                          updateValue(attr.id, val.id, {
+                            label: e.target.value,
+                          })
                         }
                         placeholder='Opción (ej: Grande, Con queso, Término medio)'
-                        className='flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+                        className='border-input bg-background focus:ring-ring flex-1 rounded-md border px-2.5 py-1.5 text-sm focus:ring-2 focus:outline-none'
                       />
                       <span className='text-muted-foreground text-xs'>+Q</span>
                       <input
@@ -245,7 +260,7 @@ export function CustomAttributesEditor({ initialAttributes }: CustomAttributesEd
                         }
                         step='0.01'
                         min='0'
-                        className='w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+                        className='border-input bg-background focus:ring-ring w-20 rounded-md border px-2.5 py-1.5 text-sm focus:ring-2 focus:outline-none'
                       />
                       <button
                         type='button'

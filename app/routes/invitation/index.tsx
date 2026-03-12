@@ -90,7 +90,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const locale = getLocaleFromRequest(request)
 
   if (!activeOrganizationId) {
-    return { success: false, message: translateServer(locale, 'messages.organization.notFound') }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.organization.notFound'),
+    }
   }
 
   // Validate permissions permissions:bulk
@@ -101,7 +104,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   )
 
   if (!user.isSuperAdmin && isValidatePermissions) {
-    return { success: false, message: translateServer(locale, 'messages.common.noPermission') }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.common.noPermission'),
+    }
   }
 
   const [organization] = await db

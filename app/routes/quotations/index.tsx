@@ -4,7 +4,10 @@ import { Button } from '~/components/ui/button'
 import { DataTable } from '~/components/dataTable/DataTable'
 import TitleAndActions from '~/components/TitleAndActions'
 import TitleAndActionsBody from '~/components/TitleAndActionsBody'
-import { quotationColumns, type QuotationRow } from '~/features/quotations/components/columns'
+import {
+  quotationColumns,
+  type QuotationRow,
+} from '~/features/quotations/components/columns'
 import { quotationsRepository } from '~/features/quotations/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import { useCanPerformAction } from '~/hooks/usePermissions'
@@ -56,7 +59,7 @@ export default function QuotationsIndex({ loaderData }: Route.ComponentProps) {
               params.set('page', '1')
               setSearchParams(params)
             }}
-            className='rounded-md border border-input bg-background px-3 py-2 text-sm'
+            className='border-input bg-background rounded-md border px-3 py-2 text-sm'
           >
             <option value=''>All Status</option>
             <option value='DRAFT'>Draft</option>

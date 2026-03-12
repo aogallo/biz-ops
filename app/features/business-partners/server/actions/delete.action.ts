@@ -2,7 +2,10 @@ import { getLocaleFromRequest, translateServer } from '~/i18n/translate.server'
 import { requireAuth } from '~/server/auth/session.server'
 import { businessPartnersRepository } from '../repository'
 
-export async function deleteBusinessPartner(request: Request, partnerId: string) {
+export async function deleteBusinessPartner(
+  request: Request,
+  partnerId: string
+) {
   const session = await requireAuth(request)
   const locale = getLocaleFromRequest(request)
 
@@ -44,7 +47,10 @@ export async function deleteBusinessPartner(request: Request, partnerId: string)
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to delete business partner',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete business partner',
     }
   }
 }

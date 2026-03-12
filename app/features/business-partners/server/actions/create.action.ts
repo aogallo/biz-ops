@@ -37,7 +37,7 @@ export async function createBusinessPartner(request: Request) {
   if (result.data.email) {
     const emailExists = await businessPartnersRepository.existsByEmail(
       organizationId,
-      result.data.email,
+      result.data.email
     )
 
     if (emailExists) {
@@ -59,7 +59,10 @@ export async function createBusinessPartner(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to create business partner',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to create business partner',
     }
   }
 }

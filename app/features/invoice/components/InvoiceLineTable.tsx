@@ -55,7 +55,9 @@ export function InvoiceLineTable({
   const [newDescription, setNewDescription] = useState('')
   const [newQuantity, setNewQuantity] = useState('1')
   const [newUnitPrice, setNewUnitPrice] = useState('')
-  const [newIvaType, setNewIvaType] = useState<'taxed' | 'exempt' | 'non_subject'>('taxed')
+  const [newIvaType, setNewIvaType] = useState<
+    'taxed' | 'exempt' | 'non_subject'
+  >('taxed')
   const [newLineType, setNewLineType] = useState<'goods' | 'services' | ''>('')
 
   // Ref to track processed fetcher data to prevent duplicate toasts
@@ -70,7 +72,10 @@ export function InvoiceLineTable({
         resetAddForm()
         onLinesChanged?.()
       } else {
-        toast.error((addLineFetcher.data as { error?: string }).error || 'Failed to add line')
+        toast.error(
+          (addLineFetcher.data as { error?: string }).error ||
+            'Failed to add line'
+        )
       }
     }
   }, [addLineFetcher.data, onLinesChanged])
@@ -136,7 +141,9 @@ export function InvoiceLineTable({
   const productOptions: ComboboxOption[] = products.map((product) => ({
     value: product.id,
     label: `${product.sku} - ${product.name}`,
-    description: product.price ? `Q ${Number(product.price).toFixed(2)}` : undefined,
+    description: product.price
+      ? `Q ${Number(product.price).toFixed(2)}`
+      : undefined,
   }))
 
   // Calculate totals
@@ -151,7 +158,7 @@ export function InvoiceLineTable({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <div>
             <CardTitle>Invoice Lines</CardTitle>
             <CardDescription>
@@ -162,12 +169,12 @@ export function InvoiceLineTable({
           </div>
           {isDraft && !showAddForm && (
             <Button
-              type="button"
-              variant="outline"
-              size="sm"
+              type='button'
+              variant='outline'
+              size='sm'
               onClick={() => setShowAddForm(true)}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className='mr-2 h-4 w-4' />
               Add Line
             </Button>
           )}
@@ -176,51 +183,51 @@ export function InvoiceLineTable({
       <CardContent>
         {/* Add Line Form */}
         {showAddForm && isDraft && (
-          <div className="mb-4 rounded-lg border bg-muted/50 p-4">
-            <h4 className="mb-4 font-medium">Add New Line</h4>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
+          <div className='bg-muted/50 mb-4 rounded-lg border p-4'>
+            <h4 className='mb-4 font-medium'>Add New Line</h4>
+            <div className='grid gap-4 md:grid-cols-3'>
+              <div className='space-y-2'>
                 <Label>Product (Optional)</Label>
                 <Combobox
                   options={productOptions}
                   value={newProductId}
                   onValueChange={handleProductChange}
-                  placeholder="Search products..."
-                  searchPlaceholder="Search by SKU or name..."
-                  emptyMessage="No products found."
+                  placeholder='Search products...'
+                  searchPlaceholder='Search by SKU or name...'
+                  emptyMessage='No products found.'
                 />
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className='space-y-2 md:col-span-2'>
                 <Label>Description *</Label>
                 <Input
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Enter description or select a product"
+                  placeholder='Enter description or select a product'
                 />
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Quantity *</Label>
                 <Input
-                  type="number"
-                  step="0.0001"
-                  min="0.0001"
+                  type='number'
+                  step='0.0001'
+                  min='0.0001'
                   value={newQuantity}
                   onChange={(e) => setNewQuantity(e.target.value)}
-                  placeholder="1"
+                  placeholder='1'
                 />
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Unit Price *</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type='number'
+                  step='0.01'
+                  min='0'
                   value={newUnitPrice}
                   onChange={(e) => setNewUnitPrice(e.target.value)}
-                  placeholder="0.00"
+                  placeholder='0.00'
                 />
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>IVA Type</Label>
                 <Select
                   value={newIvaType}
@@ -232,13 +239,13 @@ export function InvoiceLineTable({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="taxed">Taxed (12%)</SelectItem>
-                    <SelectItem value="exempt">Exempt</SelectItem>
-                    <SelectItem value="non_subject">Non-subject</SelectItem>
+                    <SelectItem value='taxed'>Taxed (12%)</SelectItem>
+                    <SelectItem value='exempt'>Exempt</SelectItem>
+                    <SelectItem value='non_subject'>Non-subject</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 <Label>Tipo</Label>
                 <Select
                   value={newLineType}
@@ -247,26 +254,26 @@ export function InvoiceLineTable({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar..." />
+                    <SelectValue placeholder='Seleccionar...' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="goods">Bien</SelectItem>
-                    <SelectItem value="services">Servicio</SelectItem>
+                    <SelectItem value='goods'>Bien</SelectItem>
+                    <SelectItem value='services'>Servicio</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="mt-4 flex justify-end gap-2">
+            <div className='mt-4 flex justify-end gap-2'>
               <Button
-                type="button"
-                variant="outline"
+                type='button'
+                variant='outline'
                 onClick={resetAddForm}
                 disabled={isAddingLine}
               >
                 Cancel
               </Button>
               <Button
-                type="button"
+                type='button'
                 onClick={handleAddLine}
                 disabled={isAddingLine}
               >
@@ -278,21 +285,25 @@ export function InvoiceLineTable({
 
         {/* Lines Table */}
         {lines.length > 0 ? (
-          <div className="rounded-md border">
+          <div className='rounded-md border'>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40px]">#</TableHead>
-                  <TableHead className="w-[160px]">Product</TableHead>
-                  <TableHead className="min-w-[200px]">Description</TableHead>
-                  <TableHead className="w-[80px] text-right">Qty</TableHead>
-                  <TableHead className="w-[100px] text-right">Unit Price</TableHead>
-                  <TableHead className="w-[100px]">IVA Type</TableHead>
-                  <TableHead className="w-[100px]">Tipo</TableHead>
-                  <TableHead className="w-[100px] text-right">Subtotal</TableHead>
-                  <TableHead className="w-[80px] text-right">IVA</TableHead>
-                  <TableHead className="w-[100px] text-right">Total</TableHead>
-                  <TableHead className="w-[80px]" />
+                  <TableHead className='w-[40px]'>#</TableHead>
+                  <TableHead className='w-[160px]'>Product</TableHead>
+                  <TableHead className='min-w-[200px]'>Description</TableHead>
+                  <TableHead className='w-[80px] text-right'>Qty</TableHead>
+                  <TableHead className='w-[100px] text-right'>
+                    Unit Price
+                  </TableHead>
+                  <TableHead className='w-[100px]'>IVA Type</TableHead>
+                  <TableHead className='w-[100px]'>Tipo</TableHead>
+                  <TableHead className='w-[100px] text-right'>
+                    Subtotal
+                  </TableHead>
+                  <TableHead className='w-[80px] text-right'>IVA</TableHead>
+                  <TableHead className='w-[100px] text-right'>Total</TableHead>
+                  <TableHead className='w-[80px]' />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -311,16 +322,16 @@ export function InvoiceLineTable({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-right font-semibold">
+                  <TableCell colSpan={7} className='text-right font-semibold'>
                     Totals
                   </TableCell>
-                  <TableCell className="text-right font-mono font-semibold">
+                  <TableCell className='text-right font-mono font-semibold'>
                     Q {totals.subtotal.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-right font-mono font-semibold">
+                  <TableCell className='text-right font-mono font-semibold'>
                     Q {totals.ivaAmount.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-right font-mono font-semibold">
+                  <TableCell className='text-right font-mono font-semibold'>
                     Q {totals.total.toFixed(2)}
                   </TableCell>
                   <TableCell />
@@ -329,8 +340,9 @@ export function InvoiceLineTable({
             </Table>
           </div>
         ) : (
-          <div className="text-muted-foreground py-8 text-center">
-            No lines added yet. Click &quot;Add Line&quot; to add items to this invoice.
+          <div className='text-muted-foreground py-8 text-center'>
+            No lines added yet. Click &quot;Add Line&quot; to add items to this
+            invoice.
           </div>
         )}
       </CardContent>

@@ -1,4 +1,12 @@
-import { ArrowDownUp, BookOpen, Clock, History, LogOut, Timer, XCircle } from 'lucide-react'
+import {
+  ArrowDownUp,
+  BookOpen,
+  Clock,
+  History,
+  LogOut,
+  Timer,
+  XCircle,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
@@ -76,7 +84,9 @@ export function PosHeader({
         )}
         {sessionId && (
           <Button variant='ghost' size='sm' asChild>
-            <Link to={`/pos/sales?sessionId=${sessionId}&terminalId=${terminalId}`}>
+            <Link
+              to={`/pos/sales?sessionId=${sessionId}&terminalId=${terminalId}`}
+            >
               <History className='size-4' />
               <span className='hidden sm:inline'>{t('pos.myShift')}</span>
             </Link>
@@ -85,7 +95,9 @@ export function PosHeader({
         <Button variant='ghost' size='sm' asChild>
           <Link to={`/pos/sales?terminalId=${terminalId}`}>
             <BookOpen className='size-4' />
-            <span className='hidden sm:inline'>{t('pos.cashRegisterHistory')}</span>
+            <span className='hidden sm:inline'>
+              {t('pos.cashRegisterHistory')}
+            </span>
           </Link>
         </Button>
         <Button variant='ghost' size='sm' asChild>

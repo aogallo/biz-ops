@@ -65,8 +65,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function ShowPermission() {
-  const { permission, roleCount, isSuperAdmin } =
-    useLoaderData<typeof loader>()
+  const { permission, roleCount, isSuperAdmin } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const isDeleting = navigation.state === 'submitting'

@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { QRScanner } from '~/features/products/components/QRScanner'
 import { useTranslation } from '~/i18n/context'
 import { requireAuth } from '~/server/auth/session.server'
@@ -17,9 +23,7 @@ export default function ScanProduct() {
       <Card>
         <CardHeader>
           <CardTitle>{t('products.scanTitle')}</CardTitle>
-          <CardDescription>
-            {t('products.scanDescription')}
-          </CardDescription>
+          <CardDescription>{t('products.scanDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <QRScanner />

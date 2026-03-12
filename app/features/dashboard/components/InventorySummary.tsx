@@ -1,4 +1,10 @@
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Package, TrendingDown } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Package,
+  TrendingDown,
+} from 'lucide-react'
 import { Link } from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -34,14 +40,18 @@ interface Props {
   recentMovements: RecentMovement[]
 }
 
-const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) => {
+const InventorySummary = ({
+  stats,
+  lowStockProducts,
+  recentMovements,
+}: Props) => {
   const hasAlerts = stats.lowStockCount > 0 || stats.outOfStockCount > 0
 
   return (
-    <section className='col-span-12 overflow-hidden rounded-xl bg-card shadow-card lg:col-span-4'>
+    <section className='bg-card shadow-card col-span-12 overflow-hidden rounded-xl lg:col-span-4'>
       {/* Header */}
-      <div className='border-b border-border/30 p-5'>
-        <h3 className='flex items-center gap-2 text-section-header accent-inventory'>
+      <div className='border-border/30 border-b p-5'>
+        <h3 className='text-section-header accent-inventory flex items-center gap-2'>
           <Package className='size-5' />
           Inventory
         </h3>
@@ -50,14 +60,18 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
       <div className='space-y-4 p-5'>
         {/* Stats grid */}
         <div className='grid grid-cols-2 gap-3'>
-          <div className='rounded-lg bg-muted/50 p-3'>
-            <p className='text-xs text-muted-foreground'>Products</p>
+          <div className='bg-muted/50 rounded-lg p-3'>
+            <p className='text-muted-foreground text-xs'>Products</p>
             <p className='text-lg font-semibold'>{stats.totalProducts}</p>
           </div>
-          <div className='rounded-lg bg-muted/50 p-3'>
-            <p className='text-xs text-muted-foreground'>Stock Value</p>
+          <div className='bg-muted/50 rounded-lg p-3'>
+            <p className='text-muted-foreground text-xs'>Stock Value</p>
             <p className='text-lg font-semibold'>
-              Q{stats.totalStockValue.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              Q
+              {stats.totalStockValue.toLocaleString('en', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
             </p>
           </div>
         </div>
@@ -69,7 +83,8 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
               <div className='flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm dark:bg-red-950/30'>
                 <AlertTriangle className='size-4 text-red-500' />
                 <span className='text-red-700 dark:text-red-400'>
-                  {stats.outOfStockCount} product{stats.outOfStockCount !== 1 ? 's' : ''} out of stock
+                  {stats.outOfStockCount} product
+                  {stats.outOfStockCount !== 1 ? 's' : ''} out of stock
                 </span>
               </div>
             )}
@@ -77,7 +92,8 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
               <div className='flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm dark:bg-amber-950/30'>
                 <TrendingDown className='size-4 text-amber-500' />
                 <span className='text-amber-700 dark:text-amber-400'>
-                  {stats.lowStockCount} product{stats.lowStockCount !== 1 ? 's' : ''} low stock
+                  {stats.lowStockCount} product
+                  {stats.lowStockCount !== 1 ? 's' : ''} low stock
                 </span>
               </div>
             )}
@@ -87,7 +103,9 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
         {/* Low stock products */}
         {lowStockProducts.length > 0 && (
           <div className='space-y-2'>
-            <p className='text-xs font-medium text-muted-foreground uppercase'>Low Stock Items</p>
+            <p className='text-muted-foreground text-xs font-medium uppercase'>
+              Low Stock Items
+            </p>
             {lowStockProducts.map((product) => {
               const stock = product.stock ?? 0
               const minStock = product.minStock ?? 1
@@ -97,7 +115,9 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
               return (
                 <div key={product.id} className='space-y-1'>
                   <div className='flex items-center justify-between'>
-                    <p className='truncate text-sm font-medium'>{product.name}</p>
+                    <p className='truncate text-sm font-medium'>
+                      {product.name}
+                    </p>
                     <Badge
                       variant='outline'
                       className={
@@ -109,7 +129,7 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
                       {isOut ? 'Out' : `${stock}/${minStock}`}
                     </Badge>
                   </div>
-                  <div className='h-1.5 w-full overflow-hidden rounded-full bg-muted'>
+                  <div className='bg-muted h-1.5 w-full overflow-hidden rounded-full'>
                     <div
                       className={`h-full rounded-full ${isOut ? 'bg-red-500' : ratio <= 30 ? 'bg-red-500' : 'bg-amber-500'}`}
                       style={{ width: `${Math.max(ratio, 3)}%` }}
@@ -124,7 +144,9 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
         {/* Recent movements */}
         {recentMovements.length > 0 && (
           <div className='space-y-2'>
-            <p className='text-xs font-medium text-muted-foreground uppercase'>Recent Activity</p>
+            <p className='text-muted-foreground text-xs font-medium uppercase'>
+              Recent Activity
+            </p>
             {recentMovements.slice(0, 3).map((m) => (
               <div key={m.id} className='flex items-center gap-2 text-sm'>
                 {m.type === 'entry' ? (
@@ -134,7 +156,7 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
                 ) : (
                   <Package className='size-3.5 text-blue-500' />
                 )}
-                <span className='truncate flex-1 text-muted-foreground'>
+                <span className='text-muted-foreground flex-1 truncate'>
                   {m.productName}
                 </span>
                 <span className='font-mono text-xs'>
@@ -148,7 +170,7 @@ const InventorySummary = ({ stats, lowStockProducts, recentMovements }: Props) =
 
         {/* No data state */}
         {stats.totalProducts === 0 && (
-          <p className='py-4 text-center text-sm text-muted-foreground'>
+          <p className='text-muted-foreground py-4 text-center text-sm'>
             No products yet. Add your first product to track inventory.
           </p>
         )}

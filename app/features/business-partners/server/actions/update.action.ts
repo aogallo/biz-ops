@@ -3,7 +3,10 @@ import { requireAuth } from '~/server/auth/session.server'
 import { createBusinessPartnerSchema } from '../../schemas'
 import { businessPartnersRepository } from '../repository'
 
-export async function updateBusinessPartner(request: Request, partnerId: string) {
+export async function updateBusinessPartner(
+  request: Request,
+  partnerId: string
+) {
   const session = await requireAuth(request)
   const locale = getLocaleFromRequest(request)
 
@@ -53,7 +56,7 @@ export async function updateBusinessPartner(request: Request, partnerId: string)
     const emailExists = await businessPartnersRepository.existsByEmail(
       organizationId,
       result.data.email,
-      partnerId,
+      partnerId
     )
 
     if (emailExists) {
@@ -67,7 +70,10 @@ export async function updateBusinessPartner(request: Request, partnerId: string)
   }
 
   try {
-    const partner = await businessPartnersRepository.update(partnerId, result.data)
+    const partner = await businessPartnersRepository.update(
+      partnerId,
+      result.data
+    )
     if (!partner) {
       return {
         success: false,
@@ -81,7 +87,10 @@ export async function updateBusinessPartner(request: Request, partnerId: string)
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update business partner',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to update business partner',
     }
   }
 }

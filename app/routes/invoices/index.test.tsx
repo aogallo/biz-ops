@@ -53,7 +53,9 @@ describe('InvoicesIndex page', () => {
     const Stub = createRoutesStub([
       {
         path: '/invoices',
-        Component: InvoicesIndex as unknown as FunctionComponent<{ loaderData: unknown }>,
+        Component: InvoicesIndex as unknown as FunctionComponent<{
+          loaderData: unknown
+        }>,
         loader: () => mockLoaderData,
       },
     ])
@@ -70,7 +72,9 @@ describe('InvoicesIndex page', () => {
     const Stub = createRoutesStub([
       {
         path: '/invoices',
-        Component: InvoicesIndex as unknown as FunctionComponent<{ loaderData: unknown }>,
+        Component: InvoicesIndex as unknown as FunctionComponent<{
+          loaderData: unknown
+        }>,
         loader: () => mockLoaderData,
       },
     ])

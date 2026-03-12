@@ -11,7 +11,12 @@ import {
   CalendarWeekView,
 } from '~/features/appointments/components'
 import { appointmentsRepository } from '~/features/appointments/server/repository'
-import type { CalendarView, Client, Staff, Appointment } from '~/features/appointments/types'
+import type {
+  CalendarView,
+  Client,
+  Staff,
+  Appointment,
+} from '~/features/appointments/types'
 import { requireAuth } from '~/server/auth/session.server'
 import { db } from '~/server/db'
 import {
@@ -34,36 +39,37 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   // Fetch real data from DB in parallel
-  const [membersWithUsers, businessPartners, appointmentsData] = await Promise.all([
-    // Get members with user info (staff)
-    db
-      .select({
-        memberId: memberModel.id,
-        userId: userModel.id,
-        name: userModel.name,
-        email: userModel.email,
-        image: userModel.image,
-      })
-      .from(memberModel)
-      .innerJoin(userModel, eq(memberModel.userId, userModel.id))
-      .where(eq(memberModel.organizationId, organizationId)),
-    // Get clients (businessPartner type='client' or 'both')
-    db
-      .select({
-        id: businessPartnerModel.id,
-        name: businessPartnerModel.name,
-        email: businessPartnerModel.email,
-      })
-      .from(businessPartnerModel)
-      .where(
-        and(
-          eq(businessPartnerModel.organizationId, organizationId),
-          inArray(businessPartnerModel.type, ['client', 'both'])
-        )
-      ),
-    // Get real appointments
-    appointmentsRepository.getAllByOrganization(organizationId),
-  ])
+  const [membersWithUsers, businessPartners, appointmentsData] =
+    await Promise.all([
+      // Get members with user info (staff)
+      db
+        .select({
+          memberId: memberModel.id,
+          userId: userModel.id,
+          name: userModel.name,
+          email: userModel.email,
+          image: userModel.image,
+        })
+        .from(memberModel)
+        .innerJoin(userModel, eq(memberModel.userId, userModel.id))
+        .where(eq(memberModel.organizationId, organizationId)),
+      // Get clients (businessPartner type='client' or 'both')
+      db
+        .select({
+          id: businessPartnerModel.id,
+          name: businessPartnerModel.name,
+          email: businessPartnerModel.email,
+        })
+        .from(businessPartnerModel)
+        .where(
+          and(
+            eq(businessPartnerModel.organizationId, organizationId),
+            inArray(businessPartnerModel.type, ['client', 'both'])
+          )
+        ),
+      // Get real appointments
+      appointmentsRepository.getAllByOrganization(organizationId),
+    ])
 
   // Transform members to Staff type
   const staff: Staff[] = membersWithUsers.map((m) => ({
@@ -118,7 +124,8 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   const { appointments } = loaderData
   const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Handle success toast from redirect
@@ -135,9 +142,10 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
 
   // Get view from URL or default to 'month'
   const viewParam = searchParams.get('view') as CalendarView | null
-  const view: CalendarView = viewParam && ['day', 'week', 'month'].includes(viewParam)
-    ? viewParam
-    : 'month'
+  const view: CalendarView =
+    viewParam && ['day', 'week', 'month'].includes(viewParam)
+      ? viewParam
+      : 'month'
 
   // Get date from URL or default to today
   const dateParam = searchParams.get('date')
@@ -198,7 +206,7 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   }
 
   // Handle clicking on an appointment
-  const handleAppointmentClick = (appointment: typeof appointments[0]) => {
+  const handleAppointmentClick = (appointment: (typeof appointments)[0]) => {
     setSelectedAppointment(appointment)
     setDrawerOpen(true)
   }
@@ -218,7 +226,7 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {/* Calendar Header */}
       <CalendarHeader
         currentDate={currentDate}

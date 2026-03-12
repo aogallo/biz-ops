@@ -81,7 +81,8 @@ export async function updateProduct(request: Request, productId: string) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update product',
+      message:
+        error instanceof Error ? error.message : 'Failed to update product',
     }
   }
 }

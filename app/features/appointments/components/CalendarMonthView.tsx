@@ -59,7 +59,9 @@ function formatTime(time: string): string {
   const [hours, minutes] = time.split(':').map(Number)
   const period = hours >= 12 ? 'PM' : 'AM'
   const displayHours = hours % 12 || 12
-  return minutes === 0 ? `${displayHours} ${period}` : `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+  return minutes === 0
+    ? `${displayHours} ${period}`
+    : `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
 }
 
 const appointmentColorClasses: Record<string, string> = {
@@ -96,13 +98,13 @@ export function CalendarMonthView({
   )
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <div className='bg-card overflow-hidden rounded-lg border'>
       {/* Day of week headers */}
-      <div className="grid grid-cols-7 border-b bg-muted/30">
+      <div className='bg-muted/30 grid grid-cols-7 border-b'>
         {DAYS_OF_WEEK.map((day) => (
           <div
             key={day}
-            className="p-2 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0"
+            className='text-muted-foreground border-r p-2 text-center text-sm font-medium last:border-r-0'
           >
             {day}
           </div>
@@ -110,9 +112,12 @@ export function CalendarMonthView({
       </div>
 
       {/* Calendar grid */}
-      <div className="flex flex-col">
+      <div className='flex flex-col'>
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0">
+          <div
+            key={weekIndex}
+            className='grid grid-cols-7 border-b last:border-b-0'
+          >
             {week.map((day) => {
               const dateStr = day.toISOString().split('T')[0]
               const dayAppointments = appointmentsByDate[dateStr] || []
@@ -125,17 +130,18 @@ export function CalendarMonthView({
                 <div
                   key={day.toISOString()}
                   className={cn(
-                    'min-h-[100px] border-r last:border-r-0 p-1 cursor-pointer hover:bg-accent/50 transition-colors',
+                    'hover:bg-accent/50 min-h-[100px] cursor-pointer border-r p-1 transition-colors last:border-r-0',
                     !currentMonth && 'bg-muted/20'
                   )}
                   onClick={() => onDateClick?.(day)}
                 >
                   {/* Day number */}
-                  <div className="flex justify-end mb-1">
+                  <div className='mb-1 flex justify-end'>
                     <span
                       className={cn(
-                        'text-sm w-7 h-7 flex items-center justify-center rounded-full',
-                        today && 'bg-primary text-primary-foreground font-semibold',
+                        'flex h-7 w-7 items-center justify-center rounded-full text-sm',
+                        today &&
+                          'bg-primary text-primary-foreground font-semibold',
                         !today && !currentMonth && 'text-muted-foreground',
                         !today && currentMonth && 'text-foreground'
                       )}
@@ -145,13 +151,13 @@ export function CalendarMonthView({
                   </div>
 
                   {/* Appointments */}
-                  <div className="space-y-0.5">
+                  <div className='space-y-0.5'>
                     {displayAppointments.map((apt) => (
                       <button
                         key={apt.id}
-                        type="button"
+                        type='button'
                         className={cn(
-                          'w-full text-left text-xs px-1 py-0.5 rounded truncate',
+                          'w-full truncate rounded px-1 py-0.5 text-left text-xs',
                           appointmentColorClasses[apt.color]
                         )}
                         onClick={(e) => {
@@ -159,12 +165,14 @@ export function CalendarMonthView({
                           onAppointmentClick?.(apt)
                         }}
                       >
-                        <span className="font-medium">{formatTime(apt.startTime)}</span>{' '}
+                        <span className='font-medium'>
+                          {formatTime(apt.startTime)}
+                        </span>{' '}
                         {apt.clientName}
                       </button>
                     ))}
                     {moreCount > 0 && (
-                      <div className="text-xs text-muted-foreground px-1">
+                      <div className='text-muted-foreground px-1 text-xs'>
                         +{moreCount} more
                       </div>
                     )}

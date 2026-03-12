@@ -24,7 +24,10 @@ export async function updateOrderStatusAction(
   const formData = await request.formData()
   const newStatus = formData.get('status') as OrderStatus
 
-  if (!newStatus || !['DRAFT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].includes(newStatus)) {
+  if (
+    !newStatus ||
+    !['DRAFT', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].includes(newStatus)
+  ) {
     return { success: false, message: 'Invalid status' }
   }
 

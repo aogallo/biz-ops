@@ -35,7 +35,8 @@ const services = [
   },
   {
     titleKey: 'landing.services.appointments.title' as TranslationKey,
-    descriptionKey: 'landing.services.appointments.description' as TranslationKey,
+    descriptionKey:
+      'landing.services.appointments.description' as TranslationKey,
     icon: CalendarDays,
     accent: 'accent-appointments-bg',
   },

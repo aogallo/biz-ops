@@ -32,7 +32,8 @@ export async function deleteRole(request: Request, roleId: string) {
   if (!canDelete) {
     return {
       success: false,
-      message: reason || translateServer(locale, 'messages.roles.systemRoleProtected'),
+      message:
+        reason || translateServer(locale, 'messages.roles.systemRoleProtected'),
     }
   }
 

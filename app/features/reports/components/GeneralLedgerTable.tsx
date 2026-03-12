@@ -39,18 +39,19 @@ export function GeneralLedgerTable({
       <Table>
         <TableBody>
           <TableRow>
-            <TableCell colSpan={9} className="h-32 text-center">
-              <div className="text-muted-foreground flex flex-col items-center gap-2">
+            <TableCell colSpan={9} className='h-32 text-center'>
+              <div className='text-muted-foreground flex flex-col items-center gap-2'>
                 {!hasRunReport ? (
                   <>
-                    <PlayIcon className="size-8 opacity-50" />
+                    <PlayIcon className='size-8 opacity-50' />
                     <p>Click &quot;Generate Report&quot; to load data</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium">No data found</p>
-                    <p className="text-sm">
-                      No records match the selected filters. Try adjusting the date range.
+                    <p className='text-lg font-medium'>No data found</p>
+                    <p className='text-sm'>
+                      No records match the selected filters. Try adjusting the
+                      date range.
                     </p>
                   </>
                 )}
@@ -63,32 +64,40 @@ export function GeneralLedgerTable({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className='overflow-x-auto'>
       {reportMonth && (
-        <p className="text-muted-foreground mb-2 text-center text-sm font-medium">
+        <p className='text-muted-foreground mb-2 text-center text-sm font-medium'>
           {reportMonth}
         </p>
       )}
-      <Table className="text-xs">
+      <Table className='text-xs'>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-primary text-xs font-semibold">Cuenta</TableHead>
-            <TableHead className="text-primary text-xs font-semibold">Tipo</TableHead>
-            <TableHead className="text-primary text-xs font-semibold">Numero</TableHead>
-            <TableHead className="text-primary text-xs font-semibold">Fecha</TableHead>
-            <TableHead className="text-primary max-w-[250px] text-xs font-semibold">
+            <TableHead className='text-primary text-xs font-semibold'>
+              Cuenta
+            </TableHead>
+            <TableHead className='text-primary text-xs font-semibold'>
+              Tipo
+            </TableHead>
+            <TableHead className='text-primary text-xs font-semibold'>
+              Numero
+            </TableHead>
+            <TableHead className='text-primary text-xs font-semibold'>
+              Fecha
+            </TableHead>
+            <TableHead className='text-primary max-w-[250px] text-xs font-semibold'>
               Descripcion
             </TableHead>
-            <TableHead className="text-primary text-right text-xs font-semibold">
+            <TableHead className='text-primary text-right text-xs font-semibold'>
               Saldo Inicial
             </TableHead>
-            <TableHead className="text-primary text-right text-xs font-semibold">
+            <TableHead className='text-primary text-right text-xs font-semibold'>
               Cargos
             </TableHead>
-            <TableHead className="text-primary text-right text-xs font-semibold">
+            <TableHead className='text-primary text-right text-xs font-semibold'>
               Abonos
             </TableHead>
-            <TableHead className="text-primary text-right text-xs font-semibold">
+            <TableHead className='text-primary text-right text-xs font-semibold'>
               Saldo Final
             </TableHead>
           </TableRow>
@@ -99,16 +108,23 @@ export function GeneralLedgerTable({
               return (
                 <TableRow
                   key={`header-${row.accountId}`}
-                  className="bg-muted/50"
+                  className='bg-muted/50'
                 >
                   <TableCell
                     colSpan={5}
-                    className={cn('font-bold', row.level > 0 && `pl-${Math.min(row.level * 4, 16)}`)}
-                    style={row.level > 0 ? { paddingLeft: `${row.level * 1}rem` } : undefined}
+                    className={cn(
+                      'font-bold',
+                      row.level > 0 && `pl-${Math.min(row.level * 4, 16)}`
+                    )}
+                    style={
+                      row.level > 0
+                        ? { paddingLeft: `${row.level * 1}rem` }
+                        : undefined
+                    }
                   >
                     {row.accountNumber} — {row.accountName}
                   </TableCell>
-                  <TableCell className="text-right font-bold">
+                  <TableCell className='text-right font-bold'>
                     {fmt(row.openingBalance)}
                   </TableCell>
                   <TableCell />
@@ -122,20 +138,28 @@ export function GeneralLedgerTable({
               return (
                 <TableRow key={`tx-${row.entryId}-${idx}`}>
                   <TableCell />
-                  <TableCell className="text-muted-foreground">{row.entryType}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono">
+                  <TableCell className='text-muted-foreground'>
+                    {row.entryType}
+                  </TableCell>
+                  <TableCell className='text-muted-foreground font-mono'>
                     {row.entryNumber}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">{row.entryDate}</TableCell>
-                  <TableCell className="max-w-[250px] truncate">{row.description}</TableCell>
+                  <TableCell className='whitespace-nowrap'>
+                    {row.entryDate}
+                  </TableCell>
+                  <TableCell className='max-w-[250px] truncate'>
+                    {row.description}
+                  </TableCell>
                   <TableCell />
-                  <TableCell className="text-right">
+                  <TableCell className='text-right'>
                     {row.debit ? fmt(row.debit) : ''}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className='text-right'>
                     {row.credit ? fmt(row.credit) : ''}
                   </TableCell>
-                  <TableCell className="text-right">{fmt(row.runningBalance)}</TableCell>
+                  <TableCell className='text-right'>
+                    {fmt(row.runningBalance)}
+                  </TableCell>
                 </TableRow>
               )
             }
@@ -144,19 +168,19 @@ export function GeneralLedgerTable({
               return (
                 <TableRow
                   key={`total-${row.accountNumber}-${idx}`}
-                  className="border-t-2"
+                  className='border-t-2'
                 >
-                  <TableCell colSpan={5} className="text-right font-bold">
+                  <TableCell colSpan={5} className='text-right font-bold'>
                     Total: {row.accountNumber}
                   </TableCell>
                   <TableCell />
-                  <TableCell className="text-right font-bold text-teal-600">
+                  <TableCell className='text-right font-bold text-teal-600'>
                     {fmt(row.totalDebit)}
                   </TableCell>
-                  <TableCell className="text-right font-bold text-teal-600">
+                  <TableCell className='text-right font-bold text-teal-600'>
                     {fmt(row.totalCredit)}
                   </TableCell>
-                  <TableCell className="text-right font-bold text-teal-600">
+                  <TableCell className='text-right font-bold text-teal-600'>
                     {fmt(row.closingBalance)}
                   </TableCell>
                 </TableRow>
@@ -168,19 +192,19 @@ export function GeneralLedgerTable({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={5} className="text-right font-semibold">
+            <TableCell colSpan={5} className='text-right font-semibold'>
               GRAN TOTAL
             </TableCell>
-            <TableCell className="text-right font-bold text-teal-600">
+            <TableCell className='text-right font-bold text-teal-600'>
               {fmt(grandTotals.totalOpeningBalance)}
             </TableCell>
-            <TableCell className="text-right font-bold text-teal-600">
+            <TableCell className='text-right font-bold text-teal-600'>
               {fmt(grandTotals.totalDebit)}
             </TableCell>
-            <TableCell className="text-right font-bold text-teal-600">
+            <TableCell className='text-right font-bold text-teal-600'>
               {fmt(grandTotals.totalCredit)}
             </TableCell>
-            <TableCell className="text-right font-bold text-teal-600">
+            <TableCell className='text-right font-bold text-teal-600'>
               {fmt(grandTotals.totalClosingBalance)}
             </TableCell>
           </TableRow>

@@ -13,8 +13,8 @@ export function TimeSlotGrid({
   unavailableSlots = [],
 }: TimeSlotGridProps) {
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-3 gap-2">
+    <div className='space-y-2'>
+      <div className='grid grid-cols-3 gap-2'>
         {availableTimeSlots.map((slot) => {
           const isUnavailable = unavailableSlots.includes(slot)
           const isSelected = selectedSlot === slot
@@ -22,7 +22,7 @@ export function TimeSlotGrid({
           return (
             <button
               key={slot}
-              type="button"
+              type='button'
               disabled={isUnavailable}
               onClick={() => onSelectSlot(slot)}
               className={cn(
@@ -30,7 +30,7 @@ export function TimeSlotGrid({
                 isSelected
                   ? 'border-primary bg-primary text-primary-foreground'
                   : isUnavailable
-                    ? 'cursor-not-allowed border-muted bg-muted text-muted-foreground opacity-50'
+                    ? 'border-muted bg-muted text-muted-foreground cursor-not-allowed opacity-50'
                     : 'border-border bg-background hover:border-primary hover:bg-accent'
               )}
             >
@@ -39,17 +39,17 @@ export function TimeSlotGrid({
           )
         })}
       </div>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="size-3 rounded border border-primary bg-primary" />
+      <div className='text-muted-foreground flex items-center gap-2 text-xs'>
+        <div className='flex items-center gap-1'>
+          <div className='border-primary bg-primary size-3 rounded border' />
           <span>Selected</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="size-3 rounded border border-border bg-background" />
+        <div className='flex items-center gap-1'>
+          <div className='border-border bg-background size-3 rounded border' />
           <span>Available</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="size-3 rounded border border-muted bg-muted opacity-50" />
+        <div className='flex items-center gap-1'>
+          <div className='border-muted bg-muted size-3 rounded border opacity-50' />
           <span>Unavailable</span>
         </div>
       </div>

@@ -19,6 +19,7 @@ El POS soporta **tres mecanismos distintos** para manejar variedad de productos.
 El **mismo SKU** con opciones que el cliente elige al momento de la venta. Las opciones pueden o no modificar el precio base.
 
 **Ejemplos:**
+
 - Hamburguesa → Tamaño: Sencilla / Con Queso (+Q5) / Doble (+Q10)
 - Pizza → Masa: Normal / Delgada
 - Café → Temperatura: Frío / Caliente
@@ -54,9 +55,9 @@ Atributo: "Tamaño"
       "key": "tamano",
       "type": "button",
       "values": [
-        { "label": "Sencilla",   "priceAdjustment": 0  },
-        { "label": "Con Queso",  "priceAdjustment": 5  },
-        { "label": "Doble",      "priceAdjustment": 10 }
+        { "label": "Sencilla", "priceAdjustment": 0 },
+        { "label": "Con Queso", "priceAdjustment": 5 },
+        { "label": "Doble", "priceAdjustment": 10 }
       ]
     }
   ]
@@ -72,25 +73,28 @@ Atributo: "Tamaño"
 Un producto elaborado que **consume ingredientes del inventario** cuando se vende. El precio de venta lo define el dueño del negocio — no es la suma de ingredientes.
 
 **Ejemplos:**
+
 - Hamburguesa Casera → consume: 1 pan, 200g carne, 2 rodajas tomate
 - Ensalada César → consume: 100g lechuga, 50g pollo, 20g aderezo
 - Jugo Natural → consume: 3 naranjas, 0.5 tazas de agua
 
 ### Tipos de producto involucrados
 
-| Tipo | Descripción |
-|------|-------------|
-| `ingredient` | Materia prima. No aparece en el POS. Solo se usa como insumo. |
-| `recipe` | Producto elaborado. Aparece en POS. Al venderse, descuenta sus ingredientes. |
+| Tipo         | Descripción                                                                  |
+| ------------ | ---------------------------------------------------------------------------- |
+| `ingredient` | Materia prima. No aparece en el POS. Solo se usa como insumo.                |
+| `recipe`     | Producto elaborado. Aparece en POS. Al venderse, descuenta sus ingredientes. |
 
 ### Cómo configurarlo
 
 **Paso 1 — Crear los ingredientes:**
+
 1. Crear producto, tipo = `Ingrediente`
 2. Configurar stock y unidad de medida
 3. El ingrediente **no aparecerá en el grid del POS**
 
 **Paso 2 — Crear la receta:**
+
 1. Crear producto, tipo = `Receta`
 2. Asignar el **precio de venta** del plato terminado
 3. En la sección **Ingredientes de la receta**, agregar cada insumo con su cantidad
@@ -131,6 +135,7 @@ Si un ingrediente tiene `trackInventory = false`, se omite del descuento.
 Un menú que **agrupa múltiples productos distintos** donde la cajera elige entre opciones por cada grupo. El cliente paga una sola línea de precio.
 
 **Ejemplos:**
+
 - Combo #1 → [Hamburguesa] + [Bebida: Agua / Coca / Jugo] + [Acompañamiento: Papas / Ensalada]
 - Menú del día → [Sopa] + [Plato fuerte] + [Postre: Flan / Fruta]
 - Combo familiar → [2 pizzas] + [Bebida grande]
@@ -199,15 +204,15 @@ Item del combo (lineType='combo_item')
 
 ## Tabla de decisión rápida
 
-| Situación | Mecanismo | Tipo de producto |
-|-----------|-----------|-----------------|
-| Producto con tallas / colores | Variantes | STOCK o MTO + attributesJson |
-| Opciones con precio diferente (mismo producto) | Variantes | STOCK o MTO + attributesJson |
-| Menú con varios productos a elegir | Combo | `combo` |
-| Precio único que incluye múltiples items | Combo | `combo` |
-| Plato que descuenta ingredientes del almacén | Receta | `recipe` |
-| Materia prima / insumo (no se vende directo) | Ingrediente | `ingredient` |
-| Item de servicio sin inventario | Servicio | `SERVICE` |
+| Situación                                      | Mecanismo   | Tipo de producto             |
+| ---------------------------------------------- | ----------- | ---------------------------- |
+| Producto con tallas / colores                  | Variantes   | STOCK o MTO + attributesJson |
+| Opciones con precio diferente (mismo producto) | Variantes   | STOCK o MTO + attributesJson |
+| Menú con varios productos a elegir             | Combo       | `combo`                      |
+| Precio único que incluye múltiples items       | Combo       | `combo`                      |
+| Plato que descuenta ingredientes del almacén   | Receta      | `recipe`                     |
+| Materia prima / insumo (no se vende directo)   | Ingrediente | `ingredient`                 |
+| Item de servicio sin inventario                | Servicio    | `SERVICE`                    |
 
 ---
 
@@ -291,17 +296,17 @@ Al hacer checkout:
 
 ## Referencias de código
 
-| Archivo | Rol |
-|---------|-----|
-| `app/server/db/schemas/combo.ts` | Esquema DB: combo → grupos → items |
-| `app/server/db/schemas/recipe.ts` | Esquema DB: receta → items con ingredientes |
-| `app/server/db/schemas/products.ts` | Enum `productTypeEnum`, campo `trackInventory` |
-| `app/features/combo/server/repository.ts` | `findByProductId()`, `getComboForPos()`, `upsertCombo()` |
-| `app/features/recipe/server/repository.ts` | `findByProductId()`, `expandRecipeToIngredients()`, `upsertRecipe()` |
-| `app/features/pos/server/utils/inventory-resolver.ts` | Lógica de descuento de inventario por lineType |
-| `app/features/pos/components/PosComboSelectionDialog.tsx` | Diálogo de personalización de combos en POS |
-| `app/features/pos/components/PosProductAttributesDialog.tsx` | Diálogo de selección de variantes en POS |
-| `app/features/products/components/RecipeBuilder.tsx` | Editor de ingredientes en admin |
-| `app/features/products/components/ComboBuilder.tsx` | Editor de grupos de combo en admin |
-| `app/routes/products/edit.tsx` | Integración de builders en la edición de productos |
-| `app/routes/pos/terminal.tsx` | Lógica de click, carrito, y checkout en el terminal POS |
+| Archivo                                                      | Rol                                                                  |
+| ------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `app/server/db/schemas/combo.ts`                             | Esquema DB: combo → grupos → items                                   |
+| `app/server/db/schemas/recipe.ts`                            | Esquema DB: receta → items con ingredientes                          |
+| `app/server/db/schemas/products.ts`                          | Enum `productTypeEnum`, campo `trackInventory`                       |
+| `app/features/combo/server/repository.ts`                    | `findByProductId()`, `getComboForPos()`, `upsertCombo()`             |
+| `app/features/recipe/server/repository.ts`                   | `findByProductId()`, `expandRecipeToIngredients()`, `upsertRecipe()` |
+| `app/features/pos/server/utils/inventory-resolver.ts`        | Lógica de descuento de inventario por lineType                       |
+| `app/features/pos/components/PosComboSelectionDialog.tsx`    | Diálogo de personalización de combos en POS                          |
+| `app/features/pos/components/PosProductAttributesDialog.tsx` | Diálogo de selección de variantes en POS                             |
+| `app/features/products/components/RecipeBuilder.tsx`         | Editor de ingredientes en admin                                      |
+| `app/features/products/components/ComboBuilder.tsx`          | Editor de grupos de combo en admin                                   |
+| `app/routes/products/edit.tsx`                               | Integración de builders en la edición de productos                   |
+| `app/routes/pos/terminal.tsx`                                | Lógica de click, carrito, y checkout en el terminal POS              |

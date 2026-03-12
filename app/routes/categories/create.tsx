@@ -53,10 +53,7 @@ export default function CreateCategory() {
             )}
 
             <div>
-              <label
-                htmlFor='name'
-                className='mb-2 block text-sm font-medium'
-              >
+              <label htmlFor='name' className='mb-2 block text-sm font-medium'>
                 Category Name *
               </label>
               <input
@@ -84,7 +81,7 @@ export default function CreateCategory() {
                   return (
                     <label
                       key={color}
-                      className='flex cursor-pointer items-center gap-2 rounded-md border p-2 has-[:checked]:ring-2 has-[:checked]:ring-primary'
+                      className='has-[:checked]:ring-primary flex cursor-pointer items-center gap-2 rounded-md border p-2 has-[:checked]:ring-2'
                     >
                       <input
                         type='radio'
@@ -93,9 +90,7 @@ export default function CreateCategory() {
                         defaultChecked={color === 'blue'}
                         className='sr-only'
                       />
-                      <div
-                        className={`size-4 rounded-full ${styles.dot}`}
-                      />
+                      <div className={`size-4 rounded-full ${styles.dot}`} />
                       <span className='text-xs capitalize'>{color}</span>
                     </label>
                   )

@@ -40,7 +40,7 @@ export function DataTable<TData, TValue>({
   onRowClick,
   enableRowSelection = false,
   enableSearch = false,
-  searchPlaceholder = "Search...",
+  searchPlaceholder = 'Search...',
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -56,26 +56,38 @@ export function DataTable<TData, TValue>({
   }, [])
 
   // Only apply filtering after client-side hydration is complete
-  const tableConfig = useMemo(() => ({
-    columns: columns,
-    data: data,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    enableRowSelection,
-    state: {
+  const tableConfig = useMemo(
+    () => ({
+      columns: columns,
+      data: data,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      onSortingChange: setSorting,
+      getSortedRowModel: getSortedRowModel(),
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      onGlobalFilterChange: setGlobalFilter,
+      enableRowSelection,
+      state: {
+        sorting,
+        columnVisibility,
+        rowSelection,
+        // Only apply globalFilter after mount to prevent hydration mismatch
+        globalFilter: isMounted ? globalFilter : '',
+      },
+    }),
+    [
+      columns,
+      data,
       sorting,
       columnVisibility,
       rowSelection,
-      // Only apply globalFilter after mount to prevent hydration mismatch
-      globalFilter: isMounted ? globalFilter : '',
-    },
-  }), [columns, data, sorting, columnVisibility, rowSelection, globalFilter, enableRowSelection, isMounted])
+      globalFilter,
+      enableRowSelection,
+      isMounted,
+    ]
+  )
 
   const table = useReactTable(tableConfig)
 
@@ -91,7 +103,7 @@ export function DataTable<TData, TValue>({
   return (
     <>
       <div>
-        <div className="flex items-center justify-between py-4">
+        <div className='flex items-center justify-between py-4'>
           {enableSearch && (
             <DataTableSearch
               value={globalFilter}

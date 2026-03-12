@@ -61,7 +61,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     status === 'pending' ? true : status === 'assigned' ? false : undefined
 
   const [satFiles, accounts, companies, stats] = await Promise.all([
-    satFileRepository.getByOrganization(organizationId, { companyId }, pendingRows),
+    satFileRepository.getByOrganization(
+      organizationId,
+      { companyId },
+      pendingRows
+    ),
     accountsRepository.getAllByOrganization(organizationId),
     companyRepository.getByOrganization(organizationId),
     satFileRepository.getCategorizeStats(organizationId),
@@ -146,9 +150,7 @@ export async function action({ request }: Route.ActionArgs) {
     const accountingAccountId = formData.get('accountingAccountId') as string
     const itemTypeRaw = formData.get('itemType') as string | null
     const itemType =
-      itemTypeRaw === 'goods' || itemTypeRaw === 'services'
-        ? itemTypeRaw
-        : null
+      itemTypeRaw === 'goods' || itemTypeRaw === 'services' ? itemTypeRaw : null
 
     if (!satFileId) {
       return { error: 'SAT file ID is required' }
@@ -300,7 +302,11 @@ export default function SATProcessorIndex({
           </div>
         )}
 
-        <Tabs value={status} onValueChange={handleStatusChange} className='mb-2'>
+        <Tabs
+          value={status}
+          onValueChange={handleStatusChange}
+          className='mb-2'
+        >
           <TabsList>
             <TabsTrigger value='assigned'>Asignadas</TabsTrigger>
             <TabsTrigger value='pending'>Pendientes</TabsTrigger>
@@ -321,7 +327,9 @@ export default function SATProcessorIndex({
 
       <Drawer
         open={!!selectedRow}
-        onOpenChange={(open) => { if (!open) setSelectedRow(null) }}
+        onOpenChange={(open) => {
+          if (!open) setSelectedRow(null)
+        }}
         direction='right'
       >
         <DrawerContent>

@@ -1,7 +1,11 @@
 import { and, eq } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { posTableModel, posSaleModel } from '~/server/db/schemas/pos'
-import type { InsertPosTable, UpdatePosTable, PosTableStatus } from '~/server/db/schemas/pos'
+import type {
+  InsertPosTable,
+  UpdatePosTable,
+  PosTableStatus,
+} from '~/server/db/schemas/pos'
 
 export class PosTablesRepository {
   async getTables(organizationId: string, sucursalId?: string) {
@@ -25,11 +29,10 @@ export class PosTablesRepository {
     return table ?? null
   }
 
-  async createTable(data: Omit<InsertPosTable, 'id' | 'createdAt' | 'updatedAt'>) {
-    const [table] = await db
-      .insert(posTableModel)
-      .values(data)
-      .returning()
+  async createTable(
+    data: Omit<InsertPosTable, 'id' | 'createdAt' | 'updatedAt'>
+  ) {
+    const [table] = await db.insert(posTableModel).values(data).returning()
     return table
   }
 
@@ -63,10 +66,7 @@ export class PosTablesRepository {
       .select()
       .from(posSaleModel)
       .where(
-        and(
-          eq(posSaleModel.tableId, tableId),
-          eq(posSaleModel.status, 'open')
-        )
+        and(eq(posSaleModel.tableId, tableId), eq(posSaleModel.status, 'open'))
       )
     return sale ?? null
   }

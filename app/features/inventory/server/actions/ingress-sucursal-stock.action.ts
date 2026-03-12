@@ -5,7 +5,9 @@ import type { IngressSucursalStockInput } from '../../schemas'
  * Direct stock ingress to a sucursal (e.g. receiving goods at branch level).
  * Does NOT deduct from org stock — use transferToSucursal for org→branch moves.
  */
-export async function ingressSucursalStockAction(input: IngressSucursalStockInput) {
+export async function ingressSucursalStockAction(
+  input: IngressSucursalStockInput
+) {
   await inventoryRepository.upsertSucursalStock(
     input.sucursalId,
     input.productId,

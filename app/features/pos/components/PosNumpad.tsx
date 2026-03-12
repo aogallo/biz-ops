@@ -27,7 +27,7 @@ export function PosNumpad({
       )}
     >
       {/* Display */}
-      <div className='bg-muted mb-2 rounded-md px-3 py-2 text-right text-xl font-mono font-semibold tabular-nums'>
+      <div className='bg-muted mb-2 rounded-md px-3 py-2 text-right font-mono text-xl font-semibold tabular-nums'>
         {displayValue || '--'}
       </div>
 
@@ -64,7 +64,7 @@ export function PosNumpad({
         </Button>
         <Button
           variant='outline'
-          className='h-10 text-base font-medium text-destructive'
+          className='text-destructive h-10 text-base font-medium'
           onClick={onClear}
           disabled={disabled}
         >

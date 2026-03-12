@@ -1,4 +1,10 @@
-import { Form, Link, useActionData, useLoaderData, useNavigation } from 'react-router'
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
@@ -36,7 +42,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (permission.isSystem) {
     return redirectWithFlash('/permissions', {
       type: 'error',
-      message: translateServer(locale, 'messages.permissions.systemPermissionProtected'),
+      message: translateServer(
+        locale,
+        'messages.permissions.systemPermissionProtected'
+      ),
     })
   }
 
@@ -67,9 +76,7 @@ export default function EditPermission() {
   return (
     <div className='mx-auto max-w-3xl p-6'>
       <h1 className='mb-2 text-2xl font-bold'>Edit Permission</h1>
-      <p className='text-muted-foreground mb-6'>
-        Update permission details
-      </p>
+      <p className='text-muted-foreground mb-6'>Update permission details</p>
 
       <Form method='post' className='space-y-6'>
         {actionData?.message && !actionData.success && (

@@ -24,7 +24,10 @@ export async function updateServiceAction(request: Request) {
   }
 
   // Verify service belongs to organization
-  const existingService = await servicesRepository.getByIdAndOrganization(id, organizationId)
+  const existingService = await servicesRepository.getByIdAndOrganization(
+    id,
+    organizationId
+  )
   if (!existingService) {
     return {
       success: false,
@@ -35,11 +38,15 @@ export async function updateServiceAction(request: Request) {
   const inputValues = {
     id,
     name: formData.get('name') || undefined,
-    duration: formData.get('duration') ? Number(formData.get('duration')) : undefined,
+    duration: formData.get('duration')
+      ? Number(formData.get('duration'))
+      : undefined,
     color: formData.get('color') || undefined,
     price: formData.get('price') || undefined,
     description: formData.get('description') || undefined,
-    isActive: formData.has('isActive') ? formData.get('isActive') === 'true' : undefined,
+    isActive: formData.has('isActive')
+      ? formData.get('isActive') === 'true'
+      : undefined,
     organizationId,
   }
 
@@ -62,7 +69,8 @@ export async function updateServiceAction(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update service',
+      message:
+        error instanceof Error ? error.message : 'Failed to update service',
     }
   }
 }

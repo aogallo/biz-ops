@@ -14,7 +14,11 @@ import { useTranslation } from '~/i18n/context'
 interface PosCashMovementDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: (type: 'withdrawal' | 'deposit', amount: number, notes?: string) => void
+  onConfirm: (
+    type: 'withdrawal' | 'deposit',
+    amount: number,
+    notes?: string
+  ) => void
   isSubmitting: boolean
 }
 
@@ -63,7 +67,9 @@ export function PosCashMovementDialog({
           </div>
 
           <div>
-            <label className='text-sm font-medium'>{t('pos.movementAmount')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.movementAmount')}
+            </label>
             <Input
               type='number'
               step='0.01'
@@ -77,7 +83,9 @@ export function PosCashMovementDialog({
           </div>
 
           <div>
-            <label className='text-sm font-medium'>{t('pos.movementNotes')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.movementNotes')}
+            </label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

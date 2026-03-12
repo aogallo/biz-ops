@@ -1,6 +1,10 @@
 import { eq } from 'drizzle-orm'
 import { db } from '~/server/db'
-import { comboModel, comboGroupModel, comboGroupItemModel } from '~/server/db/schemas/combo'
+import {
+  comboModel,
+  comboGroupModel,
+  comboGroupItemModel,
+} from '~/server/db/schemas/combo'
 import { productModel } from '~/server/db/schemas/products'
 import type { UpsertComboInput, PosComboDefinition } from '../schemas'
 
@@ -64,7 +68,10 @@ export class ComboRepository {
             sortOrder: comboGroupItemModel.sortOrder,
           })
           .from(comboGroupItemModel)
-          .leftJoin(productModel, eq(comboGroupItemModel.productId, productModel.id))
+          .leftJoin(
+            productModel,
+            eq(comboGroupItemModel.productId, productModel.id)
+          )
           .where(eq(comboGroupItemModel.groupId, group.id))
           .orderBy(comboGroupItemModel.sortOrder)
 
@@ -109,7 +116,9 @@ export class ComboRepository {
       if (existing[0]) {
         comboId = existing[0].id
         // Delete existing groups (cascade deletes items)
-        await tx.delete(comboGroupModel).where(eq(comboGroupModel.comboId, comboId))
+        await tx
+          .delete(comboGroupModel)
+          .where(eq(comboGroupModel.comboId, comboId))
       } else {
         const [inserted] = await tx
           .insert(comboModel)

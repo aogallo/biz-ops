@@ -12,7 +12,10 @@ import { requireAuth, type SessionData } from './session.server'
  * Super admins bypass this check.
  * Throws a redirect to /home if access is denied.
  */
-export async function requireModule(request: Request, moduleKey: ModuleKey): Promise<SessionData> {
+export async function requireModule(
+  request: Request,
+  moduleKey: ModuleKey
+): Promise<SessionData> {
   const session = await requireAuth(request)
 
   // Super admin bypasses all module checks
@@ -39,7 +42,10 @@ export async function requireModule(request: Request, moduleKey: ModuleKey): Pro
     throw redirect('/home')
   }
 
-  const accessLevel = await modulesRepository.getMemberAccessLevel(memberRow.id, moduleKey)
+  const accessLevel = await modulesRepository.getMemberAccessLevel(
+    memberRow.id,
+    moduleKey
+  )
 
   if (accessLevel === 'none') {
     throw redirect('/home')

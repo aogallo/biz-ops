@@ -18,23 +18,44 @@ type TierKey = 'starter' | 'pro' | 'enterprise'
 
 interface FeatureRow {
   labelKey: TranslationKey
-  starter: { type: 'boolean'; value: boolean } | { type: 'text'; key: TranslationKey }
-  pro: { type: 'boolean'; value: boolean } | { type: 'text'; key: TranslationKey }
-  enterprise: { type: 'boolean'; value: boolean } | { type: 'text'; key: TranslationKey }
+  starter:
+    | { type: 'boolean'; value: boolean }
+    | { type: 'text'; key: TranslationKey }
+  pro:
+    | { type: 'boolean'; value: boolean }
+    | { type: 'text'; key: TranslationKey }
+  enterprise:
+    | { type: 'boolean'; value: boolean }
+    | { type: 'text'; key: TranslationKey }
 }
 
 const featureRows: FeatureRow[] = [
   {
     labelKey: 'landing.pricing.features.users' as TranslationKey,
-    starter: { type: 'text', key: 'landing.pricing.starter.users' as TranslationKey },
+    starter: {
+      type: 'text',
+      key: 'landing.pricing.starter.users' as TranslationKey,
+    },
     pro: { type: 'text', key: 'landing.pricing.pro.users' as TranslationKey },
-    enterprise: { type: 'text', key: 'landing.pricing.enterprise.users' as TranslationKey },
+    enterprise: {
+      type: 'text',
+      key: 'landing.pricing.enterprise.users' as TranslationKey,
+    },
   },
   {
     labelKey: 'landing.pricing.features.accounting' as TranslationKey,
-    starter: { type: 'text', key: 'landing.pricing.starter.accounting' as TranslationKey },
-    pro: { type: 'text', key: 'landing.pricing.pro.accounting' as TranslationKey },
-    enterprise: { type: 'text', key: 'landing.pricing.enterprise.accounting' as TranslationKey },
+    starter: {
+      type: 'text',
+      key: 'landing.pricing.starter.accounting' as TranslationKey,
+    },
+    pro: {
+      type: 'text',
+      key: 'landing.pricing.pro.accounting' as TranslationKey,
+    },
+    enterprise: {
+      type: 'text',
+      key: 'landing.pricing.enterprise.accounting' as TranslationKey,
+    },
   },
   {
     labelKey: 'landing.pricing.features.sat' as TranslationKey,
@@ -44,31 +65,70 @@ const featureRows: FeatureRow[] = [
   },
   {
     labelKey: 'landing.pricing.features.inventory' as TranslationKey,
-    starter: { type: 'text', key: 'landing.pricing.starter.inventory' as TranslationKey },
-    pro: { type: 'text', key: 'landing.pricing.pro.inventory' as TranslationKey },
-    enterprise: { type: 'text', key: 'landing.pricing.enterprise.inventory' as TranslationKey },
+    starter: {
+      type: 'text',
+      key: 'landing.pricing.starter.inventory' as TranslationKey,
+    },
+    pro: {
+      type: 'text',
+      key: 'landing.pricing.pro.inventory' as TranslationKey,
+    },
+    enterprise: {
+      type: 'text',
+      key: 'landing.pricing.enterprise.inventory' as TranslationKey,
+    },
   },
   {
     labelKey: 'landing.pricing.features.appointments' as TranslationKey,
-    starter: { type: 'text', key: 'landing.pricing.starter.appointments' as TranslationKey },
-    pro: { type: 'text', key: 'landing.pricing.pro.appointments' as TranslationKey },
-    enterprise: { type: 'text', key: 'landing.pricing.enterprise.appointments' as TranslationKey },
+    starter: {
+      type: 'text',
+      key: 'landing.pricing.starter.appointments' as TranslationKey,
+    },
+    pro: {
+      type: 'text',
+      key: 'landing.pricing.pro.appointments' as TranslationKey,
+    },
+    enterprise: {
+      type: 'text',
+      key: 'landing.pricing.enterprise.appointments' as TranslationKey,
+    },
   },
   {
     labelKey: 'landing.pricing.features.invoicing' as TranslationKey,
-    starter: { type: 'text', key: 'landing.pricing.starter.invoicing' as TranslationKey },
-    pro: { type: 'text', key: 'landing.pricing.pro.invoicing' as TranslationKey },
-    enterprise: { type: 'text', key: 'landing.pricing.enterprise.invoicing' as TranslationKey },
+    starter: {
+      type: 'text',
+      key: 'landing.pricing.starter.invoicing' as TranslationKey,
+    },
+    pro: {
+      type: 'text',
+      key: 'landing.pricing.pro.invoicing' as TranslationKey,
+    },
+    enterprise: {
+      type: 'text',
+      key: 'landing.pricing.enterprise.invoicing' as TranslationKey,
+    },
   },
   {
     labelKey: 'landing.pricing.features.support' as TranslationKey,
-    starter: { type: 'text', key: 'landing.pricing.starter.support' as TranslationKey },
+    starter: {
+      type: 'text',
+      key: 'landing.pricing.starter.support' as TranslationKey,
+    },
     pro: { type: 'text', key: 'landing.pricing.pro.support' as TranslationKey },
-    enterprise: { type: 'text', key: 'landing.pricing.enterprise.support' as TranslationKey },
+    enterprise: {
+      type: 'text',
+      key: 'landing.pricing.enterprise.support' as TranslationKey,
+    },
   },
 ]
 
-function FeatureValue({ cell, t }: { cell: FeatureRow['starter']; t: (key: TranslationKey) => string }) {
+function FeatureValue({
+  cell,
+  t,
+}: {
+  cell: FeatureRow['starter']
+  t: (key: TranslationKey) => string
+}) {
   if (cell.type === 'boolean') {
     return cell.value ? (
       <Check className='size-4 text-green-600 dark:text-green-400' />
@@ -157,7 +217,9 @@ export function PricingSection() {
           <PricingTier
             nameKey={'landing.pricing.starter.name' as TranslationKey}
             priceKey={'landing.pricing.starter.price' as TranslationKey}
-            descriptionKey={'landing.pricing.starter.description' as TranslationKey}
+            descriptionKey={
+              'landing.pricing.starter.description' as TranslationKey
+            }
             featureKey='starter'
             ctaKey={'landing.pricing.starter.cta' as TranslationKey}
           />
@@ -172,7 +234,9 @@ export function PricingSection() {
           <PricingTier
             nameKey={'landing.pricing.enterprise.name' as TranslationKey}
             priceKey={'landing.pricing.enterprise.price' as TranslationKey}
-            descriptionKey={'landing.pricing.enterprise.description' as TranslationKey}
+            descriptionKey={
+              'landing.pricing.enterprise.description' as TranslationKey
+            }
             featureKey='enterprise'
             ctaKey={'landing.pricing.enterprise.cta' as TranslationKey}
           />

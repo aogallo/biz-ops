@@ -16,7 +16,13 @@ export interface QuotationRow {
   createdAt: Date
 }
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const statusConfig: Record<
+  string,
+  {
+    label: string
+    variant: 'default' | 'secondary' | 'destructive' | 'outline'
+  }
+> = {
   DRAFT: { label: 'Draft', variant: 'secondary' },
   SENT: { label: 'Sent', variant: 'default' },
   ACCEPTED: { label: 'Accepted', variant: 'outline' },
@@ -57,7 +63,8 @@ export const quotationColumns: ColumnDef<QuotationRow>[] = [
   {
     accessorKey: 'quotationDate',
     header: 'Date',
-    cell: ({ row }) => new Date(row.original.quotationDate).toLocaleDateString(),
+    cell: ({ row }) =>
+      new Date(row.original.quotationDate).toLocaleDateString(),
   },
   {
     accessorKey: 'itemCount',

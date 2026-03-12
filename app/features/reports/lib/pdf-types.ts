@@ -45,7 +45,9 @@ export function parseEntryNumber(entryNumber: string): {
   number: string
 } {
   const match = entryNumber.match(/^([A-Za-z]+)\s*(.+)$/)
-  return match ? { type: match[1], number: match[2] } : { type: '', number: entryNumber }
+  return match
+    ? { type: match[1], number: match[2] }
+    : { type: '', number: entryNumber }
 }
 
 /**

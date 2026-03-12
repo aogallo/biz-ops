@@ -155,6 +155,8 @@ export const updateJournalEntryLineSchema = createUpdateSchema(
 export type JournalEntry = z.infer<typeof selectJournalEntrySchema>
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>
 export type JournalEntryLine = z.infer<typeof selectJournalEntryLineSchema>
-export type InsertJournalEntryLine = z.infer<typeof insertJournalEntryLineSchema>
+export type InsertJournalEntryLine = z.infer<
+  typeof insertJournalEntryLineSchema
+>
 export type JournalEntrySource = 'manual' | 'invoice' | 'adjustment' | 'pos'
 export type JournalEntryStatus = 'draft' | 'posted' | 'voided'

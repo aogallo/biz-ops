@@ -7,7 +7,10 @@ export async function updateSucursalAction(
   input: UpdateSucursalInput
 ) {
   if (input.code) {
-    const existing = await sucursalRepository.getByCode(organizationId, input.code)
+    const existing = await sucursalRepository.getByCode(
+      organizationId,
+      input.code
+    )
     if (existing && existing.id !== id) {
       throw new Error(`A sucursal with code "${input.code}" already exists`)
     }

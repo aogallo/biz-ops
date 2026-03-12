@@ -167,9 +167,13 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => {
           const verified = row.getValue('emailVerified') as boolean
           return verified ? (
-            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-success'>{t('users.verified')}</span>
+            <span className='status-success inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium'>
+              {t('users.verified')}
+            </span>
           ) : (
-            <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-warning'>{t('users.pending')}</span>
+            <span className='status-warning inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium'>
+              {t('users.pending')}
+            </span>
           )
         },
       },
@@ -198,7 +202,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         accessorKey: 'role',
         header: 'Role',
         cell: ({ row }) => (
-          <span className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium status-warning'>
+          <span className='status-warning inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium'>
             {row.getValue('role')}
           </span>
         ),

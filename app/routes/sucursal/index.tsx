@@ -101,7 +101,9 @@ export default function SucursalIndex({ loaderData }: Route.ComponentProps) {
 
       {sucursales.length === 0 ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>
-          <p className='text-muted-foreground mb-4'>No hay sucursales registradas.</p>
+          <p className='text-muted-foreground mb-4'>
+            No hay sucursales registradas.
+          </p>
           <Link to='/sucursal/new'>
             <Button variant='outline'>Crear primera sucursal</Button>
           </Link>

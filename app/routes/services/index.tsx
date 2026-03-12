@@ -63,15 +63,15 @@ function DeleteServiceButton({ serviceId }: { serviceId: string }) {
   const isDeleting = fetcher.state !== 'idle'
 
   return (
-    <fetcher.Form method="post">
-      <input type="hidden" name="_action" value="delete" />
-      <input type="hidden" name="id" value={serviceId} />
+    <fetcher.Form method='post'>
+      <input type='hidden' name='_action' value='delete' />
+      <input type='hidden' name='id' value={serviceId} />
       <button
-        type="submit"
+        type='submit'
         disabled={isDeleting}
-        className="flex w-full items-center text-destructive"
+        className='text-destructive flex w-full items-center'
       >
-        <Trash2 className="mr-2 size-4" />
+        <Trash2 className='mr-2 size-4' />
         {isDeleting ? t('common.deleting') : t('common.delete')}
       </button>
     </fetcher.Form>
@@ -93,9 +93,9 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
           const color = row.original.color as ServiceColor
           const colorStyles = serviceColorMap[color]
           return (
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <div className={`size-3 rounded-full ${colorStyles.dot}`} />
-              <span className="font-medium">{row.getValue('name')}</span>
+              <span className='font-medium'>{row.getValue('name')}</span>
             </div>
           )
         },
@@ -120,7 +120,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
         header: t('services.price'),
         cell: ({ row }) => {
           const price = row.getValue('price') as string | null
-          if (!price) return <span className="text-muted-foreground">-</span>
+          if (!price) return <span className='text-muted-foreground'>-</span>
           return (
             <span>
               {new Intl.NumberFormat('en-US', {
@@ -138,7 +138,10 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
           const color = row.getValue('color') as ServiceColor
           const colorStyles = serviceColorMap[color]
           return (
-            <Badge variant="outline" className={`${colorStyles.bg} ${colorStyles.text}`}>
+            <Badge
+              variant='outline'
+              className={`${colorStyles.bg} ${colorStyles.text}`}
+            >
               {color}
             </Badge>
           )
@@ -162,7 +165,7 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => {
           const description = row.getValue('description') as string | null
           return (
-            <span className="text-muted-foreground text-sm line-clamp-1">
+            <span className='text-muted-foreground line-clamp-1 text-sm'>
               {description || '-'}
             </span>
           )
@@ -174,14 +177,14 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="size-4" />
+              <Button variant='ghost' size='icon'>
+                <MoreHorizontal className='size-4' />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align='end'>
               <DropdownMenuItem asChild>
                 <Link to={`/services/${row.original.id}/edit`}>
-                  <Pencil className="mr-2 size-4" />
+                  <Pencil className='mr-2 size-4' />
                   {t('common.edit')}
                 </Link>
               </DropdownMenuItem>
@@ -198,12 +201,12 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
 
   if (noOrganization) {
     return (
-      <div className="p-6">
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground mb-4">
+      <div className='p-6'>
+        <div className='rounded-lg border border-dashed p-8 text-center'>
+          <p className='text-muted-foreground mb-4'>
             {t('sidebar.selectOrganization')}
           </p>
-          <Link to="/organization">
+          <Link to='/organization'>
             <Button>{t('sidebar.selectOrganization')}</Button>
           </Link>
         </div>
@@ -212,25 +215,23 @@ export default function ServicesIndex({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className='p-6'>
+      <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className="text-2xl font-bold">{t('services.title')}</h1>
-          <p className="text-muted-foreground">
+          <h1 className='text-2xl font-bold'>{t('services.title')}</h1>
+          <p className='text-muted-foreground'>
             {t('services.searchPlaceholder')}
           </p>
         </div>
-        <Link to="/services/new">
+        <Link to='/services/new'>
           <Button>{t('services.new')}</Button>
         </Link>
       </div>
 
       {services.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground mb-4">
-            {t('common.noData')}
-          </p>
-          <Link to="/services/new">
+        <div className='rounded-lg border border-dashed p-8 text-center'>
+          <p className='text-muted-foreground mb-4'>{t('common.noData')}</p>
+          <Link to='/services/new'>
             <Button>{t('services.new')}</Button>
           </Link>
         </div>

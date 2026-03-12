@@ -33,7 +33,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireModule(request, 'pos')
   const organizationId = session.session.activeOrganizationId
 
-  if (!organizationId) return { tables: [], sucursales: [], organizationId: null }
+  if (!organizationId)
+    return { tables: [], sucursales: [], organizationId: null }
 
   const [tables, sucursales] = await Promise.all([
     posTablesRepository.getTables(organizationId),
@@ -59,7 +60,11 @@ export async function action({ request }: Route.ActionArgs) {
       sucursalId: formData.get('sucursalId') || null,
       capacity: formData.get('capacity') || null,
     })
-    if (!parsed.success) return { error: 'Datos inválidos', fieldErrors: parsed.error.flatten().fieldErrors }
+    if (!parsed.success)
+      return {
+        error: 'Datos inválidos',
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }
     await posTablesRepository.createTable(parsed.data)
     return { success: true }
   }
@@ -71,7 +76,11 @@ export async function action({ request }: Route.ActionArgs) {
       sucursalId: formData.get('sucursalId') || null,
       capacity: formData.get('capacity') || null,
     })
-    if (!parsed.success) return { error: 'Datos inválidos', fieldErrors: parsed.error.flatten().fieldErrors }
+    if (!parsed.success)
+      return {
+        error: 'Datos inválidos',
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }
     await posTablesRepository.updateTable(id, parsed.data)
     return { success: true }
   }
@@ -190,16 +199,33 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
             onSubmit={() => setTimeout(() => setDialogOpen(false), 200)}
           >
             <input type='hidden' name='intent' value='create' />
-            <input type='hidden' name='organizationId' value={organizationId ?? ''} />
+            <input
+              type='hidden'
+              name='organizationId'
+              value={organizationId ?? ''}
+            />
 
             <div className='space-y-4'>
               <div>
                 <label className='text-sm font-medium'>Número / Nombre</label>
-                <Input name='number' placeholder='1, A1, Terraza 3…' required className='mt-1' />
+                <Input
+                  name='number'
+                  placeholder='1, A1, Terraza 3…'
+                  required
+                  className='mt-1'
+                />
               </div>
               <div>
-                <label className='text-sm font-medium'>Capacidad (personas)</label>
-                <Input name='capacity' type='number' min='1' placeholder='4' className='mt-1' />
+                <label className='text-sm font-medium'>
+                  Capacidad (personas)
+                </label>
+                <Input
+                  name='capacity'
+                  type='number'
+                  min='1'
+                  placeholder='4'
+                  className='mt-1'
+                />
               </div>
               {sucursales.length > 0 && (
                 <div>
@@ -210,7 +236,9 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
                     </SelectTrigger>
                     <SelectContent>
                       {sucursales.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -219,7 +247,11 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
             </div>
 
             <DialogFooter className='mt-6'>
-              <Button variant='outline' type='button' onClick={() => setDialogOpen(false)}>
+              <Button
+                variant='outline'
+                type='button'
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancelar
               </Button>
               <Button type='submit' disabled={isSubmitting}>
@@ -231,7 +263,10 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
       </Dialog>
 
       {/* Edit dialog */}
-      <Dialog open={!!editingTable} onOpenChange={(open) => !open && setEditingTable(null)}>
+      <Dialog
+        open={!!editingTable}
+        onOpenChange={(open) => !open && setEditingTable(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar mesa {editingTable?.number}</DialogTitle>
@@ -247,10 +282,17 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
               <div className='space-y-4'>
                 <div>
                   <label className='text-sm font-medium'>Número / Nombre</label>
-                  <Input name='number' defaultValue={editingTable.number} required className='mt-1' />
+                  <Input
+                    name='number'
+                    defaultValue={editingTable.number}
+                    required
+                    className='mt-1'
+                  />
                 </div>
                 <div>
-                  <label className='text-sm font-medium'>Capacidad (personas)</label>
+                  <label className='text-sm font-medium'>
+                    Capacidad (personas)
+                  </label>
                   <Input
                     name='capacity'
                     type='number'
@@ -262,13 +304,18 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
                 {sucursales.length > 0 && (
                   <div>
                     <label className='text-sm font-medium'>Sucursal</label>
-                    <Select name='sucursalId' defaultValue={editingTable.sucursalId ?? undefined}>
+                    <Select
+                      name='sucursalId'
+                      defaultValue={editingTable.sucursalId ?? undefined}
+                    >
                       <SelectTrigger className='mt-1'>
                         <SelectValue placeholder='Seleccionar sucursal (opcional)' />
                       </SelectTrigger>
                       <SelectContent>
                         {sucursales.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -277,7 +324,11 @@ export default function PosTablesPage({ loaderData }: Route.ComponentProps) {
               </div>
 
               <DialogFooter className='mt-6'>
-                <Button variant='outline' type='button' onClick={() => setEditingTable(null)}>
+                <Button
+                  variant='outline'
+                  type='button'
+                  onClick={() => setEditingTable(null)}
+                >
                   Cancelar
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>

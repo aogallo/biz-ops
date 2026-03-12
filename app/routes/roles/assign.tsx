@@ -29,7 +29,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   // Get URL parameters - only organizationId is in URL now
-  const organizationId = url.searchParams.get('organizationId') || session.session.activeOrganizationId
+  const organizationId =
+    url.searchParams.get('organizationId') ||
+    session.session.activeOrganizationId
 
   // Get organizations the user can access
   const organizations = await getUserOrganizations(session.user.id)
@@ -83,7 +85,9 @@ export async function action({ request }: Route.ActionArgs) {
   return { success: false, error: result.message }
 }
 
-export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps) {
+export default function RoleAssignmentPage({
+  loaderData,
+}: Route.ComponentProps) {
   const { t } = useTranslation()
 
   // Handle resource route responses (when intent=getUserRoles)
@@ -91,7 +95,12 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
     return null // This shouldn't render, fetcher handles it
   }
 
-  const { organizations = [], users = [], availableRoles = [], selectedOrgId = '' } = loaderData
+  const {
+    organizations = [],
+    users = [],
+    availableRoles = [],
+    selectedOrgId = '',
+  } = loaderData
 
   const [, setSearchParams] = useSearchParams()
 
@@ -99,15 +108,28 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
 
   // Fetcher for loading user roles
-  const rolesFetcher = useFetcher<{ userRoles: Array<{ id: string; name: string; description: string | null; isSystem: boolean }> }>()
+  const rolesFetcher = useFetcher<{
+    userRoles: Array<{
+      id: string
+      name: string
+      description: string | null
+      isSystem: boolean
+    }>
+  }>()
 
   // Fetcher for saving roles
-  const saveFetcher = useFetcher<{ success: boolean; message?: string; error?: string }>()
+  const saveFetcher = useFetcher<{
+    success: boolean
+    message?: string
+    error?: string
+  }>()
 
   // Load user roles when selection changes
   useEffect(() => {
     if (selectedMemberId) {
-      rolesFetcher.load(`/roles/assign?intent=getUserRoles&memberId=${selectedMemberId}`)
+      rolesFetcher.load(
+        `/roles/assign?intent=getUserRoles&memberId=${selectedMemberId}`
+      )
     }
   }, [selectedMemberId])
 
@@ -118,7 +140,9 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
         toast.success(saveFetcher.data.message || 'Roles updated successfully')
         // Reload the user's roles to get fresh data
         if (selectedMemberId) {
-          rolesFetcher.load(`/roles/assign?intent=getUserRoles&memberId=${selectedMemberId}`)
+          rolesFetcher.load(
+            `/roles/assign?intent=getUserRoles&memberId=${selectedMemberId}`
+          )
         }
       } else if (saveFetcher.data.error) {
         toast.error(saveFetcher.data.error)
@@ -132,12 +156,14 @@ export default function RoleAssignmentPage({ loaderData }: Route.ComponentProps)
     if (!searchQuery) return users
     const q = searchQuery.toLowerCase()
     return users.filter(
-      (u) => u.name?.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      (u) =>
+        u.name?.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
     )
   }, [users, searchQuery])
 
   // Get selected user from list
-  const selectedUser = users.find((u) => u.memberId === selectedMemberId) || null
+  const selectedUser =
+    users.find((u) => u.memberId === selectedMemberId) || null
 
   // User roles from fetcher or empty
   const userRoles = rolesFetcher.data?.userRoles ?? []

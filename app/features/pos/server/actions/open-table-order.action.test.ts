@@ -42,14 +42,24 @@ describe('openTableOrderAction', () => {
   test('throws if table not found', async () => {
     mockRepo.getTableById.mockResolvedValue(null as never)
 
-    await expect(openTableOrderAction(makeInput())).rejects.toThrow('Table not found')
+    await expect(openTableOrderAction(makeInput())).rejects.toThrow(
+      'Table not found'
+    )
   })
 
   test('throws if table already has an open order', async () => {
-    mockRepo.getTableById.mockResolvedValue({ id: 'table-1', status: 'available' } as never)
-    mockRepo.getActiveOrderForTable.mockResolvedValue({ id: 'sale-existing', status: 'open' } as never)
+    mockRepo.getTableById.mockResolvedValue({
+      id: 'table-1',
+      status: 'available',
+    } as never)
+    mockRepo.getActiveOrderForTable.mockResolvedValue({
+      id: 'sale-existing',
+      status: 'open',
+    } as never)
 
-    await expect(openTableOrderAction(makeInput())).rejects.toThrow('Table already has an open order')
+    await expect(openTableOrderAction(makeInput())).rejects.toThrow(
+      'Table already has an open order'
+    )
   })
 
   test('creates open sale and marks table as occupied', async () => {
@@ -58,16 +68,29 @@ describe('openTableOrderAction', () => {
 
     mockRepo.getTableById.mockResolvedValue(table as never)
     mockRepo.getActiveOrderForTable.mockResolvedValue(null as never)
-    mockRepo.updateTableStatus.mockResolvedValue({ ...table, status: 'occupied' } as never)
+    mockRepo.updateTableStatus.mockResolvedValue({
+      ...table,
+      status: 'occupied',
+    } as never)
 
     const { db } = await import('~/server/db')
     ;(db.transaction as ReturnType<typeof vi.fn>).mockImplementation(
-      async (fn: (tx: unknown) => Promise<unknown>) => fn({ insert: vi.fn().mockReturnValue({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([newSale]) }) }) })
+      async (fn: (tx: unknown) => Promise<unknown>) =>
+        fn({
+          insert: vi.fn().mockReturnValue({
+            values: vi.fn().mockReturnValue({
+              returning: vi.fn().mockResolvedValue([newSale]),
+            }),
+          }),
+        })
     )
 
     const result = await openTableOrderAction(makeInput())
 
     expect(result).toEqual(newSale)
-    expect(mockRepo.updateTableStatus).toHaveBeenCalledWith('table-1', 'occupied')
+    expect(mockRepo.updateTableStatus).toHaveBeenCalledWith(
+      'table-1',
+      'occupied'
+    )
   })
 })

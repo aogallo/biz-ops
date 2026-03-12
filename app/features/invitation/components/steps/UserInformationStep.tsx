@@ -102,7 +102,9 @@ export function UserInformationStep({
           </SelectContent>
         </Select>
         {state.errors.roleIds && (
-          <p className='text-destructive mt-1 text-sm'>{state.errors.roleIds}</p>
+          <p className='text-destructive mt-1 text-sm'>
+            {state.errors.roleIds}
+          </p>
         )}
         <p className='text-muted-foreground mt-1 text-xs'>
           An invitation will be sent to this email address

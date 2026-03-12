@@ -17,7 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table'
-import { appointmentStatusConfig, type AppointmentStatus } from '~/features/appointments/schemas'
+import {
+  appointmentStatusConfig,
+  type AppointmentStatus,
+} from '~/features/appointments/schemas'
 import { appointmentsRepository } from '~/features/appointments/server/repository'
 import { deleteBusinessPartner } from '~/features/business-partners/server/actions/delete.action'
 import { businessPartnersRepository } from '~/features/business-partners/server/repository'
@@ -91,9 +94,15 @@ export default function ShowBusinessPartner({
   const getTypeDisplay = (type: string) => {
     switch (type) {
       case 'client':
-        return { label: t('partners.type.client'), description: t('partners.isClient') }
+        return {
+          label: t('partners.type.client'),
+          description: t('partners.isClient'),
+        }
       case 'vendor':
-        return { label: t('partners.type.vendor'), description: t('partners.isVendor') }
+        return {
+          label: t('partners.type.vendor'),
+          description: t('partners.isVendor'),
+        }
       case 'both':
         return {
           label: t('partners.type.both'),
@@ -202,7 +211,9 @@ export default function ShowBusinessPartner({
         <Card>
           <CardHeader>
             <CardTitle>{t('products.metadata')}</CardTitle>
-            <CardDescription>{t('products.metadataDescription')}</CardDescription>
+            <CardDescription>
+              {t('products.metadataDescription')}
+            </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>
@@ -260,11 +271,14 @@ export default function ShowBusinessPartner({
                 </TableHeader>
                 <TableBody>
                   {visitHistory.map((visit) => {
-                    const statusConfig = appointmentStatusConfig[visit.status as AppointmentStatus]
+                    const statusConfig =
+                      appointmentStatusConfig[visit.status as AppointmentStatus]
                     return (
                       <TableRow key={visit.id}>
                         <TableCell className='font-medium'>
-                          {new Date(visit.date + 'T00:00:00').toLocaleDateString()}
+                          {new Date(
+                            visit.date + 'T00:00:00'
+                          ).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
                           {visit.startTime} - {visit.endTime}
@@ -276,7 +290,7 @@ export default function ShowBusinessPartner({
                             {statusConfig?.label || visit.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className='max-w-[200px] truncate text-muted-foreground'>
+                        <TableCell className='text-muted-foreground max-w-[200px] truncate'>
                           {visit.notes || '-'}
                         </TableCell>
                       </TableRow>

@@ -10,10 +10,12 @@ export const organization = {
   'organization.nameHelper': 'The full name of your organization',
   'organization.slugLabel': 'URL Slug',
   'organization.slugPlaceholder': 'acme-corp',
-  'organization.slugHelper': 'Lowercase letters, numbers, and hyphens only (e.g., acme-corp)',
+  'organization.slugHelper':
+    'Lowercase letters, numbers, and hyphens only (e.g., acme-corp)',
   'organization.creating': 'Creating...',
   'organization.settings': 'Organization Settings',
-  'organization.settingsDescription': 'View and manage your profile information.',
+  'organization.settingsDescription':
+    'View and manage your profile information.',
   'organization.debugData': 'Raw User Data (Debug)',
   'organization.deleted': 'Organization deleted successfully',
   'organization.deleted.failed': 'Failed to delete organization',

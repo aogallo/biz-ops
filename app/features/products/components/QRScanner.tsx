@@ -77,12 +77,12 @@ export function QRScanner() {
     <div className='space-y-4'>
       <div
         ref={scannerRef}
-        className='mx-auto max-w-md overflow-hidden rounded-lg bg-muted'
+        className='bg-muted mx-auto max-w-md overflow-hidden rounded-lg'
         style={{ minHeight: scanning ? 300 : 0 }}
       />
 
       {error && (
-        <div className='rounded-md bg-destructive/10 p-3 text-sm text-destructive'>
+        <div className='bg-destructive/10 text-destructive rounded-md p-3 text-sm'>
           {error}
         </div>
       )}
@@ -97,8 +97,9 @@ export function QRScanner() {
         )}
       </div>
 
-      <p className='text-center text-sm text-muted-foreground'>
-        Point your camera at a product QR code to navigate directly to the product page.
+      <p className='text-muted-foreground text-center text-sm'>
+        Point your camera at a product QR code to navigate directly to the
+        product page.
       </p>
     </div>
   )

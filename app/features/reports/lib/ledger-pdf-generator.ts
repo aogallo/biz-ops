@@ -119,7 +119,12 @@ export async function generateLedgerPDF(
 
   const contentWidth = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT
 
-  function drawCentered(text: string, y: number, fontSize: number, usedFont: typeof font) {
+  function drawCentered(
+    text: string,
+    y: number,
+    fontSize: number,
+    usedFont: typeof font
+  ) {
     const textWidth = text.length * fontSize * AVG_CHAR_WIDTH
     page.drawText(text, {
       x: MARGIN_LEFT + (contentWidth - textWidth) / 2,
@@ -132,7 +137,12 @@ export async function generateLedgerPDF(
 
   function drawPageHeader() {
     // Company name
-    drawCentered(data.companyName.toUpperCase(), yPosition, TITLE_FONT_SIZE, boldFont)
+    drawCentered(
+      data.companyName.toUpperCase(),
+      yPosition,
+      TITLE_FONT_SIZE,
+      boldFont
+    )
     yPosition -= TITLE_FONT_SIZE + 3
 
     // Report title
@@ -358,19 +368,49 @@ export async function generateLedgerPDF(
 
     for (const col of numCols) {
       if (col.value !== 0) {
-        drawRightAligned(page, formatCurrency(col.value), MARGIN_LEFT + col.x, COL_WIDTH.num, y, DATA_FONT_SIZE, font)
+        drawRightAligned(
+          page,
+          formatCurrency(col.value),
+          MARGIN_LEFT + col.x,
+          COL_WIDTH.num,
+          y,
+          DATA_FONT_SIZE,
+          font
+        )
       }
     }
 
     // IVA
     if (row.ivaAmount !== 0) {
-      drawRightAligned(page, formatCurrency(row.ivaAmount), MARGIN_LEFT + COL.iva, COL_WIDTH.iva, y, DATA_FONT_SIZE, font)
+      drawRightAligned(
+        page,
+        formatCurrency(row.ivaAmount),
+        MARGIN_LEFT + COL.iva,
+        COL_WIDTH.iva,
+        y,
+        DATA_FONT_SIZE,
+        font
+      )
     }
 
     // Total
-    drawRightAligned(page, formatCurrency(row.totalDocumento), MARGIN_LEFT + COL.total, COL_WIDTH.total, y, DATA_FONT_SIZE, font)
+    drawRightAligned(
+      page,
+      formatCurrency(row.totalDocumento),
+      MARGIN_LEFT + COL.total,
+      COL_WIDTH.total,
+      y,
+      DATA_FONT_SIZE,
+      font
+    )
 
-    const maxLines = Math.max(nombreLines.length, serieLines.length, doctoLines.length, nitLines.length, 1)
+    const maxLines = Math.max(
+      nombreLines.length,
+      serieLines.length,
+      doctoLines.length,
+      nitLines.length,
+      1
+    )
     yPosition -= maxLines * DATA_ROW_HEIGHT
   }
 
@@ -417,11 +457,35 @@ export async function generateLedgerPDF(
     ]
 
     for (const col of totCols) {
-      drawRightAligned(page, formatCurrency(col.value), MARGIN_LEFT + col.x, COL_WIDTH.num, y, TOTAL_FONT_SIZE, boldFont)
+      drawRightAligned(
+        page,
+        formatCurrency(col.value),
+        MARGIN_LEFT + col.x,
+        COL_WIDTH.num,
+        y,
+        TOTAL_FONT_SIZE,
+        boldFont
+      )
     }
 
-    drawRightAligned(page, formatCurrency(gt.ivaAmount), MARGIN_LEFT + COL.iva, COL_WIDTH.iva, y, TOTAL_FONT_SIZE, boldFont)
-    drawRightAligned(page, formatCurrency(gt.totalDocumento), MARGIN_LEFT + COL.total, COL_WIDTH.total, y, TOTAL_FONT_SIZE, boldFont)
+    drawRightAligned(
+      page,
+      formatCurrency(gt.ivaAmount),
+      MARGIN_LEFT + COL.iva,
+      COL_WIDTH.iva,
+      y,
+      TOTAL_FONT_SIZE,
+      boldFont
+    )
+    drawRightAligned(
+      page,
+      formatCurrency(gt.totalDocumento),
+      MARGIN_LEFT + COL.total,
+      COL_WIDTH.total,
+      y,
+      TOTAL_FONT_SIZE,
+      boldFont
+    )
 
     yPosition -= DATA_ROW_HEIGHT
 

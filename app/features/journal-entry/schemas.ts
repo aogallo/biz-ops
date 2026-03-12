@@ -7,10 +7,7 @@ import {
 } from '~/server/db/schemas/journalEntry'
 
 // Base schemas from drizzle-zod
-export {
-  selectJournalEntrySchema,
-  selectJournalEntryLineSchema,
-}
+export { selectJournalEntrySchema, selectJournalEntryLineSchema }
 
 // Schema for creating a journal entry line
 export const createJournalEntryLineSchema = insertJournalEntryLineSchema
@@ -32,7 +29,8 @@ export const createJournalEntryLineSchema = insertJournalEntryLineSchema
       return (hasDebit || hasCredit) && !(hasDebit && hasCredit)
     },
     {
-      message: 'Each line must have either a debit or credit amount, but not both',
+      message:
+        'Each line must have either a debit or credit amount, but not both',
     }
   )
 
@@ -49,7 +47,9 @@ export const createJournalEntrySchema = insertJournalEntrySchema
     entryNumber: true,
   })
   .extend({
-    lines: z.array(createJournalEntryLineSchema).min(2, 'At least 2 lines required'),
+    lines: z
+      .array(createJournalEntryLineSchema)
+      .min(2, 'At least 2 lines required'),
   })
   .refine(
     (data) => {
@@ -83,6 +83,8 @@ export const voidJournalEntrySchema = z.object({
 
 // Types
 export type CreateJournalEntryInput = z.infer<typeof createJournalEntrySchema>
-export type CreateJournalEntryLineInput = z.infer<typeof createJournalEntryLineSchema>
+export type CreateJournalEntryLineInput = z.infer<
+  typeof createJournalEntryLineSchema
+>
 export type PostJournalEntryInput = z.infer<typeof postJournalEntrySchema>
 export type VoidJournalEntryInput = z.infer<typeof voidJournalEntrySchema>

@@ -1,12 +1,4 @@
-import {
-  and,
-  count,
-  desc,
-  eq,
-  ilike,
-  sql,
-  type SQL,
-} from 'drizzle-orm'
+import { and, count, desc, eq, ilike, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   orderModel,
@@ -31,7 +23,10 @@ export interface PaginationOptions {
 export class OrdersRepository {
   async create(data: CreateOrderInput) {
     return await db.transaction(async (tx) => {
-      const orderNumber = await this.generateOrderNumber(tx, data.organizationId)
+      const orderNumber = await this.generateOrderNumber(
+        tx,
+        data.organizationId
+      )
 
       const [order] = await tx
         .insert(orderModel)
@@ -47,9 +42,9 @@ export class OrdersRepository {
         .returning()
 
       for (const detail of data.details) {
-        const lineTotal = (
-          Number(detail.unitPrice) * detail.quantity
-        ).toFixed(2)
+        const lineTotal = (Number(detail.unitPrice) * detail.quantity).toFixed(
+          2
+        )
 
         const [insertedDetail] = await tx
           .insert(orderDetailModel)
@@ -99,13 +94,14 @@ export class OrdersRepository {
     filters: OrderFilters,
     pagination: PaginationOptions
   ) {
-    const conditions: SQL[] = [
-      eq(orderModel.organizationId, organizationId),
-    ]
+    const conditions: SQL[] = [eq(orderModel.organizationId, organizationId)]
 
     if (filters.status) {
       conditions.push(
-        eq(orderModel.status, filters.status as 'DRAFT' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED')
+        eq(
+          orderModel.status,
+          filters.status as 'DRAFT' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
+        )
       )
     }
 
@@ -135,9 +131,10 @@ export class OrdersRepository {
         createdAt: orderModel.createdAt,
         businessPartnerName: businessPartnerModel.name,
         companyName: companyModel.name,
-        itemCount: sql<number>`(SELECT COUNT(*) FROM order_detail WHERE order_detail.order_id = ${orderModel.id})`.as(
-          'item_count'
-        ),
+        itemCount:
+          sql<number>`(SELECT COUNT(*) FROM order_detail WHERE order_detail.order_id = ${orderModel.id})`.as(
+            'item_count'
+          ),
       })
       .from(orderModel)
       .leftJoin(
@@ -204,15 +201,16 @@ export class OrdersRepository {
       .where(eq(orderDetailModel.orderId, id))
 
     const detailIds = details.map((d) => d.id)
-    const recipientsByDetail: Record<string, typeof orderRecipientModel.$inferSelect[]> = {}
+    const recipientsByDetail: Record<
+      string,
+      (typeof orderRecipientModel.$inferSelect)[]
+    > = {}
 
     if (detailIds.length > 0) {
       const allRecipients = await db
         .select()
         .from(orderRecipientModel)
-        .where(
-          sql`${orderRecipientModel.orderDetailId} IN ${detailIds}`
-        )
+        .where(sql`${orderRecipientModel.orderDetailId} IN ${detailIds}`)
 
       for (const r of allRecipients) {
         if (!recipientsByDetail[r.orderDetailId]) {

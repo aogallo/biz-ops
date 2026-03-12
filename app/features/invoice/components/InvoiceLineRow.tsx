@@ -94,27 +94,39 @@ export function InvoiceLineRow({
 
   // Handle update fetcher response
   useEffect(() => {
-    if (updateFetcher.data && updateFetcher.data !== lastUpdateDataRef.current) {
+    if (
+      updateFetcher.data &&
+      updateFetcher.data !== lastUpdateDataRef.current
+    ) {
       lastUpdateDataRef.current = updateFetcher.data
       if ((updateFetcher.data as { success?: boolean }).success) {
         toast.success('Line updated')
         setHasChanges(false)
         onLineUpdated?.()
       } else {
-        toast.error((updateFetcher.data as { error?: string }).error || 'Failed to update line')
+        toast.error(
+          (updateFetcher.data as { error?: string }).error ||
+            'Failed to update line'
+        )
       }
     }
   }, [updateFetcher.data, onLineUpdated])
 
   // Handle remove fetcher response
   useEffect(() => {
-    if (removeFetcher.data && removeFetcher.data !== lastRemoveDataRef.current) {
+    if (
+      removeFetcher.data &&
+      removeFetcher.data !== lastRemoveDataRef.current
+    ) {
       lastRemoveDataRef.current = removeFetcher.data
       if ((removeFetcher.data as { success?: boolean }).success) {
         toast.success('Line removed')
         onLineRemoved?.()
       } else {
-        toast.error((removeFetcher.data as { error?: string }).error || 'Failed to remove line')
+        toast.error(
+          (removeFetcher.data as { error?: string }).error ||
+            'Failed to remove line'
+        )
       }
     }
   }, [removeFetcher.data, onLineRemoved])
@@ -122,7 +134,9 @@ export function InvoiceLineRow({
   const productOptions: ComboboxOption[] = products.map((product) => ({
     value: product.id,
     label: `${product.sku} - ${product.name}`,
-    description: product.price ? `Q ${Number(product.price).toFixed(2)}` : undefined,
+    description: product.price
+      ? `Q ${Number(product.price).toFixed(2)}`
+      : undefined,
   }))
 
   const handleProductChange = useCallback(
@@ -187,18 +201,20 @@ export function InvoiceLineRow({
   const isRemoving = removeFetcher.state !== 'idle'
 
   return (
-    <TableRow className={hasChanges ? 'bg-yellow-50 dark:bg-yellow-950/10' : ''}>
-      <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+    <TableRow
+      className={hasChanges ? 'bg-yellow-50 dark:bg-yellow-950/10' : ''}
+    >
+      <TableCell className='text-muted-foreground'>{index + 1}</TableCell>
       <TableCell>
         <Combobox
           options={productOptions}
           value={productId}
           onValueChange={handleProductChange}
-          placeholder="(Optional) Select product..."
-          searchPlaceholder="Search products..."
-          emptyMessage="No products found."
+          placeholder='(Optional) Select product...'
+          searchPlaceholder='Search products...'
+          emptyMessage='No products found.'
           disabled={!isDraft}
-          size="sm"
+          size='sm'
         />
       </TableCell>
       <TableCell>
@@ -206,34 +222,34 @@ export function InvoiceLineRow({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={saveChanges}
-          placeholder="Description"
-          className="h-8"
+          placeholder='Description'
+          className='h-8'
           disabled={!isDraft}
         />
       </TableCell>
       <TableCell>
         <Input
-          type="number"
-          step="0.0001"
-          min="0.0001"
+          type='number'
+          step='0.0001'
+          min='0.0001'
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
           onBlur={saveChanges}
-          placeholder="1"
-          className="h-8 w-20 text-right font-mono"
+          placeholder='1'
+          className='h-8 w-20 text-right font-mono'
           disabled={!isDraft}
         />
       </TableCell>
       <TableCell>
         <Input
-          type="number"
-          step="0.01"
-          min="0"
+          type='number'
+          step='0.01'
+          min='0'
           value={unitPrice}
           onChange={(e) => setUnitPrice(e.target.value)}
           onBlur={saveChanges}
-          placeholder="0.00"
-          className="h-8 w-28 text-right font-mono"
+          placeholder='0.00'
+          className='h-8 w-28 text-right font-mono'
           disabled={!isDraft}
         />
       </TableCell>
@@ -247,13 +263,13 @@ export function InvoiceLineRow({
           }}
           disabled={!isDraft}
         >
-          <SelectTrigger className="h-8 w-28">
+          <SelectTrigger className='h-8 w-28'>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="taxed">Taxed</SelectItem>
-            <SelectItem value="exempt">Exempt</SelectItem>
-            <SelectItem value="non_subject">Non-subject</SelectItem>
+            <SelectItem value='taxed'>Taxed</SelectItem>
+            <SelectItem value='exempt'>Exempt</SelectItem>
+            <SelectItem value='non_subject'>Non-subject</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>
@@ -266,48 +282,48 @@ export function InvoiceLineRow({
           }}
           disabled={!isDraft}
         >
-          <SelectTrigger className="h-8 w-28">
-            <SelectValue placeholder="—" />
+          <SelectTrigger className='h-8 w-28'>
+            <SelectValue placeholder='—' />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="goods">Bien</SelectItem>
-            <SelectItem value="services">Servicio</SelectItem>
+            <SelectItem value='goods'>Bien</SelectItem>
+            <SelectItem value='services'>Servicio</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>
-      <TableCell className="text-right font-mono">
+      <TableCell className='text-right font-mono'>
         Q {Number(line.subtotal).toFixed(2)}
       </TableCell>
-      <TableCell className="text-right font-mono">
+      <TableCell className='text-right font-mono'>
         Q {Number(line.ivaAmount).toFixed(2)}
       </TableCell>
-      <TableCell className="text-right font-mono font-semibold">
+      <TableCell className='text-right font-mono font-semibold'>
         Q {Number(line.total).toFixed(2)}
       </TableCell>
       <TableCell>
         {isDraft && (
-          <div className="flex items-center gap-1">
+          <div className='flex items-center gap-1'>
             {hasChanges && (
               <Button
-                type="button"
-                variant="ghost"
-                size="sm"
+                type='button'
+                variant='ghost'
+                size='sm'
                 onClick={saveChanges}
                 disabled={isUpdating}
-                className="h-8 px-2 text-xs"
+                className='h-8 px-2 text-xs'
               >
                 {isUpdating ? 'Saving...' : 'Save'}
               </Button>
             )}
             <Button
-              type="button"
-              variant="ghost"
-              size="icon"
+              type='button'
+              variant='ghost'
+              size='icon'
               onClick={handleRemove}
               disabled={isRemoving}
-              className="h-8 w-8"
+              className='h-8 w-8'
             >
-              <Trash2 className="h-4 w-4 text-muted-foreground" />
+              <Trash2 className='text-muted-foreground h-4 w-4' />
             </Button>
           </div>
         )}

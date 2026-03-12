@@ -42,7 +42,9 @@ export function CreateAppointmentDialog({
 }: CreateAppointmentDialogProps) {
   const [clientSearch, setClientSearch] = useState('')
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null)
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
+    null
+  )
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null)
@@ -52,7 +54,8 @@ export function CreateAppointmentDialog({
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-      (client.email && client.email.toLowerCase().includes(clientSearch.toLowerCase()))
+      (client.email &&
+        client.email.toLowerCase().includes(clientSearch.toLowerCase()))
   )
 
   const selectedClient = clients.find((c) => c.id === selectedClientId)
@@ -88,20 +91,20 @@ export function CreateAppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle>Create New Appointment</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className='space-y-6 py-4'>
           {/* Client Information Section */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Client Information</h3>
+          <div className='space-y-3'>
+            <h3 className='text-sm font-medium'>Client Information</h3>
 
             {selectedClient ? (
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-10">
+              <div className='flex items-center justify-between rounded-lg border p-3'>
+                <div className='flex items-center gap-3'>
+                  <Avatar className='size-10'>
                     <AvatarFallback>
                       {selectedClient.name
                         .split(' ')
@@ -112,49 +115,49 @@ export function CreateAppointmentDialog({
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">{selectedClient.name}</div>
+                    <div className='font-medium'>{selectedClient.name}</div>
                     {selectedClient.email && (
-                      <div className="text-sm text-muted-foreground">
+                      <div className='text-muted-foreground text-sm'>
                         {selectedClient.email}
                       </div>
                     )}
                   </div>
                 </div>
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant='ghost'
+                  size='sm'
                   onClick={() => setSelectedClientId(null)}
                 >
                   Change
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <div className='space-y-2'>
+                <div className='relative'>
+                  <Search className='text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2' />
                   <Input
-                    placeholder="Search clients by name or email..."
+                    placeholder='Search clients by name or email...'
                     value={clientSearch}
                     onChange={(e) => setClientSearch(e.target.value)}
-                    className="pl-9"
+                    className='pl-9'
                   />
                 </div>
 
                 {clientSearch && (
-                  <div className="max-h-40 overflow-y-auto rounded-lg border">
+                  <div className='max-h-40 overflow-y-auto rounded-lg border'>
                     {filteredClients.length > 0 ? (
                       filteredClients.map((client) => (
                         <button
                           key={client.id}
-                          type="button"
-                          className="flex w-full items-center gap-3 p-2 text-left hover:bg-accent"
+                          type='button'
+                          className='hover:bg-accent flex w-full items-center gap-3 p-2 text-left'
                           onClick={() => {
                             setSelectedClientId(client.id)
                             setClientSearch('')
                           }}
                         >
-                          <Avatar className="size-8">
-                            <AvatarFallback className="text-xs">
+                          <Avatar className='size-8'>
+                            <AvatarFallback className='text-xs'>
                               {client.name
                                 .split(' ')
                                 .map((n) => n[0])
@@ -164,9 +167,11 @@ export function CreateAppointmentDialog({
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="text-sm font-medium">{client.name}</div>
+                            <div className='text-sm font-medium'>
+                              {client.name}
+                            </div>
                             {client.email && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className='text-muted-foreground text-xs'>
                                 {client.email}
                               </div>
                             )}
@@ -174,15 +179,15 @@ export function CreateAppointmentDialog({
                         </button>
                       ))
                     ) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
+                      <div className='text-muted-foreground p-4 text-center text-sm'>
                         No clients found
                       </div>
                     )}
                   </div>
                 )}
 
-                <Button variant="outline" size="sm" className="w-full">
-                  <Plus className="mr-2 size-4" />
+                <Button variant='outline' size='sm' className='w-full'>
+                  <Plus className='mr-2 size-4' />
                   Create New Client
                 </Button>
               </div>
@@ -192,28 +197,28 @@ export function CreateAppointmentDialog({
           <Separator />
 
           {/* Service & Staff Section */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Service & Staff</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="service">Service</Label>
+          <div className='space-y-3'>
+            <h3 className='text-sm font-medium'>Service & Staff</h3>
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <div className='space-y-2'>
+                <Label htmlFor='service'>Service</Label>
                 <Select
                   value={selectedServiceId || ''}
                   onValueChange={setSelectedServiceId}
                 >
-                  <SelectTrigger id="service">
-                    <SelectValue placeholder="Select a service" />
+                  <SelectTrigger id='service'>
+                    <SelectValue placeholder='Select a service' />
                   </SelectTrigger>
                   <SelectContent>
                     {services.map((service) => (
                       <SelectItem key={service.id} value={service.id}>
-                        <div className="flex items-center gap-2">
+                        <div className='flex items-center gap-2'>
                           <div
-                            className="size-2 rounded-full"
+                            className='size-2 rounded-full'
                             style={{ backgroundColor: service.color }}
                           />
                           <span>{service.name}</span>
-                          <span className="text-muted-foreground">
+                          <span className='text-muted-foreground'>
                             ({service.duration}min)
                           </span>
                         </div>
@@ -223,25 +228,25 @@ export function CreateAppointmentDialog({
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="staff">Staff Member</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='staff'>Staff Member</Label>
                 <Select
                   value={selectedStaffId || ''}
                   onValueChange={setSelectedStaffId}
                 >
-                  <SelectTrigger id="staff">
-                    <SelectValue placeholder="Select staff" />
+                  <SelectTrigger id='staff'>
+                    <SelectValue placeholder='Select staff' />
                   </SelectTrigger>
                   <SelectContent>
                     {staff.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="size-6">
+                        <div className='flex items-center gap-2'>
+                          <Avatar className='size-6'>
                             <AvatarImage
                               src={member.image || undefined}
                               alt={member.name}
                             />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className='text-xs'>
                               {member.name
                                 .split(' ')
                                 .map((n) => n[0])
@@ -260,9 +265,9 @@ export function CreateAppointmentDialog({
             </div>
 
             {selectedStaff && (
-              <div className="flex items-center gap-2 rounded-lg bg-muted/50 p-2 text-sm">
-                <User className="size-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Staff Available</span>
+              <div className='bg-muted/50 flex items-center gap-2 rounded-lg p-2 text-sm'>
+                <User className='text-muted-foreground size-4' />
+                <span className='text-muted-foreground'>Staff Available</span>
               </div>
             )}
           </div>
@@ -270,14 +275,14 @@ export function CreateAppointmentDialog({
           <Separator />
 
           {/* Date & Time Section */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Date & Time</h3>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+          <div className='space-y-3'>
+            <h3 className='text-sm font-medium'>Date & Time</h3>
+            <div className='space-y-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='date'>Date</Label>
                 <Input
-                  id="date"
-                  type="date"
+                  id='date'
+                  type='date'
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
@@ -285,7 +290,7 @@ export function CreateAppointmentDialog({
               </div>
 
               {selectedDate && (
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   <Label>Available Time Slots</Label>
                   <TimeSlotGrid
                     selectedSlot={selectedTimeSlot}
@@ -299,29 +304,29 @@ export function CreateAppointmentDialog({
           <Separator />
 
           {/* Notes Section */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Internal Notes</h3>
-            <div className="space-y-2">
+          <div className='space-y-3'>
+            <h3 className='text-sm font-medium'>Internal Notes</h3>
+            <div className='space-y-2'>
               <Textarea
-                placeholder="Add any notes about this appointment..."
+                placeholder='Add any notes about this appointment...'
                 value={notes}
                 onChange={(e) =>
                   setNotes(e.target.value.slice(0, MAX_NOTES_LENGTH))
                 }
                 rows={3}
               />
-              <div className="text-xs text-muted-foreground text-right">
+              <div className='text-muted-foreground text-right text-xs'>
                 {notes.length}/{MAX_NOTES_LENGTH}
               </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={handleClose}>
+        <DialogFooter className='gap-2 sm:gap-0'>
+          <Button variant='outline' onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="secondary" onClick={handleSave}>
+          <Button variant='secondary' onClick={handleSave}>
             Save as Draft
           </Button>
           <Button

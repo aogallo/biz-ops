@@ -80,9 +80,7 @@ export class PermissionsRepository {
         .orderBy(permissionModel.resource, permissionModel.action)
         .limit(pageSize)
         .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(permissionModel),
+      db.select({ count: sql<number>`count(*)` }).from(permissionModel),
     ])
 
     const total = Number(countResult[0].count)
@@ -106,7 +104,8 @@ export class PermissionsRepository {
 
     if (data.resource !== undefined) updateData.resource = data.resource
     if (data.action !== undefined) updateData.action = data.action
-    if (data.description !== undefined) updateData.description = data.description
+    if (data.description !== undefined)
+      updateData.description = data.description
 
     const [permission] = await db
       .update(permissionModel)
@@ -172,7 +171,9 @@ export class PermissionsRepository {
    */
   async getRoleCount(permissionId: string) {
     const [result] = await db
-      .select({ count: sql<number>`count(distinct ${rolePermissionModel.roleId})` })
+      .select({
+        count: sql<number>`count(distinct ${rolePermissionModel.roleId})`,
+      })
       .from(rolePermissionModel)
       .where(eq(rolePermissionModel.permissionId, permissionId))
 

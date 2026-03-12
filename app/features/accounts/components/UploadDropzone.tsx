@@ -83,11 +83,7 @@ export function UploadDropzone({
   return (
     <div className='space-y-4'>
       <div
-        className={`
-          rounded-lg border-2 border-dashed p-8 text-center transition-colors
-          ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}
-          ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:border-primary/50'}
-        `}
+        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'} ${isUploading ? 'pointer-events-none opacity-50' : 'hover:border-primary/50 cursor-pointer'} `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -106,7 +102,7 @@ export function UploadDropzone({
           <div className='text-muted-foreground'>
             {isUploading ? (
               <div className='flex flex-col items-center gap-2'>
-                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                <Loader2 className='text-primary h-8 w-8 animate-spin' />
                 <span>Uploading {fileName}...</span>
               </div>
             ) : (

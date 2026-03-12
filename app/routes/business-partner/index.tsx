@@ -96,14 +96,14 @@ export default function BusinessPartnersIndex({
         accessorKey: 'name',
         header: t('partners.name'),
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('name')}</span>
+          <span className='font-medium'>{row.getValue('name')}</span>
         ),
       },
       {
         accessorKey: 'nit',
         header: t('partners.nit'),
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('nit')}</span>
+          <span className='font-medium'>{row.getValue('nit')}</span>
         ),
       },
       {
@@ -126,11 +126,14 @@ export default function BusinessPartnersIndex({
         cell: ({ row }) => {
           const email = row.getValue('email') as string | null
           return email ? (
-            <a href={`mailto:${email}`} className="text-primary hover:underline">
+            <a
+              href={`mailto:${email}`}
+              className='text-primary hover:underline'
+            >
               {email}
             </a>
           ) : (
-            <span className="text-muted-foreground">-</span>
+            <span className='text-muted-foreground'>-</span>
           )
         },
       },
@@ -148,7 +151,7 @@ export default function BusinessPartnersIndex({
         cell: ({ row }) => (
           <Link
             to={`/business-partners/${row.original.id}`}
-            className="text-primary text-sm font-medium hover:underline"
+            className='text-primary text-sm font-medium hover:underline'
           >
             {t('common.view')}
           </Link>
@@ -209,7 +212,10 @@ export default function BusinessPartnersIndex({
           </SelectContent>
         </Select>
         <p className='text-muted-foreground text-sm'>
-          {t('common.showing')} {partners.length} {partners.length !== 1 ? t('partners.partners') : t('partners.partner')}
+          {t('common.showing')} {partners.length}{' '}
+          {partners.length !== 1
+            ? t('partners.partners')
+            : t('partners.partner')}
         </p>
       </div>
 

@@ -34,11 +34,12 @@ async function resolveAccountCodes(
   if (uniqueCodes.length === 0) return new Map()
 
   const accounts = await db
-    .select({ id: accountingAccountModel.id, accountNumber: accountingAccountModel.accountNumber })
+    .select({
+      id: accountingAccountModel.id,
+      accountNumber: accountingAccountModel.accountNumber,
+    })
     .from(accountingAccountModel)
-    .where(
-      eq(accountingAccountModel.organizationId, organizationId)
-    )
+    .where(eq(accountingAccountModel.organizationId, organizationId))
 
   // Build map of accountNumber -> id
   const codeToIdMap = new Map<string, string>()
@@ -131,7 +132,8 @@ export async function uploadSatFileAction(
     // Resolve account code to ID if present
     let accountingAccountId: string | null = null
     if (row.accountCode?.trim()) {
-      accountingAccountId = accountCodeToIdMap.get(row.accountCode.trim()) ?? null
+      accountingAccountId =
+        accountCodeToIdMap.get(row.accountCode.trim()) ?? null
     }
 
     return {

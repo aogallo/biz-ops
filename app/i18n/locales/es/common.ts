@@ -51,9 +51,12 @@ export const common = {
   'common.hide': 'Ocultar',
   'common.toggleColumns': 'Alternar columnas',
   'common.accessRequired': 'Acceso requerido',
-  'common.noPermission': 'No tienes permiso para acceder a {{feature}}. Contacta al administrador de tu organización para solicitar acceso.',
-  'common.noPermissionGeneric': 'No tienes permiso para acceder a esta página. Contacta al administrador de tu organización para solicitar acceso.',
-  'common.contactAdmin': 'Si crees que esto es un error, contacta a tu administrador.',
+  'common.noPermission':
+    'No tienes permiso para acceder a {{feature}}. Contacta al administrador de tu organización para solicitar acceso.',
+  'common.noPermissionGeneric':
+    'No tienes permiso para acceder a esta página. Contacta al administrador de tu organización para solicitar acceso.',
+  'common.contactAdmin':
+    'Si crees que esto es un error, contacta a tu administrador.',
   'common.notifications': 'Notificaciones',
   'common.profile': 'Perfil',
   'common.settings': 'Configuración',

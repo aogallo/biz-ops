@@ -56,7 +56,15 @@ export async function action({ request }: Route.ActionArgs) {
   return response
 }
 
-const colorOptions: ServiceColor[] = ['blue', 'green', 'orange', 'teal', 'purple', 'red', 'yellow']
+const colorOptions: ServiceColor[] = [
+  'blue',
+  'green',
+  'orange',
+  'teal',
+  'purple',
+  'red',
+  'yellow',
+]
 
 export default function EditService({ loaderData }: Route.ComponentProps) {
   const { service } = loaderData
@@ -66,99 +74,99 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className='mx-auto max-w-4xl p-6'>
       <Card>
         <CardHeader>
           <CardTitle>{t('services.editTitle')}</CardTitle>
-          <CardDescription>
-            {t('services.description')}
-          </CardDescription>
+          <CardDescription>{t('services.description')}</CardDescription>
         </CardHeader>
-        <Form method="post">
-          <input type="hidden" name="id" value={service.id} />
-          <CardContent className="space-y-6">
+        <Form method='post'>
+          <input type='hidden' name='id' value={service.id} />
+          <CardContent className='space-y-6'>
             {actionData?.message && !actionData.success && (
-              <div className="bg-destructive/10 text-destructive rounded-md p-4 text-sm">
+              <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
                 {actionData.message}
               </div>
             )}
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t('services.name')} *</Label>
+            <div className='grid gap-6 sm:grid-cols-2'>
+              <div className='space-y-2'>
+                <Label htmlFor='name'>{t('services.name')} *</Label>
                 <Input
-                  type="text"
-                  id="name"
-                  name="name"
+                  type='text'
+                  id='name'
+                  name='name'
                   required
                   defaultValue={service.name}
-                  placeholder="e.g., Consultation"
+                  placeholder='e.g., Consultation'
                 />
                 {actionData?.errors?.name && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {actionData.errors.name}
                   </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="duration">{t('services.duration')} *</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='duration'>{t('services.duration')} *</Label>
                 <Input
-                  type="number"
-                  id="duration"
-                  name="duration"
+                  type='number'
+                  id='duration'
+                  name='duration'
                   required
-                  min="5"
-                  max="480"
+                  min='5'
+                  max='480'
                   defaultValue={service.duration}
-                  placeholder="30"
+                  placeholder='30'
                 />
                 {actionData?.errors?.duration && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {actionData.errors.duration}
                   </p>
                 )}
-                <p className="text-muted-foreground text-xs">
+                <p className='text-muted-foreground text-xs'>
                   Between 5 minutes and 8 hours
                 </p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">{t('services.price')}</Label>
+            <div className='space-y-2'>
+              <Label htmlFor='price'>{t('services.price')}</Label>
               <Input
-                type="number"
-                id="price"
-                name="price"
-                step="0.01"
-                min="0"
+                type='number'
+                id='price'
+                name='price'
+                step='0.01'
+                min='0'
                 defaultValue={service.price || ''}
-                placeholder="0.00"
+                placeholder='0.00'
               />
               {actionData?.errors?.price && (
-                <p className="text-destructive text-xs">
+                <p className='text-destructive text-xs'>
                   {actionData.errors.price}
                 </p>
               )}
-              <p className="text-muted-foreground text-xs">
+              <p className='text-muted-foreground text-xs'>
                 Optional - service price for billing and reports
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="color">{t('services.color')} *</Label>
-              <Select name="color" defaultValue={service.color}>
-                <SelectTrigger id="color">
-                  <SelectValue placeholder="Select a color" />
+            <div className='space-y-2'>
+              <Label htmlFor='color'>{t('services.color')} *</Label>
+              <Select name='color' defaultValue={service.color}>
+                <SelectTrigger id='color'>
+                  <SelectValue placeholder='Select a color' />
                 </SelectTrigger>
                 <SelectContent>
                   {colorOptions.map((color) => {
                     const colorStyles = serviceColorMap[color]
                     return (
                       <SelectItem key={color} value={color}>
-                        <div className="flex items-center gap-2">
-                          <div className={`size-3 rounded-full ${colorStyles.dot}`} />
-                          <span className="capitalize">{color}</span>
+                        <div className='flex items-center gap-2'>
+                          <div
+                            className={`size-3 rounded-full ${colorStyles.dot}`}
+                          />
+                          <span className='capitalize'>{color}</span>
                         </div>
                       </SelectItem>
                     )
@@ -166,51 +174,51 @@ export default function EditService({ loaderData }: Route.ComponentProps) {
                 </SelectContent>
               </Select>
               {actionData?.errors?.color && (
-                <p className="text-destructive text-xs">
+                <p className='text-destructive text-xs'>
                   {actionData.errors.color}
                 </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">{t('services.description')}</Label>
+            <div className='space-y-2'>
+              <Label htmlFor='description'>{t('services.description')}</Label>
               <Textarea
-                id="description"
-                name="description"
+                id='description'
+                name='description'
                 defaultValue={service.description || ''}
-                placeholder="Describe this service..."
+                placeholder='Describe this service...'
                 rows={3}
               />
               {actionData?.errors?.description && (
-                <p className="text-destructive text-xs">
+                <p className='text-destructive text-xs'>
                   {actionData.errors.description}
                 </p>
               )}
-              <p className="text-muted-foreground text-xs">
+              <p className='text-muted-foreground text-xs'>
                 Optional description (max 500 characters)
               </p>
             </div>
 
-            <div className="flex items-start gap-3 rounded-lg border p-4">
+            <div className='flex items-start gap-3 rounded-lg border p-4'>
               <Checkbox
-                id="isActive"
-                name="isActive"
-                value="true"
+                id='isActive'
+                name='isActive'
+                value='true'
                 defaultChecked={service.isActive}
               />
-              <div className="space-y-0.5">
-                <Label htmlFor="isActive">Active Status</Label>
-                <p className="text-muted-foreground text-sm">
+              <div className='space-y-0.5'>
+                <Label htmlFor='isActive'>Active Status</Label>
+                <p className='text-muted-foreground text-sm'>
                   Inactive services cannot be selected for new appointments
                 </p>
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end gap-3 border-t pt-6">
-            <Button type="button" variant="outline" asChild>
-              <a href="/services">{t('common.cancel')}</a>
+          <CardFooter className='flex justify-end gap-3 border-t pt-6'>
+            <Button type='button' variant='outline' asChild>
+              <a href='/services'>{t('common.cancel')}</a>
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type='submit' disabled={isSubmitting}>
               {isSubmitting ? t('common.saving') : t('common.save')}
             </Button>
           </CardFooter>

@@ -287,8 +287,7 @@ export function OrderForm({
                       )}
                     </div>
                     <p className='text-sm font-semibold whitespace-nowrap'>
-                      $
-                      {(Number(item.unitPrice) * item.quantity).toFixed(2)}
+                      ${(Number(item.unitPrice) * item.quantity).toFixed(2)}
                     </p>
                     <div className='flex items-center gap-1'>
                       {!item.isExpanded && (
@@ -312,7 +311,7 @@ export function OrderForm({
 
                   {/* Expanded edit form */}
                   {item.isExpanded && (
-                    <div className='space-y-3 border-t px-4 pb-4 pt-3'>
+                    <div className='space-y-3 border-t px-4 pt-3 pb-4'>
                       <div className='grid gap-3 sm:grid-cols-4'>
                         <div>
                           <label className='mb-1 block text-xs font-medium'>
@@ -372,7 +371,9 @@ export function OrderForm({
                           </label>
                           <p className='px-3 py-2 text-sm font-semibold'>
                             $
-                            {(Number(item.unitPrice) * item.quantity).toFixed(2)}
+                            {(Number(item.unitPrice) * item.quantity).toFixed(
+                              2
+                            )}
                           </p>
                         </div>
                       </div>

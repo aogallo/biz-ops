@@ -10,10 +10,7 @@ import {
   text,
   uuid,
 } from 'drizzle-orm/pg-core'
-import {
-  createInsertSchema,
-  createSelectSchema,
-} from 'drizzle-zod'
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type { z } from 'zod'
 import { organizationModel } from './auth'
 import { timestamps } from './common'
@@ -131,16 +128,24 @@ export const kitchenTicketItemRelations = relations(
   })
 )
 
-export const selectKitchenStationSchema = createSelectSchema(kitchenStationModel)
-export const insertKitchenStationSchema = createInsertSchema(kitchenStationModel)
+export const selectKitchenStationSchema =
+  createSelectSchema(kitchenStationModel)
+export const insertKitchenStationSchema =
+  createInsertSchema(kitchenStationModel)
 export const selectKitchenTicketSchema = createSelectSchema(kitchenTicketModel)
 export const insertKitchenTicketSchema = createInsertSchema(kitchenTicketModel)
-export const selectKitchenTicketItemSchema = createSelectSchema(kitchenTicketItemModel)
-export const insertKitchenTicketItemSchema = createInsertSchema(kitchenTicketItemModel)
+export const selectKitchenTicketItemSchema = createSelectSchema(
+  kitchenTicketItemModel
+)
+export const insertKitchenTicketItemSchema = createInsertSchema(
+  kitchenTicketItemModel
+)
 
 export type KitchenStation = z.infer<typeof selectKitchenStationSchema>
 export type InsertKitchenStation = z.infer<typeof insertKitchenStationSchema>
 export type KitchenTicket = z.infer<typeof selectKitchenTicketSchema>
 export type InsertKitchenTicket = z.infer<typeof insertKitchenTicketSchema>
 export type KitchenTicketItem = z.infer<typeof selectKitchenTicketItemSchema>
-export type InsertKitchenTicketItem = z.infer<typeof insertKitchenTicketItemSchema>
+export type InsertKitchenTicketItem = z.infer<
+  typeof insertKitchenTicketItemSchema
+>

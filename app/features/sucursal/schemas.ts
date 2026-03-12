@@ -8,7 +8,11 @@ export const createSucursalSchema = insertSucursalFormSchema
   .omit({ id: true, createdAt: true, updatedAt: true })
   .extend({
     name: z.string().min(1, 'Name is required'),
-    code: z.string().min(1, 'Code is required').max(20, 'Code max 20 chars').toUpperCase(),
+    code: z
+      .string()
+      .min(1, 'Code is required')
+      .max(20, 'Code max 20 chars')
+      .toUpperCase(),
     organizationId: z.string().uuid(),
     companyId: z.string().uuid().optional().nullable(),
     address: z.string().optional().nullable(),

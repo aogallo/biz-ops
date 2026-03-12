@@ -30,7 +30,9 @@ export function ProductSearchCombobox({
       products.map((product) => ({
         value: product.id,
         label: `${product.sku} - ${product.name}`,
-        description: product.price ? `Q ${Number(product.price).toFixed(2)}` : undefined,
+        description: product.price
+          ? `Q ${Number(product.price).toFixed(2)}`
+          : undefined,
       })),
     [products]
   )
@@ -46,8 +48,8 @@ export function ProductSearchCombobox({
       value={value}
       onValueChange={handleValueChange}
       placeholder={placeholder}
-      searchPlaceholder="Search by SKU or name..."
-      emptyMessage="No products found."
+      searchPlaceholder='Search by SKU or name...'
+      emptyMessage='No products found.'
       disabled={disabled}
       size={size}
     />

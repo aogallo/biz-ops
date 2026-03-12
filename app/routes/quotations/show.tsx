@@ -1,12 +1,7 @@
 import { Link, useFetcher } from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { quotationsRepository } from '~/features/quotations/server/repository'
 import { updateQuotationStatusAction } from '~/features/quotations/server/actions/update-status.action'
 import { convertToOrderAction } from '~/features/quotations/server/actions/convert-to-order.action'
@@ -58,7 +53,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 const statusConfig: Record<
   string,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  {
+    label: string
+    variant: 'default' | 'secondary' | 'destructive' | 'outline'
+  }
 > = {
   DRAFT: { label: 'Draft', variant: 'secondary' },
   SENT: { label: 'Sent', variant: 'default' },
@@ -90,7 +88,7 @@ export default function ShowQuotation({ loaderData }: Route.ComponentProps) {
       <div className='mb-6 flex items-start justify-between'>
         <div>
           <div className='flex items-center gap-3'>
-            <h1 className='text-2xl font-bold font-mono'>
+            <h1 className='font-mono text-2xl font-bold'>
               {quotation.quotationNumber}
             </h1>
             <Badge variant={config.variant}>{config.label}</Badge>
@@ -149,7 +147,7 @@ export default function ShowQuotation({ loaderData }: Route.ComponentProps) {
       </div>
 
       {fetcher.data && 'message' in fetcher.data && !fetcher.data.success && (
-        <div className='mb-6 rounded-lg bg-destructive/10 p-4 text-sm text-destructive'>
+        <div className='bg-destructive/10 text-destructive mb-6 rounded-lg p-4 text-sm'>
           {fetcher.data.message as string}
         </div>
       )}
@@ -221,10 +219,8 @@ export default function ShowQuotation({ loaderData }: Route.ComponentProps) {
           <div className='overflow-hidden rounded-lg border'>
             <table className='w-full text-sm'>
               <thead>
-                <tr className='border-b bg-muted/40'>
-                  <th className='px-4 py-2.5 text-left font-medium'>
-                    Product
-                  </th>
+                <tr className='bg-muted/40 border-b'>
+                  <th className='px-4 py-2.5 text-left font-medium'>Product</th>
                   <th className='px-4 py-2.5 text-left font-medium'>SKU</th>
                   <th className='px-4 py-2.5 text-right font-medium'>Qty</th>
                   <th className='px-4 py-2.5 text-right font-medium'>
@@ -233,9 +229,7 @@ export default function ShowQuotation({ loaderData }: Route.ComponentProps) {
                   <th className='px-4 py-2.5 text-center font-medium'>
                     Source
                   </th>
-                  <th className='px-4 py-2.5 text-right font-medium'>
-                    Total
-                  </th>
+                  <th className='px-4 py-2.5 text-right font-medium'>Total</th>
                 </tr>
               </thead>
               <tbody className='divide-y'>
@@ -279,7 +273,7 @@ export default function ShowQuotation({ loaderData }: Route.ComponentProps) {
                         </div>
                       )}
                     </td>
-                    <td className='px-4 py-3 font-mono text-xs text-muted-foreground'>
+                    <td className='text-muted-foreground px-4 py-3 font-mono text-xs'>
                       {detail.productSku ?? '-'}
                     </td>
                     <td className='px-4 py-3 text-right'>{detail.quantity}</td>
@@ -298,7 +292,7 @@ export default function ShowQuotation({ loaderData }: Route.ComponentProps) {
                 ))}
               </tbody>
               <tfoot>
-                <tr className='border-t bg-muted/20'>
+                <tr className='bg-muted/20 border-t'>
                   <td
                     colSpan={5}
                     className='px-4 py-3 text-right font-semibold'

@@ -96,9 +96,7 @@ export default function NewStockMovement({ loaderData }: Route.ComponentProps) {
                 <select id='type' name='type' required className={inputClass}>
                   <option value='entry'>Entry (Stock In)</option>
                   <option value='exit'>Exit (Stock Out)</option>
-                  <option value='adjustment'>
-                    Adjustment (Set Absolute)
-                  </option>
+                  <option value='adjustment'>Adjustment (Set Absolute)</option>
                 </select>
               </div>
 

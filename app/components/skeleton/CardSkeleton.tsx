@@ -6,7 +6,10 @@ interface CardSkeletonProps {
   lines?: number
 }
 
-export function CardSkeleton({ showHeader = true, lines = 3 }: CardSkeletonProps) {
+export function CardSkeleton({
+  showHeader = true,
+  lines = 3,
+}: CardSkeletonProps) {
   return (
     <Card>
       {showHeader && (

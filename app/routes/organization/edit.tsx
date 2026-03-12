@@ -1,5 +1,11 @@
 import { useState } from 'react'
-import { Form, Link, redirect, useActionData, useNavigation } from 'react-router'
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from 'react-router'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -36,7 +42,9 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (result.success) {
     return redirectWithFlash(`/organization/${result.newSlug}`, {
       type: 'success',
-      message: translateServer(locale, 'messages.organization.updated') ?? 'Organization updated.',
+      message:
+        translateServer(locale, 'messages.organization.updated') ??
+        'Organization updated.',
     })
   }
 
@@ -49,7 +57,9 @@ export default function EditOrganization({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
 
-  const [logoPreview, setLogoPreview] = useState<string | null>(organization.logo ?? null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    organization.logo ?? null
+  )
   const [domain, setDomain] = useState(organization.domain ?? '')
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,126 +72,152 @@ export default function EditOrganization({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="p-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <div className='p-6'>
+      <div className='mx-auto max-w-2xl space-y-6'>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <div>
-            <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <Link to="/organization" className="hover:text-foreground transition-colors">
+            <div className='text-muted-foreground mb-1 flex items-center gap-2 text-sm'>
+              <Link
+                to='/organization'
+                className='hover:text-foreground transition-colors'
+              >
                 Organizations
               </Link>
               <span>/</span>
               <Link
                 to={`/organization/${organization.slug}`}
-                className="hover:text-foreground transition-colors"
+                className='hover:text-foreground transition-colors'
               >
                 {organization.name}
               </Link>
               <span>/</span>
-              <span className="text-foreground">Edit</span>
+              <span className='text-foreground'>Edit</span>
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">Edit Organization</h1>
+            <h1 className='text-2xl font-semibold tracking-tight'>
+              Edit Organization
+            </h1>
           </div>
         </div>
 
         {actionData?.message && (
-          <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+          <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
             {actionData.message}
           </div>
         )}
 
-        <Form method="post" encType="multipart/form-data">
+        <Form method='post' encType='multipart/form-data'>
           {/* Keep current logo as fallback if no new file selected */}
-          <input type="hidden" name="currentLogo" value={organization.logo ?? ''} />
+          <input
+            type='hidden'
+            name='currentLogo'
+            value={organization.logo ?? ''}
+          />
 
-          <Card className="rounded-xl shadow-sm">
+          <Card className='rounded-xl shadow-sm'>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Organization Info</CardTitle>
-              <CardDescription>Update name, slug, logo and domain.</CardDescription>
+              <CardTitle className='text-base font-semibold'>
+                Organization Info
+              </CardTitle>
+              <CardDescription>
+                Update name, slug, logo and domain.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className='space-y-5'>
               {/* Logo */}
               <div>
-                <label htmlFor="logo" className="mb-2 block text-sm font-medium">
+                <label
+                  htmlFor='logo'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Logo
                 </label>
-                <div className="flex items-center gap-4">
+                <div className='flex items-center gap-4'>
                   {logoPreview ? (
                     <img
                       src={logoPreview}
-                      alt="Logo preview"
-                      className="h-16 w-16 rounded-full border object-cover"
+                      alt='Logo preview'
+                      className='h-16 w-16 rounded-full border object-cover'
                     />
                   ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border bg-muted text-xl font-semibold text-muted-foreground">
+                    <div className='bg-muted text-muted-foreground flex h-16 w-16 items-center justify-center rounded-full border text-xl font-semibold'>
                       {organization.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <input
-                    type="file"
-                    id="logo"
-                    name="logo"
-                    accept="image/*"
+                    type='file'
+                    id='logo'
+                    name='logo'
+                    accept='image/*'
                     onChange={handleLogoChange}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                    className='border-input bg-background file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 w-full rounded-md border px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium'
                   />
                 </div>
               </div>
 
               {/* Name */}
               <div>
-                <label htmlFor="name" className="mb-1.5 block text-sm font-medium">
+                <label
+                  htmlFor='name'
+                  className='mb-1.5 block text-sm font-medium'
+                >
                   Name
                 </label>
                 <input
-                  type="text"
-                  id="name"
-                  name="name"
+                  type='text'
+                  id='name'
+                  name='name'
                   required
                   defaultValue={organization.name ?? ''}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
               </div>
 
               {/* Slug */}
               <div>
-                <label htmlFor="slug" className="mb-1.5 block text-sm font-medium">
+                <label
+                  htmlFor='slug'
+                  className='mb-1.5 block text-sm font-medium'
+                >
                   Slug
                 </label>
                 <input
-                  type="text"
-                  id="slug"
-                  name="slug"
+                  type='text'
+                  id='slug'
+                  name='slug'
                   required
                   defaultValue={organization.slug ?? ''}
-                  pattern="[a-z0-9-]+"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  pattern='[a-z0-9-]+'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Only lowercase letters, numbers and hyphens. Changing this will update the URL.
+                <p className='text-muted-foreground mt-1 text-xs'>
+                  Only lowercase letters, numbers and hyphens. Changing this
+                  will update the URL.
                 </p>
               </div>
 
               {/* Domain */}
               <div>
-                <label htmlFor="domain" className="mb-1.5 block text-sm font-medium">
+                <label
+                  htmlFor='domain'
+                  className='mb-1.5 block text-sm font-medium'
+                >
                   Domain
                 </label>
                 <input
-                  type="text"
-                  id="domain"
-                  name="domain"
+                  type='text'
+                  id='domain'
+                  name='domain'
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
-                  placeholder="miempresa"
-                  pattern="[a-z0-9-]*"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder='miempresa'
+                  pattern='[a-z0-9-]*'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                 />
                 {domain && (
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className='text-muted-foreground mt-1 text-xs'>
                     URL:{' '}
-                    <span className="font-medium text-foreground">
+                    <span className='text-foreground font-medium'>
                       https://{domain}.{appDomain}
                     </span>
                   </p>
@@ -191,11 +227,11 @@ export default function EditOrganization({ loaderData }: Route.ComponentProps) {
           </Card>
 
           {/* Footer actions */}
-          <div className="mt-6 flex items-center gap-3">
-            <Button type="submit" disabled={isSubmitting}>
+          <div className='mt-6 flex items-center gap-3'>
+            <Button type='submit' disabled={isSubmitting}>
               {isSubmitting ? 'Saving…' : 'Save changes'}
             </Button>
-            <Button variant="ghost" asChild>
+            <Button variant='ghost' asChild>
               <Link to={`/organization/${organization.slug}`}>Cancel</Link>
             </Button>
           </div>

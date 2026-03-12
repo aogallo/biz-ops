@@ -30,7 +30,8 @@ const FULL_CUT = GS + 'V\x00'
 
 export function buildEscPos(receipt: ReceiptData, t: T): string {
   const totalReceived = receipt.payments.reduce(
-    (sum, p) => sum + (p.receivedAmount !== null ? Number(p.receivedAmount) : 0),
+    (sum, p) =>
+      sum + (p.receivedAmount !== null ? Number(p.receivedAmount) : 0),
     0
   )
   const totalChange = receipt.payments.reduce(
@@ -89,7 +90,8 @@ export function buildEscPos(receipt: ReceiptData, t: T): string {
   out += rowLR(t('pos.subtotal'), fmt(Number(receipt.subtotal))) + '\n'
 
   if (Number(receipt.discountAmount) > 0) {
-    out += rowLR(t('pos.discount'), `-${fmt(Number(receipt.discountAmount))}`) + '\n'
+    out +=
+      rowLR(t('pos.discount'), `-${fmt(Number(receipt.discountAmount))}`) + '\n'
   }
 
   out += rowLR('IVA', fmt(Number(receipt.ivaAmount))) + '\n'

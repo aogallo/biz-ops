@@ -47,19 +47,19 @@ Reemplazar `<host>` y `<terminalId>` con los valores reales del entorno.
 
 En `scripts/pos-launchers/` hay scripts listos para copiar al Desktop del operador:
 
-| Archivo | Plataforma |
-|---|---|
-| `pos-launcher-macos.sh` | macOS (Chrome) |
+| Archivo                    | Plataforma       |
+| -------------------------- | ---------------- |
+| `pos-launcher-macos.sh`    | macOS (Chrome)   |
 | `pos-launcher-windows.bat` | Windows (Chrome) |
 
 Editar el script con el `HOST` y `TERMINAL_ID` correspondientes antes de usar.
 
 ## Comportamiento esperado
 
-| Configuracion | Sin `--kiosk-printing` | Con `--kiosk-printing` |
-|---|---|---|
-| `autoPrintReceipt = true` | Dialogo del browser | Imprime directo, sin dialogo |
-| `autoPrintReceipt = false` + click "Imprimir" | Dialogo del browser | Imprime directo, sin dialogo |
+| Configuracion                                 | Sin `--kiosk-printing` | Con `--kiosk-printing`       |
+| --------------------------------------------- | ---------------------- | ---------------------------- |
+| `autoPrintReceipt = true`                     | Dialogo del browser    | Imprime directo, sin dialogo |
+| `autoPrintReceipt = false` + click "Imprimir" | Dialogo del browser    | Imprime directo, sin dialogo |
 
 ## Verificacion
 

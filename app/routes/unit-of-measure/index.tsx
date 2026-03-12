@@ -30,7 +30,9 @@ export async function action({ request }: Route.ActionArgs) {
   return { error: 'Unknown intent' }
 }
 
-export default function UnitOfMeasureIndex({ loaderData }: Route.ComponentProps) {
+export default function UnitOfMeasureIndex({
+  loaderData,
+}: Route.ComponentProps) {
   const { units } = loaderData
 
   return (
@@ -39,7 +41,7 @@ export default function UnitOfMeasureIndex({ loaderData }: Route.ComponentProps)
         <h1 className='text-2xl font-bold'>Unidades de Medida</h1>
         <a
           href='/unit-of-measure/create'
-          className='rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground'
+          className='bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium'
         >
           Nueva Unidad
         </a>
@@ -47,7 +49,7 @@ export default function UnitOfMeasureIndex({ loaderData }: Route.ComponentProps)
 
       <div className='rounded-lg border'>
         <table className='w-full text-sm'>
-          <thead className='border-b bg-muted/50'>
+          <thead className='bg-muted/50 border-b'>
             <tr>
               <th className='px-4 py-3 text-left'>Nombre</th>
               <th className='px-4 py-3 text-left'>Abreviatura</th>
@@ -75,7 +77,8 @@ export default function UnitOfMeasureIndex({ loaderData }: Route.ComponentProps)
                       type='submit'
                       className='text-red-600 hover:underline'
                       onClick={(e) => {
-                        if (!confirm('¿Eliminar esta unidad?')) e.preventDefault()
+                        if (!confirm('¿Eliminar esta unidad?'))
+                          e.preventDefault()
                       }}
                     >
                       Eliminar
@@ -86,7 +89,10 @@ export default function UnitOfMeasureIndex({ loaderData }: Route.ComponentProps)
             ))}
             {units.length === 0 && (
               <tr>
-                <td colSpan={4} className='px-4 py-8 text-center text-muted-foreground'>
+                <td
+                  colSpan={4}
+                  className='text-muted-foreground px-4 py-8 text-center'
+                >
                   No hay unidades de medida configuradas
                 </td>
               </tr>

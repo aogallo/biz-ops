@@ -86,11 +86,17 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const access: Partial<Record<ModuleKey, ModuleAccessLevel>> = {}
   for (const moduleKey of APP_MODULES) {
-    const level = formData.get(`access_${moduleKey}`) as ModuleAccessLevel | null
+    const level = formData.get(
+      `access_${moduleKey}`
+    ) as ModuleAccessLevel | null
     access[moduleKey] = level ?? 'none'
   }
 
-  await modulesRepository.setAllMemberModuleAccess(memberId, organizationId, access)
+  await modulesRepository.setAllMemberModuleAccess(
+    memberId,
+    organizationId,
+    access
+  )
 
   return redirectWithFlash(`/users?organizationId=${organizationId}`, {
     type: 'success',
@@ -138,10 +144,7 @@ export default function MemberModulePermissionsPage({
           {activeOrgModules.length === 0 && (
             <div className='text-muted-foreground py-4 text-center text-sm'>
               Esta organización no tiene módulos activos. Activá módulos en{' '}
-              <Link
-                to='/settings/modules'
-                className='text-primary underline'
-              >
+              <Link to='/settings/modules' className='text-primary underline'>
                 Configuración → Módulos
               </Link>
               .

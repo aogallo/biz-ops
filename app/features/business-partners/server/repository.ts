@@ -1,12 +1,12 @@
-import { and, eq, inArray, ne, or } from "drizzle-orm";
-import { db } from "~/server/db";
-import { businessPartnerModel } from "~/server/db/schemas/businessPartner";
-import type { CreateBusinessPartnerInput, PartnerType } from "../schemas";
+import { and, eq, inArray, ne, or } from 'drizzle-orm'
+import { db } from '~/server/db'
+import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
+import type { CreateBusinessPartnerInput, PartnerType } from '../schemas'
 
 export interface PartnerToCreate {
-  nit: string;
-  name: string;
-  type: PartnerType;
+  nit: string
+  name: string
+  type: PartnerType
 }
 
 export class BusinessPartnersRepository {
@@ -18,13 +18,13 @@ export class BusinessPartnersRepository {
     const partnerData = {
       ...data,
       email: data.email || null,
-    };
+    }
 
     const [partner] = await db
       .insert(businessPartnerModel)
       .values(partnerData)
-      .returning();
-    return partner;
+      .returning()
+    return partner
   }
 
   /**
@@ -36,16 +36,16 @@ export class BusinessPartnersRepository {
           eq(businessPartnerModel.organizationId, organizationId),
           or(
             eq(businessPartnerModel.type, type),
-            eq(businessPartnerModel.type, "both"),
-          ),
+            eq(businessPartnerModel.type, 'both')
+          )
         )
-      : eq(businessPartnerModel.organizationId, organizationId);
+      : eq(businessPartnerModel.organizationId, organizationId)
 
     return await db
       .select()
       .from(businessPartnerModel)
       .where(conditions)
-      .orderBy(businessPartnerModel.name);
+      .orderBy(businessPartnerModel.name)
   }
 
   /**
@@ -56,9 +56,9 @@ export class BusinessPartnersRepository {
       .select()
       .from(businessPartnerModel)
       .where(eq(businessPartnerModel.id, id))
-      .limit(1);
+      .limit(1)
 
-    return partner || null;
+    return partner || null
   }
 
   /**
@@ -71,26 +71,26 @@ export class BusinessPartnersRepository {
       .where(
         and(
           eq(businessPartnerModel.organizationId, organizationId),
-          eq(businessPartnerModel.id, id),
-        ),
+          eq(businessPartnerModel.id, id)
+        )
       )
-      .limit(1);
+      .limit(1)
 
-    return partner || null;
+    return partner || null
   }
 
   /**
    * Get clients only
    */
   async getClients(organizationId: string) {
-    return this.getAllByOrganization(organizationId, "client");
+    return this.getAllByOrganization(organizationId, 'client')
   }
 
   /**
    * Get vendors only
    */
   async getVendors(organizationId: string) {
-    return this.getAllByOrganization(organizationId, "vendor");
+    return this.getAllByOrganization(organizationId, 'vendor')
   }
 
   /**
@@ -101,15 +101,15 @@ export class BusinessPartnersRepository {
       ...data,
       email: data.email || null,
       updatedAt: new Date(),
-    };
+    }
 
     const [partner] = await db
       .update(businessPartnerModel)
       .set(updateData)
       .where(eq(businessPartnerModel.id, id))
-      .returning();
+      .returning()
 
-    return partner || null;
+    return partner || null
   }
 
   /**
@@ -119,10 +119,10 @@ export class BusinessPartnersRepository {
     try {
       await db
         .delete(businessPartnerModel)
-        .where(eq(businessPartnerModel.id, id));
-      return true;
+        .where(eq(businessPartnerModel.id, id))
+      return true
     } catch {
-      return false;
+      return false
     }
   }
 
@@ -132,35 +132,35 @@ export class BusinessPartnersRepository {
   async existsByEmail(
     organizationId: string,
     email: string,
-    excludeId?: string,
+    excludeId?: string
   ) {
-    if (!email) return false;
+    if (!email) return false
 
     const conditions = excludeId
       ? and(
           eq(businessPartnerModel.organizationId, organizationId),
           eq(businessPartnerModel.email, email),
-          ne(businessPartnerModel.id, excludeId),
+          ne(businessPartnerModel.id, excludeId)
         )
       : and(
           eq(businessPartnerModel.organizationId, organizationId),
-          eq(businessPartnerModel.email, email),
-        );
+          eq(businessPartnerModel.email, email)
+        )
 
     const [partner] = await db
       .select({ id: businessPartnerModel.id })
       .from(businessPartnerModel)
       .where(conditions)
-      .limit(1);
+      .limit(1)
 
-    return !!partner;
+    return !!partner
   }
 
   /**
    * Find business partner by NIT within organization
    */
   async findByNit(organizationId: string, nit: string) {
-    if (!nit) return null;
+    if (!nit) return null
 
     const [partner] = await db
       .select()
@@ -168,19 +168,19 @@ export class BusinessPartnersRepository {
       .where(
         and(
           eq(businessPartnerModel.organizationId, organizationId),
-          eq(businessPartnerModel.nit, nit),
-        ),
+          eq(businessPartnerModel.nit, nit)
+        )
       )
-      .limit(1);
+      .limit(1)
 
-    return partner || null;
+    return partner || null
   }
 
   /**
    * Find all business partners by NITs within organization
    */
   async findByNits(organizationId: string, nits: string[]) {
-    if (nits.length === 0) return [];
+    if (nits.length === 0) return []
 
     return await db
       .select()
@@ -188,9 +188,9 @@ export class BusinessPartnersRepository {
       .where(
         and(
           eq(businessPartnerModel.organizationId, organizationId),
-          inArray(businessPartnerModel.nit, nits),
-        ),
-      );
+          inArray(businessPartnerModel.nit, nits)
+        )
+      )
   }
 
   /**
@@ -199,39 +199,43 @@ export class BusinessPartnersRepository {
    */
   async bulkFindOrCreateByNit(
     organizationId: string,
-    partners: PartnerToCreate[],
+    partners: PartnerToCreate[]
   ): Promise<Map<string, string>> {
-    const nitToIdMap = new Map<string, string>();
+    const nitToIdMap = new Map<string, string>()
 
-    if (partners.length === 0) return nitToIdMap;
+    if (partners.length === 0) return nitToIdMap
 
     // Get unique NITs
-    const uniquePartners = new Map<string, PartnerToCreate>();
+    const uniquePartners = new Map<string, PartnerToCreate>()
     for (const partner of partners) {
       if (partner.nit && !uniquePartners.has(partner.nit)) {
-        uniquePartners.set(partner.nit, partner);
+        uniquePartners.set(partner.nit, partner)
       }
     }
 
-    const uniqueNits = Array.from(uniquePartners.keys());
+    const uniqueNits = Array.from(uniquePartners.keys())
 
     // Find existing partners by NIT
-    const existingPartners = await this.findByNits(organizationId, uniqueNits);
+    const existingPartners = await this.findByNits(organizationId, uniqueNits)
 
     // Build map of existing partners and check for type upgrades
-    const partnersToUpgrade: { id: string; currentType: string }[] = [];
+    const partnersToUpgrade: { id: string; currentType: string }[] = []
     for (const existing of existingPartners) {
       if (existing.nit) {
-        nitToIdMap.set(existing.nit, existing.id);
+        nitToIdMap.set(existing.nit, existing.id)
 
         // Check if partner needs type upgrade to "both"
-        const requestedPartner = uniquePartners.get(existing.nit);
-        if (requestedPartner && existing.type !== "both") {
+        const requestedPartner = uniquePartners.get(existing.nit)
+        if (requestedPartner && existing.type !== 'both') {
           if (
-            (existing.type === "client" && requestedPartner.type === "vendor") ||
-            (existing.type === "vendor" && requestedPartner.type === "client")
+            (existing.type === 'client' &&
+              requestedPartner.type === 'vendor') ||
+            (existing.type === 'vendor' && requestedPartner.type === 'client')
           ) {
-            partnersToUpgrade.push({ id: existing.id, currentType: existing.type });
+            partnersToUpgrade.push({
+              id: existing.id,
+              currentType: existing.type,
+            })
           }
         }
       }
@@ -239,39 +243,39 @@ export class BusinessPartnersRepository {
 
     // Upgrade partners that need to be "both"
     for (const toUpgrade of partnersToUpgrade) {
-      await this.update(toUpgrade.id, { type: "both" });
+      await this.update(toUpgrade.id, { type: 'both' })
     }
 
     // Find NITs that need to be created
-    const existingNits = new Set(existingPartners.map((p) => p.nit));
-    const nitsToCreate = uniqueNits.filter((nit) => !existingNits.has(nit));
+    const existingNits = new Set(existingPartners.map((p) => p.nit))
+    const nitsToCreate = uniqueNits.filter((nit) => !existingNits.has(nit))
 
     // Create missing partners
     if (nitsToCreate.length > 0) {
       const partnersData = nitsToCreate.map((nit) => {
-        const partnerData = uniquePartners.get(nit)!;
+        const partnerData = uniquePartners.get(nit)!
         return {
           organizationId,
           nit: partnerData.nit,
           name: partnerData.name,
           type: partnerData.type,
-        };
-      });
+        }
+      })
 
       const createdPartners = await db
         .insert(businessPartnerModel)
         .values(partnersData)
-        .returning();
+        .returning()
 
       for (const created of createdPartners) {
         if (created.nit) {
-          nitToIdMap.set(created.nit, created.id);
+          nitToIdMap.set(created.nit, created.id)
         }
       }
     }
 
-    return nitToIdMap;
+    return nitToIdMap
   }
 }
 
-export const businessPartnersRepository = new BusinessPartnersRepository();
+export const businessPartnersRepository = new BusinessPartnersRepository()

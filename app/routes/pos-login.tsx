@@ -80,7 +80,7 @@ export default function PosLogin() {
                 autoCapitalize='characters'
                 autoComplete='off'
                 spellCheck={false}
-                className='border-input bg-background w-full rounded-md border px-3 py-2 text-sm uppercase tracking-widest'
+                className='border-input bg-background w-full rounded-md border px-3 py-2 text-sm tracking-widest uppercase'
                 placeholder='SUCURSAL-01'
                 required
                 autoFocus

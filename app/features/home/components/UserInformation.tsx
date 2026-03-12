@@ -15,9 +15,7 @@ export default function UserInformation({
   return (
     <Card>
       <CardContent className='p-8'>
-        <h2 className='text-3xl font-bold'>
-          Welcome, {userName} 👋
-        </h2>
+        <h2 className='text-3xl font-bold'>Welcome, {userName} 👋</h2>
         <p className='text-muted-foreground mt-1'>Company: {companyName}</p>
         <Button asChild className='mt-6'>
           <Link to='/reports'>

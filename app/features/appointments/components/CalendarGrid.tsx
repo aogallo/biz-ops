@@ -79,10 +79,10 @@ export function CalendarGrid({
   )
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <div className='bg-card overflow-hidden rounded-lg border'>
       {/* Header row with day names */}
-      <div className="grid grid-cols-[80px_repeat(5,1fr)] border-b">
-        <div className="border-r p-2" />
+      <div className='grid grid-cols-[80px_repeat(5,1fr)] border-b'>
+        <div className='border-r p-2' />
         {weekDays.map((day) => {
           const { dayName, dayNumber } = formatDayHeader(day)
           const today = isToday(day)
@@ -94,7 +94,7 @@ export function CalendarGrid({
                 today && 'bg-primary/5'
               )}
             >
-              <div className="text-sm text-muted-foreground">{dayName}</div>
+              <div className='text-muted-foreground text-sm'>{dayName}</div>
               <div
                 className={cn(
                   'text-2xl font-semibold',
@@ -109,13 +109,13 @@ export function CalendarGrid({
       </div>
 
       {/* Time grid */}
-      <div className="grid grid-cols-[80px_repeat(5,1fr)]">
+      <div className='grid grid-cols-[80px_repeat(5,1fr)]'>
         {/* Time column */}
-        <div className="border-r">
+        <div className='border-r'>
           {timeSlots.map((time) => (
             <div
               key={time}
-              className="h-16 border-b px-2 py-1 text-xs text-muted-foreground"
+              className='text-muted-foreground h-16 border-b px-2 py-1 text-xs'
             >
               {time}
             </div>
@@ -138,7 +138,7 @@ export function CalendarGrid({
             >
               {/* Time slot backgrounds */}
               {timeSlots.map((time) => (
-                <div key={time} className="h-16 border-b border-dashed" />
+                <div key={time} className='h-16 border-b border-dashed' />
               ))}
 
               {/* Appointments positioned absolutely */}
@@ -151,7 +151,7 @@ export function CalendarGrid({
                 return (
                   <div
                     key={apt.id}
-                    className="absolute left-1 right-1"
+                    className='absolute right-1 left-1'
                     style={{
                       top: `${topOffset}px`,
                       height: `${height}px`,

@@ -1,5 +1,8 @@
 import { kitchenRepository } from '../repository'
-import type { UpdateTicketStatusInput, UpdateItemStatusInput } from '../../schemas'
+import type {
+  UpdateTicketStatusInput,
+  UpdateItemStatusInput,
+} from '../../schemas'
 
 export async function updateTicketStatusAction(input: UpdateTicketStatusInput) {
   await kitchenRepository.updateTicketStatus(input.ticketId, input.status)

@@ -3,7 +3,11 @@ import { db } from '~/server/db'
 import { appointmentModel } from '~/server/db/schemas/appointment'
 import { businessPartnerModel } from '~/server/db/schemas/businessPartner'
 import { serviceModel } from '~/server/db/schemas/service'
-import { memberModel, userModel, organizationModel } from '~/server/db/schemas/auth'
+import {
+  memberModel,
+  userModel,
+  organizationModel,
+} from '~/server/db/schemas/auth'
 import { sendAppointmentReminderEmail } from '~/server/email/appointment-reminder.server'
 
 interface SendRemindersResult {
@@ -31,11 +35,17 @@ export async function sendUpcomingReminders(): Promise<SendRemindersResult> {
       organizationName: organizationModel.name,
     })
     .from(appointmentModel)
-    .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+    .innerJoin(
+      businessPartnerModel,
+      eq(appointmentModel.clientId, businessPartnerModel.id)
+    )
     .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
     .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
     .innerJoin(userModel, eq(memberModel.userId, userModel.id))
-    .innerJoin(organizationModel, eq(appointmentModel.organizationId, organizationModel.id))
+    .innerJoin(
+      organizationModel,
+      eq(appointmentModel.organizationId, organizationModel.id)
+    )
     .where(
       and(
         eq(appointmentModel.date, tomorrowStr),
@@ -78,6 +88,8 @@ export async function sendUpcomingReminders(): Promise<SendRemindersResult> {
     }
   }
 
-  console.log(`📧 Reminder results: ${result.sent} sent, ${result.failed} failed`)
+  console.log(
+    `📧 Reminder results: ${result.sent} sent, ${result.failed} failed`
+  )
   return result
 }

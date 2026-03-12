@@ -116,17 +116,13 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
     <div className='container mx-auto max-w-4xl py-6'>
       <div className='mb-6'>
         <h1 className='text-3xl font-bold'>{t('users.inviteUser')}</h1>
-        <p className='text-muted-foreground'>
-          {t('users.inviteDescription')}
-        </p>
+        <p className='text-muted-foreground'>{t('users.inviteDescription')}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>{t('users.inviteTitle')}</CardTitle>
-          <CardDescription>
-            {t('users.inviteNote')}
-          </CardDescription>
+          <CardDescription>{t('users.inviteNote')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent>
@@ -139,7 +135,9 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
             <FieldGroup>
               <div className='grid gap-6 sm:grid-cols-2'>
                 <Field>
-                  <FieldLabel htmlFor='email'>{t('users.emailLabel')}</FieldLabel>
+                  <FieldLabel htmlFor='email'>
+                    {t('users.emailLabel')}
+                  </FieldLabel>
                   <Input
                     id='email'
                     name='email'
@@ -148,9 +146,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                     required
                     disabled={isSubmitting}
                   />
-                  <FieldDescription>
-                    {t('users.emailHelper')}
-                  </FieldDescription>
+                  <FieldDescription>{t('users.emailHelper')}</FieldDescription>
                   {actionData?.errors?.email && (
                     <p className='text-destructive mt-1 text-sm'>
                       {actionData.errors.email}
@@ -160,7 +156,9 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
 
                 {isSuperAdmin ? (
                   <Field>
-                    <FieldLabel htmlFor='organization'>{t('users.organizationLabel')}</FieldLabel>
+                    <FieldLabel htmlFor='organization'>
+                      {t('users.organizationLabel')}
+                    </FieldLabel>
                     <Combobox
                       name='organizationId'
                       value={selectedOrganizationId}
@@ -208,9 +206,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
                   searchPlaceholder='Search roles...'
                   emptyMessage='No roles found.'
                 />
-                <FieldDescription>
-                  {t('users.roleHelper')}
-                </FieldDescription>
+                <FieldDescription>{t('users.roleHelper')}</FieldDescription>
                 {actionData?.errors?.roleId && (
                   <p className='text-destructive mt-1 text-sm'>
                     {actionData.errors.roleId}
@@ -221,11 +217,7 @@ export default function InviteUserPage({ loaderData }: Route.ComponentProps) {
           </CardContent>
           <CardFooter className='flex justify-end gap-3 border-t pt-6'>
             <Link to='/users'>
-              <Button
-                type='button'
-                variant='outline'
-                disabled={isSubmitting}
-              >
+              <Button type='button' variant='outline' disabled={isSubmitting}>
                 {t('common.cancel')}
               </Button>
             </Link>

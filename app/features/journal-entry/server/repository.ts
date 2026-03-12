@@ -3,12 +3,12 @@ import { db } from '~/server/db'
 import { accountingAccountModel } from '~/server/db/schemas/accounting'
 import { companyModel } from '~/server/db/schemas/company'
 import {
-    journalEntryLineModel,
-    journalEntryModel,
-    type InsertJournalEntry,
-    type InsertJournalEntryLine,
-    type JournalEntry,
-    type JournalEntryLine,
+  journalEntryLineModel,
+  journalEntryModel,
+  type InsertJournalEntry,
+  type InsertJournalEntryLine,
+  type JournalEntry,
+  type JournalEntryLine,
 } from '~/server/db/schemas/journalEntry'
 
 export interface JournalEntryWithLines extends JournalEntry {
@@ -669,9 +669,7 @@ export class JournalEntryRepository {
 
   async update(
     id: string,
-    data: Partial<
-      Omit<InsertJournalEntry, 'id' | 'createdAt' | 'entryNumber'>
-    >
+    data: Partial<Omit<InsertJournalEntry, 'id' | 'createdAt' | 'entryNumber'>>
   ): Promise<JournalEntry | null> {
     const [updated] = await db
       .update(journalEntryModel)

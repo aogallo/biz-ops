@@ -53,8 +53,8 @@ wrangler tail             # View live logs
 The project uses `~/*` path alias pointing to `app/*`:
 
 ```typescript
-import { Button } from "~/components/ui/button";
-import { db } from "~/server/db";
+import { Button } from '~/components/ui/button'
+import { db } from '~/server/db'
 ```
 
 ### Project Structure
@@ -135,20 +135,20 @@ Better Auth is configured with:
 Routes are defined in `app/routes.ts` using React Router v7's configuration. All routes are in `/app/routes/`:
 
 ```typescript
-[
-  index("routes/login.tsx"), // /
-  layout("./layout/AppLayout.tsx", [
+;[
+  index('routes/login.tsx'), // /
+  layout('./layout/AppLayout.tsx', [
     // Nested routes with sidebar
-    prefix("organization", [
-      index("./routes/organization/index.tsx"), // /organization
-      route("/new", "./routes/organization/create.tsx"), // /organization/new
+    prefix('organization', [
+      index('./routes/organization/index.tsx'), // /organization
+      route('/new', './routes/organization/create.tsx'), // /organization/new
     ]),
-    prefix("users", [
-      index("./routes/users/index.tsx"), // /users
-      route("/create", "./routes/users/create.tsx"), // /users/create
+    prefix('users', [
+      index('./routes/users/index.tsx'), // /users
+      route('/create', './routes/users/create.tsx'), // /users/create
     ]),
   ]),
-];
+]
 ```
 
 Layout wraps routes with `AppSidebar` and `SidebarProvider`.
@@ -178,6 +178,7 @@ Components are installed to `app/components/ui/` and use the `~/*` path alias.
 Follow this two-step structure:
 
 **Step 1: Create feature logic in `app/features/`:**
+
 1. Create feature directory (e.g., `app/features/invoices/`)
 2. Add `server/repository.ts` for database access
 3. Add `server/actions/` for business logic
@@ -185,6 +186,7 @@ Follow this two-step structure:
 5. Add `components/` for feature-specific UI components (optional)
 
 **Step 2: Create routes in `app/routes/`:**
+
 1. Create route directory (e.g., `app/routes/invoices/`)
 2. Add route files (`index.tsx`, `create.tsx`, `edit.tsx`, etc.)
 3. Import server logic from features: `import { invoicesRepository } from "~/features/invoices/server/repository"`
@@ -256,9 +258,9 @@ app/routes/users/
 
 ```typescript
 // ✅ CORRECT - users.repository.ts
-import { db } from "~/server/db";
-import { userModel } from "~/server/db/schemas/auth";
-import { eq } from "drizzle-orm";
+import { db } from '~/server/db'
+import { userModel } from '~/server/db/schemas/auth'
+import { eq } from 'drizzle-orm'
 
 export class UsersRepository {
   async findByEmail(email: string) {
@@ -266,13 +268,13 @@ export class UsersRepository {
       .select()
       .from(userModel)
       .where(eq(userModel.email, email))
-      .limit(1);
-    return user;
+      .limit(1)
+    return user
   }
 
   async create(data: typeof userModel.$inferInsert) {
-    const [user] = await db.insert(userModel).values(data).returning();
-    return user;
+    const [user] = await db.insert(userModel).values(data).returning()
+    return user
   }
 
   async updateById(id: string, data: Partial<typeof userModel.$inferInsert>) {
@@ -280,38 +282,38 @@ export class UsersRepository {
       .update(userModel)
       .set(data)
       .where(eq(userModel.id, id))
-      .returning();
-    return user;
+      .returning()
+    return user
   }
 }
 
-export const usersRepository = new UsersRepository();
+export const usersRepository = new UsersRepository()
 ```
 
 ```typescript
 // ✅ CORRECT - create-user.action.ts
-import { usersRepository } from "../repository/users.repository";
+import { usersRepository } from '../repository/users.repository'
 
 export async function createUserAction(data: CreateUserInput) {
   // Check if user exists
-  const existingUser = await usersRepository.findByEmail(data.email);
+  const existingUser = await usersRepository.findByEmail(data.email)
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new Error('User already exists')
   }
 
   // Create user
-  return await usersRepository.create(data);
+  return await usersRepository.create(data)
 }
 ```
 
 ```typescript
 // ❌ WRONG - Accessing database directly from action
-import { db } from "~/server/db";
+import { db } from '~/server/db'
 
 export async function createUserAction(data: CreateUserInput) {
   // Don't do this - use repository instead
-  const [user] = await db.insert(userModel).values(data).returning();
-  return user;
+  const [user] = await db.insert(userModel).values(data).returning()
+  return user
 }
 ```
 
@@ -326,42 +328,42 @@ npm install drizzle-zod
 
 ```typescript
 // ✅ CORRECT - Using drizzle-zod
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { userModel } from "~/server/db/schemas/auth";
-import { z } from "zod";
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+import { userModel } from '~/server/db/schemas/auth'
+import { z } from 'zod'
 
 // Generate base schemas from Drizzle
-export const insertUserSchema = createInsertSchema(userModel);
-export const selectUserSchema = createSelectSchema(userModel);
+export const insertUserSchema = createInsertSchema(userModel)
+export const selectUserSchema = createSelectSchema(userModel)
 
 // Extend schemas with additional validation
 export const createUserSchema = insertUserSchema.extend({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email('Invalid email address'),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password must not exceed 128 characters"),
-  name: z.string().min(1, "Name is required"),
-});
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must not exceed 128 characters'),
+  name: z.string().min(1, 'Name is required'),
+})
 
 // Infer types from schemas
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-export type User = z.infer<typeof selectUserSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>
+export type User = z.infer<typeof selectUserSchema>
 ```
 
 ```typescript
 // ❌ WRONG - Manual type definitions
 interface CreateUserInput {
-  email: string;
-  password: string;
-  name: string;
+  email: string
+  password: string
+  name: string
 }
 
 interface User {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: Date;
+  id: string
+  email: string
+  name: string
+  createdAt: Date
 }
 ```
 
@@ -371,43 +373,43 @@ interface User {
 
 ```typescript
 // ✅ CORRECT - Using Zod validation
-import { createUserSchema } from "../types";
+import { createUserSchema } from '../types'
 
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
+  const formData = await request.formData()
 
   // Parse and validate form data
   const result = createUserSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
 
   if (!result.success) {
     return {
-      error: "Validation failed",
+      error: 'Validation failed',
       fieldErrors: result.error.flatten().fieldErrors,
-    };
+    }
   }
 
   // result.data is fully typed and validated
-  const user = await createUserAction(result.data);
-  return redirect("/users");
+  const user = await createUserAction(result.data)
+  return redirect('/users')
 }
 ```
 
 ```typescript
 // ❌ WRONG - Type casting without validation
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
+  const formData = await request.formData()
 
   // Don't do this - no validation, unsafe type casting
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const name = formData.get('name') as string
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
   // Don't do this - extremely unsafe
-  const data = (await request.json()) as any;
+  const data = (await request.json()) as any
 }
 ```
 
@@ -417,12 +419,12 @@ When you need additional validation beyond the database schema, extend the schem
 
 ```typescript
 // ✅ CORRECT - Extending schemas
-import { createInsertSchema } from "drizzle-zod";
-import { userModel } from "~/server/db/schemas/auth";
-import { z } from "zod";
+import { createInsertSchema } from 'drizzle-zod'
+import { userModel } from '~/server/db/schemas/auth'
+import { z } from 'zod'
 
 // Base schema from database
-const baseUserSchema = createInsertSchema(userModel);
+const baseUserSchema = createInsertSchema(userModel)
 
 // Extend for specific use cases
 export const createUserSchema = baseUserSchema
@@ -431,35 +433,35 @@ export const createUserSchema = baseUserSchema
       .string()
       .min(8)
       .max(128)
-      .regex(/[A-Z]/, "Must contain uppercase")
-      .regex(/[a-z]/, "Must contain lowercase")
-      .regex(/[0-9]/, "Must contain number"),
+      .regex(/[A-Z]/, 'Must contain uppercase')
+      .regex(/[a-z]/, 'Must contain lowercase')
+      .regex(/[0-9]/, 'Must contain number'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+    path: ['confirmPassword'],
+  })
 
 export const updateUserSchema = baseUserSchema
   .partial() // All fields optional
-  .omit({ password: true }); // Remove password field
+  .omit({ password: true }) // Remove password field
 
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>
+export type UpdateUserInput = z.infer<typeof updateUserSchema>
 ```
 
 ```typescript
 // ❌ WRONG - Creating duplicate types
 interface CreateUserData {
-  email: string;
-  password: string;
-  confirmPassword: string;
+  email: string
+  password: string
+  confirmPassword: string
 }
 
 interface UpdateUserData {
-  email?: string;
-  name?: string;
+  email?: string
+  name?: string
 }
 ```
 
@@ -470,10 +472,10 @@ Here's a complete example following all standards:
 **Repository** (`app/features/users/server/repository/users.repository.ts`):
 
 ```typescript
-import { db } from "~/server/db";
-import { userModel, memberModel } from "~/server/db/schemas/auth";
-import { eq } from "drizzle-orm";
-import type { CreateUserInput, UpdateUserInput } from "../../types";
+import { db } from '~/server/db'
+import { userModel, memberModel } from '~/server/db/schemas/auth'
+import { eq } from 'drizzle-orm'
+import type { CreateUserInput, UpdateUserInput } from '../../types'
 
 export class UsersRepository {
   async findByEmail(email: string) {
@@ -481,13 +483,13 @@ export class UsersRepository {
       .select()
       .from(userModel)
       .where(eq(userModel.email, email))
-      .limit(1);
-    return user;
+      .limit(1)
+    return user
   }
 
   async create(data: CreateUserInput) {
-    const [user] = await db.insert(userModel).values(data).returning();
-    return user;
+    const [user] = await db.insert(userModel).values(data).returning()
+    return user
   }
 
   async updateById(id: string, data: UpdateUserInput) {
@@ -495,8 +497,8 @@ export class UsersRepository {
       .update(userModel)
       .set(data)
       .where(eq(userModel.id, id))
-      .returning();
-    return user;
+      .returning()
+    return user
   }
 
   async findByOrganization(organizationId: string) {
@@ -506,66 +508,66 @@ export class UsersRepository {
       })
       .from(userModel)
       .innerJoin(memberModel, eq(memberModel.userId, userModel.id))
-      .where(eq(memberModel.organizationId, organizationId));
+      .where(eq(memberModel.organizationId, organizationId))
   }
 }
 
-export const usersRepository = new UsersRepository();
+export const usersRepository = new UsersRepository()
 ```
 
 **Schemas** (`app/features/users/schemas.ts`):
 
 ```typescript
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { userModel } from "~/server/db/schemas/auth";
-import { z } from "zod";
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+import { userModel } from '~/server/db/schemas/auth'
+import { z } from 'zod'
 
-export const insertUserSchema = createInsertSchema(userModel);
-export const selectUserSchema = createSelectSchema(userModel);
+export const insertUserSchema = createInsertSchema(userModel)
+export const selectUserSchema = createSelectSchema(userModel)
 
 export const createUserSchema = insertUserSchema.extend({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email('Invalid email address'),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password must not exceed 128 characters"),
-  organizationId: z.string().uuid("Invalid organization ID"),
-});
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must not exceed 128 characters'),
+  organizationId: z.string().uuid('Invalid organization ID'),
+})
 
 export const updateUserSchema = insertUserSchema
   .partial()
-  .omit({ id: true, createdAt: true });
+  .omit({ id: true, createdAt: true })
 
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type User = z.infer<typeof selectUserSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>
+export type UpdateUserInput = z.infer<typeof updateUserSchema>
+export type User = z.infer<typeof selectUserSchema>
 ```
 
 **Action** (`app/features/users/server/actions/create-user.action.ts`):
 
 ```typescript
-import { hashPassword } from "better-auth/crypto";
-import { usersRepository } from "../repository/users.repository";
-import type { CreateUserInput } from "../../types";
+import { hashPassword } from 'better-auth/crypto'
+import { usersRepository } from '../repository/users.repository'
+import type { CreateUserInput } from '../../types'
 
 export async function createUserAction(input: CreateUserInput) {
   // Check if user exists
-  const existingUser = await usersRepository.findByEmail(input.email);
+  const existingUser = await usersRepository.findByEmail(input.email)
   if (existingUser) {
-    throw new Error("User with this email already exists");
+    throw new Error('User with this email already exists')
   }
 
   // Hash password
-  const hashedPassword = await hashPassword(input.password);
+  const hashedPassword = await hashPassword(input.password)
 
   // Create user via repository
   const user = await usersRepository.create({
     ...input,
     password: hashedPassword,
     emailVerified: false,
-  });
+  })
 
-  return user;
+  return user
 }
 ```
 
@@ -651,7 +653,7 @@ export default function CreateUser() {
 8. **Table Pagination**: Every table displaying data MUST implement pagination. Use server-side pagination with URL searchParams for page state. Default page size: 10 items.
 9. **Drizzle Migrations**: Every time update or create table use the command `npm run db:generate`
 10. **Always Use DataTable Component**: When displaying tabular data, ALWAYS use the `~/components/dataTable/DataTable.tsx` component. Do not create tables from scratch using raw Table components. The DataTable component provides built-in sorting, pagination, column visibility, and row selection.
-12. **Test-Driven Development (TDD)**: Every new feature, bug fix, or update MUST follow the Red-Green-Refactor cycle:
+11. **Test-Driven Development (TDD)**: Every new feature, bug fix, or update MUST follow the Red-Green-Refactor cycle:
     1. **Red**: Write a failing test that describes the expected behavior BEFORE writing any implementation code
     2. **Green**: Write the minimum amount of code necessary to make the test pass
     3. **Refactor**: Clean up the code while keeping tests green
@@ -661,7 +663,7 @@ export default function CreateUser() {
     - Bug fixes → write a test that reproduces the bug first, then fix it
     - No implementation code is written without a corresponding test
 
-11. **Single Responsibility for Actions (SOLID)**: When creating a component with a form that uses `useFetcher`, that component should be responsible for handling its own action responses (errors and success messages via toast notifications). Avoid having multiple unrelated action types in a single route action function. Each action should have a single responsibility. If a route needs multiple actions, consider:
+12. **Single Responsibility for Actions (SOLID)**: When creating a component with a form that uses `useFetcher`, that component should be responsible for handling its own action responses (errors and success messages via toast notifications). Avoid having multiple unrelated action types in a single route action function. Each action should have a single responsibility. If a route needs multiple actions, consider:
     - Using separate routes for each action
     - Creating dedicated action components that use `useFetcher` with their own response handling
     - Splitting the action handler into separate functions with clear routing patterns
@@ -748,23 +750,23 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
 
 ```typescript
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request);
-  const url = new URL(request.url);
-  const orgId = url.searchParams.get("organizationId");
+  const session = await requireAuth(request)
+  const url = new URL(request.url)
+  const orgId = url.searchParams.get('organizationId')
 
   // Fetch multiple data sources in parallel
   const [isSuperAdmin, organizations, users] = await Promise.all([
     checkSuperAdmin(session.user.id),
     getUserOrganizations(session.user.id),
     orgId ? getUsersByOrg(orgId) : Promise.resolve([]),
-  ]);
+  ])
 
   return {
     isSuperAdmin,
     organizations,
     users,
     selectedOrgId: orgId || organizations[0]?.id,
-  };
+  }
 }
 ```
 
@@ -819,46 +821,46 @@ export default function CreateUser() {
 
 ```typescript
 export async function action({ request }: Route.ActionArgs) {
-  const session = await requireAuth(request);
-  const formData = await request.formData();
+  const session = await requireAuth(request)
+  const formData = await request.formData()
 
-  const organizationId = formData.get("organizationId") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const organizationId = formData.get('organizationId') as string
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
   // Field validation
   if (!email || !password) {
-    return { error: "Email and password are required" };
+    return { error: 'Email and password are required' }
   }
 
   if (password.length < 8) {
-    return { error: "Password must be at least 8 characters" };
+    return { error: 'Password must be at least 8 characters' }
   }
 
   // Permission checks
-  const hasPermission = await checkPermission(session.user.id, organizationId);
+  const hasPermission = await checkPermission(session.user.id, organizationId)
   if (!hasPermission) {
-    return { error: "You don't have permission to create users" };
+    return { error: "You don't have permission to create users" }
   }
 
   // Duplicate checks
   const existing = await db.query.user.findFirst({
     where: eq(user.email, email),
-  });
+  })
   if (existing) {
-    return { error: "A user with this email already exists" };
+    return { error: 'A user with this email already exists' }
   }
 
   try {
     await db.transaction(async (tx) => {
-      const userId = crypto.randomUUID();
-      await tx.insert(user).values({ id: userId, email });
-      await tx.insert(member).values({ userId, organizationId });
-    });
+      const userId = crypto.randomUUID()
+      await tx.insert(user).values({ id: userId, email })
+      await tx.insert(member).values({ userId, organizationId })
+    })
 
-    return redirect("/users");
+    return redirect('/users')
   } catch (error) {
-    return { error: "Failed to create user" };
+    return { error: 'Failed to create user' }
   }
 }
 ```
@@ -1052,20 +1054,20 @@ export default function TodoItem({ todo }: { todo: Todo }) {
 
 ```typescript
 // ❌ WRONG - Separate API endpoint
-(route("/api/users/list", "routes/api.users.list.tsx"),
+;(route('/api/users/list', 'routes/api.users.list.tsx'),
   // Component makes fetch call
   useEffect(() => {
-    fetch("/api/users/list")
+    fetch('/api/users/list')
       .then((r) => r.json())
-      .then(setUsers);
-  }, []));
+      .then(setUsers)
+  }, []))
 ```
 
 ```typescript
 // ✅ CORRECT - Loader in route
 export async function loader() {
-  const users = await db.query.user.findMany();
-  return { users };
+  const users = await db.query.user.findMany()
+  return { users }
 }
 ```
 
@@ -1073,19 +1075,19 @@ export async function loader() {
 
 ```typescript
 // ❌ WRONG
-const [users, setUsers] = useState([]);
+const [users, setUsers] = useState([])
 useEffect(() => {
-  fetch("/api/users")
+  fetch('/api/users')
     .then((r) => r.json())
-    .then(setUsers);
-}, []);
+    .then(setUsers)
+}, [])
 ```
 
 ```typescript
 // ✅ CORRECT
 export async function loader() {
-  const users = await db.query.user.findMany();
-  return { users };
+  const users = await db.query.user.findMany()
+  return { users }
 }
 ```
 
@@ -1093,13 +1095,13 @@ export async function loader() {
 
 ```typescript
 // ❌ WRONG - Filter state not in URL
-const [selectedOrg, setSelectedOrg] = useState("");
+const [selectedOrg, setSelectedOrg] = useState('')
 ```
 
 ```typescript
 // ✅ CORRECT - Filter in URL searchParams
-const [searchParams, setSearchParams] = useSearchParams();
-const selectedOrg = searchParams.get("organizationId");
+const [searchParams, setSearchParams] = useSearchParams()
+const selectedOrg = searchParams.get('organizationId')
 ```
 
 ### ❌ Don't Use Controlled Forms Unnecessarily
@@ -1128,22 +1130,22 @@ const [email, setEmail] = useState("");
 React Router v7 generates route types automatically:
 
 ```typescript
-import type { Route } from "./+types/users";
+import type { Route } from './+types/users'
 
 export async function loader({ request }: Route.LoaderArgs) {
   // Full type inference
-  return { users: [] };
+  return { users: [] }
 }
 
 export async function action({ request }: Route.ActionArgs) {
   // Full type inference
-  const formData = await request.formData();
-  return { error: "Something went wrong" };
+  const formData = await request.formData()
+  return { error: 'Something went wrong' }
 }
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
   // loaderData is fully typed based on loader return type
-  const { users } = loaderData;
+  const { users } = loaderData
 }
 ```
 
@@ -1153,8 +1155,8 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
 
 ```typescript
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await requireAuth(request); // Throws redirect if not authenticated
-  return { user: session.user };
+  const session = await requireAuth(request) // Throws redirect if not authenticated
+  return { user: session.user }
 }
 ```
 
@@ -1162,11 +1164,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 ```typescript
 export async function action({ request }: Route.ActionArgs) {
-  const session = await requireAuth(request);
+  const session = await requireAuth(request)
 
-  const isSuperAdmin = await isSuperAdmin(db, session.user.id);
+  const isSuperAdmin = await isSuperAdmin(db, session.user.id)
   if (!isSuperAdmin) {
-    return { error: "Permission denied" };
+    return { error: 'Permission denied' }
   }
 
   // Proceed with mutation
@@ -1177,51 +1179,51 @@ export async function action({ request }: Route.ActionArgs) {
 
 ```typescript
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const orgId = url.searchParams.get("organizationId");
+  const url = new URL(request.url)
+  const orgId = url.searchParams.get('organizationId')
 
   const [orgs, data] = await Promise.all([
     getUserOrganizations(session.user.id),
     orgId ? getDataForOrg(orgId) : Promise.resolve([]),
-  ]);
+  ])
 
-  const selectedOrgId = orgId || orgs[0]?.organization.id;
+  const selectedOrgId = orgId || orgs[0]?.organization.id
 
-  return { orgs, data, selectedOrgId };
+  return { orgs, data, selectedOrgId }
 }
 ```
 
 ## Testing Loaders and Actions
 
 ```typescript
-import { loader, action } from "./users";
+import { loader, action } from './users'
 
-describe("users loader", () => {
-  it("fetches users for organization", async () => {
-    const request = new Request("http://localhost/users?organizationId=123");
-    const result = await loader({ request, params: {}, context: {} });
+describe('users loader', () => {
+  it('fetches users for organization', async () => {
+    const request = new Request('http://localhost/users?organizationId=123')
+    const result = await loader({ request, params: {}, context: {} })
 
-    expect(result.users).toHaveLength(5);
-  });
-});
+    expect(result.users).toHaveLength(5)
+  })
+})
 
-describe("users action", () => {
-  it("creates user and redirects", async () => {
-    const formData = new FormData();
-    formData.set("name", "John");
-    formData.set("email", "john@example.com");
+describe('users action', () => {
+  it('creates user and redirects', async () => {
+    const formData = new FormData()
+    formData.set('name', 'John')
+    formData.set('email', 'john@example.com')
 
-    const request = new Request("http://localhost/users", {
-      method: "POST",
+    const request = new Request('http://localhost/users', {
+      method: 'POST',
       body: formData,
-    });
+    })
 
-    const result = await action({ request, params: {}, context: {} });
+    const result = await action({ request, params: {}, context: {} })
 
-    expect(result).toBeInstanceOf(Response);
-    expect(result.status).toBe(302);
-  });
-});
+    expect(result).toBeInstanceOf(Response)
+    expect(result.status).toBe(302)
+  })
+})
 ```
 
 ## Performance Considerations

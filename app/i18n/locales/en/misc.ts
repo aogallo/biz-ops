@@ -64,10 +64,12 @@ export const misc = {
   'partners.both': 'Both',
   'partners.partner': 'partner',
   'partners.partners': 'partners',
-  'partners.noPartners': 'No business partners found. Add your first partner to get started.',
+  'partners.noPartners':
+    'No business partners found. Add your first partner to get started.',
   'partners.noTypePartners': 'No {{type}} partners found.',
   'partners.createTitle': 'Add Business Partner',
-  'partners.createDescription': 'Create a new client, vendor, or both for your organization',
+  'partners.createDescription':
+    'Create a new client, vendor, or both for your organization',
   'partners.nameLabel': 'Partner Name *',
   'partners.typeLabel': 'Partner Type *',
   'partners.typePlaceholder': 'Select partner type',
@@ -94,7 +96,8 @@ export const misc = {
   'partners.isBoth': 'This partner is both a customer and supplier',
   'partners.noEmail': 'No email provided',
   'partners.noPhone': 'No phone provided',
-  'partners.visitHistoryDescription': 'Past and upcoming appointments for this client',
+  'partners.visitHistoryDescription':
+    'Past and upcoming appointments for this client',
 
   'reports.title': 'Reports',
   'reports.generate': 'Generate Report',
@@ -113,7 +116,8 @@ export const misc = {
   'welcome.title': 'Welcome, {{name}}!',
   'welcome.brandName': 'Business Operations',
   'welcome.noAccess': "You don't have access to any organizations yet.",
-  'welcome.waitForAdmin': 'Please wait for an administrator to grant you access to an organization. Once you have been added, refresh this page to continue.',
+  'welcome.waitForAdmin':
+    'Please wait for an administrator to grant you access to an organization. Once you have been added, refresh this page to continue.',
   'welcome.signedInAs': 'Signed in as:',
   'welcome.checkAccess': 'Check for Access',
   'welcome.signOut': 'Sign Out',
@@ -132,7 +136,8 @@ export const misc = {
   'categories.createTitle': 'Create Category',
   'categories.editTitle': 'Edit Category',
   'categories.searchPlaceholder': 'Search categories...',
-  'categories.noData': 'No categories found. Create your first category to organize products.',
+  'categories.noData':
+    'No categories found. Create your first category to organize products.',
   'categories.deleted': 'Category deleted successfully.',
   'categories.hasProducts': 'Cannot delete a category with assigned products.',
 
@@ -148,12 +153,14 @@ export const misc = {
   'accounts.addAccount': 'Add Account',
   'accounts.searchPlaceholder': 'Search accounts...',
   'accounts.bulkImport': 'Bulk Import',
-  'accounts.bulkImportDescription': 'Upload a CSV or Excel file to import multiple accounts at once',
+  'accounts.bulkImportDescription':
+    'Upload a CSV or Excel file to import multiple accounts at once',
   'accounts.createNew': 'Create New Account',
   'accounts.createDescription': 'Add a new account to your chart of accounts',
   'accounts.numberLabel': 'Account Number *',
   'accounts.numberPlaceholder': '1000',
-  'accounts.numberHelper': 'Unique identifier for this account in your chart of accounts',
+  'accounts.numberHelper':
+    'Unique identifier for this account in your chart of accounts',
   'accounts.nameLabel': 'Account Name *',
   'accounts.namePlaceholder': 'Cash',
   'accounts.details': 'Account Details',
@@ -175,10 +182,12 @@ export const misc = {
   'roles.assign': 'Assign Role',
   'roles.noRoles': 'No roles found. Create your first role to get started.',
   'roles.createNew': 'Create New Role',
-  'roles.createDescription': 'Define a custom role with specific permissions for your organization',
+  'roles.createDescription':
+    'Define a custom role with specific permissions for your organization',
   'roles.nameLabel': 'Role Name *',
   'roles.namePlaceholder': 'project-manager',
-  'roles.nameHelper': 'Use lowercase letters and hyphens only (e.g., project-manager)',
+  'roles.nameHelper':
+    'Use lowercase letters and hyphens only (e.g., project-manager)',
   'roles.descriptionLabel': 'Description *',
   'roles.descriptionPlaceholder': 'Describe what this role can do...',
   'roles.permissionsLabel': 'Permissions * (Select at least one)',
@@ -199,9 +208,11 @@ export const misc = {
   'roles.searchPlaceholder': 'Search roles...',
 
   'permissions.title': 'Permissions Management',
-  'permissions.manage': 'Configure granular access control lists. Define resources and actions.',
+  'permissions.manage':
+    'Configure granular access control lists. Define resources and actions.',
   'permissions.create': 'Create Permission',
-  'permissions.noPermissions': 'No permissions found. Create your first permission to get started.',
+  'permissions.noPermissions':
+    'No permissions found. Create your first permission to get started.',
   'permissions.searchPlaceholder': 'Search permissions...',
   'permissions.resource': 'Resource',
   'permissions.action': 'Action',
@@ -209,7 +220,8 @@ export const misc = {
   'permissions.editTitle': 'Edit Permission',
 
   'company.title': 'Companies',
-  'company.noCompanies': 'No companies found. Add your first company to get started.',
+  'company.noCompanies':
+    'No companies found. Add your first company to get started.',
   'company.searchPlaceholder': 'Search companies...',
   'company.addCompany': 'Add Company',
   'company.createTitle': 'Add Company',
@@ -231,7 +243,8 @@ export const misc = {
   'company.accountsPayable': 'Accounts Payable',
   'company.accountsReceivable': 'Accounts Receivable',
   'company.overdueInvoices': 'Overdue Invoices',
-  'company.financialsPlaceholder': 'Financial information will be displayed here.',
+  'company.financialsPlaceholder':
+    'Financial information will be displayed here.',
   'company.documentsPlaceholder': 'Documents will be displayed here.',
   'company.activityPlaceholder': 'Activity log will be displayed here.',
 
@@ -266,13 +279,15 @@ export const misc = {
   'error.backToLogin': 'Back to Login',
   'error.goToDashboard': 'Go to Dashboard',
   'error.pageNotFound': 'Page Not Found',
-  'error.pageNotFoundDescription': 'Sorry, the page you are looking for does not exist.',
+  'error.pageNotFoundDescription':
+    'Sorry, the page you are looking for does not exist.',
 
   'landing.badge': 'ERP Platform for Guatemala',
   'landing.headline': 'Manage your business with a',
   'landing.headlineHighlight': 'comprehensive',
   'landing.headlineSuffix': 'platform',
-  'landing.subtitle': 'Accounting, SAT processing, inventory, appointment scheduling, and invoicing. Everything you need to run your business in one place.',
+  'landing.subtitle':
+    'Accounting, SAT processing, inventory, appointment scheduling, and invoicing. Everything you need to run your business in one place.',
   'landing.ctaStart': 'Start for free',
   'landing.ctaPlans': 'View plans',
   'landing.nav.services': 'Services',
@@ -281,23 +296,30 @@ export const misc = {
   'landing.nav.start': 'Get started',
   'landing.nav.dashboard': 'Go to Dashboard',
   'landing.services.title': 'Everything you need to operate',
-  'landing.services.subtitle': 'Five integrated modules covering every aspect of your business',
+  'landing.services.subtitle':
+    'Five integrated modules covering every aspect of your business',
   'landing.services.accounting.title': 'Accounting',
-  'landing.services.accounting.description': 'Journal entries, ledger, accounting records, and financial reports. All in compliance with Guatemalan standards.',
+  'landing.services.accounting.description':
+    'Journal entries, ledger, accounting records, and financial reports. All in compliance with Guatemalan standards.',
   'landing.services.sat.title': 'SAT Processing',
-  'landing.services.sat.description': 'Process your SAT files automatically. Generate purchase and sales books ready to submit.',
+  'landing.services.sat.description':
+    'Process your SAT files automatically. Generate purchase and sales books ready to submit.',
   'landing.services.inventory.title': 'Inventory',
-  'landing.services.inventory.description': 'Product control, categories, stock movements, and QR codes. Real-time inventory reports.',
+  'landing.services.inventory.description':
+    'Product control, categories, stock movements, and QR codes. Real-time inventory reports.',
   'landing.services.appointments.title': 'Appointments',
-  'landing.services.appointments.description': 'Manage appointments with your clients, send automatic reminders, and optimize your daily schedule.',
+  'landing.services.appointments.description':
+    'Manage appointments with your clients, send automatic reminders, and optimize your daily schedule.',
   'landing.services.invoicing.title': 'Invoicing',
-  'landing.services.invoicing.description': 'Create and manage professional invoices. Payment tracking, statuses, and PDF export.',
+  'landing.services.invoicing.description':
+    'Create and manage professional invoices. Payment tracking, statuses, and PDF export.',
   'landing.pricing.title': 'Plans for every stage of your business',
   'landing.pricing.subtitle': 'Start for free and scale when you need to',
   'landing.pricing.badge': 'Most popular',
   'landing.pricing.starter.name': 'Starter',
   'landing.pricing.starter.price': 'Free',
-  'landing.pricing.starter.description': 'For entrepreneurs just getting started',
+  'landing.pricing.starter.description':
+    'For entrepreneurs just getting started',
   'landing.pricing.starter.cta': 'Start for free',
   'landing.pricing.pro.name': 'Pro',
   'landing.pricing.pro.price': 'Q199/month',
@@ -305,7 +327,8 @@ export const misc = {
   'landing.pricing.pro.cta': 'Start with Pro',
   'landing.pricing.enterprise.name': 'Enterprise',
   'landing.pricing.enterprise.price': 'Q499/month',
-  'landing.pricing.enterprise.description': 'For companies that need everything',
+  'landing.pricing.enterprise.description':
+    'For companies that need everything',
   'landing.pricing.enterprise.cta': 'Contact sales',
   'landing.pricing.features.users': 'Users',
   'landing.pricing.features.accounting': 'Accounting',
@@ -333,7 +356,8 @@ export const misc = {
   'landing.pricing.enterprise.invoicing': 'Unlimited',
   'landing.pricing.enterprise.support': 'Dedicated',
   'landing.cta.title': 'Ready to modernize your business?',
-  'landing.cta.subtitle': 'Start for free today and discover how a comprehensive platform can transform the way you operate.',
+  'landing.cta.subtitle':
+    'Start for free today and discover how a comprehensive platform can transform the way you operate.',
   'landing.cta.button': 'Start for free',
   'landing.footer.product': 'Product',
   'landing.footer.legal': 'Legal',
@@ -342,53 +366,77 @@ export const misc = {
   'landing.footer.pricing': 'Pricing',
   'landing.footer.terms': 'Terms of service',
   'landing.footer.privacy': 'Privacy policy',
-  'landing.footer.description': 'Comprehensive ERP platform for businesses in Guatemala.',
-  'landing.footer.copyright': '© {{year}} Business Operations. All rights reserved.',
+  'landing.footer.description':
+    'Comprehensive ERP platform for businesses in Guatemala.',
+  'landing.footer.copyright':
+    '© {{year}} Business Operations. All rights reserved.',
 
-  'messages.common.noPermission': "You don't have permission to perform this action.",
-  'messages.products.notFound': 'Product not found. It may have been deleted or the SKU changed.',
+  'messages.common.noPermission':
+    "You don't have permission to perform this action.",
+  'messages.products.notFound':
+    'Product not found. It may have been deleted or the SKU changed.',
   'messages.products.deleted': 'Product deleted successfully.',
   'messages.products.created': 'Product created successfully.',
   'messages.products.updated': 'Product updated successfully.',
-  'messages.products.noOrganization': 'Please select an organization to view products.',
-  'messages.products.duplicateSku': 'A product with this SKU already exists in your organization.',
+  'messages.products.noOrganization':
+    'Please select an organization to view products.',
+  'messages.products.duplicateSku':
+    'A product with this SKU already exists in your organization.',
   'messages.users.invited': 'Invitation sent successfully.',
   'messages.users.invitationCancelled': 'Invitation cancelled successfully.',
   'messages.users.removed': 'User removed from organization successfully.',
   'messages.users.notFound': 'User not found.',
-  'messages.users.alreadyMember': 'This user is already a member of this organization.',
-  'messages.users.alreadyExists': 'A user with this email already exists. Please add them to the organization directly.',
-  'messages.users.noPermission': "You don't have permission to manage users in this organization.",
-  'messages.users.noOrganization': 'Please select an organization to manage users.',
+  'messages.users.alreadyMember':
+    'This user is already a member of this organization.',
+  'messages.users.alreadyExists':
+    'A user with this email already exists. Please add them to the organization directly.',
+  'messages.users.noPermission':
+    "You don't have permission to manage users in this organization.",
+  'messages.users.noOrganization':
+    'Please select an organization to manage users.',
   'messages.users.invalidInvitation': 'Invalid or expired invitation.',
   'messages.users.invitationExpired': 'This invitation has expired.',
-  'messages.users.invitationAccepted': 'Welcome! Your account has been created successfully.',
-  'messages.users.pendingInvitation': 'Pending invitation - waiting for user to accept',
+  'messages.users.invitationAccepted':
+    'Welcome! Your account has been created successfully.',
+  'messages.users.pendingInvitation':
+    'Pending invitation - waiting for user to accept',
   'messages.roles.created': 'Role created successfully.',
   'messages.roles.updated': 'Role updated successfully.',
   'messages.roles.deleted': 'Role deleted successfully.',
   'messages.roles.notFound': 'Role not found. It may have been deleted.',
-  'messages.roles.noOrganization': 'Please select an organization to manage roles.',
-  'messages.roles.nameExists': 'A role with this name already exists in your organization.',
-  'messages.roles.systemRoleProtected': 'System roles (owner, admin, member) cannot be modified or deleted.',
+  'messages.roles.noOrganization':
+    'Please select an organization to manage roles.',
+  'messages.roles.nameExists':
+    'A role with this name already exists in your organization.',
+  'messages.roles.systemRoleProtected':
+    'System roles (owner, admin, member) cannot be modified or deleted.',
   'messages.roles.reservedName': 'This role name is reserved for system roles.',
-  'messages.roles.hasMembers': 'Cannot delete role. Some members are still assigned to this role. Please reassign them first.',
-  'messages.roles.systemRoleInfo': 'System roles are created automatically and cannot be deleted.',
-  'messages.partners.notFound': 'Business partner not found. They may have been deleted.',
+  'messages.roles.hasMembers':
+    'Cannot delete role. Some members are still assigned to this role. Please reassign them first.',
+  'messages.roles.systemRoleInfo':
+    'System roles are created automatically and cannot be deleted.',
+  'messages.partners.notFound':
+    'Business partner not found. They may have been deleted.',
   'messages.partners.deleted': 'Business partner deleted successfully.',
   'messages.partners.created': 'Business partner created successfully.',
   'messages.partners.updated': 'Business partner updated successfully.',
-  'messages.partners.noOrganization': 'Please select an organization to view business partners.',
-  'messages.partners.duplicateEmail': 'A business partner with email "{{email}}" already exists in your organization.',
+  'messages.partners.noOrganization':
+    'Please select an organization to view business partners.',
+  'messages.partners.duplicateEmail':
+    'A business partner with email "{{email}}" already exists in your organization.',
   'messages.accounts.notFound': 'Account not found. It may have been deleted.',
   'messages.accounts.deleted': 'Account deleted successfully.',
   'messages.accounts.created': 'Account created successfully.',
   'messages.accounts.updated': 'Account updated successfully.',
-  'messages.accounts.noOrganization': 'Please select an organization to view accounts.',
-  'messages.accounts.duplicateAccountNumber': 'An account with this account number already exists.',
-  'messages.accounts.bulkUploadSuccess': 'Bulk upload completed: {{inserted}} inserted, {{updated}} updated.',
+  'messages.accounts.noOrganization':
+    'Please select an organization to view accounts.',
+  'messages.accounts.duplicateAccountNumber':
+    'An account with this account number already exists.',
+  'messages.accounts.bulkUploadSuccess':
+    'Bulk upload completed: {{inserted}} inserted, {{updated}} updated.',
   'messages.accounts.bulkUploadError': 'Failed to process bulk upload.',
-  'messages.accounts.invalidFile': 'Invalid file format. Please use CSV or Excel (.xls, .xlsx).',
+  'messages.accounts.invalidFile':
+    'Invalid file format. Please use CSV or Excel (.xls, .xlsx).',
   'messages.accounts.noValidRows': 'No valid rows found in the file.',
   'messages.organization.notFound': 'Organization is not found.',
   'messages.organization.deleted': 'Organization deleted successfully.',
@@ -398,21 +446,30 @@ export const misc = {
   'messages.categories.deleted': 'Category deleted successfully.',
   'messages.categories.created': 'Category created successfully.',
   'messages.categories.updated': 'Category updated successfully.',
-  'messages.categories.noOrganization': 'Please select an organization to manage categories.',
-  'messages.categories.hasProducts': 'Cannot delete category that has products assigned. Remove products from this category first.',
+  'messages.categories.noOrganization':
+    'Please select an organization to manage categories.',
+  'messages.categories.hasProducts':
+    'Cannot delete category that has products assigned. Remove products from this category first.',
   'messages.stock.created': 'Stock movement recorded successfully.',
-  'messages.stock.insufficientStock': 'Insufficient stock for this exit. Current stock: ',
+  'messages.stock.insufficientStock':
+    'Insufficient stock for this exit. Current stock: ',
   'messages.stock.productNotFound': 'Product not found.',
-  'messages.stock.noOrganization': 'Please select an organization to manage stock.',
+  'messages.stock.noOrganization':
+    'Please select an organization to manage stock.',
   'messages.permissions.created': 'Permission created successfully.',
   'messages.permissions.updated': 'Permission updated successfully.',
   'messages.permissions.deleted': 'Permission deleted successfully.',
   'messages.permissions.notFound': 'Permission not found.',
-  'messages.permissions.notSuperAdmin': 'Only super admins can manage permissions.',
-  'messages.permissions.duplicateResourceAction': 'A permission with this resource and action already exists.',
-  'messages.permissions.systemPermissionProtected': 'System permissions cannot be modified or deleted.',
-  'messages.permissions.hasRoles': 'Cannot delete. Remove permission from roles first.',
-  'messages.permissions.systemPermissionInfo': 'System permissions are created automatically and cannot be deleted.',
+  'messages.permissions.notSuperAdmin':
+    'Only super admins can manage permissions.',
+  'messages.permissions.duplicateResourceAction':
+    'A permission with this resource and action already exists.',
+  'messages.permissions.systemPermissionProtected':
+    'System permissions cannot be modified or deleted.',
+  'messages.permissions.hasRoles':
+    'Cannot delete. Remove permission from roles first.',
+  'messages.permissions.systemPermissionInfo':
+    'System permissions are created automatically and cannot be deleted.',
 
   'sat.row.notFound': 'SAT file record not found',
 

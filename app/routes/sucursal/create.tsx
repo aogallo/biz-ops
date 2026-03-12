@@ -1,5 +1,11 @@
 import { useEffect } from 'react'
-import { Form, Link, redirect, useActionData, useNavigation } from 'react-router'
+import {
+  Form,
+  Link,
+  redirect,
+  useActionData,
+  useNavigation,
+} from 'react-router'
 import { toast } from 'sonner'
 import { requireAuth } from '~/server/auth/session.server'
 import { createSucursalAction } from '~/features/sucursal/server/actions/create-sucursal.action'
@@ -58,7 +64,10 @@ export async function action({ request }: Route.ActionArgs) {
     throw redirect(`/sucursal`)
   } catch (error) {
     if (error instanceof Response) throw error
-    return { error: error instanceof Error ? error.message : 'Error al crear la sucursal' }
+    return {
+      error:
+        error instanceof Error ? error.message : 'Error al crear la sucursal',
+    }
   }
 }
 
@@ -69,7 +78,11 @@ export default function CreateSucursal({ loaderData }: Route.ComponentProps) {
   const isSubmitting = navigation.state === 'submitting'
 
   useEffect(() => {
-    if (actionData && 'error' in actionData && typeof actionData.error === 'string') {
+    if (
+      actionData &&
+      'error' in actionData &&
+      typeof actionData.error === 'string'
+    ) {
       toast.error(actionData.error)
     }
   }, [actionData])
@@ -82,13 +95,18 @@ export default function CreateSucursal({ loaderData }: Route.ComponentProps) {
       <Card>
         <CardHeader>
           <CardTitle>Nueva Sucursal</CardTitle>
-          <CardDescription>Registrá una nueva sucursal o local físico.</CardDescription>
+          <CardDescription>
+            Registrá una nueva sucursal o local físico.
+          </CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Nombre *
                 </label>
                 <input
@@ -102,7 +120,10 @@ export default function CreateSucursal({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='code' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='code'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Código POS *
                 </label>
                 <input
@@ -121,7 +142,10 @@ export default function CreateSucursal({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='companyId' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='companyId'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Empresa (opcional)
                 </label>
                 <select id='companyId' name='companyId' className={inputClass}>
@@ -135,7 +159,10 @@ export default function CreateSucursal({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor='phone' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='phone'
+                  className='mb-2 block text-sm font-medium'
+                >
                   Teléfono
                 </label>
                 <input
@@ -149,7 +176,10 @@ export default function CreateSucursal({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div>
-              <label htmlFor='address' className='mb-2 block text-sm font-medium'>
+              <label
+                htmlFor='address'
+                className='mb-2 block text-sm font-medium'
+              >
                 Dirección
               </label>
               <input

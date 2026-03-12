@@ -1,12 +1,12 @@
-@import "tailwindcss" source(".");
-@import "tw-animate-css";
+@import 'tailwindcss' source('.');
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 html {
@@ -78,8 +78,8 @@ body {
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.141 0.005 285.823);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.920 0.004 286.32);
-  --input: oklch(0.920 0.004 286.32);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.673 0.182 276.935);
   --chart-1: oklch(0.511 0.262 276.966);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -92,16 +92,16 @@ body {
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.967 0.001 286.375);
   --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.920 0.004 286.32);
+  --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.673 0.182 276.935);
 }
 
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.210 0.006 285.885);
+  --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.210 0.006 285.885);
+  --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.673 0.182 276.935);
   --primary-foreground: oklch(0.985 0 0);
@@ -120,7 +120,7 @@ body {
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.210 0.006 285.885);
+  --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.673 0.182 276.935);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -139,25 +139,25 @@ body {
   }
 
   /* Sidebar scrollbar — blends with sidebar background in both themes */
-  [data-slot="sidebar-content"] {
+  [data-slot='sidebar-content'] {
     scrollbar-width: thin;
     scrollbar-color: var(--sidebar-border) var(--sidebar);
   }
 
-  [data-slot="sidebar-content"]::-webkit-scrollbar {
+  [data-slot='sidebar-content']::-webkit-scrollbar {
     width: 6px;
   }
 
-  [data-slot="sidebar-content"]::-webkit-scrollbar-track {
+  [data-slot='sidebar-content']::-webkit-scrollbar-track {
     background: var(--sidebar);
   }
 
-  [data-slot="sidebar-content"]::-webkit-scrollbar-thumb {
+  [data-slot='sidebar-content']::-webkit-scrollbar-thumb {
     background: var(--sidebar-border);
     border-radius: 3px;
   }
 
-  [data-slot="sidebar-content"]::-webkit-scrollbar-thumb:hover {
+  [data-slot='sidebar-content']::-webkit-scrollbar-thumb:hover {
     background: var(--muted-foreground);
   }
 }
@@ -176,30 +176,42 @@ body {
   /* Raised level — cards, primary containers */
   .elevation-raised {
     background: var(--card);
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.04),
+      0 1px 2px -1px rgb(0 0 0 / 0.04);
   }
 
   .dark .elevation-raised {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.2),
+      0 1px 2px -1px rgb(0 0 0 / 0.2);
   }
 
   /* Floating level — dialogs, sheets, dropdowns */
   .elevation-floating {
     background: var(--popover);
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.07),
+      0 2px 4px -2px rgb(0 0 0 / 0.07);
   }
 
   .dark .elevation-floating {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.3),
+      0 2px 4px -2px rgb(0 0 0 / 0.3);
   }
 
   /* Subtle card shadow (replaces border-based cards) */
   .shadow-card {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.04),
+      0 1px 2px -1px rgb(0 0 0 / 0.04);
   }
 
   .dark .shadow-card {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.2),
+      0 1px 2px -1px rgb(0 0 0 / 0.2);
   }
 }
 
@@ -305,7 +317,7 @@ body {
   }
 
   .text-caption {
-    @apply text-xs text-muted-foreground;
+    @apply text-muted-foreground text-xs;
   }
 
   .text-data {

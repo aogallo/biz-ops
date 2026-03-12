@@ -22,7 +22,10 @@ export class InventoryRepository {
         orgStock: productModel.stock,
       })
       .from(sucursalInventoryModel)
-      .innerJoin(productModel, eq(sucursalInventoryModel.productId, productModel.id))
+      .innerJoin(
+        productModel,
+        eq(sucursalInventoryModel.productId, productModel.id)
+      )
       .where(eq(sucursalInventoryModel.sucursalId, sucursalId))
       .orderBy(productModel.name)
   }
@@ -41,12 +44,19 @@ export class InventoryRepository {
     return entry ?? null
   }
 
-  async upsertSucursalStock(sucursalId: string, productId: string, delta: number) {
+  async upsertSucursalStock(
+    sucursalId: string,
+    productId: string,
+    delta: number
+  ) {
     const [entry] = await db
       .insert(sucursalInventoryModel)
       .values({ sucursalId, productId, stock: String(delta) })
       .onConflictDoUpdate({
-        target: [sucursalInventoryModel.sucursalId, sucursalInventoryModel.productId],
+        target: [
+          sucursalInventoryModel.sucursalId,
+          sucursalInventoryModel.productId,
+        ],
         set: {
           stock: sql`${sucursalInventoryModel.stock} + ${delta}`,
           updatedAt: new Date(),
@@ -56,12 +66,19 @@ export class InventoryRepository {
     return entry
   }
 
-  async adjustSucursalStock(sucursalId: string, productId: string, newStock: number) {
+  async adjustSucursalStock(
+    sucursalId: string,
+    productId: string,
+    newStock: number
+  ) {
     const [entry] = await db
       .insert(sucursalInventoryModel)
       .values({ sucursalId, productId, stock: String(newStock) })
       .onConflictDoUpdate({
-        target: [sucursalInventoryModel.sucursalId, sucursalInventoryModel.productId],
+        target: [
+          sucursalInventoryModel.sucursalId,
+          sucursalInventoryModel.productId,
+        ],
         set: {
           stock: String(newStock),
           updatedAt: new Date(),
@@ -136,7 +153,12 @@ export class InventoryRepository {
     organizationId: string
     sucursalId?: string
     productId: string
-    type: 'in' | 'out' | 'transfer_to_sucursal' | 'transfer_from_sucursal' | 'adjustment'
+    type:
+      | 'in'
+      | 'out'
+      | 'transfer_to_sucursal'
+      | 'transfer_from_sucursal'
+      | 'adjustment'
     quantity: number
     notes?: string
     createdBy?: string

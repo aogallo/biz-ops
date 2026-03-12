@@ -41,7 +41,9 @@ export async function updateInvoiceAction(
       updateData.invoiceDate = formatDateToString(input.invoiceDate)
     }
     if (input.dueDate !== undefined) {
-      updateData.dueDate = input.dueDate ? formatDateToString(input.dueDate) : null
+      updateData.dueDate = input.dueDate
+        ? formatDateToString(input.dueDate)
+        : null
     }
     if (input.businessPartnerId !== undefined) {
       updateData.businessPartnerId = input.businessPartnerId

@@ -130,7 +130,10 @@ function getSourceBadge(source: string) {
   }
 }
 
-export default function JournalEntryShow({ loaderData, actionData }: Route.ComponentProps) {
+export default function JournalEntryShow({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const { entry } = loaderData
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
@@ -143,7 +146,7 @@ export default function JournalEntryShow({ loaderData, actionData }: Route.Compo
       {/* Back Link */}
       <Link
         to='/journal-entries'
-        className='mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground'
+        className='text-muted-foreground hover:text-foreground mb-4 inline-flex items-center text-sm'
       >
         <ArrowLeft className='mr-1 h-4 w-4' />
         Back to Journal Entries
@@ -224,35 +227,37 @@ export default function JournalEntryShow({ loaderData, actionData }: Route.Compo
         <CardContent>
           <div className='grid gap-4 md:grid-cols-4'>
             <div>
-              <p className='text-sm text-muted-foreground'>Date</p>
+              <p className='text-muted-foreground text-sm'>Date</p>
               <p className='font-medium'>
                 {format(new Date(entry.entryDate), 'MMMM dd, yyyy')}
               </p>
             </div>
             <div>
-              <p className='text-sm text-muted-foreground'>Company</p>
+              <p className='text-muted-foreground text-sm'>Company</p>
               <p className='font-medium'>{entry.company?.name || '-'}</p>
             </div>
             <div>
-              <p className='text-sm text-muted-foreground'>Total Debit</p>
-              <p className='font-medium font-mono'>Q {totalDebit.toFixed(2)}</p>
+              <p className='text-muted-foreground text-sm'>Total Debit</p>
+              <p className='font-mono font-medium'>Q {totalDebit.toFixed(2)}</p>
             </div>
             <div>
-              <p className='text-sm text-muted-foreground'>Total Credit</p>
-              <p className='font-medium font-mono'>Q {totalCredit.toFixed(2)}</p>
+              <p className='text-muted-foreground text-sm'>Total Credit</p>
+              <p className='font-mono font-medium'>
+                Q {totalCredit.toFixed(2)}
+              </p>
             </div>
           </div>
 
           {entry.notes && (
             <div className='mt-4'>
-              <p className='text-sm text-muted-foreground'>Notes</p>
-              <p className='whitespace-pre-wrap text-sm'>{entry.notes}</p>
+              <p className='text-muted-foreground text-sm'>Notes</p>
+              <p className='text-sm whitespace-pre-wrap'>{entry.notes}</p>
             </div>
           )}
 
           {entry.postedAt && (
             <div className='mt-4'>
-              <p className='text-sm text-muted-foreground'>Posted At</p>
+              <p className='text-muted-foreground text-sm'>Posted At</p>
               <p className='text-sm'>
                 {format(new Date(entry.postedAt), 'MMMM dd, yyyy HH:mm')}
               </p>
@@ -262,7 +267,7 @@ export default function JournalEntryShow({ loaderData, actionData }: Route.Compo
           {/* Source Links */}
           {entry.sourceSatFileId && (
             <div className='mt-4'>
-              <p className='text-sm text-muted-foreground'>Source</p>
+              <p className='text-muted-foreground text-sm'>Source</p>
               <Link
                 to={`/sat-processor?highlight=${entry.sourceSatFileId}`}
                 className='text-sm text-blue-600 hover:underline'

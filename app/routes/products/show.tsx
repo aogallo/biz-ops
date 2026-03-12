@@ -56,12 +56,18 @@ export async function action({ request, params }: Route.ActionArgs) {
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { success: false, message: translateServer(locale, 'messages.products.noOrganization') }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.products.noOrganization'),
+    }
   }
 
   const product = await productsRepository.getBySku(organizationId, sku)
   if (!product) {
-    return { success: false, message: translateServer(locale, 'messages.products.notFound') }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.products.notFound'),
+    }
   }
 
   const result = await deleteProduct(request, product.id)
@@ -174,7 +180,9 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
         <Card>
           <CardHeader>
             <CardTitle>{t('products.inventorySection')}</CardTitle>
-            <CardDescription>{t('products.inventoryDescription')}</CardDescription>
+            <CardDescription>
+              {t('products.inventoryDescription')}
+            </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div>
@@ -252,7 +260,8 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
 
         {product.attributesJson &&
           typeof product.attributesJson === 'object' &&
-          Object.keys(product.attributesJson as Record<string, unknown>).length > 0 && (
+          Object.keys(product.attributesJson as Record<string, unknown>)
+            .length > 0 && (
             <Card className='md:col-span-3'>
               <CardHeader>
                 <CardTitle>{t('products.customAttributes')}</CardTitle>
@@ -264,17 +273,17 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
                 <div className='overflow-hidden rounded-lg border'>
                   <table className='w-full text-sm'>
                     <thead>
-                      <tr className='border-b bg-muted/40'>
-                        <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                      <tr className='bg-muted/40 border-b'>
+                        <th className='text-muted-foreground px-4 py-2.5 text-left text-xs font-medium tracking-wide uppercase'>
                           Field
                         </th>
-                        <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                        <th className='text-muted-foreground px-4 py-2.5 text-left text-xs font-medium tracking-wide uppercase'>
                           Type
                         </th>
-                        <th className='px-4 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                        <th className='text-muted-foreground px-4 py-2.5 text-center text-xs font-medium tracking-wide uppercase'>
                           Required
                         </th>
-                        <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                        <th className='text-muted-foreground px-4 py-2.5 text-left text-xs font-medium tracking-wide uppercase'>
                           Options
                         </th>
                       </tr>
@@ -283,7 +292,11 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
                       {Object.entries(
                         product.attributesJson as Record<
                           string,
-                          { type: string; required: boolean; options?: string[] }
+                          {
+                            type: string
+                            required: boolean
+                            options?: string[]
+                          }
                         >
                       ).map(([name, def]) => (
                         <tr key={name}>
@@ -323,7 +336,9 @@ export default function ShowProduct({ loaderData }: Route.ComponentProps) {
         <Card className='md:col-span-3'>
           <CardHeader>
             <CardTitle>{t('products.metadata')}</CardTitle>
-            <CardDescription>{t('products.metadataDescription')}</CardDescription>
+            <CardDescription>
+              {t('products.metadataDescription')}
+            </CardDescription>
           </CardHeader>
           <CardContent className='grid gap-4 md:grid-cols-3'>
             <div>

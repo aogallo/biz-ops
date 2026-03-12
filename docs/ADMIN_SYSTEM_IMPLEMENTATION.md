@@ -408,10 +408,10 @@ npx tsx scripts/seed-super-admin.ts
 Use the `createCustomRole()` function:
 
 ```typescript
-await createCustomRole(organizationId, "custom_role_name", "Description", [
+await createCustomRole(organizationId, 'custom_role_name', 'Description', [
   permissionId1,
   permissionId2,
-]);
+])
 ```
 
 ## Support & Documentation

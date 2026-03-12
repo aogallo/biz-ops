@@ -49,26 +49,28 @@ export function CalendarHeader({
   const views: CalendarView[] = ['day', 'week', 'month']
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
       {/* Left section: Add button and title */}
-      <div className="flex items-center gap-4">
-        <Link to="/appointments/new">
-          <Button size="icon" variant="outline" className="rounded-full">
-            <Plus className="size-5" />
+      <div className='flex items-center gap-4'>
+        <Link to='/appointments/new'>
+          <Button size='icon' variant='outline' className='rounded-full'>
+            <Plus className='size-5' />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">{getHeaderTitle(currentDate, view)}</h1>
+        <h1 className='text-2xl font-bold'>
+          {getHeaderTitle(currentDate, view)}
+        </h1>
       </div>
 
       {/* Center section: View toggle */}
-      <div className="flex items-center gap-2">
-        <div className="flex rounded-lg border bg-muted/30 p-1">
+      <div className='flex items-center gap-2'>
+        <div className='bg-muted/30 flex rounded-lg border p-1'>
           {views.map((v) => (
             <button
               key={v}
-              type="button"
+              type='button'
               className={cn(
-                'px-4 py-1.5 text-sm font-medium rounded-md transition-colors capitalize',
+                'rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors',
                 view === v
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -82,34 +84,30 @@ export function CalendarHeader({
       </div>
 
       {/* Right section: Navigation and search */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onNavigate('today')}
-        >
+      <div className='flex items-center gap-2'>
+        <Button variant='outline' size='sm' onClick={() => onNavigate('today')}>
           Today
         </Button>
-        <div className="flex items-center">
+        <div className='flex items-center'>
           <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
+            variant='ghost'
+            size='icon'
+            className='size-8'
             onClick={() => onNavigate('prev')}
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className='size-4' />
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
+            variant='ghost'
+            size='icon'
+            className='size-8'
             onClick={() => onNavigate('next')}
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className='size-4' />
           </Button>
         </div>
-        <Button variant="ghost" size="icon" className="size-8">
-          <Search className="size-4" />
+        <Button variant='ghost' size='icon' className='size-8'>
+          <Search className='size-4' />
         </Button>
       </div>
     </div>

@@ -33,7 +33,8 @@ async function getQz(): Promise<typeof import('qz-tray')> {
         body: JSON.stringify({ toSign }),
       })
       const data: { signature?: string; error?: string } = await r.json()
-      if (!data.signature) throw new Error(data.error ?? 'Empty signature from server')
+      if (!data.signature)
+        throw new Error(data.error ?? 'Empty signature from server')
       return data.signature
     })
 
@@ -53,7 +54,10 @@ export async function printWithQz(
   }
 
   if (!receipt.printerName) {
-    return { success: false, reason: 'No printer name configured for this terminal' }
+    return {
+      success: false,
+      reason: 'No printer name configured for this terminal',
+    }
   }
 
   let qz: typeof import('qz-tray')
@@ -72,7 +76,12 @@ export async function printWithQz(
 
     const config = qz.configs.create(receipt.printerName)
     await qz.print(config, [
-      { type: 'raw', format: 'command', flavor: 'plain', data: buildEscPos(receipt, t) },
+      {
+        type: 'raw',
+        format: 'command',
+        flavor: 'plain',
+        data: buildEscPos(receipt, t),
+      },
     ])
 
     return { success: true }

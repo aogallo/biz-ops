@@ -89,7 +89,9 @@ export async function updateInvoiceLineAction(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Failed to update invoice line',
+        error instanceof Error
+          ? error.message
+          : 'Failed to update invoice line',
     }
   }
 }

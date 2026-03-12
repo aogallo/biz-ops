@@ -148,7 +148,9 @@ export default function ShowRole() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>{t('roles.deleteConfirm')}</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      {t('roles.deleteConfirm')}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
                       {t('roles.deleteWarning')} &quot;{role.name}
                       &quot;. {t('roles.deleteIrreversible')}
@@ -201,9 +203,7 @@ export default function ShowRole() {
         <h2 className='mb-4 text-lg font-semibold'>{t('roles.permissions')}</h2>
         {Object.keys(permissionsByResource).length === 0 ? (
           <div className='rounded-lg border border-dashed p-8 text-center'>
-            <p className='text-muted-foreground'>
-              {t('roles.noPermissions')}
-            </p>
+            <p className='text-muted-foreground'>{t('roles.noPermissions')}</p>
           </div>
         ) : (
           <div className='space-y-4'>

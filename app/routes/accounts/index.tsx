@@ -31,7 +31,13 @@ export async function action({ request }: Route.ActionArgs) {
   const organizationId = session.session.activeOrganizationId
 
   if (!organizationId) {
-    return { success: false, message: translateServer(locale, 'messages.accounts.noOrganization' as TranslationKey) }
+    return {
+      success: false,
+      message: translateServer(
+        locale,
+        'messages.accounts.noOrganization' as TranslationKey
+      ),
+    }
   }
 
   const formData = await request.formData()
@@ -41,7 +47,10 @@ export async function action({ request }: Route.ActionArgs) {
     return bulkUploadAccounts(request, organizationId, formData)
   }
 
-  return { success: false, message: translateServer(locale, 'common.unknown' as TranslationKey) }
+  return {
+    success: false,
+    message: translateServer(locale, 'common.unknown' as TranslationKey),
+  }
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -81,7 +90,7 @@ export default function AccountsIndex({ loaderData }: Route.ComponentProps) {
         accessorKey: 'accountNumber',
         header: t('accounts.number' as TranslationKey),
         cell: ({ row }) => (
-          <span className="font-mono text-sm">
+          <span className='font-mono text-sm'>
             {row.getValue('accountNumber')}
           </span>
         ),
@@ -90,7 +99,7 @@ export default function AccountsIndex({ loaderData }: Route.ComponentProps) {
         accessorKey: 'name',
         header: t('common.name' as TranslationKey),
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('name')}</span>
+          <span className='font-medium'>{row.getValue('name')}</span>
         ),
       },
       {
@@ -99,7 +108,7 @@ export default function AccountsIndex({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => (
           <Link
             to={`/accounts/${row.original.id}`}
-            className="text-primary text-sm font-medium hover:underline"
+            className='text-primary text-sm font-medium hover:underline'
           >
             {t('common.view' as TranslationKey)}
           </Link>
@@ -128,8 +137,12 @@ export default function AccountsIndex({ loaderData }: Route.ComponentProps) {
     <div className='p-6'>
       <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold'>{t('accounts.title' as TranslationKey)}</h1>
-          <p className='text-muted-foreground'>{t('accounts.manage' as TranslationKey)}</p>
+          <h1 className='text-2xl font-bold'>
+            {t('accounts.title' as TranslationKey)}
+          </h1>
+          <p className='text-muted-foreground'>
+            {t('accounts.manage' as TranslationKey)}
+          </p>
         </div>
         <Link to='/accounts/new'>
           <Button>{t('accounts.addAccount' as TranslationKey)}</Button>
@@ -152,7 +165,9 @@ export default function AccountsIndex({ loaderData }: Route.ComponentProps) {
               columns={columns}
               data={accounts}
               enableSearch
-              searchPlaceholder={t('accounts.searchPlaceholder' as TranslationKey)}
+              searchPlaceholder={t(
+                'accounts.searchPlaceholder' as TranslationKey
+              )}
             />
           )}
         </div>
@@ -160,7 +175,9 @@ export default function AccountsIndex({ loaderData }: Route.ComponentProps) {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>{t('accounts.bulkImport' as TranslationKey)}</CardTitle>
+              <CardTitle>
+                {t('accounts.bulkImport' as TranslationKey)}
+              </CardTitle>
               <CardDescription>
                 {t('accounts.bulkImportDescription' as TranslationKey)}
               </CardDescription>

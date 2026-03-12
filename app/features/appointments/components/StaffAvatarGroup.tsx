@@ -29,18 +29,18 @@ export function StaffAvatarGroup({
   const remainingCount = staff.length - maxVisible
 
   return (
-    <div className="flex items-center">
+    <div className='flex items-center'>
       {visibleStaff.map((member, index) => (
         <Avatar
           key={member.id}
           className={cn(
             sizeClasses[size],
-            'ring-2 ring-background',
+            'ring-background ring-2',
             index > 0 && overlapClasses[size]
           )}
         >
           <AvatarImage src={member.image || undefined} alt={member.name} />
-          <AvatarFallback className="text-xs">
+          <AvatarFallback className='text-xs'>
             {member.name
               .split(' ')
               .map((n) => n[0])
@@ -55,7 +55,7 @@ export function StaffAvatarGroup({
           className={cn(
             sizeClasses[size],
             overlapClasses[size],
-            'flex items-center justify-center rounded-full bg-muted text-xs font-medium ring-2 ring-background'
+            'bg-muted ring-background flex items-center justify-center rounded-full text-xs font-medium ring-2'
           )}
         >
           +{remainingCount}

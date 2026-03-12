@@ -8,7 +8,11 @@ import type {
   PDFGeneralLedgerReportData,
 } from '../../lib/general-ledger-types'
 import { generateGeneralLedgerPDF } from '../../lib/general-ledger-pdf-generator'
-import { formatDate, SPANISH_MONTHS, parseEntryNumber } from '../../lib/pdf-types'
+import {
+  formatDate,
+  SPANISH_MONTHS,
+  parseEntryNumber,
+} from '../../lib/pdf-types'
 import type { RawTransactionLine } from '../repository/general-ledger.repository'
 
 function parseDate(dateStr: string | undefined): Date | undefined {
@@ -66,13 +70,21 @@ function buildGeneralLedgerRows(
   // Build account totals map for parent aggregation
   const accountTotals = new Map<
     string,
-    { openingBalance: number; totalDebit: number; totalCredit: number; closingBalance: number }
+    {
+      openingBalance: number
+      totalDebit: number
+      totalCredit: number
+      closingBalance: number
+    }
   >()
 
   // Filter to accounts that have either transactions or opening balances
   const activeAccountIds = new Set<string>()
   for (const account of accounts) {
-    if (transactionsByAccount.has(account.id) || openingBalances.has(account.id)) {
+    if (
+      transactionsByAccount.has(account.id) ||
+      openingBalances.has(account.id)
+    ) {
       activeAccountIds.add(account.id)
     }
   }
@@ -82,7 +94,9 @@ function buildGeneralLedgerRows(
     if (!activeAccountIds.has(account.id)) continue
 
     const opening = openingBalances.get(account.id)
-    const openingBalance = opening ? opening.totalDebit - opening.totalCredit : 0
+    const openingBalance = opening
+      ? opening.totalDebit - opening.totalCredit
+      : 0
 
     const transactions = transactionsByAccount.get(account.id) ?? []
     let totalDebit = 0
@@ -132,7 +146,11 @@ function buildGeneralLedgerRows(
     }
 
     // Only add parent if it has children with data
-    if (aggregatedDebit !== 0 || aggregatedCredit !== 0 || aggregatedOpening !== 0) {
+    if (
+      aggregatedDebit !== 0 ||
+      aggregatedCredit !== 0 ||
+      aggregatedOpening !== 0
+    ) {
       // Add own transactions too
       const ownTotals = accountTotals.get(parentAccount.id)
       if (ownTotals) {
@@ -243,7 +261,8 @@ export async function generateGeneralLedgerAction(
   input: Omit<GenerateReportInput, '_action'>
 ): Promise<GenerateGeneralLedgerResult> {
   const { companyId, dateFrom, dateTo, page, pageSize } = input
-  const parsedDateFrom = parseDate(dateFrom) ?? new Date(new Date().getFullYear(), 0, 1)
+  const parsedDateFrom =
+    parseDate(dateFrom) ?? new Date(new Date().getFullYear(), 0, 1)
   const parsedDateTo = parseDate(dateTo) ?? new Date()
 
   const [accounts, transactionLines, openingBalances] = await Promise.all([
@@ -324,7 +343,8 @@ export async function exportGeneralLedgerAction(
   input: Omit<ExportReportInput, '_action'>
 ): Promise<ExportGeneralLedgerResult> {
   const { companyId, dateFrom, dateTo } = input
-  const parsedDateFrom = parseDate(dateFrom) ?? new Date(new Date().getFullYear(), 0, 1)
+  const parsedDateFrom =
+    parseDate(dateFrom) ?? new Date(new Date().getFullYear(), 0, 1)
   const parsedDateTo = parseDate(dateTo) ?? new Date()
 
   const [accounts, transactionLines, openingBalances] = await Promise.all([

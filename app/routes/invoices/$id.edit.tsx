@@ -1,7 +1,13 @@
 import { format } from 'date-fns'
 import { ArrowLeft, CalendarIcon } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { Link, redirect, useFetcher, useNavigate, useRevalidator } from 'react-router'
+import {
+  Link,
+  redirect,
+  useFetcher,
+  useNavigate,
+  useRevalidator,
+} from 'react-router'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Calendar } from '~/components/ui/calendar'
@@ -32,7 +38,10 @@ import {
   type InvoiceLineData,
   type ProductOption,
 } from '~/features/invoice/components'
-import { addInvoiceLineSchema, updateInvoiceLineSchema } from '~/features/invoice/schemas'
+import {
+  addInvoiceLineSchema,
+  updateInvoiceLineSchema,
+} from '~/features/invoice/schemas'
 import { addInvoiceLineAction } from '~/features/invoice/server/actions/add-line.action'
 import { postInvoiceAction } from '~/features/invoice/server/actions/post-invoice.action'
 import { removeInvoiceLineAction } from '~/features/invoice/server/actions/remove-line.action'
@@ -148,10 +157,15 @@ export async function action({ request, params }: Route.ActionArgs) {
         description: formData.get('description') as string,
         quantity: parseFloat(formData.get('quantity') as string) || 1,
         unitPrice: parseFloat(formData.get('unitPrice') as string) || 0,
-        ivaType: (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject') || 'taxed',
+        ivaType:
+          (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject') ||
+          'taxed',
         ivaRate: 12,
         productId: (formData.get('productId') as string) || null,
-        lineType: lineTypeRaw === 'goods' || lineTypeRaw === 'services' ? lineTypeRaw : null,
+        lineType:
+          lineTypeRaw === 'goods' || lineTypeRaw === 'services'
+            ? lineTypeRaw
+            : null,
       }
 
       const validation = addInvoiceLineSchema.safeParse(input)
@@ -173,10 +187,13 @@ export async function action({ request, params }: Route.ActionArgs) {
         description: formData.get('description') as string,
         quantity: parseFloat(formData.get('quantity') as string),
         unitPrice: parseFloat(formData.get('unitPrice') as string),
-        ivaType: (formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject'),
+        ivaType: formData.get('ivaType') as 'taxed' | 'exempt' | 'non_subject',
         ivaRate: 12,
         productId: (formData.get('productId') as string) || null,
-        lineType: lineTypeRaw === 'goods' || lineTypeRaw === 'services' ? lineTypeRaw : null,
+        lineType:
+          lineTypeRaw === 'goods' || lineTypeRaw === 'services'
+            ? lineTypeRaw
+            : null,
       }
 
       const validation = updateInvoiceLineSchema.safeParse(input)
@@ -218,24 +235,22 @@ function getTypeBadge(type: string) {
   switch (type) {
     case 'sale':
       return (
-        <Badge variant="outline" className="border-blue-500 text-blue-600">
+        <Badge variant='outline' className='border-blue-500 text-blue-600'>
           Sale Invoice
         </Badge>
       )
     case 'purchase':
       return (
-        <Badge variant="outline" className="border-orange-500 text-orange-600">
+        <Badge variant='outline' className='border-orange-500 text-orange-600'>
           Purchase Invoice
         </Badge>
       )
     default:
-      return <Badge variant="outline">{type}</Badge>
+      return <Badge variant='outline'>{type}</Badge>
   }
 }
 
-export default function InvoiceEditPage({
-  loaderData,
-}: Route.ComponentProps) {
+export default function InvoiceEditPage({ loaderData }: Route.ComponentProps) {
   const { invoice, businessPartners, products, accounts } = loaderData
   const navigate = useNavigate()
   const revalidator = useRevalidator()
@@ -309,28 +324,34 @@ export default function InvoiceEditPage({
       },
       { method: 'post' }
     )
-  }, [headerFetcher, businessPartnerId, accountingAccountId, invoiceDate, dueDate])
+  }, [
+    headerFetcher,
+    businessPartnerId,
+    accountingAccountId,
+    invoiceDate,
+    dueDate,
+  ])
 
   return (
-    <div className="container mx-auto py-6">
+    <div className='container mx-auto py-6'>
       {/* Header with Actions */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+      <div className='mb-6 flex items-center justify-between'>
+        <div className='flex items-center gap-4'>
+          <Button variant='ghost' size='icon' asChild>
             <Link to={`/invoices/${invoice.id}`}>
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className='h-4 w-4' />
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Edit Invoice</h1>
-            <div className="mt-1 flex items-center gap-2">
+            <h1 className='text-2xl font-bold'>Edit Invoice</h1>
+            <div className='mt-1 flex items-center gap-2'>
               {getTypeBadge(invoice.type)}
-              <Badge variant="secondary">Draft</Badge>
+              <Badge variant='secondary'>Draft</Badge>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
+        <div className='flex items-center gap-2'>
+          <Button variant='outline' asChild>
             <Link to={`/invoices/${invoice.id}`}>View Invoice</Link>
           </Button>
           <PostInvoiceButton
@@ -341,116 +362,112 @@ export default function InvoiceEditPage({
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className='space-y-6'>
         {/* Header Details */}
         <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-              <CardDescription>
-                Edit invoice header information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">Company</p>
-                  <p className="font-medium">{invoice.company?.name || '-'}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>
-                    {invoice.type === 'sale' ? 'Customer' : 'Vendor'}
-                  </Label>
-                  <Combobox
-                    options={partnerOptions}
-                    value={businessPartnerId}
-                    onValueChange={(value) => {
-                      setBusinessPartnerId(value)
-                      setTimeout(saveHeaderChanges, 0)
-                    }}
-                    placeholder="Select business partner..."
-                    searchPlaceholder="Search by name or NIT..."
-                    emptyMessage="No business partners found."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>
-                    {invoice.type === 'sale' ? 'Revenue Account' : 'Expense Account'}
-                  </Label>
-                  <Combobox
-                    options={accountOptions}
-                    value={accountingAccountId}
-                    onValueChange={(value) => {
-                      setAccountingAccountId(value)
-                      setTimeout(saveHeaderChanges, 0)
-                    }}
-                    placeholder="Select account..."
-                    searchPlaceholder="Search accounts..."
-                    emptyMessage="No accounts found."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Invoice Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !invoiceDate && 'text-muted-foreground'
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {invoiceDate
-                          ? format(invoiceDate, 'PPP')
-                          : 'Select date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={invoiceDate}
-                        onSelect={(date) => {
-                          setInvoiceDate(date)
-                          setTimeout(saveHeaderChanges, 0)
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Due Date (Optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !dueDate && 'text-muted-foreground'
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dueDate ? format(dueDate, 'PPP') : 'Select date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dueDate}
-                        onSelect={(date) => {
-                          setDueDate(date)
-                          setTimeout(saveHeaderChanges, 0)
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+          <CardHeader>
+            <CardTitle>Invoice Details</CardTitle>
+            <CardDescription>Edit invoice header information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='grid gap-4 md:grid-cols-2'>
+              <div>
+                <p className='text-muted-foreground mb-1 text-sm'>Company</p>
+                <p className='font-medium'>{invoice.company?.name || '-'}</p>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className='space-y-2'>
+                <Label>{invoice.type === 'sale' ? 'Customer' : 'Vendor'}</Label>
+                <Combobox
+                  options={partnerOptions}
+                  value={businessPartnerId}
+                  onValueChange={(value) => {
+                    setBusinessPartnerId(value)
+                    setTimeout(saveHeaderChanges, 0)
+                  }}
+                  placeholder='Select business partner...'
+                  searchPlaceholder='Search by name or NIT...'
+                  emptyMessage='No business partners found.'
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label>
+                  {invoice.type === 'sale'
+                    ? 'Revenue Account'
+                    : 'Expense Account'}
+                </Label>
+                <Combobox
+                  options={accountOptions}
+                  value={accountingAccountId}
+                  onValueChange={(value) => {
+                    setAccountingAccountId(value)
+                    setTimeout(saveHeaderChanges, 0)
+                  }}
+                  placeholder='Select account...'
+                  searchPlaceholder='Search accounts...'
+                  emptyMessage='No accounts found.'
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label>Invoice Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant='outline'
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !invoiceDate && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className='mr-2 h-4 w-4' />
+                      {invoiceDate ? format(invoiceDate, 'PPP') : 'Select date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className='w-auto p-0' align='start'>
+                    <Calendar
+                      mode='single'
+                      selected={invoiceDate}
+                      onSelect={(date) => {
+                        setInvoiceDate(date)
+                        setTimeout(saveHeaderChanges, 0)
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className='space-y-2'>
+                <Label>Due Date (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant='outline'
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !dueDate && 'text-muted-foreground'
+                      )}
+                    >
+                      <CalendarIcon className='mr-2 h-4 w-4' />
+                      {dueDate ? format(dueDate, 'PPP') : 'Select date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className='w-auto p-0' align='start'>
+                    <Calendar
+                      mode='single'
+                      selected={dueDate}
+                      onSelect={(date) => {
+                        setDueDate(date)
+                        setTimeout(saveHeaderChanges, 0)
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Invoice Lines */}
         <InvoiceLineTable
@@ -467,7 +484,7 @@ export default function InvoiceEditPage({
           ivaAmount={totals.ivaAmount}
           total={totals.total}
           lineCount={lines.length}
-          variant="inline"
+          variant='inline'
         />
       </div>
     </div>

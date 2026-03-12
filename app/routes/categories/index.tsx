@@ -65,7 +65,7 @@ function DeleteCategoryButton({ categoryId }: { categoryId: string }) {
       <button
         type='submit'
         disabled={isDeleting}
-        className='flex w-full items-center text-destructive'
+        className='text-destructive flex w-full items-center'
       >
         <Trash2 className='mr-2 size-4' />
         {isDeleting ? 'Deleting...' : 'Delete'}
@@ -136,10 +136,7 @@ export default function CategoriesIndex({ loaderData }: Route.ComponentProps) {
                   Edit
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                asChild
-                onSelect={(e) => e.preventDefault()}
-              >
+              <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
                 <DeleteCategoryButton categoryId={row.original.id} />
               </DropdownMenuItem>
             </DropdownMenuContent>

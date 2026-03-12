@@ -100,7 +100,10 @@ export const inventoryMovementModel = pgTable(
     ...timestamps,
   },
   (table) => [
-    index('inventory_movement_org_idx').on(table.organizationId, table.createdAt),
+    index('inventory_movement_org_idx').on(
+      table.organizationId,
+      table.createdAt
+    ),
     index('inventory_movement_product_idx').on(table.productId),
     index('inventory_movement_sucursal_idx').on(table.sucursalId),
   ]
@@ -157,15 +160,19 @@ export const selectSucursalSchema = createSelectSchema(sucursalModel)
 export const insertSucursalSchema = createInsertSchema(sucursalModel)
 export const updateSucursalSchema = createUpdateSchema(sucursalModel)
 
-export const selectSucursalInventorySchema =
-  createSelectSchema(sucursalInventoryModel)
-export const insertSucursalInventorySchema =
-  createInsertSchema(sucursalInventoryModel)
+export const selectSucursalInventorySchema = createSelectSchema(
+  sucursalInventoryModel
+)
+export const insertSucursalInventorySchema = createInsertSchema(
+  sucursalInventoryModel
+)
 
-export const selectInventoryMovementSchema =
-  createSelectSchema(inventoryMovementModel)
-export const insertInventoryMovementSchema =
-  createInsertSchema(inventoryMovementModel)
+export const selectInventoryMovementSchema = createSelectSchema(
+  inventoryMovementModel
+)
+export const insertInventoryMovementSchema = createInsertSchema(
+  inventoryMovementModel
+)
 
 // Types
 export type Sucursal = z.infer<typeof selectSucursalSchema>

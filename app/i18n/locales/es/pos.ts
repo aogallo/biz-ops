@@ -3,7 +3,8 @@ export const pos = {
   'pos.title': 'Punto de Venta',
   'pos.welcome': 'Bienvenido, {{name}}. Seleccioná una caja para comenzar.',
   'pos.noTerminals': 'No hay cajas configuradas',
-  'pos.noTerminalsDescription': 'Configurá al menos una caja desde la sección de ajustes.',
+  'pos.noTerminalsDescription':
+    'Configurá al menos una caja desde la sección de ajustes.',
   'pos.configureTerminals': 'Configurar Cajas',
   'pos.backToErp': 'Volver al ERP',
 
@@ -93,7 +94,8 @@ export const pos = {
 
   // Terminal settings
   'pos.posTerminals': 'Cajas POS',
-  'pos.terminalsDescription': 'Configurá las cajas (terminales) del punto de venta.',
+  'pos.terminalsDescription':
+    'Configurá las cajas (terminales) del punto de venta.',
   'pos.newTerminal': 'Nueva Caja',
   'pos.newTerminalTitle': 'Nueva Caja POS',
   'pos.terminalName': 'Nombre',
@@ -164,7 +166,8 @@ export const pos = {
   'pos.createCashier': 'Crear Cajero',
   'pos.editCashier': 'Editar Cajero',
   'pos.noCashier': 'No se encontró perfil de cajero',
-  'pos.noCashierDescription': 'Necesitás un perfil de cajero para usar el POS. Contactá a tu administrador.',
+  'pos.noCashierDescription':
+    'Necesitás un perfil de cajero para usar el POS. Contactá a tu administrador.',
 
   // Create customer from terminal
   'pos.createCustomerTitle': 'Nuevo Cliente',
@@ -179,7 +182,8 @@ export const pos = {
   'pos.noJournalEntry': 'Sin asiento contable (cuentas no configuradas)',
 
   // Errors
-  'pos.noCustomerSelected': 'No hay un cliente seleccionado ni un cliente por defecto configurado en la caja.',
+  'pos.noCustomerSelected':
+    'No hay un cliente seleccionado ni un cliente por defecto configurado en la caja.',
   'pos.errorProcessing': 'Error al procesar la venta',
   'pos.errorVoiding': 'Error al anular',
 } as const

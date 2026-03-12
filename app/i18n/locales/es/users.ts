@@ -9,14 +9,18 @@ export const users = {
   'users.verified': 'Verificado',
   'users.pending': 'Pendiente',
   'users.pendingInvitations': 'Invitaciones Pendientes',
-  'users.pendingDescription': 'Usuarios que han sido invitados pero aún no han aceptado',
+  'users.pendingDescription':
+    'Usuarios que han sido invitados pero aún no han aceptado',
   'users.manageRoles': 'Gestionar roles',
   'users.noOrganizations': 'No se Encontraron Organizaciones',
-  'users.noOrganizationsDescription': 'Necesitas ser miembro de al menos una organización para gestionar usuarios.',
+  'users.noOrganizationsDescription':
+    'Necesitas ser miembro de al menos una organización para gestionar usuarios.',
   'users.createOrganization': 'Crear Organización',
   'users.inviteTitle': 'Invitación de Usuario',
-  'users.inviteDescription': 'Envía un correo de invitación para agregar un nuevo usuario a tu organización',
-  'users.inviteNote': 'El usuario recibirá un correo con instrucciones para crear su cuenta',
+  'users.inviteDescription':
+    'Envía un correo de invitación para agregar un nuevo usuario a tu organización',
+  'users.inviteNote':
+    'El usuario recibirá un correo con instrucciones para crear su cuenta',
   'users.emailLabel': 'Correo electrónico *',
   'users.emailPlaceholder': 'usuario@ejemplo.com',
   'users.emailHelper': 'La dirección de correo donde se enviará la invitación',

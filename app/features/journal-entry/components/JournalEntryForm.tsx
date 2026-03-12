@@ -203,29 +203,29 @@ export function JournalEntryForm({
   }, [companyId, entryDate, description, lines, totals.isBalanced])
 
   return (
-    <div className="container mx-auto py-6">
+    <div className='container mx-auto py-6'>
       {/* Error display */}
       {actionData?.error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+        <div className='mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
           {actionData.error}
         </div>
       )}
 
-      <Form method="post">
+      <Form method='post'>
         {/* Hidden fields for form data */}
-        <input type="hidden" name="companyId" value={companyId} />
+        <input type='hidden' name='companyId' value={companyId} />
         <input
-          type="hidden"
-          name="entryDate"
+          type='hidden'
+          name='entryDate'
           value={entryDate ? entryDate.toISOString() : ''}
         />
-        <input type="hidden" name="description" value={description} />
-        <input type="hidden" name="notes" value={notes} />
-        <input type="hidden" name="lines" value={JSON.stringify(lines)} />
-        {entryId && <input type="hidden" name="entryId" value={entryId} />}
+        <input type='hidden' name='description' value={description} />
+        <input type='hidden' name='notes' value={notes} />
+        <input type='hidden' name='lines' value={JSON.stringify(lines)} />
+        {entryId && <input type='hidden' name='entryId' value={entryId} />}
 
         {/* Header Card */}
-        <Card className="mb-6">
+        <Card className='mb-6'>
           <CardHeader>
             <CardTitle>
               {mode === 'create' ? 'New Journal Entry' : 'Edit Journal Entry'}
@@ -237,80 +237,80 @@ export function JournalEntryForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className='grid gap-4 md:grid-cols-2'>
               {/* Company */}
-              <div className="space-y-2">
-                <Label htmlFor="company">Company *</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='company'>Company *</Label>
                 <Combobox
                   options={companyOptions}
                   value={companyId}
                   onValueChange={setCompanyId}
-                  placeholder="Select company..."
-                  searchPlaceholder="Search companies..."
-                  emptyMessage="No companies found."
+                  placeholder='Select company...'
+                  searchPlaceholder='Search companies...'
+                  emptyMessage='No companies found.'
                 />
                 {actionData?.fieldErrors?.companyId && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {actionData.fieldErrors.companyId[0]}
                   </p>
                 )}
               </div>
 
               {/* Entry Date */}
-              <div className="space-y-2">
-                <Label htmlFor="entryDate">Entry Date *</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='entryDate'>Entry Date *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant="outline"
+                      variant='outline'
                       className={cn(
                         'w-full justify-start text-left font-normal',
                         !entryDate && 'text-muted-foreground'
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className='mr-2 h-4 w-4' />
                       {entryDate ? format(entryDate, 'PPP') : 'Select date'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className='w-auto p-0' align='start'>
                     <Calendar
-                      mode="single"
+                      mode='single'
                       selected={entryDate}
                       onSelect={setEntryDate}
                     />
                   </PopoverContent>
                 </Popover>
                 {actionData?.fieldErrors?.entryDate && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {actionData.fieldErrors.entryDate[0]}
                   </p>
                 )}
               </div>
 
               {/* Description */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="description">Description *</Label>
+              <div className='space-y-2 md:col-span-2'>
+                <Label htmlFor='description'>Description *</Label>
                 <Input
-                  id="description"
+                  id='description'
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter entry description"
+                  placeholder='Enter entry description'
                 />
                 {actionData?.fieldErrors?.description && (
-                  <p className="text-destructive text-xs">
+                  <p className='text-destructive text-xs'>
                     {actionData.fieldErrors.description[0]}
                   </p>
                 )}
               </div>
 
               {/* Notes */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="notes">Notes</Label>
+              <div className='space-y-2 md:col-span-2'>
+                <Label htmlFor='notes'>Notes</Label>
                 <Textarea
-                  id="notes"
+                  id='notes'
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Optional notes for this entry"
+                  placeholder='Optional notes for this entry'
                   rows={3}
                 />
               </div>
@@ -319,33 +319,42 @@ export function JournalEntryForm({
         </Card>
 
         {/* Lines Card */}
-        <Card className="mb-6">
+        <Card className='mb-6'>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className='flex items-center justify-between'>
               <CardTitle>Journal Entry Lines</CardTitle>
-              <Button type="button" variant="outline" size="sm" onClick={addLine}>
-                <Plus className="mr-2 h-4 w-4" />
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={addLine}
+              >
+                <Plus className='mr-2 h-4 w-4' />
                 Add Line
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
+            <div className='rounded-md border'>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[60px]">#</TableHead>
-                    <TableHead className="min-w-[200px]">Account *</TableHead>
+                    <TableHead className='w-[60px]'>#</TableHead>
+                    <TableHead className='min-w-[200px]'>Account *</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead className="w-[150px] text-right">Debit</TableHead>
-                    <TableHead className="w-[150px] text-right">Credit</TableHead>
-                    <TableHead className="w-[60px]" />
+                    <TableHead className='w-[150px] text-right'>
+                      Debit
+                    </TableHead>
+                    <TableHead className='w-[150px] text-right'>
+                      Credit
+                    </TableHead>
+                    <TableHead className='w-[60px]' />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {lines.map((line, index) => (
                     <TableRow key={line.id}>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className='text-muted-foreground'>
                         {index + 1}
                       </TableCell>
                       <TableCell>
@@ -355,10 +364,10 @@ export function JournalEntryForm({
                           onValueChange={(value) =>
                             updateLine(line.id, 'accountId', value)
                           }
-                          placeholder="Select account..."
-                          searchPlaceholder="Search accounts..."
-                          emptyMessage="No accounts found."
-                          size="sm"
+                          placeholder='Select account...'
+                          searchPlaceholder='Search accounts...'
+                          emptyMessage='No accounts found.'
+                          size='sm'
                         />
                       </TableCell>
                       <TableCell>
@@ -367,46 +376,46 @@ export function JournalEntryForm({
                           onChange={(e) =>
                             updateLine(line.id, 'description', e.target.value)
                           }
-                          placeholder="Line description"
-                          className="h-8"
+                          placeholder='Line description'
+                          className='h-8'
                         />
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type='number'
+                          step='0.01'
+                          min='0'
                           value={line.debitAmount}
                           onChange={(e) =>
                             updateLine(line.id, 'debitAmount', e.target.value)
                           }
-                          placeholder="0.00"
-                          className="h-8 text-right font-mono"
+                          placeholder='0.00'
+                          className='h-8 text-right font-mono'
                         />
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type='number'
+                          step='0.01'
+                          min='0'
                           value={line.creditAmount}
                           onChange={(e) =>
                             updateLine(line.id, 'creditAmount', e.target.value)
                           }
-                          placeholder="0.00"
-                          className="h-8 text-right font-mono"
+                          placeholder='0.00'
+                          className='h-8 text-right font-mono'
                         />
                       </TableCell>
                       <TableCell>
                         <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
+                          type='button'
+                          variant='ghost'
+                          size='icon'
                           onClick={() => removeLine(line.id)}
                           disabled={lines.length <= 2}
-                          className="h-8 w-8"
+                          className='h-8 w-8'
                         >
-                          <Trash2 className="h-4 w-4 text-muted-foreground" />
+                          <Trash2 className='text-muted-foreground h-4 w-4' />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -414,13 +423,13 @@ export function JournalEntryForm({
                 </TableBody>
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={3} className="text-right font-semibold">
+                    <TableCell colSpan={3} className='text-right font-semibold'>
                       Totals
                     </TableCell>
-                    <TableCell className="text-right font-mono font-semibold">
+                    <TableCell className='text-right font-mono font-semibold'>
                       Q {totals.totalDebit.toFixed(2)}
                     </TableCell>
-                    <TableCell className="text-right font-mono font-semibold">
+                    <TableCell className='text-right font-mono font-semibold'>
                       Q {totals.totalCredit.toFixed(2)}
                     </TableCell>
                     <TableCell />
@@ -430,20 +439,21 @@ export function JournalEntryForm({
             </div>
 
             {/* Balance indicator */}
-            <div className="mt-4">
+            <div className='mt-4'>
               {totals.isBalanced ? (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400">
+                <div className='rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400'>
                   Entry is balanced
                 </div>
               ) : (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
-                  Entry is not balanced. Difference: Q {totals.difference.toFixed(2)}
+                <div className='rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400'>
+                  Entry is not balanced. Difference: Q{' '}
+                  {totals.difference.toFixed(2)}
                 </div>
               )}
             </div>
 
             {actionData?.fieldErrors?.lines && (
-              <p className="mt-2 text-destructive text-xs">
+              <p className='text-destructive mt-2 text-xs'>
                 {actionData.fieldErrors.lines[0]}
               </p>
             )}
@@ -451,14 +461,14 @@ export function JournalEntryForm({
         </Card>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-4">
-          <Button type="button" variant="outline" asChild>
-            <Link to="/journal-entries">Cancel</Link>
+        <div className='flex items-center justify-end gap-4'>
+          <Button type='button' variant='outline' asChild>
+            <Link to='/journal-entries'>Cancel</Link>
           </Button>
           <Button
-            type="submit"
+            type='submit'
             disabled={isSubmitting || !isFormValid}
-            className="min-w-[120px]"
+            className='min-w-[120px]'
           >
             {isSubmitting
               ? 'Saving...'

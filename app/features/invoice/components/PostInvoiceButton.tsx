@@ -66,30 +66,26 @@ export function PostInvoiceButton({
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button disabled={!canPost || isPosting} className="gap-2">
-          <Check className="h-4 w-4" />
+        <Button disabled={!canPost || isPosting} className='gap-2'>
+          <Check className='h-4 w-4' />
           {isPosting ? 'Posting...' : 'Post Invoice'}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-amber-500" />
+          <AlertDialogTitle className='flex items-center gap-2'>
+            <AlertCircle className='h-5 w-5 text-amber-500' />
             Post Invoice
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <p>
-              Are you sure you want to post this invoice? This action will:
-            </p>
-            <ul className="list-inside list-disc space-y-1 text-sm">
+          <AlertDialogDescription className='space-y-2'>
+            <p>Are you sure you want to post this invoice? This action will:</p>
+            <ul className='list-inside list-disc space-y-1 text-sm'>
               <li>Assign an invoice number</li>
               <li>Change status from Draft to Posted</li>
               <li>Create a draft journal entry</li>
               <li>Make the invoice non-editable</li>
             </ul>
-            <p className="mt-4 font-medium">
-              This action cannot be undone.
-            </p>
+            <p className='mt-4 font-medium'>This action cannot be undone.</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

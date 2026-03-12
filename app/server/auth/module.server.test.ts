@@ -21,7 +21,11 @@ vi.mock('~/server/db', () => ({
 }))
 
 vi.mock('~/server/db/schemas/auth', () => ({
-  memberModel: { id: 'id', organizationId: 'organization_id', userId: 'user_id' },
+  memberModel: {
+    id: 'id',
+    organizationId: 'organization_id',
+    userId: 'user_id',
+  },
 }))
 
 vi.mock('drizzle-orm', () => ({
@@ -35,15 +39,21 @@ import { db } from '~/server/db'
 import { requireModule } from './module.server'
 
 const mockRequireAuth = vi.mocked(requireAuth)
-const mockGetMemberAccessLevel = vi.mocked(modulesRepository.getMemberAccessLevel)
+const mockGetMemberAccessLevel = vi.mocked(
+  modulesRepository.getMemberAccessLevel
+)
 const mockDb = vi.mocked(db)
 
 const makeRequest = () => new Request('http://localhost/pos')
 
-const makeSession = (overrides?: { isSuperAdmin?: boolean; activeOrganizationId?: string | null }) => {
-  const orgId: string | null = overrides && 'activeOrganizationId' in overrides
-    ? (overrides.activeOrganizationId ?? null)
-    : 'org-1'
+const makeSession = (overrides?: {
+  isSuperAdmin?: boolean
+  activeOrganizationId?: string | null
+}) => {
+  const orgId: string | null =
+    overrides && 'activeOrganizationId' in overrides
+      ? (overrides.activeOrganizationId ?? null)
+      : 'org-1'
   return {
     session: {
       userId: 'user-1',
@@ -84,9 +94,13 @@ describe('requireModule', () => {
   })
 
   test('redirects when org has no active organization', async () => {
-    mockRequireAuth.mockResolvedValue(makeSession({ activeOrganizationId: null }))
+    mockRequireAuth.mockResolvedValue(
+      makeSession({ activeOrganizationId: null })
+    )
 
-    await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(Response)
+    await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(
+      Response
+    )
   })
 
   test('redirects when member has no access to module', async () => {
@@ -96,7 +110,9 @@ describe('requireModule', () => {
     )
     mockGetMemberAccessLevel.mockResolvedValue('none')
 
-    await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(Response)
+    await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(
+      Response
+    )
   })
 
   test('allows access when member has user access and returns session', async () => {
@@ -129,6 +145,8 @@ describe('requireModule', () => {
       makeSelectChain([])
     )
 
-    await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(Response)
+    await expect(requireModule(makeRequest(), 'pos')).rejects.toBeInstanceOf(
+      Response
+    )
   })
 })

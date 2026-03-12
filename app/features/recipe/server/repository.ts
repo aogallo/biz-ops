@@ -36,8 +36,14 @@ export class RecipeRepository {
         isOptional: recipeItemModel.isOptional,
       })
       .from(recipeItemModel)
-      .leftJoin(productModel, eq(recipeItemModel.ingredientProductId, productModel.id))
-      .leftJoin(unitOfMeasureModel, eq(recipeItemModel.unitOfMeasureId, unitOfMeasureModel.id))
+      .leftJoin(
+        productModel,
+        eq(recipeItemModel.ingredientProductId, productModel.id)
+      )
+      .leftJoin(
+        unitOfMeasureModel,
+        eq(recipeItemModel.unitOfMeasureId, unitOfMeasureModel.id)
+      )
       .where(eq(recipeItemModel.recipeId, recipe.id))
 
     return { ...recipe, items }
@@ -63,7 +69,9 @@ export class RecipeRepository {
           .returning()
         recipeId = updated.id
         // Delete old items
-        await tx.delete(recipeItemModel).where(eq(recipeItemModel.recipeId, recipeId))
+        await tx
+          .delete(recipeItemModel)
+          .where(eq(recipeItemModel.recipeId, recipeId))
       } else {
         // Insert new
         const [inserted] = await tx

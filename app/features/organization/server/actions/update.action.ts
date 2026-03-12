@@ -36,7 +36,10 @@ export async function updateOrganization(slug: string, input: FormData) {
   if (data.slug && data.slug !== slug) {
     const existing = await organizationRepository.getBySlug(data.slug)
     if (existing) {
-      return { success: false, message: 'That slug is already taken by another organization.' }
+      return {
+        success: false,
+        message: 'That slug is already taken by another organization.',
+      }
     }
   }
 

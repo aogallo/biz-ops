@@ -73,37 +73,40 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
     switch (type) {
       case 'sale':
         return (
-          <Badge variant="outline" className="border-blue-500 text-blue-600">
+          <Badge variant='outline' className='border-blue-500 text-blue-600'>
             {t('invoices.sale')}
           </Badge>
         )
       case 'purchase':
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge
+            variant='outline'
+            className='border-orange-500 text-orange-600'
+          >
             {t('invoices.purchase')}
           </Badge>
         )
       default:
-        return <Badge variant="outline">{type}</Badge>
+        return <Badge variant='outline'>{type}</Badge>
     }
   }
 
   function getStatusBadge(status: string) {
     switch (status) {
       case 'draft':
-        return <Badge variant="secondary">{t('invoices.draft')}</Badge>
+        return <Badge variant='secondary'>{t('invoices.draft')}</Badge>
       case 'pending':
-        return <Badge variant="outline">{t('invoices.pending')}</Badge>
+        return <Badge variant='outline'>{t('invoices.pending')}</Badge>
       case 'posted':
         return (
-          <Badge variant="default" className="bg-green-600">
+          <Badge variant='default' className='bg-green-600'>
             {t('invoices.posted')}
           </Badge>
         )
       case 'voided':
-        return <Badge variant="destructive">{t('invoices.voided')}</Badge>
+        return <Badge variant='destructive'>{t('invoices.voided')}</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant='outline'>{status}</Badge>
     }
   }
 
@@ -143,7 +146,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         accessorKey: 'number',
         header: t('invoices.number'),
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('number')}</span>
+          <span className='font-medium'>{row.getValue('number')}</span>
         ),
       },
       {
@@ -164,7 +167,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         header: t('invoices.businessPartner'),
         cell: ({ row }) => {
           const partner = row.original.businessPartner
-          return <div className="max-w-40 truncate">{partner?.name || '-'}</div>
+          return <div className='max-w-40 truncate'>{partner?.name || '-'}</div>
         },
       },
       {
@@ -185,11 +188,11 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
       },
       {
         accessorKey: 'total',
-        header: () => <div className="text-right">{t('invoices.total')}</div>,
+        header: () => <div className='text-right'>{t('invoices.total')}</div>,
         cell: ({ row }) => {
           const total = row.getValue('total') as string | number
           return (
-            <div className="text-right font-mono">
+            <div className='text-right font-mono'>
               Q {Number(total).toFixed(2)}
             </div>
           )
@@ -204,9 +207,9 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         id: 'actions',
         header: t('common.actions'),
         cell: ({ row }) => (
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant='ghost' size='icon' asChild>
             <Link to={`/invoices/${row.original.id}`}>
-              <Eye className="h-4 w-4" />
+              <Eye className='h-4 w-4' />
             </Link>
           </Button>
         ),
@@ -216,19 +219,17 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
   )
 
   return (
-    <div className="container mx-auto py-6">
+    <div className='container mx-auto py-6'>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
               <CardTitle>{t('invoices.title')}</CardTitle>
-              <CardDescription>
-                {t('invoices.viewManage')}
-              </CardDescription>
+              <CardDescription>{t('invoices.viewManage')}</CardDescription>
             </div>
             <Button asChild>
-              <Link to="/invoices/new">
-                <Plus className="mr-2 h-4 w-4" />
+              <Link to='/invoices/new'>
+                <Plus className='mr-2 h-4 w-4' />
                 {t('invoices.new')}
               </Link>
             </Button>
@@ -236,7 +237,7 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="mb-4 flex flex-wrap items-center gap-4">
+          <div className='mb-4 flex flex-wrap items-center gap-4'>
             <Combobox
               value={searchParams.get('companyId') || 'all'}
               onValueChange={handleCompanyChange}
@@ -249,21 +250,23 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
               ]}
               placeholder={t('invoices.allCompanies')}
               searchPlaceholder={t('invoices.searchPlaceholder')}
-              emptyMessage="No companies found."
-              className="w-48"
+              emptyMessage='No companies found.'
+              className='w-48'
             />
 
             <Select
               value={searchParams.get('type') || 'all'}
               onValueChange={handleTypeChange}
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className='w-36'>
                 <SelectValue placeholder={t('invoices.allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('invoices.allTypes')}</SelectItem>
-                <SelectItem value="sale">{t('invoices.sales')}</SelectItem>
-                <SelectItem value="purchase">{t('invoices.purchases')}</SelectItem>
+                <SelectItem value='all'>{t('invoices.allTypes')}</SelectItem>
+                <SelectItem value='sale'>{t('invoices.sales')}</SelectItem>
+                <SelectItem value='purchase'>
+                  {t('invoices.purchases')}
+                </SelectItem>
               </SelectContent>
             </Select>
 
@@ -271,21 +274,21 @@ export default function InvoicesIndex({ loaderData }: Route.ComponentProps) {
               value={searchParams.get('status') || 'all'}
               onValueChange={handleStatusChange}
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className='w-36'>
                 <SelectValue placeholder={t('invoices.allStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('invoices.allStatus')}</SelectItem>
-                <SelectItem value="draft">{t('invoices.draft')}</SelectItem>
-                <SelectItem value="pending">{t('invoices.pending')}</SelectItem>
-                <SelectItem value="posted">{t('invoices.posted')}</SelectItem>
-                <SelectItem value="voided">{t('invoices.voided')}</SelectItem>
+                <SelectItem value='all'>{t('invoices.allStatus')}</SelectItem>
+                <SelectItem value='draft'>{t('invoices.draft')}</SelectItem>
+                <SelectItem value='pending'>{t('invoices.pending')}</SelectItem>
+                <SelectItem value='posted'>{t('invoices.posted')}</SelectItem>
+                <SelectItem value='voided'>{t('invoices.voided')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {invoices.length === 0 ? (
-            <div className="text-muted-foreground py-8 text-center">
+            <div className='text-muted-foreground py-8 text-center'>
               {t('invoices.noInvoices')}
             </div>
           ) : (

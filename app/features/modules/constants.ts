@@ -1,9 +1,4 @@
-import {
-  Calculator,
-  Calendar,
-  Package,
-  ShoppingCart,
-} from 'lucide-react'
+import { Calculator, Calendar, Package, ShoppingCart } from 'lucide-react'
 
 export const APP_MODULES = [
   'pos',

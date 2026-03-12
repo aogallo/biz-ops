@@ -15,7 +15,13 @@ export interface OrderRow {
   createdAt: Date
 }
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const statusConfig: Record<
+  string,
+  {
+    label: string
+    variant: 'default' | 'secondary' | 'destructive' | 'outline'
+  }
+> = {
   DRAFT: { label: 'Draft', variant: 'secondary' },
   CONFIRMED: { label: 'Confirmed', variant: 'default' },
   COMPLETED: { label: 'Completed', variant: 'outline' },

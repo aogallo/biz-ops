@@ -50,9 +50,7 @@ export class CategoriesRepository {
       return { success: false, reason: 'has_products' as const }
     }
 
-    await db
-      .delete(productCategoryModel)
-      .where(eq(productCategoryModel.id, id))
+    await db.delete(productCategoryModel).where(eq(productCategoryModel.id, id))
     return { success: true, reason: null }
   }
 
@@ -60,7 +58,7 @@ export class CategoriesRepository {
     const conditions = excludeId
       ? and(
           eq(productCategoryModel.organizationId, organizationId),
-          eq(productCategoryModel.name, name),
+          eq(productCategoryModel.name, name)
           // ne not needed here - unique index handles it at DB level
         )
       : and(

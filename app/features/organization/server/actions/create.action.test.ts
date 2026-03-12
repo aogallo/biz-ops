@@ -56,7 +56,9 @@ describe('createOrganization action', () => {
 
   test('creates organization when slug is available', async () => {
     mockRepo.getBySlug.mockResolvedValue(null)
-    vi.mocked(mockAuth.api.createOrganization as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    vi.mocked(
+      mockAuth.api.createOrganization as unknown as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
       id: 'new-org-id',
       name: 'Acme Corp',
       slug: 'acme-corp',

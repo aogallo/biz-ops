@@ -22,7 +22,10 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { companyRepository } from '~/features/company/server/repository/company.repository'
-import { journalEntryRepository, type JournalEntryWithLines } from '~/features/journal-entry/server/repository'
+import {
+  journalEntryRepository,
+  type JournalEntryWithLines,
+} from '~/features/journal-entry/server/repository'
 import { requireAuth } from '~/server/auth/session.server'
 import type { Route } from './+types'
 
@@ -105,7 +108,7 @@ export default function JournalEntriesIndex({
         accessorKey: 'entryNumber',
         header: 'Entry #',
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('entryNumber')}</span>
+          <span className='font-medium'>{row.getValue('entryNumber')}</span>
         ),
       },
       {
@@ -120,7 +123,7 @@ export default function JournalEntriesIndex({
         accessorKey: 'description',
         header: 'Description',
         cell: ({ row }) => (
-          <div className="max-w-50 truncate">{row.getValue('description')}</div>
+          <div className='max-w-50 truncate'>{row.getValue('description')}</div>
         ),
       },
       {
@@ -133,11 +136,11 @@ export default function JournalEntriesIndex({
       },
       {
         accessorKey: 'totalDebit',
-        header: () => <div className="text-right">Debit</div>,
+        header: () => <div className='text-right'>Debit</div>,
         cell: ({ row }) => {
           const debit = row.getValue('totalDebit') as string | number
           return (
-            <div className="text-right font-mono">
+            <div className='text-right font-mono'>
               Q {Number(debit).toFixed(2)}
             </div>
           )
@@ -145,11 +148,11 @@ export default function JournalEntriesIndex({
       },
       {
         accessorKey: 'totalCredit',
-        header: () => <div className="text-right">Credit</div>,
+        header: () => <div className='text-right'>Credit</div>,
         cell: ({ row }) => {
           const credit = row.getValue('totalCredit') as string | number
           return (
-            <div className="text-right font-mono">
+            <div className='text-right font-mono'>
               Q {Number(credit).toFixed(2)}
             </div>
           )
@@ -238,7 +241,7 @@ export default function JournalEntriesIndex({
               columns={columns}
               data={entries}
               enableSearch
-              searchPlaceholder="Search entries..."
+              searchPlaceholder='Search entries...'
             />
           )}
         </CardContent>

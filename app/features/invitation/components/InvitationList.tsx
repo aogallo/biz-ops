@@ -14,7 +14,11 @@ interface ResendButtonProps {
 }
 
 function ResendButton({ row }: ResendButtonProps) {
-  const fetcher = useFetcher<{ success: boolean; message?: string; error?: string }>()
+  const fetcher = useFetcher<{
+    success: boolean
+    message?: string
+    error?: string
+  }>()
   const isSubmitting = fetcher.state === 'submitting'
 
   useEffect(() => {
@@ -26,15 +30,19 @@ function ResendButton({ row }: ResendButtonProps) {
   }, [fetcher.data])
 
   return (
-    <fetcher.Form method="post">
-      <input type="hidden" name="intent" value="resend" />
-      <input type="hidden" name="email" value={row.original.email} />
-      <input type="hidden" name="organizationId" value={row.original.organizationId} />
-      <input type="hidden" name="roleName" value={row.original.roleName} />
+    <fetcher.Form method='post'>
+      <input type='hidden' name='intent' value='resend' />
+      <input type='hidden' name='email' value={row.original.email} />
+      <input
+        type='hidden'
+        name='organizationId'
+        value={row.original.organizationId}
+      />
+      <input type='hidden' name='roleName' value={row.original.roleName} />
       <button
-        type="submit"
+        type='submit'
         disabled={isSubmitting}
-        className="text-primary text-sm hover:underline disabled:opacity-50"
+        className='text-primary text-sm hover:underline disabled:opacity-50'
       >
         {isSubmitting ? 'Sending...' : 'Resend'}
       </button>
@@ -146,7 +154,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
       columns={columns}
       data={invitations}
       enableSearch
-      searchPlaceholder="Search invitations..."
+      searchPlaceholder='Search invitations...'
     />
   )
 }

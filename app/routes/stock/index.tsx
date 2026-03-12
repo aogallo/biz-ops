@@ -57,9 +57,21 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 const typeStyles = {
-  entry: { label: 'Entry', variant: 'default' as const, color: 'bg-green-100 text-green-700' },
-  exit: { label: 'Exit', variant: 'destructive' as const, color: 'bg-red-100 text-red-700' },
-  adjustment: { label: 'Adjustment', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-700' },
+  entry: {
+    label: 'Entry',
+    variant: 'default' as const,
+    color: 'bg-green-100 text-green-700',
+  },
+  exit: {
+    label: 'Exit',
+    variant: 'destructive' as const,
+    color: 'bg-red-100 text-red-700',
+  },
+  adjustment: {
+    label: 'Adjustment',
+    variant: 'secondary' as const,
+    color: 'bg-blue-100 text-blue-700',
+  },
 }
 
 export default function StockMovementsIndex({
@@ -188,9 +200,7 @@ export default function StockMovementsIndex({
           <h1 className='text-2xl font-bold'>Stock Movements</h1>
           <p className='text-muted-foreground'>
             Track all inventory entries, exits, and adjustments
-            {total > 0 && (
-              <span className='ml-2 text-xs'>({total} total)</span>
-            )}
+            {total > 0 && <span className='ml-2 text-xs'>({total} total)</span>}
           </p>
         </div>
         <Link to='/stock/new'>

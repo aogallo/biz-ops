@@ -73,14 +73,12 @@ export async function exportJournalReportAction(
   const parsedDateFrom = parseDate(dateFrom)
   const parsedDateTo = parseDate(dateTo)
 
-  const { entries, companyName } = await journalEntryRepository.getAllForPdfExport(
-    organizationId,
-    {
+  const { entries, companyName } =
+    await journalEntryRepository.getAllForPdfExport(organizationId, {
       companyId,
       dateFrom: parsedDateFrom,
       dateTo: parsedDateTo,
-    }
-  )
+    })
 
   // Transform data to PDF format
   let grandTotalDebit = 0
@@ -144,7 +142,9 @@ export async function exportJournalReportAction(
   const pdfBase64 = btoa(String.fromCharCode(...pdfBytes))
 
   // Generate filename with date range
-  const fromStr = dateFrom ? new Date(dateFrom).toISOString().split('T')[0] : 'all'
+  const fromStr = dateFrom
+    ? new Date(dateFrom).toISOString().split('T')[0]
+    : 'all'
   const toStr = dateTo ? new Date(dateTo).toISOString().split('T')[0] : 'all'
   const filename = `diario-general-${fromStr}-to-${toStr}.pdf`
 

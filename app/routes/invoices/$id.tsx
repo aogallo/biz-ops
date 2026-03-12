@@ -99,9 +99,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   return { error: 'Unknown action' }
 }
 
-export default function InvoiceShowPage({
-  loaderData,
-}: Route.ComponentProps) {
+export default function InvoiceShowPage({ loaderData }: Route.ComponentProps) {
   const { invoice, journalEntry } = loaderData
   const revalidator = useRevalidator()
   const { t } = useTranslation()
@@ -110,37 +108,40 @@ export default function InvoiceShowPage({
     switch (type) {
       case 'sale':
         return (
-          <Badge variant="outline" className="border-blue-500 text-blue-600">
+          <Badge variant='outline' className='border-blue-500 text-blue-600'>
             {t('invoices.saleInvoice')}
           </Badge>
         )
       case 'purchase':
         return (
-          <Badge variant="outline" className="border-orange-500 text-orange-600">
+          <Badge
+            variant='outline'
+            className='border-orange-500 text-orange-600'
+          >
             {t('invoices.purchaseInvoice')}
           </Badge>
         )
       default:
-        return <Badge variant="outline">{type}</Badge>
+        return <Badge variant='outline'>{type}</Badge>
     }
   }
 
   function getStatusBadge(status: string) {
     switch (status) {
       case 'draft':
-        return <Badge variant="secondary">{t('invoices.draft')}</Badge>
+        return <Badge variant='secondary'>{t('invoices.draft')}</Badge>
       case 'pending':
-        return <Badge variant="outline">{t('invoices.pending')}</Badge>
+        return <Badge variant='outline'>{t('invoices.pending')}</Badge>
       case 'posted':
         return (
-          <Badge variant="default" className="bg-green-600">
+          <Badge variant='default' className='bg-green-600'>
             {t('invoices.posted')}
           </Badge>
         )
       case 'voided':
-        return <Badge variant="destructive">{t('invoices.voided')}</Badge>
+        return <Badge variant='destructive'>{t('invoices.voided')}</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant='outline'>{status}</Badge>
     }
   }
 
@@ -152,35 +153,43 @@ export default function InvoiceShowPage({
 
   // Calculate totals from lines
   const totals = {
-    subtotal: invoice.lines.reduce((sum, line) => sum + Number(line.subtotal), 0),
-    ivaAmount: invoice.lines.reduce((sum, line) => sum + Number(line.ivaAmount), 0),
+    subtotal: invoice.lines.reduce(
+      (sum, line) => sum + Number(line.subtotal),
+      0
+    ),
+    ivaAmount: invoice.lines.reduce(
+      (sum, line) => sum + Number(line.ivaAmount),
+      0
+    ),
     total: invoice.lines.reduce((sum, line) => sum + Number(line.total), 0),
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className='container mx-auto py-6'>
       {/* Header with Actions */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/invoices">
-              <ArrowLeft className="h-4 w-4" />
+      <div className='mb-6 flex items-center justify-between'>
+        <div className='flex items-center gap-4'>
+          <Button variant='ghost' size='icon' asChild>
+            <Link to='/invoices'>
+              <ArrowLeft className='h-4 w-4' />
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{t('invoices.number')} {invoice.number}</h1>
-            <div className="mt-1 flex items-center gap-2">
+            <h1 className='text-2xl font-bold'>
+              {t('invoices.number')} {invoice.number}
+            </h1>
+            <div className='mt-1 flex items-center gap-2'>
               {getTypeBadge(invoice.type)}
               {getStatusBadge(invoice.status)}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           {isDraft && (
             <>
-              <Button variant="outline" asChild>
+              <Button variant='outline' asChild>
                 <Link to={`/invoices/${invoice.id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" />
+                  <Edit className='mr-2 h-4 w-4' />
                   {t('common.edit')}
                 </Link>
               </Button>
@@ -192,9 +201,9 @@ export default function InvoiceShowPage({
             </>
           )}
           {journalEntry && (
-            <Button variant="outline" asChild>
+            <Button variant='outline' asChild>
               <Link to={`/journal-entries/${journalEntry.id}`}>
-                <FileText className="mr-2 h-4 w-4" />
+                <FileText className='mr-2 h-4 w-4' />
                 {t('invoices.viewJournalEntry')}
               </Link>
             </Button>
@@ -202,76 +211,88 @@ export default function InvoiceShowPage({
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className='space-y-6'>
         {/* Invoice Details */}
         <div>
-          <Card className="mb-6">
+          <Card className='mb-6'>
             <CardHeader>
               <CardTitle>{t('invoices.details')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                 <div>
-                  <p className="text-muted-foreground text-sm">{t('invoices.company')}</p>
-                  <p className="font-medium">{invoice.company?.name || '-'}</p>
+                  <p className='text-muted-foreground text-sm'>
+                    {t('invoices.company')}
+                  </p>
+                  <p className='font-medium'>{invoice.company?.name || '-'}</p>
                 </div>
                 {invoice.sucursal && (
                   <div>
-                    <p className="text-muted-foreground text-sm">Sucursal</p>
-                    <p className="font-medium">{invoice.sucursal.name}</p>
-                    <p className="text-muted-foreground text-xs">{invoice.sucursal.code}</p>
+                    <p className='text-muted-foreground text-sm'>Sucursal</p>
+                    <p className='font-medium'>{invoice.sucursal.name}</p>
+                    <p className='text-muted-foreground text-xs'>
+                      {invoice.sucursal.code}
+                    </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-muted-foreground text-sm">
-                    {invoice.type === 'sale' ? t('invoices.customer') : t('invoices.vendor')}
+                  <p className='text-muted-foreground text-sm'>
+                    {invoice.type === 'sale'
+                      ? t('invoices.customer')
+                      : t('invoices.vendor')}
                   </p>
-                  <p className="font-medium">
+                  <p className='font-medium'>
                     {invoice.businessPartner?.name || '-'}
                   </p>
                   {invoice.businessPartner?.nit && (
-                    <p className="text-muted-foreground text-xs">
+                    <p className='text-muted-foreground text-xs'>
                       NIT: {invoice.businessPartner.nit}
                     </p>
                   )}
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm">{t('invoices.invoiceDate')}</p>
-                  <p className="font-medium">
+                  <p className='text-muted-foreground text-sm'>
+                    {t('invoices.invoiceDate')}
+                  </p>
+                  <p className='font-medium'>
                     {format(new Date(invoice.invoiceDate), 'PPP')}
                   </p>
                 </div>
                 {invoice.dueDate && (
                   <div>
-                    <p className="text-muted-foreground text-sm">{t('invoices.dueDate')}</p>
-                    <p className="font-medium">
+                    <p className='text-muted-foreground text-sm'>
+                      {t('invoices.dueDate')}
+                    </p>
+                    <p className='font-medium'>
                       {format(new Date(invoice.dueDate), 'PPP')}
                     </p>
                   </div>
                 )}
                 {invoice.serie && (
                   <div>
-                    <p className="text-muted-foreground text-sm">Serie</p>
-                    <p className="font-medium">{invoice.serie}</p>
+                    <p className='text-muted-foreground text-sm'>Serie</p>
+                    <p className='font-medium'>{invoice.serie}</p>
                   </div>
                 )}
                 {invoice.authorizationNumber && (
                   <div>
-                    <p className="text-muted-foreground text-sm">
+                    <p className='text-muted-foreground text-sm'>
                       Authorization Number
                     </p>
-                    <p className="font-medium">{invoice.authorizationNumber}</p>
+                    <p className='font-medium'>{invoice.authorizationNumber}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-muted-foreground text-sm">Source</p>
-                  <p className="font-medium capitalize">{invoice.source}</p>
+                  <p className='text-muted-foreground text-sm'>Source</p>
+                  <p className='font-medium capitalize'>{invoice.source}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm">
-                    {invoice.type === 'sale' ? t('invoices.revenueAccount') : t('invoices.expenseAccount')}
+                  <p className='text-muted-foreground text-sm'>
+                    {invoice.type === 'sale'
+                      ? t('invoices.revenueAccount')
+                      : t('invoices.expenseAccount')}
                   </p>
-                  <p className="font-medium">
+                  <p className='font-medium'>
                     {invoice.accountingAccount
                       ? `${invoice.accountingAccount.accountNumber} - ${invoice.accountingAccount.name}`
                       : '-'}
@@ -286,61 +307,68 @@ export default function InvoiceShowPage({
             <CardHeader>
               <CardTitle>{t('invoices.lines')}</CardTitle>
               <CardDescription>
-                {invoice.lines.length} {t('invoices.line')}{invoice.lines.length !== 1 ? 's' : ''}
+                {invoice.lines.length} {t('invoices.line')}
+                {invoice.lines.length !== 1 ? 's' : ''}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {invoice.lines.length === 0 ? (
-                <div className="text-muted-foreground py-8 text-center">
+                <div className='text-muted-foreground py-8 text-center'>
                   {t('invoices.noLines')}
                 </div>
               ) : (
-                <div className="rounded-md border">
+                <div className='rounded-md border'>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[40px]">#</TableHead>
+                        <TableHead className='w-[40px]'>#</TableHead>
                         <TableHead>{t('common.description')}</TableHead>
-                        <TableHead className="w-[100px] text-right">{t('invoices.qty')}</TableHead>
-                        <TableHead className="w-[120px] text-right">
+                        <TableHead className='w-[100px] text-right'>
+                          {t('invoices.qty')}
+                        </TableHead>
+                        <TableHead className='w-[120px] text-right'>
                           {t('invoices.unitPrice')}
                         </TableHead>
-                        <TableHead className="w-[120px] text-right">
+                        <TableHead className='w-[120px] text-right'>
                           {t('invoices.subtotal')}
                         </TableHead>
-                        <TableHead className="w-[100px] text-right">{t('invoices.iva')}</TableHead>
-                        <TableHead className="w-[120px] text-right">{t('invoices.total')}</TableHead>
+                        <TableHead className='w-[100px] text-right'>
+                          {t('invoices.iva')}
+                        </TableHead>
+                        <TableHead className='w-[120px] text-right'>
+                          {t('invoices.total')}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {invoice.lines.map((line, index) => (
                         <TableRow key={line.id}>
-                          <TableCell className="text-muted-foreground">
+                          <TableCell className='text-muted-foreground'>
                             {index + 1}
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{line.description}</p>
+                              <p className='font-medium'>{line.description}</p>
                               {line.product && (
-                                <p className="text-muted-foreground text-xs">
+                                <p className='text-muted-foreground text-xs'>
                                   SKU: {line.product.sku}
                                 </p>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right font-mono">
+                          <TableCell className='text-right font-mono'>
                             {Number(line.quantity).toFixed(2)}
                           </TableCell>
-                          <TableCell className="text-right font-mono">
+                          <TableCell className='text-right font-mono'>
                             Q {Number(line.unitPrice).toFixed(2)}
                           </TableCell>
-                          <TableCell className="text-right font-mono">
+                          <TableCell className='text-right font-mono'>
                             Q {Number(line.subtotal).toFixed(2)}
                           </TableCell>
-                          <TableCell className="text-right font-mono">
+                          <TableCell className='text-right font-mono'>
                             Q {Number(line.ivaAmount).toFixed(2)}
                           </TableCell>
-                          <TableCell className="text-right font-mono font-semibold">
+                          <TableCell className='text-right font-mono font-semibold'>
                             Q {Number(line.total).toFixed(2)}
                           </TableCell>
                         </TableRow>
@@ -348,16 +376,19 @@ export default function InvoiceShowPage({
                     </TableBody>
                     <TableFooter>
                       <TableRow>
-                        <TableCell colSpan={4} className="text-right font-semibold">
+                        <TableCell
+                          colSpan={4}
+                          className='text-right font-semibold'
+                        >
                           {t('invoices.totals')}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-semibold">
+                        <TableCell className='text-right font-mono font-semibold'>
                           Q {totals.subtotal.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-semibold">
+                        <TableCell className='text-right font-mono font-semibold'>
                           Q {totals.ivaAmount.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-semibold">
+                        <TableCell className='text-right font-mono font-semibold'>
                           Q {totals.total.toFixed(2)}
                         </TableCell>
                       </TableRow>
@@ -375,28 +406,32 @@ export default function InvoiceShowPage({
           ivaAmount={totals.ivaAmount}
           total={totals.total}
           lineCount={invoice.lines.length}
-          variant="inline"
+          variant='inline'
         />
 
         {/* Linked Journal Entry */}
         {journalEntry && (
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{t('invoices.linkedJournalEntry')}</CardTitle>
+            <CardHeader className='pb-2'>
+              <CardTitle className='text-base'>
+                {t('invoices.linkedJournalEntry')}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap items-center gap-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">{t('invoices.entryNumber')}</span>
+              <div className='flex flex-wrap items-center gap-6'>
+                <div className='flex items-center gap-2 text-sm'>
+                  <span className='text-muted-foreground'>
+                    {t('invoices.entryNumber')}
+                  </span>
                   <Link
                     to={`/journal-entries/${journalEntry.id}`}
-                    className="font-medium text-blue-600 hover:underline"
+                    className='font-medium text-blue-600 hover:underline'
                   >
                     {journalEntry.entryNumber}
                   </Link>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Status:</span>
+                <div className='flex items-center gap-2 text-sm'>
+                  <span className='text-muted-foreground'>Status:</span>
                   <span>{getStatusBadge(journalEntry.status)}</span>
                 </div>
               </div>

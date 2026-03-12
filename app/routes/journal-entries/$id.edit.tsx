@@ -57,8 +57,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         id: line.id,
         accountId: line.accountingAccountId,
         description: line.description || '',
-        debitAmount: Number(line.debitAmount) > 0 ? String(line.debitAmount) : '',
-        creditAmount: Number(line.creditAmount) > 0 ? String(line.creditAmount) : '',
+        debitAmount:
+          Number(line.debitAmount) > 0 ? String(line.debitAmount) : '',
+        creditAmount:
+          Number(line.creditAmount) > 0 ? String(line.creditAmount) : '',
       })
     ),
   }
@@ -214,11 +216,12 @@ export default function EditJournalEntryPage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { entryId, initialData, companies, accounts, recentAccounts } = loaderData
+  const { entryId, initialData, companies, accounts, recentAccounts } =
+    loaderData
 
   return (
     <JournalEntryForm
-      mode="edit"
+      mode='edit'
       companies={companies}
       accounts={accounts}
       recentAccounts={recentAccounts}

@@ -39,7 +39,10 @@ export async function createAccount(request: Request) {
   if (existingAccount) {
     return {
       success: false,
-      message: translateServer(locale, 'messages.accounts.duplicateAccountNumber'),
+      message: translateServer(
+        locale,
+        'messages.accounts.duplicateAccountNumber'
+      ),
     }
   }
 
@@ -52,7 +55,8 @@ export async function createAccount(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to create account',
+      message:
+        error instanceof Error ? error.message : 'Failed to create account',
     }
   }
 }

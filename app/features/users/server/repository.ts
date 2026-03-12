@@ -154,9 +154,9 @@ export class UsersRepository {
 
     // Insert new roles
     if (roleIds.length > 0) {
-      await db.insert(memberRoleModel).values(
-        roleIds.map((roleId) => ({ memberId, roleId }))
-      )
+      await db
+        .insert(memberRoleModel)
+        .values(roleIds.map((roleId) => ({ memberId, roleId })))
     }
 
     return true
@@ -243,7 +243,15 @@ export class UsersRepository {
         })
         return acc
       },
-      {} as Record<string, Array<{ id: string; name: string; description: string | null; isSystem: boolean }>>
+      {} as Record<
+        string,
+        Array<{
+          id: string
+          name: string
+          description: string | null
+          isSystem: boolean
+        }>
+      >
     )
 
     // Merge users with their roles

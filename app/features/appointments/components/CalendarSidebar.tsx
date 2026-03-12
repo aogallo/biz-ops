@@ -16,9 +16,9 @@ interface StatCardProps {
 
 function StatCard({ label, value, colorClass }: StatCardProps) {
   return (
-    <div className="rounded-lg border bg-card p-3 text-center">
+    <div className='bg-card rounded-lg border p-3 text-center'>
       <div className={`text-2xl font-bold ${colorClass || ''}`}>{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className='text-muted-foreground text-xs'>{label}</div>
     </div>
   )
 }
@@ -56,29 +56,29 @@ export function CalendarSidebar({ appointments }: CalendarSidebarProps) {
     .slice(0, 4)
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Daily Summary */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Daily Summary</CardTitle>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-base'>Daily Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-2">
-            <StatCard label="Bookings" value={totalBookings} />
+          <div className='grid grid-cols-2 gap-2'>
+            <StatCard label='Bookings' value={totalBookings} />
             <StatCard
-              label="Available"
+              label='Available'
               value={availableSlots}
-              colorClass="text-teal-600"
+              colorClass='text-teal-600'
             />
             <StatCard
-              label="Confirmed"
+              label='Confirmed'
               value={confirmedCount}
-              colorClass="text-green-600"
+              colorClass='text-green-600'
             />
             <StatCard
-              label="Pending"
+              label='Pending'
               value={pendingCount}
-              colorClass="text-orange-600"
+              colorClass='text-orange-600'
             />
           </div>
         </CardContent>
@@ -86,18 +86,18 @@ export function CalendarSidebar({ appointments }: CalendarSidebarProps) {
 
       {/* Upcoming Appointments */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Upcoming Appointments</CardTitle>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-base'>Upcoming Appointments</CardTitle>
         </CardHeader>
         <CardContent>
           {upcomingAppointments.length > 0 ? (
-            <div className="divide-y">
+            <div className='divide-y'>
               {upcomingAppointments.map((apt) => (
                 <UpcomingAppointmentItem key={apt.id} appointment={apt} />
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground py-4 text-center">
+            <p className='text-muted-foreground py-4 text-center text-sm'>
               No upcoming appointments
             </p>
           )}
@@ -105,22 +105,22 @@ export function CalendarSidebar({ appointments }: CalendarSidebarProps) {
       </Card>
 
       {/* Smart Suggestion */}
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Lightbulb className="size-5 text-primary" />
+      <Card className='from-primary/5 to-primary/10 border-primary/20 bg-gradient-to-br'>
+        <CardContent className='pt-6'>
+          <div className='flex items-start gap-3'>
+            <div className='bg-primary/10 rounded-lg p-2'>
+              <Lightbulb className='text-primary size-5' />
             </div>
-            <div className="flex-1">
-              <h4 className="font-medium text-sm">Smart Suggestion</h4>
-              <p className="text-xs text-muted-foreground mt-1">
+            <div className='flex-1'>
+              <h4 className='text-sm font-medium'>Smart Suggestion</h4>
+              <p className='text-muted-foreground mt-1 text-xs'>
                 {pendingCount > 0
                   ? `You have ${pendingCount} pending appointment${pendingCount > 1 ? 's' : ''}. Consider sending confirmation reminders.`
                   : availableSlots > 5
-                    ? 'Low booking rate today. Consider reaching out to clients who haven\'t visited recently.'
+                    ? "Low booking rate today. Consider reaching out to clients who haven't visited recently."
                     : 'Great booking rate! Keep up the good work.'}
               </p>
-              <Button variant="outline" size="sm" className="mt-3">
+              <Button variant='outline' size='sm' className='mt-3'>
                 Generate Campaign
               </Button>
             </div>

@@ -5,7 +5,14 @@ vi.mock('~/server/db', () => ({
 }))
 
 vi.mock('~/server/db/schemas/kitchen', () => ({
-  kitchenTicketModel: { id: 'id', sucursalId: 'sucursal_id', status: 'status', ticketNumber: 'ticket_number', saleId: 'sale_id', createdAt: 'created_at' },
+  kitchenTicketModel: {
+    id: 'id',
+    sucursalId: 'sucursal_id',
+    status: 'status',
+    ticketNumber: 'ticket_number',
+    saleId: 'sale_id',
+    createdAt: 'created_at',
+  },
   kitchenTicketItemModel: { ticketId: 'ticket_id', id: 'id' },
 }))
 
@@ -29,7 +36,12 @@ const mockDb = vi.mocked(db)
 
 // Chain that ends in orderBy (for the main tickets query with joins)
 const makeOrderByChain = (resolved: unknown) => {
-  const c = { from: vi.fn(), where: vi.fn(), orderBy: vi.fn(), leftJoin: vi.fn() }
+  const c = {
+    from: vi.fn(),
+    where: vi.fn(),
+    orderBy: vi.fn(),
+    leftJoin: vi.fn(),
+  }
   c.from.mockReturnValue(c)
   c.leftJoin.mockReturnValue(c)
   c.where.mockReturnValue(c)
@@ -54,7 +66,9 @@ describe('KitchenRepository.getOpenTickets', () => {
   })
 
   test('returns empty array when no tickets', async () => {
-    ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(makeOrderByChain([]))
+    ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(
+      makeOrderByChain([])
+    )
 
     const result = await repo.getOpenTickets('suc-1')
 
@@ -63,9 +77,42 @@ describe('KitchenRepository.getOpenTickets', () => {
 
   test('includes pending, in_progress and ready tickets', async () => {
     const tickets = [
-      { id: 't1', status: 'pending', ticketNumber: 1, saleId: null, tableNumber: null, orderType: null, sucursalId: 'suc-1', organizationId: 'org-1', notes: null, createdAt: new Date() },
-      { id: 't2', status: 'in_progress', ticketNumber: 2, saleId: null, tableNumber: null, orderType: null, sucursalId: 'suc-1', organizationId: 'org-1', notes: null, createdAt: new Date() },
-      { id: 't3', status: 'ready', ticketNumber: 3, saleId: null, tableNumber: null, orderType: null, sucursalId: 'suc-1', organizationId: 'org-1', notes: null, createdAt: new Date() },
+      {
+        id: 't1',
+        status: 'pending',
+        ticketNumber: 1,
+        saleId: null,
+        tableNumber: null,
+        orderType: null,
+        sucursalId: 'suc-1',
+        organizationId: 'org-1',
+        notes: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 't2',
+        status: 'in_progress',
+        ticketNumber: 2,
+        saleId: null,
+        tableNumber: null,
+        orderType: null,
+        sucursalId: 'suc-1',
+        organizationId: 'org-1',
+        notes: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 't3',
+        status: 'ready',
+        ticketNumber: 3,
+        saleId: null,
+        tableNumber: null,
+        orderType: null,
+        sucursalId: 'suc-1',
+        organizationId: 'org-1',
+        notes: null,
+        createdAt: new Date(),
+      },
     ]
 
     let callCount = 0
@@ -77,12 +124,27 @@ describe('KitchenRepository.getOpenTickets', () => {
     const result = await repo.getOpenTickets('suc-1')
 
     expect(result).toHaveLength(3)
-    expect(result.map((t) => t.status)).toEqual(['pending', 'in_progress', 'ready'])
+    expect(result.map((t) => t.status)).toEqual([
+      'pending',
+      'in_progress',
+      'ready',
+    ])
   })
 
   test('maps table number from joined sale', async () => {
     const tickets = [
-      { id: 't1', status: 'pending', ticketNumber: 1, saleId: 's1', tableNumber: '5', orderType: 'dine_in', sucursalId: 'suc-1', organizationId: 'org-1', notes: null, createdAt: new Date() },
+      {
+        id: 't1',
+        status: 'pending',
+        ticketNumber: 1,
+        saleId: 's1',
+        tableNumber: '5',
+        orderType: 'dine_in',
+        sucursalId: 'suc-1',
+        organizationId: 'org-1',
+        notes: null,
+        createdAt: new Date(),
+      },
     ]
 
     let callCount = 0

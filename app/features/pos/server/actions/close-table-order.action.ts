@@ -25,7 +25,9 @@ export interface CloseTableOrderInput {
 }
 
 export async function closeTableOrderAction(input: CloseTableOrderInput) {
-  const openSale = await posTablesRepository.getActiveOrderForTable(input.tableId)
+  const openSale = await posTablesRepository.getActiveOrderForTable(
+    input.tableId
+  )
   if (!openSale) throw new Error('No open order found for this table')
 
   const sale = await db.transaction(async (tx) => {

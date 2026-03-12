@@ -26,4 +26,6 @@ export const ingressSucursalStockSchema = z.object({
 
 export type TransferToSucursalInput = z.infer<typeof transferToSucursalSchema>
 export type AdjustSucursalStockInput = z.infer<typeof adjustSucursalStockSchema>
-export type IngressSucursalStockInput = z.infer<typeof ingressSucursalStockSchema>
+export type IngressSucursalStockInput = z.infer<
+  typeof ingressSucursalStockSchema
+>

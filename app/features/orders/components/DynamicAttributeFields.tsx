@@ -23,8 +23,8 @@ export function DynamicAttributeFields({
   }
 
   return (
-    <div className='space-y-3 rounded-lg border border-dashed border-border/50 p-3'>
-      <p className='text-xs font-medium text-muted-foreground uppercase tracking-wide'>
+    <div className='border-border/50 space-y-3 rounded-lg border border-dashed p-3'>
+      <p className='text-muted-foreground text-xs font-medium tracking-wide uppercase'>
         Custom Attributes
       </p>
       <div className='grid gap-3 sm:grid-cols-2'>
@@ -32,7 +32,9 @@ export function DynamicAttributeFields({
           <div key={name}>
             <label className='mb-1 block text-xs font-medium'>
               {name}
-              {def.required && <span className='text-destructive ml-0.5'>*</span>}
+              {def.required && (
+                <span className='text-destructive ml-0.5'>*</span>
+              )}
             </label>
 
             {def.type === 'text' && (
@@ -79,9 +81,9 @@ export function DynamicAttributeFields({
                   type='checkbox'
                   checked={Boolean(values[name])}
                   onChange={(e) => handleChange(name, e.target.checked)}
-                  className='h-4 w-4 rounded border-input'
+                  className='border-input h-4 w-4 rounded'
                 />
-                <span className='text-sm text-muted-foreground'>Yes</span>
+                <span className='text-muted-foreground text-sm'>Yes</span>
               </div>
             )}
 

@@ -107,9 +107,8 @@ export async function postInvoiceAction(
       }
     }
 
-    const { formatted: invoiceNumber } = await sucursalRepository.getNextInvoiceNumber(
-      invoice.sucursalId
-    )
+    const { formatted: invoiceNumber } =
+      await sucursalRepository.getNextInvoiceNumber(invoice.sucursalId)
 
     // Update invoice with number and status
     const updatedInvoice = await invoiceRepository.update(invoiceId, {
@@ -179,10 +178,7 @@ export async function postInvoiceAction(
         })
       }
     } catch (stockError) {
-      console.error(
-        'Error creating stock movements for invoice:',
-        stockError
-      )
+      console.error('Error creating stock movements for invoice:', stockError)
       // Continue — accounting entry was already created successfully
     }
 
@@ -195,8 +191,7 @@ export async function postInvoiceAction(
     console.error('Error posting invoice:', error)
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : 'Failed to post invoice',
+      error: error instanceof Error ? error.message : 'Failed to post invoice',
     }
   }
 }
@@ -215,8 +210,12 @@ export async function postInvoiceAction(
  *     Cr  Accounts Payable    [Total]
  */
 function buildJournalEntryLines(
-  invoice: NonNullable<Awaited<ReturnType<typeof invoiceRepository.getByIdWithDetails>>>,
-  config: NonNullable<Awaited<ReturnType<typeof organizationConfigRepository.getByOrganizationId>>>
+  invoice: NonNullable<
+    Awaited<ReturnType<typeof invoiceRepository.getByIdWithDetails>>
+  >,
+  config: NonNullable<
+    Awaited<ReturnType<typeof organizationConfigRepository.getByOrganizationId>>
+  >
 ): Array<{
   lineNumber: number
   accountingAccountId: string

@@ -17,7 +17,9 @@ export async function openTableOrderAction(input: OpenTableOrderInput) {
   const table = await posTablesRepository.getTableById(input.tableId)
   if (!table) throw new Error('Table not found')
 
-  const existing = await posTablesRepository.getActiveOrderForTable(input.tableId)
+  const existing = await posTablesRepository.getActiveOrderForTable(
+    input.tableId
+  )
   if (existing) throw new Error('Table already has an open order')
 
   const sale = await db.transaction(async (tx) => {
@@ -34,7 +36,7 @@ export async function openTableOrderAction(input: OpenTableOrderInput) {
         orderType: 'dine_in',
         coverCount: input.coverCount,
         status: 'open',
-        saleNumber: '',   // will be assigned on checkout
+        saleNumber: '', // will be assigned on checkout
         subtotal: '0',
         total: '0',
       })

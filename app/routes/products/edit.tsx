@@ -9,7 +9,10 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { CustomAttributesEditor } from '~/features/products/components/CustomAttributesEditor'
-import { RecipeBuilder, type RecipeRow } from '~/features/products/components/RecipeBuilder'
+import {
+  RecipeBuilder,
+  type RecipeRow,
+} from '~/features/products/components/RecipeBuilder'
 import { ComboBuilder } from '~/features/products/components/ComboBuilder'
 import { categoriesRepository } from '~/features/categories/server/repository'
 import { updateProduct } from '~/features/products/server/actions/update.action'
@@ -73,18 +76,35 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const isRecipe = product.productType === 'recipe'
   const isCombo = product.productType === 'combo'
 
-  const [recipeData, ingredientProducts, comboData, availableProducts] = await Promise.all([
-    isRecipe ? recipeRepository.findByProductId(product.id) : Promise.resolve(null),
-    isRecipe
-      ? productsRepository.getByType(organizationId, 'ingredient')
-      : Promise.resolve([]),
-    isCombo ? comboRepository.findByProductId(product.id) : Promise.resolve(null),
-    isCombo
-      ? productsRepository.getByTypes(organizationId, ['STOCK', 'MADE_TO_ORDER', 'recipe', 'sale_item'])
-      : Promise.resolve([]),
-  ])
+  const [recipeData, ingredientProducts, comboData, availableProducts] =
+    await Promise.all([
+      isRecipe
+        ? recipeRepository.findByProductId(product.id)
+        : Promise.resolve(null),
+      isRecipe
+        ? productsRepository.getByType(organizationId, 'ingredient')
+        : Promise.resolve([]),
+      isCombo
+        ? comboRepository.findByProductId(product.id)
+        : Promise.resolve(null),
+      isCombo
+        ? productsRepository.getByTypes(organizationId, [
+            'STOCK',
+            'MADE_TO_ORDER',
+            'recipe',
+            'sale_item',
+          ])
+        : Promise.resolve([]),
+    ])
 
-  return { product, categories, recipeData, ingredientProducts, comboData, availableProducts }
+  return {
+    product,
+    categories,
+    recipeData,
+    ingredientProducts,
+    comboData,
+    availableProducts,
+  }
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -102,7 +122,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const product = await productsRepository.getBySku(organizationId, sku)
   if (!product) {
-    return { success: false, message: translateServer(locale, 'messages.products.notFound') }
+    return {
+      success: false,
+      message: translateServer(locale, 'messages.products.notFound'),
+    }
   }
 
   // Clone request so we can peek at intent without consuming the body for updateProduct
@@ -212,300 +235,306 @@ export default function EditProduct({ loaderData }: Route.ComponentProps) {
   return (
     <div className='mx-auto max-w-4xl space-y-6 p-6'>
       <Form method='post'>
-      <Card>
-        <CardHeader>
-          <CardTitle>Editar producto</CardTitle>
-          <CardDescription>Modificá los datos del producto</CardDescription>
-        </CardHeader>
-        <div>
-          <CardContent className='space-y-6'>
-            {actionData?.message && !actionData.success && (
-              <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
-                {actionData.message}
-              </div>
-            )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Editar producto</CardTitle>
+            <CardDescription>Modificá los datos del producto</CardDescription>
+          </CardHeader>
+          <div>
+            <CardContent className='space-y-6'>
+              {actionData?.message && !actionData.success && (
+                <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
+                  {actionData.message}
+                </div>
+              )}
 
-            {/* Product Type */}
-            <div>
-              <label
-                htmlFor='productType'
-                className='mb-2 block text-sm font-medium'
-              >
-                Tipo de producto
-              </label>
-              <select
-                id='productType'
-                name='productType'
-                value={productType}
-                onChange={(e) =>
-                  handleProductTypeChange(e.target.value as ProductType)
-                }
-                className={inputClass}
-              >
-                {(
-                  Object.entries(PRODUCT_TYPE_LABELS) as [ProductType, string][]
-                ).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className='grid gap-6 sm:grid-cols-2'>
-              <div>
-                <label htmlFor='sku' className='mb-2 block text-sm font-medium'>
-                  SKU
-                </label>
-                <input
-                  type='text'
-                  id='sku'
-                  name='sku'
-                  required
-                  defaultValue={product.sku}
-                  className={inputClass}
-                />
-                {actionData &&
-                  'errors' in actionData &&
-                  actionData.errors?.sku && (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.sku}
-                    </p>
-                  )}
-              </div>
-
+              {/* Product Type */}
               <div>
                 <label
-                  htmlFor='name'
+                  htmlFor='productType'
                   className='mb-2 block text-sm font-medium'
                 >
-                  Nombre
-                </label>
-                <input
-                  type='text'
-                  id='name'
-                  name='name'
-                  required
-                  defaultValue={product.name}
-                  className={inputClass}
-                />
-                {actionData &&
-                  'errors' in actionData &&
-                  actionData.errors?.name && (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.name}
-                    </p>
-                  )}
-              </div>
-            </div>
-
-            <div className='grid gap-6 sm:grid-cols-2'>
-              <div>
-                <label
-                  htmlFor='price'
-                  className='mb-2 block text-sm font-medium'
-                >
-                  Precio *
-                </label>
-                <input
-                  type='number'
-                  id='price'
-                  name='price'
-                  required
-                  step='0.01'
-                  min='0'
-                  defaultValue={product.price.toString()}
-                  className={inputClass}
-                />
-                {actionData &&
-                  'errors' in actionData &&
-                  actionData.errors?.price && (
-                    <p className='text-destructive mt-1 text-xs'>
-                      {actionData.errors.price}
-                    </p>
-                  )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor='categoryId'
-                  className='mb-2 block text-sm font-medium'
-                >
-                  Categoría
+                  Tipo de producto
                 </label>
                 <select
-                  id='categoryId'
-                  name='categoryId'
-                  defaultValue={product.categoryId || ''}
+                  id='productType'
+                  name='productType'
+                  value={productType}
+                  onChange={(e) =>
+                    handleProductTypeChange(e.target.value as ProductType)
+                  }
                   className={inputClass}
                 >
-                  <option value=''>Sin categoría</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  {(
+                    Object.entries(PRODUCT_TYPE_LABELS) as [
+                      ProductType,
+                      string,
+                    ][]
+                  ).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
                     </option>
                   ))}
                 </select>
               </div>
-            </div>
 
-            {/* Track Inventory toggle */}
-            <div>
-              <input
-                type='hidden'
-                name='trackInventory'
-                value={tracksInventory ? 'true' : 'false'}
-              />
-              <div className='flex items-center gap-3'>
-                <button
-                  type='button'
-                  role='switch'
-                  aria-checked={tracksInventory}
-                  disabled={isInventoryForced}
-                  onClick={() =>
-                    !isInventoryForced && setTracksInventory(!tracksInventory)
-                  }
-                  className={cn(
-                    'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
-                    tracksInventory ? 'bg-amber-500' : 'bg-muted',
-                    isInventoryForced && 'cursor-not-allowed opacity-50'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform',
-                      tracksInventory ? 'translate-x-6' : 'translate-x-1'
-                    )}
-                  />
-                </button>
-                <span className='text-sm font-medium'>
-                  Controla inventario
-                  {isInventoryForced && (
-                    <span className='text-muted-foreground ml-1.5 text-xs font-normal'>
-                      (no aplica para este tipo)
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-
-            {tracksInventory && (
               <div className='grid gap-6 sm:grid-cols-2'>
                 <div>
                   <label
-                    htmlFor='stock'
+                    htmlFor='sku'
                     className='mb-2 block text-sm font-medium'
                   >
-                    Stock
+                    SKU
                   </label>
                   <input
-                    type='number'
-                    id='stock'
-                    name='stock'
-                    min='0'
-                    defaultValue={product.stock ?? 0}
-                    placeholder='0'
+                    type='text'
+                    id='sku'
+                    name='sku'
+                    required
+                    defaultValue={product.sku}
                     className={inputClass}
                   />
+                  {actionData &&
+                    'errors' in actionData &&
+                    actionData.errors?.sku && (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.sku}
+                      </p>
+                    )}
                 </div>
 
                 <div>
                   <label
-                    htmlFor='minStock'
+                    htmlFor='name'
                     className='mb-2 block text-sm font-medium'
                   >
-                    Stock mínimo
+                    Nombre
+                  </label>
+                  <input
+                    type='text'
+                    id='name'
+                    name='name'
+                    required
+                    defaultValue={product.name}
+                    className={inputClass}
+                  />
+                  {actionData &&
+                    'errors' in actionData &&
+                    actionData.errors?.name && (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.name}
+                      </p>
+                    )}
+                </div>
+              </div>
+
+              <div className='grid gap-6 sm:grid-cols-2'>
+                <div>
+                  <label
+                    htmlFor='price'
+                    className='mb-2 block text-sm font-medium'
+                  >
+                    Precio *
                   </label>
                   <input
                     type='number'
-                    id='minStock'
-                    name='minStock'
+                    id='price'
+                    name='price'
+                    required
+                    step='0.01'
                     min='0'
-                    defaultValue={product.minStock ?? 0}
+                    defaultValue={product.price.toString()}
                     className={inputClass}
                   />
+                  {actionData &&
+                    'errors' in actionData &&
+                    actionData.errors?.price && (
+                      <p className='text-destructive mt-1 text-xs'>
+                        {actionData.errors.price}
+                      </p>
+                    )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='categoryId'
+                    className='mb-2 block text-sm font-medium'
+                  >
+                    Categoría
+                  </label>
+                  <select
+                    id='categoryId'
+                    name='categoryId'
+                    defaultValue={product.categoryId || ''}
+                    className={inputClass}
+                  >
+                    <option value=''>Sin categoría</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            )}
 
-            <div>
-              <label
-                htmlFor='description'
-                className='mb-2 block text-sm font-medium'
-              >
-                Descripción
-              </label>
-              <textarea
-                id='description'
-                name='description'
-                rows={3}
-                defaultValue={product.description || ''}
-                className={inputClass}
+              {/* Track Inventory toggle */}
+              <div>
+                <input
+                  type='hidden'
+                  name='trackInventory'
+                  value={tracksInventory ? 'true' : 'false'}
+                />
+                <div className='flex items-center gap-3'>
+                  <button
+                    type='button'
+                    role='switch'
+                    aria-checked={tracksInventory}
+                    disabled={isInventoryForced}
+                    onClick={() =>
+                      !isInventoryForced && setTracksInventory(!tracksInventory)
+                    }
+                    className={cn(
+                      'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none',
+                      tracksInventory ? 'bg-amber-500' : 'bg-muted',
+                      isInventoryForced && 'cursor-not-allowed opacity-50'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform',
+                        tracksInventory ? 'translate-x-6' : 'translate-x-1'
+                      )}
+                    />
+                  </button>
+                  <span className='text-sm font-medium'>
+                    Controla inventario
+                    {isInventoryForced && (
+                      <span className='text-muted-foreground ml-1.5 text-xs font-normal'>
+                        (no aplica para este tipo)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {tracksInventory && (
+                <div className='grid gap-6 sm:grid-cols-2'>
+                  <div>
+                    <label
+                      htmlFor='stock'
+                      className='mb-2 block text-sm font-medium'
+                    >
+                      Stock
+                    </label>
+                    <input
+                      type='number'
+                      id='stock'
+                      name='stock'
+                      min='0'
+                      defaultValue={product.stock ?? 0}
+                      placeholder='0'
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor='minStock'
+                      className='mb-2 block text-sm font-medium'
+                    >
+                      Stock mínimo
+                    </label>
+                    <input
+                      type='number'
+                      id='minStock'
+                      name='minStock'
+                      min='0'
+                      defaultValue={product.minStock ?? 0}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor='description'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  Descripción
+                </label>
+                <textarea
+                  id='description'
+                  name='description'
+                  rows={3}
+                  defaultValue={product.description || ''}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor='imageUrl'
+                  className='mb-2 block text-sm font-medium'
+                >
+                  URL de imagen
+                </label>
+                <input
+                  type='url'
+                  id='imageUrl'
+                  name='imageUrl'
+                  defaultValue={product.imageUrl || ''}
+                  className={inputClass}
+                />
+              </div>
+
+              <CustomAttributesEditor
+                initialAttributes={product.attributesJson}
               />
-            </div>
+            </CardContent>
+          </div>
+        </Card>
 
-            <div>
-              <label
-                htmlFor='imageUrl'
-                className='mb-2 block text-sm font-medium'
-              >
-                URL de imagen
-              </label>
-              <input
-                type='url'
-                id='imageUrl'
-                name='imageUrl'
-                defaultValue={product.imageUrl || ''}
-                className={inputClass}
-              />
-            </div>
-
-            <CustomAttributesEditor
-              initialAttributes={product.attributesJson}
+        {product.productType === 'recipe' && (
+          <>
+            <input
+              type='hidden'
+              name='recipeItems'
+              value={JSON.stringify(
+                recipeRows
+                  .filter((r) => r.ingredientProductId && r.quantity > 0)
+                  .map((r) => ({
+                    ingredientProductId: r.ingredientProductId,
+                    quantity: r.quantity,
+                    isOptional: r.isOptional,
+                  }))
+              )}
             />
-          </CardContent>
+            <RecipeBuilder
+              rows={recipeRows}
+              onChange={setRecipeRows}
+              ingredientProducts={ingredientProducts}
+            />
+          </>
+        )}
+
+        {product.productType === 'combo' && (
+          <ComboBuilder
+            productSku={product.sku}
+            comboData={comboData}
+            availableProducts={availableProducts}
+          />
+        )}
+
+        <div className='flex justify-end gap-3'>
+          <Button type='button' variant='outline' asChild>
+            <a href={`/products/${product.sku}`}>Cancelar</a>
+          </Button>
+          <Button type='submit' disabled={isSubmitting}>
+            {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+          </Button>
         </div>
-      </Card>
-
-      {product.productType === 'recipe' && (
-        <>
-          <input
-            type='hidden'
-            name='recipeItems'
-            value={JSON.stringify(
-              recipeRows
-                .filter((r) => r.ingredientProductId && r.quantity > 0)
-                .map((r) => ({
-                  ingredientProductId: r.ingredientProductId,
-                  quantity: r.quantity,
-                  isOptional: r.isOptional,
-                }))
-            )}
-          />
-          <RecipeBuilder
-            rows={recipeRows}
-            onChange={setRecipeRows}
-            ingredientProducts={ingredientProducts}
-          />
-        </>
-      )}
-
-      {product.productType === 'combo' && (
-        <ComboBuilder
-          productSku={product.sku}
-          comboData={comboData}
-          availableProducts={availableProducts}
-        />
-      )}
-
-      <div className='flex justify-end gap-3'>
-        <Button type='button' variant='outline' asChild>
-          <a href={`/products/${product.sku}`}>Cancelar</a>
-        </Button>
-        <Button type='submit' disabled={isSubmitting}>
-          {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
-        </Button>
-      </div>
       </Form>
     </div>
   )

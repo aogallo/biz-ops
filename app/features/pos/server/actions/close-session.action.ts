@@ -120,9 +120,7 @@ export async function closeSessionAction(input: CloseSessionInput) {
       const payments = await tx
         .select()
         .from(posPaymentModel)
-        .where(
-          sql`${posPaymentModel.saleId} IN ${completedSaleIds}`
-        )
+        .where(sql`${posPaymentModel.saleId} IN ${completedSaleIds}`)
 
       for (const p of payments) {
         const amt = Number(p.amount)
@@ -142,7 +140,11 @@ export async function closeSessionAction(input: CloseSessionInput) {
 
     const openingCash = Number(session.openingCashAmount)
     const expectedCash =
-      openingCash + totalCashSales - totalRefundMovements - totalWithdrawals + (totalDeposits - openingCash)
+      openingCash +
+      totalCashSales -
+      totalRefundMovements -
+      totalWithdrawals +
+      (totalDeposits - openingCash)
     const closingCash = input.closingCashAmount
     const cashDifference = closingCash - expectedCash
     const closedAt = new Date()

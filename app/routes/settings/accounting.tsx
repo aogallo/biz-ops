@@ -62,12 +62,9 @@ export async function action({ request }: Route.ActionArgs) {
       (formData.get('defaultPurchaseAccountId') as string) || null,
     journalEntryPrefix:
       (formData.get('journalEntryPrefix') as string) || undefined,
-    posCashAccountId:
-      (formData.get('posCashAccountId') as string) || null,
-    posCardAccountId:
-      (formData.get('posCardAccountId') as string) || null,
-    posCheckAccountId:
-      (formData.get('posCheckAccountId') as string) || null,
+    posCashAccountId: (formData.get('posCashAccountId') as string) || null,
+    posCardAccountId: (formData.get('posCardAccountId') as string) || null,
+    posCheckAccountId: (formData.get('posCheckAccountId') as string) || null,
   }
 
   // Clean up empty strings to null

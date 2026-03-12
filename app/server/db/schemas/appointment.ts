@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm'
-import { date, pgEnum, pgTable, text, time, timestamp, uuid } from 'drizzle-orm/pg-core'
+import {
+  date,
+  pgEnum,
+  pgTable,
+  text,
+  time,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import { organizationModel, memberModel } from './auth'
 import { businessPartnerModel } from './businessPartner'
 import { serviceModel } from './service'

@@ -61,9 +61,7 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
             {t('pos.sale')} {sale.saleNumber}
           </h1>
           <Badge
-            variant={
-              sale.status === 'completed' ? 'default' : 'destructive'
-            }
+            variant={sale.status === 'completed' ? 'default' : 'destructive'}
           >
             {sale.status === 'completed' ? t('pos.completed') : t('pos.voided')}
           </Badge>
@@ -112,11 +110,19 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
                   <div>
                     <p className='font-medium'>{line.productName}</p>
                     {line.modificationsJson &&
-                      (line.modificationsJson as Array<{ type: string; name: string }>).filter(
-                        (m) => m.type === 'remove'
-                      ).length > 0 && (
+                      (
+                        line.modificationsJson as Array<{
+                          type: string
+                          name: string
+                        }>
+                      ).filter((m) => m.type === 'remove').length > 0 && (
                         <p className='text-muted-foreground text-xs'>
-                          {(line.modificationsJson as Array<{ type: string; name: string }>)
+                          {(
+                            line.modificationsJson as Array<{
+                              type: string
+                              name: string
+                            }>
+                          )
                             .filter((m) => m.type === 'remove')
                             .map((m) => `Sin ${m.name}`)
                             .join(' · ')}
@@ -163,10 +169,7 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
           <div>
             <h3 className='mb-2 text-sm font-semibold'>{t('pos.payments')}</h3>
             {sale.payments.map((payment) => (
-              <div
-                key={payment.id}
-                className='flex justify-between text-sm'
-              >
+              <div key={payment.id} className='flex justify-between text-sm'>
                 <span className='capitalize'>{payment.method}</span>
                 <span className='tabular-nums'>
                   Q{Number(payment.amount).toFixed(2)}
@@ -179,7 +182,11 @@ export default function PosSaleDetail({ loaderData }: Route.ComponentProps) {
             <>
               <Separator />
               <div className='flex gap-2'>
-                <Button variant='outline' size='sm' onClick={() => window.print()}>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => window.print()}
+                >
                   <Printer className='size-4' />
                   {t('pos.print')}
                 </Button>

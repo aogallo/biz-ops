@@ -5,7 +5,12 @@ export const mockServices: Service[] = [
   { id: 'srv-1', name: 'Checkup', duration: 30, color: 'blue' },
   { id: 'srv-2', name: 'Consultation', duration: 45, color: 'green' },
   { id: 'srv-3', name: 'Maintenance', duration: 60, color: 'orange' },
-  { id: 'srv-4', name: 'Premium Haircut & Styling', duration: 90, color: 'teal' },
+  {
+    id: 'srv-4',
+    name: 'Premium Haircut & Styling',
+    duration: 90,
+    color: 'teal',
+  },
   { id: 'srv-5', name: 'Deep Cleaning', duration: 120, color: 'blue' },
   { id: 'srv-6', name: 'Initial Assessment', duration: 60, color: 'green' },
 ]

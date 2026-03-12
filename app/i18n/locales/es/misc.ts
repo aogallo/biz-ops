@@ -26,7 +26,8 @@ export const misc = {
   'appointments.status.cancelled': 'Cancelada',
   'appointments.status.completed': 'Completada',
   'appointments.created': 'Cita creada exitosamente',
-  'appointments.cancelSoon': 'La función de cancelar citas estará disponible pronto',
+  'appointments.cancelSoon':
+    'La función de cancelar citas estará disponible pronto',
   'appointments.noOrganization': 'No hay una Organización seleccionada',
   'appointments.created.fill': 'Debe de completar todos los campos requeridos',
   'appointments.noService': 'Servicio seleccionado no existe',
@@ -64,15 +65,18 @@ export const misc = {
   'partners.both': 'Ambos',
   'partners.partner': 'socio',
   'partners.partners': 'socios',
-  'partners.noPartners': 'No se encontraron socios comerciales. Agrega tu primer socio para comenzar.',
+  'partners.noPartners':
+    'No se encontraron socios comerciales. Agrega tu primer socio para comenzar.',
   'partners.noTypePartners': 'No se encontraron socios de tipo {{type}}.',
   'partners.createTitle': 'Agregar Socio Comercial',
-  'partners.createDescription': 'Crea un nuevo cliente, proveedor o ambos para tu organización',
+  'partners.createDescription':
+    'Crea un nuevo cliente, proveedor o ambos para tu organización',
   'partners.nameLabel': 'Nombre del Socio *',
   'partners.typeLabel': 'Tipo de Socio *',
   'partners.typePlaceholder': 'Selecciona tipo de socio',
   'partners.typeHelper': 'Elige cómo haces negocios con este socio',
-  'partners.emailOptional': 'Opcional - Correo electrónico de contacto principal',
+  'partners.emailOptional':
+    'Opcional - Correo electrónico de contacto principal',
   'partners.phonePlaceholder': '+502 1234-5678',
   'partners.phoneOptional': 'Opcional - Número de teléfono de contacto',
   'partners.notesPlaceholder': 'Notas adicionales sobre este socio...',
@@ -94,7 +98,8 @@ export const misc = {
   'partners.isBoth': 'Este socio es cliente y proveedor',
   'partners.noEmail': 'Sin correo electrónico',
   'partners.noPhone': 'Sin teléfono',
-  'partners.visitHistoryDescription': 'Citas pasadas y próximas de este cliente',
+  'partners.visitHistoryDescription':
+    'Citas pasadas y próximas de este cliente',
 
   'reports.title': 'Reportes',
   'reports.generate': 'Generar Reporte',
@@ -108,12 +113,14 @@ export const misc = {
   'reports.inventory.valueByCategory': 'Valor por Categoría',
   'reports.inventory.movementTrends': 'Tendencias de Movimientos',
   'reports.inventory.topProducts': 'Productos Más Movidos',
-  'reports.inventory.noMovements': 'Non hay movimientos para el periodo seleccionado',
+  'reports.inventory.noMovements':
+    'Non hay movimientos para el periodo seleccionado',
 
   'welcome.title': '¡Bienvenido, {{name}}!',
   'welcome.brandName': 'Business Operations',
   'welcome.noAccess': 'Aún no tienes acceso a ninguna organización.',
-  'welcome.waitForAdmin': 'Por favor espera a que un administrador te otorgue acceso a una organización. Una vez que te hayan agregado, actualiza esta página para continuar.',
+  'welcome.waitForAdmin':
+    'Por favor espera a que un administrador te otorgue acceso a una organización. Una vez que te hayan agregado, actualiza esta página para continuar.',
   'welcome.signedInAs': 'Sesión iniciada como:',
   'welcome.checkAccess': 'Verificar Acceso',
   'welcome.signOut': 'Cerrar Sesión',
@@ -132,9 +139,11 @@ export const misc = {
   'categories.createTitle': 'Crear Categoría',
   'categories.editTitle': 'Editar Categoría',
   'categories.searchPlaceholder': 'Buscar categorías...',
-  'categories.noData': 'No hay categorías. Crea tu primera categoría para organizar productos.',
+  'categories.noData':
+    'No hay categorías. Crea tu primera categoría para organizar productos.',
   'categories.deleted': 'Categoría eliminada correctamente.',
-  'categories.hasProducts': 'No se puede eliminar una categoría con productos asignados.',
+  'categories.hasProducts':
+    'No se puede eliminar una categoría con productos asignados.',
 
   'inventory.totalProducts': 'Total Productos',
   'inventory.stockValue': 'Valor del Stock',
@@ -148,12 +157,14 @@ export const misc = {
   'accounts.addAccount': 'Agregar Cuenta',
   'accounts.searchPlaceholder': 'Buscar cuentas...',
   'accounts.bulkImport': 'Importar en Lote',
-  'accounts.bulkImportDescription': 'Sube un archivo CSV o Excel para importar múltiples cuentas a la vez',
+  'accounts.bulkImportDescription':
+    'Sube un archivo CSV o Excel para importar múltiples cuentas a la vez',
   'accounts.createNew': 'Crear Nueva Cuenta',
   'accounts.createDescription': 'Agrega una nueva cuenta a tu plan de cuentas',
   'accounts.numberLabel': 'Número de Cuenta *',
   'accounts.numberPlaceholder': '1000',
-  'accounts.numberHelper': 'Identificador único para esta cuenta en tu plan de cuentas',
+  'accounts.numberHelper':
+    'Identificador único para esta cuenta en tu plan de cuentas',
   'accounts.nameLabel': 'Nombre de Cuenta *',
   'accounts.namePlaceholder': 'Caja',
   'accounts.details': 'Detalles de la Cuenta',
@@ -175,10 +186,12 @@ export const misc = {
   'roles.assign': 'Asignar Rol',
   'roles.noRoles': 'No se encontraron roles. Crea tu primer rol para comenzar.',
   'roles.createNew': 'Crear Nuevo Rol',
-  'roles.createDescription': 'Define un rol personalizado con permisos específicos para tu organización',
+  'roles.createDescription':
+    'Define un rol personalizado con permisos específicos para tu organización',
   'roles.nameLabel': 'Nombre del Rol *',
   'roles.namePlaceholder': 'project-manager',
-  'roles.nameHelper': 'Usa solo letras minúsculas y guiones (ej., project-manager)',
+  'roles.nameHelper':
+    'Usa solo letras minúsculas y guiones (ej., project-manager)',
   'roles.descriptionLabel': 'Descripción *',
   'roles.descriptionPlaceholder': 'Describe qué puede hacer este rol...',
   'roles.permissionsLabel': 'Permisos * (Selecciona al menos uno)',
@@ -199,9 +212,11 @@ export const misc = {
   'roles.searchPlaceholder': 'Buscar roles...',
 
   'permissions.title': 'Gestión de Permisos',
-  'permissions.manage': 'Configura listas de control de acceso granular. Define recursos y acciones.',
+  'permissions.manage':
+    'Configura listas de control de acceso granular. Define recursos y acciones.',
   'permissions.create': 'Crear Permiso',
-  'permissions.noPermissions': 'No se encontraron permisos. Crea tu primer permiso para comenzar.',
+  'permissions.noPermissions':
+    'No se encontraron permisos. Crea tu primer permiso para comenzar.',
   'permissions.searchPlaceholder': 'Buscar permisos...',
   'permissions.resource': 'Recurso',
   'permissions.action': 'Acción',
@@ -209,7 +224,8 @@ export const misc = {
   'permissions.editTitle': 'Editar Permiso',
 
   'company.title': 'Empresas',
-  'company.noCompanies': 'No se encontraron empresas. Agrega tu primera empresa para comenzar.',
+  'company.noCompanies':
+    'No se encontraron empresas. Agrega tu primera empresa para comenzar.',
   'company.searchPlaceholder': 'Buscar empresas...',
   'company.addCompany': 'Agregar Empresa',
   'company.createTitle': 'Agregar Empresa',
@@ -218,7 +234,8 @@ export const misc = {
   'company.nitLabel': 'NIT *',
   'company.emailLabel': 'Correo Electrónico',
   'company.emailPlaceholder': 'contacto@ejemplo.com',
-  'company.emailHelper': 'Opcional - Correo electrónico de contacto principal de esta empresa',
+  'company.emailHelper':
+    'Opcional - Correo electrónico de contacto principal de esta empresa',
   'company.createButton': 'Crear Empresa',
   'company.active': 'Activa',
   'company.location': 'Guatemala, Guatemala',
@@ -231,7 +248,8 @@ export const misc = {
   'company.accountsPayable': 'Cuentas por Pagar',
   'company.accountsReceivable': 'Cuentas por Cobrar',
   'company.overdueInvoices': 'Facturas Vencidas',
-  'company.financialsPlaceholder': 'La información financiera se mostrará aquí.',
+  'company.financialsPlaceholder':
+    'La información financiera se mostrará aquí.',
   'company.documentsPlaceholder': 'Los documentos se mostrarán aquí.',
   'company.activityPlaceholder': 'El registro de actividad se mostrará aquí.',
 
@@ -266,13 +284,15 @@ export const misc = {
   'error.backToLogin': 'Volver al Inicio de Sesión',
   'error.goToDashboard': 'Ir al Panel',
   'error.pageNotFound': 'Página No Encontrada',
-  'error.pageNotFoundDescription': 'Lo sentimos, la página que buscas no existe.',
+  'error.pageNotFoundDescription':
+    'Lo sentimos, la página que buscas no existe.',
 
   'landing.badge': 'Plataforma ERP para Guatemala',
   'landing.headline': 'Gestiona tu negocio con una plataforma',
   'landing.headlineHighlight': 'integral',
   'landing.headlineSuffix': '',
-  'landing.subtitle': 'Contabilidad, procesamiento SAT, inventario, agenda de citas y facturación. Todo lo que necesitas para operar tu negocio en un solo lugar.',
+  'landing.subtitle':
+    'Contabilidad, procesamiento SAT, inventario, agenda de citas y facturación. Todo lo que necesitas para operar tu negocio en un solo lugar.',
   'landing.ctaStart': 'Comenzar gratis',
   'landing.ctaPlans': 'Ver planes',
   'landing.nav.services': 'Servicios',
@@ -281,23 +301,30 @@ export const misc = {
   'landing.nav.start': 'Comenzar',
   'landing.nav.dashboard': 'Ir al Dashboard',
   'landing.services.title': 'Todo lo que necesitas para operar',
-  'landing.services.subtitle': 'Cinco módulos integrados que cubren cada aspecto de tu negocio',
+  'landing.services.subtitle':
+    'Cinco módulos integrados que cubren cada aspecto de tu negocio',
   'landing.services.accounting.title': 'Contabilidad',
-  'landing.services.accounting.description': 'Libro diario, libro mayor, partidas contables y reportes financieros. Todo en cumplimiento con las normas guatemaltecas.',
+  'landing.services.accounting.description':
+    'Libro diario, libro mayor, partidas contables y reportes financieros. Todo en cumplimiento con las normas guatemaltecas.',
   'landing.services.sat.title': 'Procesamiento SAT',
-  'landing.services.sat.description': 'Procesa tus archivos de la SAT automáticamente. Genera libros de compras y ventas listos para presentar.',
+  'landing.services.sat.description':
+    'Procesa tus archivos de la SAT automáticamente. Genera libros de compras y ventas listos para presentar.',
   'landing.services.inventory.title': 'Inventario',
-  'landing.services.inventory.description': 'Control de productos, categorías, movimientos de stock y códigos QR. Reportes de inventario en tiempo real.',
+  'landing.services.inventory.description':
+    'Control de productos, categorías, movimientos de stock y códigos QR. Reportes de inventario en tiempo real.',
   'landing.services.appointments.title': 'Agenda de Citas',
-  'landing.services.appointments.description': 'Gestiona citas con tus clientes, envía recordatorios automáticos y optimiza tu agenda diaria.',
+  'landing.services.appointments.description':
+    'Gestiona citas con tus clientes, envía recordatorios automáticos y optimiza tu agenda diaria.',
   'landing.services.invoicing.title': 'Facturación',
-  'landing.services.invoicing.description': 'Crea y gestiona facturas profesionales. Control de pagos, estados y exportación a PDF.',
+  'landing.services.invoicing.description':
+    'Crea y gestiona facturas profesionales. Control de pagos, estados y exportación a PDF.',
   'landing.pricing.title': 'Planes para cada etapa de tu negocio',
   'landing.pricing.subtitle': 'Comienza gratis y escala cuando lo necesites',
   'landing.pricing.badge': 'Más popular',
   'landing.pricing.starter.name': 'Starter',
   'landing.pricing.starter.price': 'Gratis',
-  'landing.pricing.starter.description': 'Para emprendedores que están comenzando',
+  'landing.pricing.starter.description':
+    'Para emprendedores que están comenzando',
   'landing.pricing.starter.cta': 'Comenzar gratis',
   'landing.pricing.pro.name': 'Pro',
   'landing.pricing.pro.price': 'Q199/mes',
@@ -333,7 +360,8 @@ export const misc = {
   'landing.pricing.enterprise.invoicing': 'Ilimitadas',
   'landing.pricing.enterprise.support': 'Dedicado',
   'landing.cta.title': '¿Listo para modernizar tu negocio?',
-  'landing.cta.subtitle': 'Comienza gratis hoy y descubre cómo una plataforma integral puede transformar la forma en que operas.',
+  'landing.cta.subtitle':
+    'Comienza gratis hoy y descubre cómo una plataforma integral puede transformar la forma en que operas.',
   'landing.cta.button': 'Comenzar gratis',
   'landing.footer.product': 'Producto',
   'landing.footer.legal': 'Legal',
@@ -342,54 +370,81 @@ export const misc = {
   'landing.footer.pricing': 'Precios',
   'landing.footer.terms': 'Términos de servicio',
   'landing.footer.privacy': 'Política de privacidad',
-  'landing.footer.description': 'Plataforma ERP integral para negocios en Guatemala.',
-  'landing.footer.copyright': '© {{year}} Business Operations. Todos los derechos reservados.',
+  'landing.footer.description':
+    'Plataforma ERP integral para negocios en Guatemala.',
+  'landing.footer.copyright':
+    '© {{year}} Business Operations. Todos los derechos reservados.',
 
-  'messages.common.noPermission': 'No tienes permiso para realizar esta acción.',
-  'messages.products.notFound': 'Producto no encontrado. Puede haber sido eliminado o el SKU cambió.',
+  'messages.common.noPermission':
+    'No tienes permiso para realizar esta acción.',
+  'messages.products.notFound':
+    'Producto no encontrado. Puede haber sido eliminado o el SKU cambió.',
   'messages.products.deleted': 'Producto eliminado exitosamente.',
   'messages.products.created': 'Producto creado exitosamente.',
   'messages.products.updated': 'Producto actualizado exitosamente.',
-  'messages.products.noOrganization': 'Por favor selecciona una organización para ver productos.',
-  'messages.products.duplicateSku': 'Ya existe un producto con este SKU en tu organización.',
+  'messages.products.noOrganization':
+    'Por favor selecciona una organización para ver productos.',
+  'messages.products.duplicateSku':
+    'Ya existe un producto con este SKU en tu organización.',
   'messages.users.invited': 'Invitación enviada exitosamente.',
   'messages.users.invitationCancelled': 'Invitación cancelada exitosamente.',
   'messages.users.removed': 'Usuario removido de la organización exitosamente.',
   'messages.users.notFound': 'Usuario no encontrado.',
-  'messages.users.alreadyMember': 'Este usuario ya es miembro de esta organización.',
-  'messages.users.alreadyExists': 'Ya existe un usuario con este correo. Por favor agrégalo directamente a la organización.',
-  'messages.users.noPermission': 'No tienes permiso para gestionar usuarios en esta organización.',
-  'messages.users.noOrganization': 'Por favor selecciona una organización para gestionar usuarios.',
+  'messages.users.alreadyMember':
+    'Este usuario ya es miembro de esta organización.',
+  'messages.users.alreadyExists':
+    'Ya existe un usuario con este correo. Por favor agrégalo directamente a la organización.',
+  'messages.users.noPermission':
+    'No tienes permiso para gestionar usuarios en esta organización.',
+  'messages.users.noOrganization':
+    'Por favor selecciona una organización para gestionar usuarios.',
   'messages.users.invalidInvitation': 'Invitación inválida o expirada.',
   'messages.users.invitationExpired': 'Esta invitación ha expirado.',
-  'messages.users.invitationAccepted': '¡Bienvenido! Tu cuenta ha sido creada exitosamente.',
-  'messages.users.pendingInvitation': 'Invitación pendiente - esperando que el usuario acepte',
+  'messages.users.invitationAccepted':
+    '¡Bienvenido! Tu cuenta ha sido creada exitosamente.',
+  'messages.users.pendingInvitation':
+    'Invitación pendiente - esperando que el usuario acepte',
   'messages.roles.created': 'Rol creado exitosamente.',
   'messages.roles.updated': 'Rol actualizado exitosamente.',
   'messages.roles.deleted': 'Rol eliminado exitosamente.',
   'messages.roles.notFound': 'Rol no encontrado. Puede haber sido eliminado.',
-  'messages.roles.noOrganization': 'Por favor selecciona una organización para gestionar roles.',
-  'messages.roles.nameExists': 'Ya existe un rol con este nombre en tu organización.',
-  'messages.roles.systemRoleProtected': 'Los roles del sistema (propietario, admin, miembro) no pueden ser modificados o eliminados.',
-  'messages.roles.reservedName': 'Este nombre de rol está reservado para roles del sistema.',
-  'messages.roles.hasMembers': 'No se puede eliminar el rol. Algunos miembros aún están asignados a este rol. Por favor reasígnalos primero.',
-  'messages.roles.systemRoleInfo': 'Los roles del sistema se crean automáticamente y no pueden ser eliminados.',
-  'messages.partners.notFound': 'Socio comercial no encontrado. Puede haber sido eliminado.',
+  'messages.roles.noOrganization':
+    'Por favor selecciona una organización para gestionar roles.',
+  'messages.roles.nameExists':
+    'Ya existe un rol con este nombre en tu organización.',
+  'messages.roles.systemRoleProtected':
+    'Los roles del sistema (propietario, admin, miembro) no pueden ser modificados o eliminados.',
+  'messages.roles.reservedName':
+    'Este nombre de rol está reservado para roles del sistema.',
+  'messages.roles.hasMembers':
+    'No se puede eliminar el rol. Algunos miembros aún están asignados a este rol. Por favor reasígnalos primero.',
+  'messages.roles.systemRoleInfo':
+    'Los roles del sistema se crean automáticamente y no pueden ser eliminados.',
+  'messages.partners.notFound':
+    'Socio comercial no encontrado. Puede haber sido eliminado.',
   'messages.partners.deleted': 'Socio comercial eliminado exitosamente.',
   'messages.partners.created': 'Socio comercial creado exitosamente.',
   'messages.partners.updated': 'Socio comercial actualizado exitosamente.',
-  'messages.partners.noOrganization': 'Por favor selecciona una organización para ver socios comerciales.',
-  'messages.partners.duplicateEmail': 'Ya existe un socio comercial con el correo "{{email}}" en tu organización.',
-  'messages.accounts.notFound': 'Cuenta no encontrada. Puede haber sido eliminada.',
+  'messages.partners.noOrganization':
+    'Por favor selecciona una organización para ver socios comerciales.',
+  'messages.partners.duplicateEmail':
+    'Ya existe un socio comercial con el correo "{{email}}" en tu organización.',
+  'messages.accounts.notFound':
+    'Cuenta no encontrada. Puede haber sido eliminada.',
   'messages.accounts.deleted': 'Cuenta eliminada exitosamente.',
   'messages.accounts.created': 'Cuenta creada exitosamente.',
   'messages.accounts.updated': 'Cuenta actualizada exitosamente.',
-  'messages.accounts.noOrganization': 'Por favor selecciona una organización para ver cuentas.',
-  'messages.accounts.duplicateAccountNumber': 'Ya existe una cuenta con este número de cuenta.',
-  'messages.accounts.bulkUploadSuccess': 'Carga masiva completada: {{inserted}} insertados, {{updated}} actualizados.',
+  'messages.accounts.noOrganization':
+    'Por favor selecciona una organización para ver cuentas.',
+  'messages.accounts.duplicateAccountNumber':
+    'Ya existe una cuenta con este número de cuenta.',
+  'messages.accounts.bulkUploadSuccess':
+    'Carga masiva completada: {{inserted}} insertados, {{updated}} actualizados.',
   'messages.accounts.bulkUploadError': 'Error al procesar la carga masiva.',
-  'messages.accounts.invalidFile': 'Formato de archivo inválido. Por favor usa CSV o Excel (.xls, .xlsx).',
-  'messages.accounts.noValidRows': 'No se encontraron filas válidas en el archivo.',
+  'messages.accounts.invalidFile':
+    'Formato de archivo inválido. Por favor usa CSV o Excel (.xls, .xlsx).',
+  'messages.accounts.noValidRows':
+    'No se encontraron filas válidas en el archivo.',
   'messages.organization.notFound': 'Organización no encontrada.',
   'messages.organization.deleted': 'Organización eliminada exitosamente.',
   'messages.organization.created': 'Organización creada exitosamente.',
@@ -398,21 +453,30 @@ export const misc = {
   'messages.categories.deleted': 'Categoría eliminada exitosamente.',
   'messages.categories.created': 'Categoría creada exitosamente.',
   'messages.categories.updated': 'Categoría actualizada exitosamente.',
-  'messages.categories.noOrganization': 'Por favor selecciona una organización para gestionar categorías.',
-  'messages.categories.hasProducts': 'No se puede eliminar una categoría con productos asignados. Primero remueve los productos de esta categoría.',
+  'messages.categories.noOrganization':
+    'Por favor selecciona una organización para gestionar categorías.',
+  'messages.categories.hasProducts':
+    'No se puede eliminar una categoría con productos asignados. Primero remueve los productos de esta categoría.',
   'messages.stock.created': 'Movimiento de stock registrado exitosamente.',
-  'messages.stock.insufficientStock': 'Stock insuficiente para esta salida. Stock actual: ',
+  'messages.stock.insufficientStock':
+    'Stock insuficiente para esta salida. Stock actual: ',
   'messages.stock.productNotFound': 'Producto no encontrado.',
-  'messages.stock.noOrganization': 'Por favor selecciona una organización para gestionar stock.',
+  'messages.stock.noOrganization':
+    'Por favor selecciona una organización para gestionar stock.',
   'messages.permissions.created': 'Permiso creado exitosamente.',
   'messages.permissions.updated': 'Permiso actualizado exitosamente.',
   'messages.permissions.deleted': 'Permiso eliminado exitosamente.',
   'messages.permissions.notFound': 'Permiso no encontrado.',
-  'messages.permissions.notSuperAdmin': 'Solo los super administradores pueden gestionar permisos.',
-  'messages.permissions.duplicateResourceAction': 'Ya existe un permiso con este recurso y acción.',
-  'messages.permissions.systemPermissionProtected': 'Los permisos del sistema no pueden ser modificados o eliminados.',
-  'messages.permissions.hasRoles': 'No se puede eliminar. Primero remueve el permiso de los roles.',
-  'messages.permissions.systemPermissionInfo': 'Los permisos del sistema se crean automáticamente y no pueden ser eliminados.',
+  'messages.permissions.notSuperAdmin':
+    'Solo los super administradores pueden gestionar permisos.',
+  'messages.permissions.duplicateResourceAction':
+    'Ya existe un permiso con este recurso y acción.',
+  'messages.permissions.systemPermissionProtected':
+    'Los permisos del sistema no pueden ser modificados o eliminados.',
+  'messages.permissions.hasRoles':
+    'No se puede eliminar. Primero remueve el permiso de los roles.',
+  'messages.permissions.systemPermissionInfo':
+    'Los permisos del sistema se crean automáticamente y no pueden ser eliminados.',
 
   'sat.row.notFound': 'La linea/factura no fue encontrada',
 

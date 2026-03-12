@@ -48,13 +48,13 @@ export interface GetInvoicesOptions {
 export class InvoiceRepository {
   async create(
     data: Omit<InsertInvoice, 'id' | 'createdAt' | 'updatedAt'>,
-    lines?: Omit<InsertInvoiceLine, 'id' | 'invoiceId' | 'createdAt' | 'updatedAt'>[]
+    lines?: Omit<
+      InsertInvoiceLine,
+      'id' | 'invoiceId' | 'createdAt' | 'updatedAt'
+    >[]
   ): Promise<Invoice> {
     return await db.transaction(async (tx) => {
-      const [invoice] = await tx
-        .insert(invoiceModel)
-        .values(data)
-        .returning()
+      const [invoice] = await tx.insert(invoiceModel).values(data).returning()
 
       if (lines && lines.length > 0) {
         await tx.insert(invoiceLineModel).values(
@@ -262,7 +262,10 @@ export class InvoiceRepository {
   /**
    * Update invoice status
    */
-  async updateStatus(id: string, status: InvoiceStatus): Promise<Invoice | null> {
+  async updateStatus(
+    id: string,
+    status: InvoiceStatus
+  ): Promise<Invoice | null> {
     const [updated] = await db
       .update(invoiceModel)
       .set({
@@ -280,7 +283,10 @@ export class InvoiceRepository {
    */
   async addLine(
     invoiceId: string,
-    line: Omit<InsertInvoiceLine, 'id' | 'invoiceId' | 'createdAt' | 'updatedAt'>
+    line: Omit<
+      InsertInvoiceLine,
+      'id' | 'invoiceId' | 'createdAt' | 'updatedAt'
+    >
   ): Promise<InvoiceLine> {
     return await db.transaction(async (tx) => {
       // Get the next line number
@@ -313,7 +319,9 @@ export class InvoiceRepository {
    */
   async updateLine(
     lineId: string,
-    data: Partial<Omit<InsertInvoiceLine, 'id' | 'invoiceId' | 'createdAt' | 'updatedAt'>>
+    data: Partial<
+      Omit<InsertInvoiceLine, 'id' | 'invoiceId' | 'createdAt' | 'updatedAt'>
+    >
   ): Promise<InvoiceLine | null> {
     return await db.transaction(async (tx) => {
       const [updated] = await tx
@@ -390,7 +398,12 @@ export class InvoiceRepository {
    */
   async getLinesWithProducts(invoiceId: string): Promise<
     (InvoiceLine & {
-      product: { id: string; sku: string; name: string; price: string | null } | null
+      product: {
+        id: string
+        sku: string
+        name: string
+        price: string | null
+      } | null
     })[]
   > {
     const lines = await db
@@ -431,11 +444,20 @@ export class InvoiceRepository {
   async getByIdWithDetails(id: string): Promise<
     | (Invoice & {
         lines: (InvoiceLine & {
-          product: { id: string; sku: string; name: string; price: string | null } | null
+          product: {
+            id: string
+            sku: string
+            name: string
+            price: string | null
+          } | null
         })[]
         businessPartner: { id: string; name: string; nit: string | null } | null
         company: { id: string; name: string } | null
-        accountingAccount: { id: string; name: string | null; accountNumber: string | null } | null
+        accountingAccount: {
+          id: string
+          name: string | null
+          accountNumber: string | null
+        } | null
         sucursal: { id: string; name: string; code: string } | null
       })
     | null
@@ -448,47 +470,52 @@ export class InvoiceRepository {
 
     if (!invoice) return null
 
-    const [lines, businessPartnerResult, companyResult, accountingAccountResult, sucursalResult] =
-      await Promise.all([
-        this.getLinesWithProducts(id),
-        db
-          .select({
-            id: businessPartnerModel.id,
-            name: businessPartnerModel.name,
-            nit: businessPartnerModel.nit,
-          })
-          .from(businessPartnerModel)
-          .where(eq(businessPartnerModel.id, invoice.businessPartnerId))
-          .limit(1),
-        db
-          .select({
-            id: companyModel.id,
-            name: companyModel.name,
-          })
-          .from(companyModel)
-          .where(eq(companyModel.id, invoice.companyId))
-          .limit(1),
-        db
-          .select({
-            id: accountingAccountModel.id,
-            name: accountingAccountModel.name,
-            accountNumber: accountingAccountModel.accountNumber,
-          })
-          .from(accountingAccountModel)
-          .where(eq(accountingAccountModel.id, invoice.accountingAccountId))
-          .limit(1),
-        invoice.sucursalId
-          ? db
-              .select({
-                id: sucursalModel.id,
-                name: sucursalModel.name,
-                code: sucursalModel.code,
-              })
-              .from(sucursalModel)
-              .where(eq(sucursalModel.id, invoice.sucursalId))
-              .limit(1)
-          : Promise.resolve([]),
-      ])
+    const [
+      lines,
+      businessPartnerResult,
+      companyResult,
+      accountingAccountResult,
+      sucursalResult,
+    ] = await Promise.all([
+      this.getLinesWithProducts(id),
+      db
+        .select({
+          id: businessPartnerModel.id,
+          name: businessPartnerModel.name,
+          nit: businessPartnerModel.nit,
+        })
+        .from(businessPartnerModel)
+        .where(eq(businessPartnerModel.id, invoice.businessPartnerId))
+        .limit(1),
+      db
+        .select({
+          id: companyModel.id,
+          name: companyModel.name,
+        })
+        .from(companyModel)
+        .where(eq(companyModel.id, invoice.companyId))
+        .limit(1),
+      db
+        .select({
+          id: accountingAccountModel.id,
+          name: accountingAccountModel.name,
+          accountNumber: accountingAccountModel.accountNumber,
+        })
+        .from(accountingAccountModel)
+        .where(eq(accountingAccountModel.id, invoice.accountingAccountId))
+        .limit(1),
+      invoice.sucursalId
+        ? db
+            .select({
+              id: sucursalModel.id,
+              name: sucursalModel.name,
+              code: sucursalModel.code,
+            })
+            .from(sucursalModel)
+            .where(eq(sucursalModel.id, invoice.sucursalId))
+            .limit(1)
+        : Promise.resolve([]),
+    ])
 
     return {
       ...invoice,

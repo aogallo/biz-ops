@@ -135,7 +135,9 @@ export default function PosCashiers({ loaderData }: Route.ComponentProps) {
           />
           <Button variant='ghost' size='xs' type='submit'>
             <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-              {row.original.isActive ? t('common.active') : t('common.inactive')}
+              {row.original.isActive
+                ? t('common.active')
+                : t('common.inactive')}
             </Badge>
           </Button>
         </fetcher.Form>
@@ -195,16 +197,16 @@ export default function PosCashiers({ loaderData }: Route.ComponentProps) {
 
             <div className='space-y-4'>
               <div>
-                <label className='text-sm font-medium'>{t('pos.cashierName')}</label>
-                <Input
-                  name='name'
-                  required
-                  className='mt-1'
-                />
+                <label className='text-sm font-medium'>
+                  {t('pos.cashierName')}
+                </label>
+                <Input name='name' required className='mt-1' />
               </div>
 
               <div>
-                <label className='text-sm font-medium'>{t('pos.linkedUser')}</label>
+                <label className='text-sm font-medium'>
+                  {t('pos.linkedUser')}
+                </label>
                 <Select name='userId'>
                   <SelectTrigger className='mt-1'>
                     <SelectValue placeholder={t('pos.selectUser')} />
@@ -220,7 +222,9 @@ export default function PosCashiers({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label className='text-sm font-medium'>{t('pos.pinOptional')}</label>
+                <label className='text-sm font-medium'>
+                  {t('pos.pinOptional')}
+                </label>
                 <Input
                   name='pin'
                   type='password'

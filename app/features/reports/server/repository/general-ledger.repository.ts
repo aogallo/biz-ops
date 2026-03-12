@@ -1,5 +1,8 @@
 import { db } from '~/server/db'
-import { journalEntryModel, journalEntryLineModel } from '~/server/db/schemas/journalEntry'
+import {
+  journalEntryModel,
+  journalEntryLineModel,
+} from '~/server/db/schemas/journalEntry'
 import { accountingAccountModel } from '~/server/db/schemas/accounting'
 import { companyModel } from '~/server/db/schemas/company'
 import { eq, and, sql, lt, gte, lte } from 'drizzle-orm'

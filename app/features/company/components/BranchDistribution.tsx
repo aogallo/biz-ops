@@ -20,7 +20,7 @@ const BranchDistribution = ({
 }: BranchDistributionProps) => {
   return (
     <section className='space-y-3'>
-      <h4 className='text-xs font-medium tracking-wider text-muted-foreground uppercase'>
+      <h4 className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
         Branch Distribution
       </h4>
       <div className='space-y-4'>
@@ -28,13 +28,13 @@ const BranchDistribution = ({
           <div key={branch.name} className='space-y-1.5'>
             <div className='flex items-center justify-between text-sm'>
               <span className='text-foreground'>{branch.name}</span>
-              <span className='font-semibold text-foreground'>
+              <span className='text-foreground font-semibold'>
                 {branch.users} users
               </span>
             </div>
             <Progress
               value={branch.percentage}
-              className='h-2 bg-muted [&>div]:bg-teal-500'
+              className='bg-muted h-2 [&>div]:bg-teal-500'
             />
           </div>
         ))}

@@ -13,7 +13,10 @@ const colorClasses: Record<AppointmentColor, string> = {
   teal: 'border-l-teal-500 bg-teal-50 dark:bg-teal-950/30',
 }
 
-export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) {
+export function AppointmentCard({
+  appointment,
+  onClick,
+}: AppointmentCardProps) {
   return (
     <div
       className={cn(
@@ -22,11 +25,13 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
       )}
       onClick={onClick}
     >
-      <div className="text-xs text-muted-foreground">
+      <div className='text-muted-foreground text-xs'>
         {appointment.startTime} - {appointment.endTime}
       </div>
-      <div className="font-medium text-sm truncate">{appointment.clientName}</div>
-      <div className="text-xs text-muted-foreground truncate">
+      <div className='truncate text-sm font-medium'>
+        {appointment.clientName}
+      </div>
+      <div className='text-muted-foreground truncate text-xs'>
         {appointment.serviceName}
       </div>
     </div>

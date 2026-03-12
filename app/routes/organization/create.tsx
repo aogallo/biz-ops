@@ -26,7 +26,9 @@ export async function action({ request }: Route.ActionArgs) {
   return response
 }
 
-export default function CreateOrganization({ loaderData }: Route.ComponentProps) {
+export default function CreateOrganization({
+  loaderData,
+}: Route.ComponentProps) {
   const actionData = useActionData<typeof createOrganization>()
   const navigation = useNavigation()
   const { t } = useTranslation()
@@ -68,7 +70,7 @@ export default function CreateOrganization({ loaderData }: Route.ComponentProps)
                 <img
                   src={logoPreview}
                   alt='Logo preview'
-                  className='h-16 w-16 rounded-full object-cover border'
+                  className='h-16 w-16 rounded-full border object-cover'
                 />
               )}
               <input
@@ -77,7 +79,7 @@ export default function CreateOrganization({ loaderData }: Route.ComponentProps)
                 name='logo'
                 accept='image/*'
                 onChange={handleLogoChange}
-                className='border-input bg-background text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90 rounded-md border px-3 py-2 w-full'
+                className='border-input bg-background file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 w-full rounded-md border px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium'
               />
             </div>
           </div>
@@ -142,7 +144,8 @@ export default function CreateOrganization({ loaderData }: Route.ComponentProps)
             )}
             {!domain && (
               <p className='text-muted-foreground mt-1 text-xs'>
-                Solo letras minúsculas, números y guiones. Ej: <code>mi-empresa</code>
+                Solo letras minúsculas, números y guiones. Ej:{' '}
+                <code>mi-empresa</code>
               </p>
             )}
           </div>
@@ -152,7 +155,9 @@ export default function CreateOrganization({ loaderData }: Route.ComponentProps)
               type='submit'
               className='bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium'
             >
-              {navigation.state === 'submitting' ? t('organization.creating') : t('common.create')}
+              {navigation.state === 'submitting'
+                ? t('organization.creating')
+                : t('common.create')}
             </button>
             <a
               href='/organization'

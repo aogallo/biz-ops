@@ -1,7 +1,11 @@
 import { and, eq, sql } from 'drizzle-orm'
 import { db } from '~/server/db'
 import { companyModel } from '~/server/db/schemas/company'
-import type { Company, CreateCompanyInput, UpdateCompanyInput } from '../../schema'
+import type {
+  Company,
+  CreateCompanyInput,
+  UpdateCompanyInput,
+} from '../../schema'
 
 export class CompanyRepository {
   async getByOrganization(organizationId: string) {
@@ -25,7 +29,10 @@ export class CompanyRepository {
     return company || null
   }
 
-  async updateById(id: string, data: UpdateCompanyInput): Promise<Company | null> {
+  async updateById(
+    id: string,
+    data: UpdateCompanyInput
+  ): Promise<Company | null> {
     const [company] = await db
       .update(companyModel)
       .set({ ...data, updatedAt: new Date() })

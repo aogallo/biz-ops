@@ -312,11 +312,10 @@ export default function CreateProduct({ loaderData }: Route.ComponentProps) {
                     aria-checked={tracksInventory}
                     disabled={isInventoryForced}
                     onClick={() =>
-                      !isInventoryForced &&
-                      setTracksInventory(!tracksInventory)
+                      !isInventoryForced && setTracksInventory(!tracksInventory)
                     }
                     className={cn(
-                      'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+                      'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none',
                       tracksInventory ? 'bg-amber-500' : 'bg-muted',
                       isInventoryForced && 'cursor-not-allowed opacity-50'
                     )}

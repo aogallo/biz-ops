@@ -24,7 +24,7 @@ const ContactCard = ({
 }: ContactCardProps) => {
   return (
     <section className='space-y-4'>
-      <h4 className='flex items-center gap-2 text-lg font-semibold text-foreground'>
+      <h4 className='text-foreground flex items-center gap-2 text-lg font-semibold'>
         <Users className='size-5 text-teal-500' />
         Primary Contact Details
       </h4>
@@ -40,10 +40,10 @@ const ContactCard = ({
               </AvatarFallback>
             </Avatar>
             <div className='space-y-0.5'>
-              <p className='text-xs font-medium tracking-wider text-muted-foreground uppercase'>
+              <p className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
                 Contact Person
               </p>
-              <p className='font-semibold text-foreground'>{contact.name}</p>
+              <p className='text-foreground font-semibold'>{contact.name}</p>
               {contact.title && (
                 <p className='text-sm text-teal-600 dark:text-teal-400'>
                   {contact.title}
@@ -53,13 +53,13 @@ const ContactCard = ({
           </div>
           <div className='flex flex-col gap-2 sm:ml-auto'>
             {contact.email && (
-              <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <div className='text-muted-foreground flex items-center gap-2 text-sm'>
                 <Mail className='size-4' />
                 <span>{contact.email}</span>
               </div>
             )}
             {contact.phone && (
-              <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+              <div className='text-muted-foreground flex items-center gap-2 text-sm'>
                 <Phone className='size-4' />
                 <span>{contact.phone}</span>
               </div>

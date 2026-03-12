@@ -48,9 +48,7 @@ export default function CreateBusinessPartner() {
       <Card>
         <CardHeader>
           <CardTitle>{t('partners.createTitle')}</CardTitle>
-          <CardDescription>
-            {t('partners.createDescription')}
-          </CardDescription>
+          <CardDescription>{t('partners.createDescription')}</CardDescription>
         </CardHeader>
         <Form method='post'>
           <CardContent className='space-y-6'>
@@ -62,7 +60,10 @@ export default function CreateBusinessPartner() {
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='name' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='name'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.nameLabel')}
                 </label>
                 <input
@@ -81,18 +82,31 @@ export default function CreateBusinessPartner() {
               </div>
 
               <div>
-                <label htmlFor='type' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='type'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.typeLabel')}
                 </label>
                 <input type='hidden' name='type' value={partnerType} />
-                <Select value={partnerType} onValueChange={setPartnerType} required>
+                <Select
+                  value={partnerType}
+                  onValueChange={setPartnerType}
+                  required
+                >
                   <SelectTrigger className='w-full'>
                     <SelectValue placeholder={t('partners.typePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='client'>{t('partners.type.client')}</SelectItem>
-                    <SelectItem value='vendor'>{t('partners.type.vendor')}</SelectItem>
-                    <SelectItem value='both'>{t('partners.type.both')}</SelectItem>
+                    <SelectItem value='client'>
+                      {t('partners.type.client')}
+                    </SelectItem>
+                    <SelectItem value='vendor'>
+                      {t('partners.type.vendor')}
+                    </SelectItem>
+                    <SelectItem value='both'>
+                      {t('partners.type.both')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 {actionData?.errors?.type && (
@@ -108,7 +122,10 @@ export default function CreateBusinessPartner() {
 
             <div className='grid gap-6 sm:grid-cols-2'>
               <div>
-                <label htmlFor='email' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='email'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.email')}
                 </label>
                 <input
@@ -129,7 +146,10 @@ export default function CreateBusinessPartner() {
               </div>
 
               <div>
-                <label htmlFor='phone' className='mb-2 block text-sm font-medium'>
+                <label
+                  htmlFor='phone'
+                  className='mb-2 block text-sm font-medium'
+                >
                   {t('partners.phone')}
                 </label>
                 <input
@@ -176,7 +196,9 @@ export default function CreateBusinessPartner() {
               <a href='/business-partners'>{t('common.cancel')}</a>
             </Button>
             <Button type='submit' disabled={isSubmitting || !partnerType}>
-              {isSubmitting ? t('partners.creating') : t('partners.createButton')}
+              {isSubmitting
+                ? t('partners.creating')
+                : t('partners.createButton')}
             </Button>
           </CardFooter>
         </Form>

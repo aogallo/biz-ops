@@ -18,7 +18,9 @@ export const comboGroupInputSchema = z.object({
   maxSelect: z.number().int().min(1).default(1),
   isRequired: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
-  items: z.array(comboGroupItemInputSchema).min(1, 'At least one item per group'),
+  items: z
+    .array(comboGroupItemInputSchema)
+    .min(1, 'At least one item per group'),
 })
 
 export const upsertComboSchema = z.object({

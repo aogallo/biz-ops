@@ -18,18 +18,25 @@ export function UpcomingAppointmentItem({
     .slice(0, 2)
 
   return (
-    <div className="flex items-center gap-3 py-2">
-      <Avatar className="size-9">
-        <AvatarImage src={clientImage || undefined} alt={appointment.clientName} />
-        <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+    <div className='flex items-center gap-3 py-2'>
+      <Avatar className='size-9'>
+        <AvatarImage
+          src={clientImage || undefined}
+          alt={appointment.clientName}
+        />
+        <AvatarFallback className='text-xs'>{initials}</AvatarFallback>
       </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm truncate">{appointment.clientName}</div>
-        <div className="text-xs text-muted-foreground">
+      <div className='min-w-0 flex-1'>
+        <div className='truncate text-sm font-medium'>
+          {appointment.clientName}
+        </div>
+        <div className='text-muted-foreground text-xs'>
           {appointment.startTime} - {appointment.serviceName}
         </div>
       </div>
-      <div className="text-xs text-muted-foreground">{appointment.staffName}</div>
+      <div className='text-muted-foreground text-xs'>
+        {appointment.staffName}
+      </div>
     </div>
   )
 }

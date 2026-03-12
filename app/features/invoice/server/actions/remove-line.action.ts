@@ -44,7 +44,9 @@ export async function removeInvoiceLineAction(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Failed to remove invoice line',
+        error instanceof Error
+          ? error.message
+          : 'Failed to remove invoice line',
     }
   }
 }

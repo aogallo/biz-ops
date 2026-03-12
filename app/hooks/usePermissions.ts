@@ -90,7 +90,10 @@ export function useFilteredNavigation<
   // Filter menus by permission and module access
   const filtered = allMenus.filter((section) => {
     // If section has a moduleKey, check module access first
-    if (section.moduleKey && !moduleAccess.includes(section.moduleKey as never)) {
+    if (
+      section.moduleKey &&
+      !moduleAccess.includes(section.moduleKey as never)
+    ) {
       return false
     }
 

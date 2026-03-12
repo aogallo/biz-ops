@@ -43,7 +43,9 @@ export function PosCreateCustomerDialog({
 
         <div className='space-y-4'>
           <div>
-            <label className='text-sm font-medium'>{t('pos.customerName')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.customerName')}
+            </label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -53,7 +55,9 @@ export function PosCreateCustomerDialog({
             />
           </div>
           <div>
-            <label className='text-sm font-medium'>{t('pos.customerNit')}</label>
+            <label className='text-sm font-medium'>
+              {t('pos.customerNit')}
+            </label>
             <Input
               value={nit}
               onChange={(e) => setNit(e.target.value)}

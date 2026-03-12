@@ -12,7 +12,9 @@ import { getFlash } from '~/server/flash.server'
 import { rolesRepository } from '../../features/roles/server/repository'
 import type { Route } from './+types/index'
 
-type Role = Awaited<ReturnType<typeof rolesRepository.getAllByOrganization>>[number]
+type Role = Awaited<
+  ReturnType<typeof rolesRepository.getAllByOrganization>
+>[number]
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
@@ -51,14 +53,14 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
         accessorKey: 'name',
         header: t('common.name'),
         cell: ({ row }) => (
-          <span className="font-medium">{row.getValue('name')}</span>
+          <span className='font-medium'>{row.getValue('name')}</span>
         ),
       },
       {
         accessorKey: 'description',
         header: t('common.description'),
         cell: ({ row }) => (
-          <span className="text-muted-foreground">
+          <span className='text-muted-foreground'>
             {row.getValue('description') || t('common.noDescription')}
           </span>
         ),
@@ -69,7 +71,7 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => {
           const isSystem = row.getValue('isSystem') as boolean
           return isSystem ? (
-            <Badge variant="secondary">{t('common.system')}</Badge>
+            <Badge variant='secondary'>{t('common.system')}</Badge>
           ) : (
             <Badge>{t('common.custom')}</Badge>
           )
@@ -81,18 +83,18 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
         cell: ({ row }) => {
           const isSystem = row.original.isSystem
           return (
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               {!isSystem && canEditRole && (
                 <Link
                   to={`/roles/${row.original.id}/edit`}
-                  className="text-primary text-sm font-medium hover:underline"
+                  className='text-primary text-sm font-medium hover:underline'
                 >
                   {t('common.edit')}
                 </Link>
               )}
               <Link
                 to={`/roles/${row.original.id}`}
-                className="text-primary text-sm font-medium hover:underline"
+                className='text-primary text-sm font-medium hover:underline'
               >
                 {t('common.view')}
               </Link>
@@ -124,9 +126,7 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
       <div className='mb-6 flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-bold'>{t('roles.title')}</h1>
-          <p className='text-muted-foreground'>
-            {t('roles.manage')}
-          </p>
+          <p className='text-muted-foreground'>{t('roles.manage')}</p>
         </div>
         <div className='flex gap-2'>
           {canCreateRole && (
@@ -144,9 +144,7 @@ export default function RolesIndex({ loaderData }: Route.ComponentProps) {
 
       {roles.length === 0 ? (
         <div className='rounded-lg border border-dashed p-8 text-center'>
-          <p className='text-muted-foreground mb-4'>
-            {t('roles.noRoles')}
-          </p>
+          <p className='text-muted-foreground mb-4'>{t('roles.noRoles')}</p>
           {canCreateRole && (
             <Link to='/roles/new'>
               <Button>{t('roles.create')}</Button>

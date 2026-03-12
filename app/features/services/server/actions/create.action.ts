@@ -16,7 +16,9 @@ export async function createServiceAction(request: Request) {
   const formData = await request.formData()
   const inputValues = {
     name: formData.get('name'),
-    duration: formData.get('duration') ? Number(formData.get('duration')) : undefined,
+    duration: formData.get('duration')
+      ? Number(formData.get('duration'))
+      : undefined,
     color: formData.get('color'),
     price: formData.get('price') || undefined,
     description: formData.get('description') || undefined,
@@ -42,7 +44,8 @@ export async function createServiceAction(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to create service',
+      message:
+        error instanceof Error ? error.message : 'Failed to create service',
     }
   }
 }

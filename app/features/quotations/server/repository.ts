@@ -1,12 +1,4 @@
-import {
-  and,
-  count,
-  desc,
-  eq,
-  ilike,
-  sql,
-  type SQL,
-} from 'drizzle-orm'
+import { and, count, desc, eq, ilike, sql, type SQL } from 'drizzle-orm'
 import { db } from '~/server/db'
 import {
   quotationModel,
@@ -31,7 +23,10 @@ export interface PaginationOptions {
 export class QuotationsRepository {
   async create(data: CreateQuotationInput) {
     return await db.transaction(async (tx) => {
-      const quotationNumber = await this.generateQuotationNumber(tx, data.organizationId)
+      const quotationNumber = await this.generateQuotationNumber(
+        tx,
+        data.organizationId
+      )
 
       const [quotation] = await tx
         .insert(quotationModel)
@@ -47,9 +42,9 @@ export class QuotationsRepository {
         .returning()
 
       for (const detail of data.details) {
-        const lineTotal = (
-          Number(detail.unitPrice) * detail.quantity
-        ).toFixed(2)
+        const lineTotal = (Number(detail.unitPrice) * detail.quantity).toFixed(
+          2
+        )
 
         const [insertedDetail] = await tx
           .insert(quotationDetailModel)
@@ -105,7 +100,10 @@ export class QuotationsRepository {
 
     if (filters.status) {
       conditions.push(
-        eq(quotationModel.status, filters.status as 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED')
+        eq(
+          quotationModel.status,
+          filters.status as 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED'
+        )
       )
     }
 
@@ -136,9 +134,10 @@ export class QuotationsRepository {
         createdAt: quotationModel.createdAt,
         businessPartnerName: businessPartnerModel.name,
         companyName: companyModel.name,
-        itemCount: sql<number>`(SELECT COUNT(*) FROM quotation_detail WHERE quotation_detail.quotation_id = ${quotationModel.id})`.as(
-          'item_count'
-        ),
+        itemCount:
+          sql<number>`(SELECT COUNT(*) FROM quotation_detail WHERE quotation_detail.quotation_id = ${quotationModel.id})`.as(
+            'item_count'
+          ),
       })
       .from(quotationModel)
       .leftJoin(
@@ -202,11 +201,17 @@ export class QuotationsRepository {
         productAttributesJson: productModel.attributesJson,
       })
       .from(quotationDetailModel)
-      .leftJoin(productModel, eq(quotationDetailModel.productId, productModel.id))
+      .leftJoin(
+        productModel,
+        eq(quotationDetailModel.productId, productModel.id)
+      )
       .where(eq(quotationDetailModel.quotationId, id))
 
     const detailIds = details.map((d) => d.id)
-    const recipientsByDetail: Record<string, typeof quotationRecipientModel.$inferSelect[]> = {}
+    const recipientsByDetail: Record<
+      string,
+      (typeof quotationRecipientModel.$inferSelect)[]
+    > = {}
 
     if (detailIds.length > 0) {
       const allRecipients = await db

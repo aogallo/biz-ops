@@ -21,18 +21,21 @@ export const products = {
   'products.stockStatus.outOfStock': 'Sin stock',
   'products.manage': 'Gestiona tu catálogo de productos e inventario',
   'products.export': 'Exportar',
-  'products.noProducts': 'No se encontraron productos. Crea tu primer producto para comenzar.',
+  'products.noProducts':
+    'No se encontraron productos. Crea tu primer producto para comenzar.',
   'products.createNew': 'Crear Nuevo Producto',
   'products.createDescription': 'Agrega un nuevo producto a tu inventario',
   'products.skuLabel': 'SKU (Código de Producto) *',
   'products.skuPlaceholder': 'PROD-001',
-  'products.skuHelper': 'Identificador único para este producto en tu organización',
+  'products.skuHelper':
+    'Identificador único para este producto en tu organización',
   'products.namePlaceholder': 'Widget Premium',
   'products.pricePlaceholder': '99.99',
   'products.noCategory': 'Sin categoría',
   'products.initialStock': 'Stock Inicial',
   'products.minStockPlaceholder': '10',
-  'products.minStockHelper': 'Recibirás alertas cuando el stock baje de este nivel',
+  'products.minStockHelper':
+    'Recibirás alertas cuando el stock baje de este nivel',
   'products.descriptionPlaceholder': 'Descripción del producto...',
   'products.imageUrlPlaceholder': 'https://ejemplo.com/imagen.jpg',
   'products.editDescription': 'Actualiza los datos de este producto',
@@ -56,16 +59,20 @@ export const products = {
   'products.created': 'Creado',
   'products.lastUpdated': 'Última Actualización',
   'products.scanTitle': 'Escanear QR de Producto',
-  'products.scanDescription': 'Usa la cámara de tu dispositivo para escanear un código QR de producto',
+  'products.scanDescription':
+    'Usa la cámara de tu dispositivo para escanear un código QR de producto',
   'products.allStockStatus': 'Todos los Estados de Stock',
   'products.nameLabel': 'Nombre del Producto *',
   'products.customField.title': 'Agregar otro campo',
   'products.generalInformation': 'Información General',
-  'products.generalInformationDesc': 'Identificación del producto y detalles de precio.',
+  'products.generalInformationDesc':
+    'Identificación del producto y detalles de precio.',
   'products.inventoryControl': 'Control de Inventario',
-  'products.inventoryControlDesc': 'Define niveles de stock inicial y umbrales de alerta.',
+  'products.inventoryControlDesc':
+    'Define niveles de stock inicial y umbrales de alerta.',
   'products.customAttributes': 'Atributos Personalizados (JSON)',
-  'products.customAttributesDesc': 'Define atributos dinámicos para uso en órdenes e informes.',
+  'products.customAttributesDesc':
+    'Define atributos dinámicos para uso en órdenes e informes.',
   'products.addAttribute': 'Agregar Atributo',
   'products.fieldName': 'Nombre del Campo',
   'products.fieldType': 'Tipo de Campo',
@@ -76,7 +83,9 @@ export const products = {
   'products.imageUrlAlternative': 'URL de Imagen (Alternativa)',
   'products.quickTips': 'Consejos Rápidos',
   'products.tip.sku': 'Usá un SKU único para evitar conflictos de inventario.',
-  'products.tip.image': 'Las imágenes de alta calidad (1080×1080) rinden mejor en canales de venta.',
-  'products.tip.attributes': 'Los atributos personalizados ayudan a filtrar productos en el portal.',
+  'products.tip.image':
+    'Las imágenes de alta calidad (1080×1080) rinden mejor en canales de venta.',
+  'products.tip.attributes':
+    'Los atributos personalizados ayudan a filtrar productos en el portal.',
   'products.noCustomAttributes': 'Sin atributos personalizados aún.',
 } as const

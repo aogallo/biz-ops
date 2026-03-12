@@ -111,7 +111,9 @@ export default function PermissionCreatePage({
 
               <div className='grid gap-4 sm:grid-cols-2'>
                 <div className='space-y-2'>
-                  <Label htmlFor='resource'>{t('permissions.resource')} *</Label>
+                  <Label htmlFor='resource'>
+                    {t('permissions.resource')} *
+                  </Label>
                   <Input
                     type='text'
                     id='resource'

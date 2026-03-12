@@ -39,7 +39,12 @@ const makeSelectChain = (resolved: unknown) => {
 }
 
 const makeMutationChain = (resolved: unknown) => {
-  const c = { set: vi.fn(), values: vi.fn(), where: vi.fn(), returning: vi.fn() }
+  const c = {
+    set: vi.fn(),
+    values: vi.fn(),
+    where: vi.fn(),
+    returning: vi.fn(),
+  }
   c.set.mockReturnValue(c)
   c.values.mockReturnValue(c)
   c.where.mockReturnValue(c)
@@ -58,7 +63,9 @@ describe('PosTablesRepository', () => {
   describe('getTables', () => {
     test('returns all active tables for an org', async () => {
       const tables = [{ id: 't1', number: '1', status: 'available' }]
-      ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(makeSelectChain(tables))
+      ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(
+        makeSelectChain(tables)
+      )
 
       const result = await repo.getTables('org-1')
 
@@ -69,9 +76,14 @@ describe('PosTablesRepository', () => {
   describe('createTable', () => {
     test('inserts and returns new table', async () => {
       const table = { id: 't1', number: '1', organizationId: 'org-1' }
-      ;(mockDb.insert as ReturnType<typeof vi.fn>).mockReturnValue(makeMutationChain([table]))
+      ;(mockDb.insert as ReturnType<typeof vi.fn>).mockReturnValue(
+        makeMutationChain([table])
+      )
 
-      const result = await repo.createTable({ organizationId: 'org-1', number: '1' })
+      const result = await repo.createTable({
+        organizationId: 'org-1',
+        number: '1',
+      })
 
       expect(result).toEqual(table)
     })
@@ -80,7 +92,9 @@ describe('PosTablesRepository', () => {
   describe('updateTableStatus', () => {
     test('updates status of a table', async () => {
       const updated = { id: 't1', status: 'occupied' }
-      ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue(makeMutationChain([updated]))
+      ;(mockDb.update as ReturnType<typeof vi.fn>).mockReturnValue(
+        makeMutationChain([updated])
+      )
 
       const result = await repo.updateTableStatus('t1', 'occupied')
 
@@ -91,7 +105,9 @@ describe('PosTablesRepository', () => {
   describe('getActiveOrderForTable', () => {
     test('returns the open sale for a table', async () => {
       const sale = { id: 's1', tableId: 't1', status: 'open' }
-      ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(makeSelectChain([sale]))
+      ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(
+        makeSelectChain([sale])
+      )
 
       const result = await repo.getActiveOrderForTable('t1')
 
@@ -99,7 +115,9 @@ describe('PosTablesRepository', () => {
     })
 
     test('returns null if no open sale', async () => {
-      ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(makeSelectChain([]))
+      ;(mockDb.select as ReturnType<typeof vi.fn>).mockReturnValue(
+        makeSelectChain([])
+      )
 
       const result = await repo.getActiveOrderForTable('t1')
 

@@ -22,7 +22,7 @@ const StatusItem = ({ status, text }: StatusItemProps) => {
   }
 
   return (
-    <li className='flex items-center gap-2 text-sm text-foreground'>
+    <li className='text-foreground flex items-center gap-2 text-sm'>
       {getIcon()}
       {text}
     </li>
@@ -62,7 +62,7 @@ const AccountHealthCard = ({
         <div className='flex items-center gap-4'>
           <CircularProgress value={score} max={maxScore} />
           <div className='space-y-1'>
-            <p className='text-2xl font-bold text-foreground'>
+            <p className='text-foreground text-2xl font-bold'>
               {score}/{maxScore}
             </p>
             <p className='text-xs font-semibold tracking-wider text-cyan-600 dark:text-cyan-400'>

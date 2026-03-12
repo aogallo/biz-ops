@@ -11,7 +11,8 @@ export const insertOrderSchema = createInsertSchema(orderModel)
 export const selectOrderSchema = createSelectSchema(orderModel)
 export const insertOrderDetailSchema = createInsertSchema(orderDetailModel)
 export const selectOrderDetailSchema = createSelectSchema(orderDetailModel)
-export const insertOrderRecipientSchema = createInsertSchema(orderRecipientModel)
+export const insertOrderRecipientSchema =
+  createInsertSchema(orderRecipientModel)
 
 // Order detail input (for form submission)
 export const orderDetailInputSchema = z.object({
@@ -38,7 +39,9 @@ export const createOrderSchema = z.object({
   businessPartnerId: z.string().uuid('Select a business partner'),
   orderDate: z.string().min(1, 'Order date is required'),
   currencyCode: z.string().default('GT'),
-  details: z.array(orderDetailInputSchema).min(1, 'At least one item is required'),
+  details: z
+    .array(orderDetailInputSchema)
+    .min(1, 'At least one item is required'),
 })
 
 // Type exports

@@ -143,10 +143,7 @@ export default function EditCompany({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div>
-              <label
-                htmlFor='email'
-                className='mb-2 block text-sm font-medium'
-              >
+              <label htmlFor='email' className='mb-2 block text-sm font-medium'>
                 Email
               </label>
               <input

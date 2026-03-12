@@ -6,7 +6,10 @@ export async function action({ request }: { request: Request }) {
   const privateKeyPem = process.env.QZ_PRIVATE_KEY ?? ''
 
   if (!privateKeyPem) {
-    return Response.json({ error: 'QZ_PRIVATE_KEY not configured' }, { status: 500 })
+    return Response.json(
+      { error: 'QZ_PRIVATE_KEY not configured' },
+      { status: 500 }
+    )
   }
 
   const { toSign } = (await request.json()) as { toSign: string }
@@ -34,8 +37,14 @@ export async function action({ request }: { request: Request }) {
     )
 
     const dataBuffer = new TextEncoder().encode(toSign)
-    const signatureBuffer = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, dataBuffer)
-    const signature = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)))
+    const signatureBuffer = await crypto.subtle.sign(
+      'RSASSA-PKCS1-v1_5',
+      cryptoKey,
+      dataBuffer
+    )
+    const signature = btoa(
+      String.fromCharCode(...new Uint8Array(signatureBuffer))
+    )
 
     return Response.json({ signature })
   } catch (err) {

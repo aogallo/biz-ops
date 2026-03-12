@@ -81,69 +81,75 @@ export function AppointmentDetailsDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md">
+      <SheetContent className='sm:max-w-md'>
         <SheetHeader>
-          <div className="flex items-center gap-3">
-            <div className={`size-3 rounded-full ${colorConfig[appointment.color]}`} />
-            <SheetTitle className="text-section-header">{appointment.serviceName}</SheetTitle>
+          <div className='flex items-center gap-3'>
+            <div
+              className={`size-3 rounded-full ${colorConfig[appointment.color]}`}
+            />
+            <SheetTitle className='text-section-header'>
+              {appointment.serviceName}
+            </SheetTitle>
           </div>
           <SheetDescription>
             Appointment details and information
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto py-6">
+        <div className='flex-1 overflow-y-auto py-6'>
           {/* Status Badge */}
-          <div className="mb-6">
-            <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${status.className}`}>
+          <div className='mb-6'>
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${status.className}`}
+            >
               {status.label}
             </span>
           </div>
 
           {/* Details Section */}
-          <div className="space-y-5">
+          <div className='space-y-5'>
             {/* Client */}
-            <div className="flex items-start gap-3">
-              <UserIcon className="mt-0.5 size-5 text-muted-foreground" />
+            <div className='flex items-start gap-3'>
+              <UserIcon className='text-muted-foreground mt-0.5 size-5' />
               <div>
-                <p className="text-caption">Client</p>
-                <p className="font-medium">{appointment.clientName}</p>
+                <p className='text-caption'>Client</p>
+                <p className='font-medium'>{appointment.clientName}</p>
               </div>
             </div>
 
             {/* Service */}
-            <div className="flex items-start gap-3">
-              <BriefcaseIcon className="mt-0.5 size-5 text-muted-foreground" />
+            <div className='flex items-start gap-3'>
+              <BriefcaseIcon className='text-muted-foreground mt-0.5 size-5' />
               <div>
-                <p className="text-caption">Service</p>
-                <p className="font-medium">{appointment.serviceName}</p>
+                <p className='text-caption'>Service</p>
+                <p className='font-medium'>{appointment.serviceName}</p>
               </div>
             </div>
 
             {/* Staff */}
-            <div className="flex items-start gap-3">
-              <UserIcon className="mt-0.5 size-5 text-muted-foreground" />
+            <div className='flex items-start gap-3'>
+              <UserIcon className='text-muted-foreground mt-0.5 size-5' />
               <div>
-                <p className="text-caption">Staff</p>
-                <p className="font-medium">{appointment.staffName}</p>
+                <p className='text-caption'>Staff</p>
+                <p className='font-medium'>{appointment.staffName}</p>
               </div>
             </div>
 
             {/* Date */}
-            <div className="flex items-start gap-3">
-              <CalendarIcon className="mt-0.5 size-5 text-muted-foreground" />
+            <div className='flex items-start gap-3'>
+              <CalendarIcon className='text-muted-foreground mt-0.5 size-5' />
               <div>
-                <p className="text-caption">Date</p>
-                <p className="font-medium">{formatDate(appointment.date)}</p>
+                <p className='text-caption'>Date</p>
+                <p className='font-medium'>{formatDate(appointment.date)}</p>
               </div>
             </div>
 
             {/* Time */}
-            <div className="flex items-start gap-3">
-              <ClockIcon className="mt-0.5 size-5 text-muted-foreground" />
+            <div className='flex items-start gap-3'>
+              <ClockIcon className='text-muted-foreground mt-0.5 size-5' />
               <div>
-                <p className="text-caption">Time</p>
-                <p className="font-medium text-data">
+                <p className='text-caption'>Time</p>
+                <p className='text-data font-medium'>
                   {formatTimeRange(appointment.startTime, appointment.endTime)}
                 </p>
               </div>
@@ -151,30 +157,32 @@ export function AppointmentDetailsDrawer({
 
             {/* Notes (if present) */}
             {appointment.notes && (
-              <div className="flex items-start gap-3">
-                <FileTextIcon className="mt-0.5 size-5 text-muted-foreground" />
+              <div className='flex items-start gap-3'>
+                <FileTextIcon className='text-muted-foreground mt-0.5 size-5' />
                 <div>
-                  <p className="text-caption">Notes</p>
-                  <p className="text-sm text-muted-foreground">{appointment.notes}</p>
+                  <p className='text-caption'>Notes</p>
+                  <p className='text-muted-foreground text-sm'>
+                    {appointment.notes}
+                  </p>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <SheetFooter className="flex-row gap-2 sm:flex-row">
+        <SheetFooter className='flex-row gap-2 sm:flex-row'>
           {appointment.status !== 'cancelled' && (
             <>
               <Button
-                variant="outline"
-                className="flex-1"
+                variant='outline'
+                className='flex-1'
                 onClick={() => onEdit?.(appointment)}
               >
                 Edit
               </Button>
               <Button
-                variant="destructive"
-                className="flex-1"
+                variant='destructive'
+                className='flex-1'
                 onClick={() => onCancel?.(appointment)}
               >
                 Cancel Appointment
@@ -183,8 +191,8 @@ export function AppointmentDetailsDrawer({
           )}
           {appointment.status === 'cancelled' && (
             <Button
-              variant="outline"
-              className="flex-1"
+              variant='outline'
+              className='flex-1'
               onClick={() => onOpenChange(false)}
             >
               Close

@@ -55,7 +55,10 @@ export async function updateAccount(request: Request, accountId: string) {
   if (accountNumberExists) {
     return {
       success: false,
-      message: translateServer(locale, 'messages.accounts.duplicateAccountNumber'),
+      message: translateServer(
+        locale,
+        'messages.accounts.duplicateAccountNumber'
+      ),
     }
   }
 
@@ -74,7 +77,8 @@ export async function updateAccount(request: Request, accountId: string) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update account',
+      message:
+        error instanceof Error ? error.message : 'Failed to update account',
     }
   }
 }

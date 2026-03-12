@@ -35,7 +35,10 @@ export function DataTablePagination<TData>({
       <div className='flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:gap-4'>
         {selectedRows > 0 && (
           <span className='text-muted-foreground'>
-            {t('common.rowsSelected', { selected: String(selectedRows), total: String(totalRows) })}
+            {t('common.rowsSelected', {
+              selected: String(selectedRows),
+              total: String(totalRows),
+            })}
           </span>
         )}
         <span className='text-muted-foreground'>
@@ -47,7 +50,7 @@ export function DataTablePagination<TData>({
       <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6'>
         {/* Rows per page selector */}
         <div className='flex items-center gap-2'>
-          <span className='text-sm text-muted-foreground whitespace-nowrap'>
+          <span className='text-muted-foreground text-sm whitespace-nowrap'>
             {t('common.rowsPerPage')}
           </span>
           <Select
@@ -69,7 +72,10 @@ export function DataTablePagination<TData>({
 
         {/* Page indicator */}
         <span className='text-sm font-medium whitespace-nowrap'>
-          {t('common.pageOf', { page: String(pageIndex + 1), total: String(pageCount || 1) })}
+          {t('common.pageOf', {
+            page: String(pageIndex + 1),
+            total: String(pageCount || 1),
+          })}
         </span>
 
         {/* Navigation buttons */}

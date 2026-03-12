@@ -40,9 +40,7 @@ export async function voidSaleAction(saleId: string, userId: string) {
       const [originalMovement] = await tx
         .select()
         .from(stockMovementModel)
-        .where(
-          eq(stockMovementModel.referenceId, saleId)
-        )
+        .where(eq(stockMovementModel.referenceId, saleId))
         .limit(1)
 
       // Only reverse stock if there was an exit movement

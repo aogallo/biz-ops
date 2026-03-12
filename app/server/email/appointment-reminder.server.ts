@@ -10,8 +10,18 @@ interface AppointmentReminderParams {
   organizationName: string
 }
 
-export async function sendAppointmentReminderEmail(params: AppointmentReminderParams) {
-  const { to, clientName, staffName, serviceName, date, startTime, organizationName } = params
+export async function sendAppointmentReminderEmail(
+  params: AppointmentReminderParams
+) {
+  const {
+    to,
+    clientName,
+    staffName,
+    serviceName,
+    date,
+    startTime,
+    organizationName,
+  } = params
 
   // Development mode: Log to console
   if (process.env.NODE_ENV === 'development' || !process.env.RESEND_API_KEY) {
@@ -31,12 +41,15 @@ export async function sendAppointmentReminderEmail(params: AppointmentReminderPa
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
 
-    const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString(
+      'en-US',
+      {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }
+    )
 
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,

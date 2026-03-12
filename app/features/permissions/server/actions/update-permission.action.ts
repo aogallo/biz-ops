@@ -28,7 +28,10 @@ export async function updatePermission(request: Request, permissionId: string) {
   if (permission.isSystem) {
     return {
       success: false,
-      message: translateServer(locale, 'messages.permissions.systemPermissionProtected'),
+      message: translateServer(
+        locale,
+        'messages.permissions.systemPermissionProtected'
+      ),
     }
   }
 
@@ -60,7 +63,10 @@ export async function updatePermission(request: Request, permissionId: string) {
     if (exists) {
       return {
         success: false,
-        message: translateServer(locale, 'messages.permissions.duplicateResourceAction'),
+        message: translateServer(
+          locale,
+          'messages.permissions.duplicateResourceAction'
+        ),
       }
     }
   }

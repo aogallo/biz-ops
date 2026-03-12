@@ -9,12 +9,25 @@ vi.mock('~/server/db', () => ({
 }))
 
 vi.mock('~/server/db/schemas/modules', () => ({
-  organizationModuleModel: { organizationId: 'organization_id', moduleKey: 'module_key', isActive: 'is_active' },
-  memberModuleAccessModel: { memberId: 'member_id', moduleKey: 'module_key', accessLevel: 'access_level', organizationId: 'organization_id' },
+  organizationModuleModel: {
+    organizationId: 'organization_id',
+    moduleKey: 'module_key',
+    isActive: 'is_active',
+  },
+  memberModuleAccessModel: {
+    memberId: 'member_id',
+    moduleKey: 'module_key',
+    accessLevel: 'access_level',
+    organizationId: 'organization_id',
+  },
 }))
 
 vi.mock('~/server/db/schemas/auth', () => ({
-  memberModel: { id: 'id', organizationId: 'organization_id', userId: 'user_id' },
+  memberModel: {
+    id: 'id',
+    organizationId: 'organization_id',
+    userId: 'user_id',
+  },
 }))
 
 vi.mock('drizzle-orm', () => ({
@@ -66,8 +79,18 @@ describe('ModulesRepository.autoGrantMemberAccess', () => {
     await repo.autoGrantMemberAccess('org-1', 'pos')
 
     expect(setMemberModuleAccessSpy).toHaveBeenCalledTimes(2)
-    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith('member-1', 'org-1', 'pos', 'user')
-    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith('member-2', 'org-1', 'pos', 'user')
+    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith(
+      'member-1',
+      'org-1',
+      'pos',
+      'user'
+    )
+    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith(
+      'member-2',
+      'org-1',
+      'pos',
+      'user'
+    )
     expect(getMemberAccessLevelSpy).toHaveBeenCalledTimes(2)
   })
 
@@ -122,8 +145,18 @@ describe('ModulesRepository.revokeAllMembersAccess', () => {
     await repo.revokeAllMembersAccess('org-1', 'pos')
 
     expect(setMemberModuleAccessSpy).toHaveBeenCalledTimes(2)
-    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith('member-1', 'org-1', 'pos', 'none')
-    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith('member-2', 'org-1', 'pos', 'none')
+    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith(
+      'member-1',
+      'org-1',
+      'pos',
+      'none'
+    )
+    expect(setMemberModuleAccessSpy).toHaveBeenCalledWith(
+      'member-2',
+      'org-1',
+      'pos',
+      'none'
+    )
   })
 
   test('does nothing if org has no members', async () => {

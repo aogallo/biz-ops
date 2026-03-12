@@ -25,7 +25,8 @@ export default function Pending({
               <AlertTriangle className='text-destructive mt-0.5 h-4 w-4 shrink-0' />
               <div>
                 <p className='text-destructive text-sm font-semibold'>
-                  {overdueInvoices} overdue invoice{overdueInvoices > 1 ? 's' : ''}
+                  {overdueInvoices} overdue invoice
+                  {overdueInvoices > 1 ? 's' : ''}
                 </p>
                 <p className='text-muted-foreground text-xs'>
                   Requires immediate attention to avoid charges.

@@ -29,11 +29,17 @@ interface AppointmentSummaryProps {
 }
 
 const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+    amount
+  )
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr + 'T00:00:00')
-  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 
 const AppointmentSummary = ({
@@ -44,10 +50,10 @@ const AppointmentSummary = ({
   occupancyRate,
 }: AppointmentSummaryProps) => {
   return (
-    <section className='col-span-12 flex flex-col rounded-xl bg-card shadow-card lg:col-span-4'>
+    <section className='bg-card shadow-card col-span-12 flex flex-col rounded-xl lg:col-span-4'>
       {/* Header with domain accent */}
-      <div className='flex items-center justify-between border-b border-border/30 p-5'>
-        <h3 className='flex items-center gap-2 text-section-header accent-appointments'>
+      <div className='border-border/30 flex items-center justify-between border-b p-5'>
+        <h3 className='text-section-header accent-appointments flex items-center gap-2'>
           <CalendarPlus2 className='size-5' />
           Appointments
         </h3>
@@ -58,19 +64,19 @@ const AppointmentSummary = ({
       <div className='flex-1 space-y-4 p-5'>
         {/* Monthly Stats */}
         <div className='grid grid-cols-2 gap-3'>
-          <div className='flex items-center gap-2 rounded-lg bg-muted/50 p-3'>
+          <div className='bg-muted/50 flex items-center gap-2 rounded-lg p-3'>
             <DollarSign className='size-4 text-green-600' />
             <div>
-              <p className='text-xs text-muted-foreground'>Monthly Revenue</p>
+              <p className='text-muted-foreground text-xs'>Monthly Revenue</p>
               <p className='text-sm font-semibold'>
                 {monthlyRevenue > 0 ? formatCurrency(monthlyRevenue) : '$0.00'}
               </p>
             </div>
           </div>
-          <div className='flex items-center gap-2 rounded-lg bg-muted/50 p-3'>
+          <div className='bg-muted/50 flex items-center gap-2 rounded-lg p-3'>
             <TrendingUp className='size-4 text-blue-600' />
             <div>
-              <p className='text-xs text-muted-foreground'>Occupancy</p>
+              <p className='text-muted-foreground text-xs'>Occupancy</p>
               <p className='text-sm font-semibold'>{occupancyRate}%</p>
             </div>
           </div>
@@ -78,8 +84,8 @@ const AppointmentSummary = ({
 
         {/* Up Next highlight */}
         {nextAppointment ? (
-          <div className='rounded-lg accent-appointments-bg p-4'>
-            <p className='text-xs font-medium uppercase tracking-wide opacity-80'>
+          <div className='accent-appointments-bg rounded-lg p-4'>
+            <p className='text-xs font-medium tracking-wide uppercase opacity-80'>
               Up Next
             </p>
             <div className='mt-2 flex items-center justify-between'>
@@ -93,8 +99,8 @@ const AppointmentSummary = ({
             </p>
           </div>
         ) : (
-          <div className='rounded-lg border border-dashed border-border/50 p-4 text-center'>
-            <p className='text-sm text-muted-foreground'>
+          <div className='border-border/50 rounded-lg border border-dashed p-4 text-center'>
+            <p className='text-muted-foreground text-sm'>
               No upcoming appointments today
             </p>
           </div>
@@ -108,10 +114,10 @@ const AppointmentSummary = ({
               .slice(0, 3)
               .map((apt) => (
                 <div key={apt.id} className='flex items-center gap-4 px-2'>
-                  <p className='w-12 text-center text-caption'>
+                  <p className='text-caption w-12 text-center'>
                     {apt.startTime.slice(0, 5)}
                   </p>
-                  <div className='flex-1 rounded-lg bg-muted/50 p-3'>
+                  <div className='bg-muted/50 flex-1 rounded-lg p-3'>
                     <p className='text-sm font-medium'>{apt.clientName}</p>
                     <p className='text-caption'>Service: {apt.serviceName}</p>
                   </div>
@@ -122,7 +128,7 @@ const AppointmentSummary = ({
 
         {todayAppointments.length === 0 && !nextAppointment && (
           <div className='py-4 text-center'>
-            <p className='text-sm text-muted-foreground'>
+            <p className='text-muted-foreground text-sm'>
               No appointments scheduled for today
             </p>
           </div>
@@ -131,7 +137,7 @@ const AppointmentSummary = ({
 
       {/* Action link */}
       <Link
-        className='m-5 flex items-center justify-center rounded-lg border border-dashed border-border/50 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+        className='border-border/50 text-muted-foreground hover:border-primary hover:text-primary m-5 flex items-center justify-center rounded-lg border border-dashed py-3 text-sm font-medium transition-colors'
         to='/appointments'
       >
         Go to Calendar

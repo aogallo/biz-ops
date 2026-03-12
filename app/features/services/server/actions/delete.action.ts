@@ -23,7 +23,10 @@ export async function deleteServiceAction(request: Request) {
   }
 
   // Verify service belongs to organization
-  const existingService = await servicesRepository.getByIdAndOrganization(id, organizationId)
+  const existingService = await servicesRepository.getByIdAndOrganization(
+    id,
+    organizationId
+  )
   if (!existingService) {
     return {
       success: false,
@@ -41,7 +44,8 @@ export async function deleteServiceAction(request: Request) {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to delete service',
+      message:
+        error instanceof Error ? error.message : 'Failed to delete service',
     }
   }
 }

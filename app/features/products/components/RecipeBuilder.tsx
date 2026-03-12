@@ -40,7 +40,7 @@ export function RecipeBuilder({
   }
 
   return (
-    <section className='rounded-xl bg-card p-6 shadow-sm'>
+    <section className='bg-card rounded-xl p-6 shadow-sm'>
       <div className='mb-5 flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <ChefHat className='h-4 w-4 text-amber-500' />
@@ -65,31 +65,31 @@ export function RecipeBuilder({
       </div>
 
       {rows.length === 0 ? (
-        <div className='rounded-lg border border-dashed border-border/50 p-6 text-center'>
+        <div className='border-border/50 rounded-lg border border-dashed p-6 text-center'>
           <p className='text-muted-foreground text-sm'>
             Sin ingredientes. Agregá los componentes de esta receta.
           </p>
         </div>
       ) : (
-        <div className='overflow-hidden rounded-lg border border-border/50'>
+        <div className='border-border/50 overflow-hidden rounded-lg border'>
           <table className='w-full text-sm'>
             <thead>
-              <tr className='border-b border-border/50 bg-muted/40'>
-                <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+              <tr className='border-border/50 bg-muted/40 border-b'>
+                <th className='text-muted-foreground px-4 py-2.5 text-left text-xs font-medium tracking-wide uppercase'>
                   Ingrediente
                 </th>
-                <th className='px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                <th className='text-muted-foreground px-4 py-2.5 text-left text-xs font-medium tracking-wide uppercase'>
                   Cantidad
                 </th>
-                <th className='px-4 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                <th className='text-muted-foreground px-4 py-2.5 text-center text-xs font-medium tracking-wide uppercase'>
                   Opcional
                 </th>
-                <th className='px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                <th className='text-muted-foreground px-4 py-2.5 text-right text-xs font-medium tracking-wide uppercase'>
                   Acción
                 </th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-border/30'>
+            <tbody className='divide-border/30 divide-y'>
               {rows.map((row) => (
                 <tr key={row.id} className='group'>
                   <td className='px-4 py-3'>
@@ -100,7 +100,7 @@ export function RecipeBuilder({
                           ingredientProductId: e.target.value,
                         })
                       }
-                      className='w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+                      className='border-input bg-background focus:ring-ring w-full rounded-md border px-2.5 py-1.5 text-sm focus:ring-2 focus:outline-none'
                     >
                       <option value=''>Seleccionar ingrediente...</option>
                       {ingredientProducts.map((p) => (
@@ -119,7 +119,7 @@ export function RecipeBuilder({
                       }
                       min='0.001'
                       step='0.001'
-                      className='w-28 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring'
+                      className='border-input bg-background focus:ring-ring w-28 rounded-md border px-2.5 py-1.5 text-sm focus:ring-2 focus:outline-none'
                     />
                   </td>
                   <td className='px-4 py-3 text-center'>
@@ -129,7 +129,7 @@ export function RecipeBuilder({
                       onChange={(e) =>
                         updateRow(row.id, { isOptional: e.target.checked })
                       }
-                      className='h-4 w-4 cursor-pointer rounded border-input accent-amber-500'
+                      className='border-input h-4 w-4 cursor-pointer rounded accent-amber-500'
                     />
                   </td>
                   <td className='px-4 py-3 text-right'>

@@ -13,7 +13,7 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
           (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label='Select all'
       />
     ),
     cell: ({ row }) => (
@@ -21,7 +21,7 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         onClick={(e) => e.stopPropagation()}
-        aria-label="Select row"
+        aria-label='Select row'
       />
     ),
     enableSorting: false,
@@ -40,7 +40,7 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
       const serie = row.original.serie
       const dteNumber = row.original.dteNumber
       return (
-        <div className="max-w-[120px] truncate" title={`${serie}-${dteNumber}`}>
+        <div className='max-w-[120px] truncate' title={`${serie}-${dteNumber}`}>
           {serie}-{dteNumber}
         </div>
       )
@@ -56,7 +56,10 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
     header: 'Emisor',
     size: 160,
     cell: ({ row }) => (
-      <div className="max-w-[160px] truncate" title={row.original.emitterName ?? undefined}>
+      <div
+        className='max-w-[160px] truncate'
+        title={row.original.emitterName ?? undefined}
+      >
         {row.original.emitterName}
       </div>
     ),
@@ -71,7 +74,10 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
     header: 'Receptor',
     size: 160,
     cell: ({ row }) => (
-      <div className="max-w-[160px] truncate" title={row.original.receptorName ?? undefined}>
+      <div
+        className='max-w-[160px] truncate'
+        title={row.original.receptorName ?? undefined}
+      >
         {row.original.receptorName}
       </div>
     ),
@@ -96,13 +102,13 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
       const accountId = row.original.accountingAccountId
       if (accountId) {
         return (
-          <span className="rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+          <span className='rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400'>
             Asignado
           </span>
         )
       }
       return (
-        <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+        <span className='rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'>
           Pendiente
         </span>
       )
@@ -116,21 +122,19 @@ export const SatFileColumns: ColumnDef<SatFile>[] = [
       const itemType = row.original.itemType
       if (itemType === 'goods') {
         return (
-          <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+          <span className='rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'>
             Bien
           </span>
         )
       }
       if (itemType === 'services') {
         return (
-          <span className="rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+          <span className='rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'>
             Servicio
           </span>
         )
       }
-      return (
-        <span className="text-muted-foreground text-xs">—</span>
-      )
+      return <span className='text-muted-foreground text-xs'>—</span>
     },
   },
 ]

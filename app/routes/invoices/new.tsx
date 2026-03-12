@@ -23,12 +23,14 @@ export async function loader({ request }: Route.LoaderArgs) {
     return redirect('/invoices')
   }
 
-  const [companies, businessPartners, accounts, sucursales] = await Promise.all([
-    companyRepository.getByOrganization(organizationId),
-    businessPartnersRepository.getAllByOrganization(organizationId),
-    accountsRepository.getAllByOrganization(organizationId),
-    sucursalRepository.getByOrganization(organizationId),
-  ])
+  const [companies, businessPartners, accounts, sucursales] = await Promise.all(
+    [
+      companyRepository.getByOrganization(organizationId),
+      businessPartnersRepository.getAllByOrganization(organizationId),
+      accountsRepository.getAllByOrganization(organizationId),
+      sucursalRepository.getByOrganization(organizationId),
+    ]
+  )
 
   return {
     companies: companies.map(
@@ -99,7 +101,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (!partner) {
     return {
       error: 'Invalid business partner',
-      fieldErrors: { businessPartnerId: ['Selected business partner not found'] },
+      fieldErrors: {
+        businessPartnerId: ['Selected business partner not found'],
+      },
     }
   }
 
@@ -152,9 +156,9 @@ export default function NewInvoicePage({
   const { companies, businessPartners, accounts, sucursales } = loaderData
 
   return (
-    <div className="container mx-auto py-6">
+    <div className='container mx-auto py-6'>
       <InvoiceForm
-        mode="create"
+        mode='create'
         companies={companies}
         businessPartners={businessPartners}
         accounts={accounts}

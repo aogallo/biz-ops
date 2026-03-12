@@ -10,8 +10,17 @@ interface CalendarWeekViewProps {
 
 // Generate time slots from 08:00 to 18:00
 const TIME_SLOTS = [
-  '08:00', '09:00', '10:00', '11:00', '12:00',
-  '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
 ]
 
 // Get weekday dates (Sunday-Saturday) for the current week
@@ -53,8 +62,10 @@ function getTopFromTime(time: string): number {
 
 // Calculate height from duration
 function getHeightFromDuration(startTime: string, endTime: string): number {
-  const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1])
-  const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1])
+  const startMinutes =
+    parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1])
+  const endMinutes =
+    parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1])
   const durationMinutes = endMinutes - startMinutes
   return (durationMinutes / 60) * 64 // 64px per hour
 }
@@ -79,12 +90,12 @@ export function CalendarWeekView({
   )
 
   return (
-    <div className="rounded-lg border bg-card overflow-auto">
+    <div className='bg-card overflow-auto rounded-lg border'>
       {/* Sticky header row with day names */}
-      <div className="sticky top-0 z-10 bg-card border-b">
-        <div className="flex">
+      <div className='bg-card sticky top-0 z-10 border-b'>
+        <div className='flex'>
           {/* Time column header */}
-          <div className="w-16 shrink-0 border-r p-2" />
+          <div className='w-16 shrink-0 border-r p-2' />
           {/* Day headers */}
           {weekDays.map((day) => {
             const { dayName, dayNumber } = formatDayHeader(day)
@@ -93,15 +104,18 @@ export function CalendarWeekView({
               <div
                 key={day.toISOString()}
                 className={cn(
-                  'flex-1 min-w-[100px] border-r last:border-r-0 p-2 text-center',
+                  'min-w-[100px] flex-1 border-r p-2 text-center last:border-r-0',
                   today && 'bg-primary/5'
                 )}
               >
-                <div className="text-xs text-muted-foreground uppercase">{dayName}</div>
+                <div className='text-muted-foreground text-xs uppercase'>
+                  {dayName}
+                </div>
                 <div
                   className={cn(
                     'text-xl font-semibold',
-                    today && 'bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto'
+                    today &&
+                      'bg-primary text-primary-foreground mx-auto flex h-8 w-8 items-center justify-center rounded-full'
                   )}
                 >
                   {dayNumber}
@@ -113,13 +127,13 @@ export function CalendarWeekView({
       </div>
 
       {/* Time grid body */}
-      <div className="flex">
+      <div className='flex'>
         {/* Time column */}
-        <div className="w-16 shrink-0 border-r">
+        <div className='w-16 shrink-0 border-r'>
           {TIME_SLOTS.map((time) => (
             <div
               key={time}
-              className="h-16 border-b px-2 text-xs text-muted-foreground text-right pr-2"
+              className='text-muted-foreground h-16 border-b px-2 pr-2 text-right text-xs'
               style={{ lineHeight: '16px' }}
             >
               {time}
@@ -137,13 +151,16 @@ export function CalendarWeekView({
             <div
               key={day.toISOString()}
               className={cn(
-                'flex-1 min-w-[100px] border-r last:border-r-0 relative',
+                'relative min-w-[100px] flex-1 border-r last:border-r-0',
                 today && 'bg-primary/5'
               )}
             >
               {/* Time slot grid lines */}
               {TIME_SLOTS.map((time) => (
-                <div key={time} className="h-16 border-b border-dashed border-muted/50" />
+                <div
+                  key={time}
+                  className='border-muted/50 h-16 border-b border-dashed'
+                />
               ))}
 
               {/* Appointments positioned absolutely */}
@@ -154,7 +171,7 @@ export function CalendarWeekView({
                 return (
                   <div
                     key={apt.id}
-                    className="absolute left-0.5 right-0.5 z-10"
+                    className='absolute right-0.5 left-0.5 z-10'
                     style={{
                       top: `${top}px`,
                       height: `${Math.max(height, 24)}px`,

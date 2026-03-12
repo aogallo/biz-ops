@@ -25,7 +25,10 @@ export class DashboardStatsRepository {
         staffName: userModel.name,
       })
       .from(appointmentModel)
-      .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(appointmentModel.clientId, businessPartnerModel.id)
+      )
       .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
       .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
       .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -42,7 +45,11 @@ export class DashboardStatsRepository {
   /**
    * Get the next upcoming appointment (today, from current time onwards)
    */
-  async getNextAppointment(organizationId: string, today: string, currentTime: string) {
+  async getNextAppointment(
+    organizationId: string,
+    today: string,
+    currentTime: string
+  ) {
     const [appointment] = await db
       .select({
         id: appointmentModel.id,
@@ -56,7 +63,10 @@ export class DashboardStatsRepository {
         staffName: userModel.name,
       })
       .from(appointmentModel)
-      .innerJoin(businessPartnerModel, eq(appointmentModel.clientId, businessPartnerModel.id))
+      .innerJoin(
+        businessPartnerModel,
+        eq(appointmentModel.clientId, businessPartnerModel.id)
+      )
       .innerJoin(serviceModel, eq(appointmentModel.serviceId, serviceModel.id))
       .innerJoin(memberModel, eq(appointmentModel.staffId, memberModel.id))
       .innerJoin(userModel, eq(memberModel.userId, userModel.id))
@@ -77,12 +87,22 @@ export class DashboardStatsRepository {
   /**
    * Get monthly stats: revenue, total, completed, cancelled
    */
-  async getMonthlyStats(organizationId: string, monthStart: string, monthEnd: string) {
+  async getMonthlyStats(
+    organizationId: string,
+    monthStart: string,
+    monthEnd: string
+  ) {
     const [stats] = await db
       .select({
         total: count(),
-        completed: sql<number>`COUNT(*) FILTER (WHERE ${appointmentModel.status} = 'completed')`.as('completed'),
-        cancelled: sql<number>`COUNT(*) FILTER (WHERE ${appointmentModel.status} = 'cancelled')`.as('cancelled'),
+        completed:
+          sql<number>`COUNT(*) FILTER (WHERE ${appointmentModel.status} = 'completed')`.as(
+            'completed'
+          ),
+        cancelled:
+          sql<number>`COUNT(*) FILTER (WHERE ${appointmentModel.status} = 'cancelled')`.as(
+            'cancelled'
+          ),
       })
       .from(appointmentModel)
       .where(
@@ -173,9 +193,18 @@ export class DashboardStatsRepository {
     const [stats] = await db
       .select({
         totalProducts: count(),
-        totalStockValue: sql<number>`COALESCE(SUM(${productModel.stock} * ${productModel.price}), 0)`.as('total_stock_value'),
-        lowStockCount: sql<number>`COUNT(*) FILTER (WHERE ${productModel.stock} > 0 AND ${productModel.stock} <= ${productModel.minStock} AND ${productModel.minStock} > 0)`.as('low_stock'),
-        outOfStockCount: sql<number>`COUNT(*) FILTER (WHERE ${productModel.stock} = 0 OR ${productModel.stock} IS NULL)`.as('out_of_stock'),
+        totalStockValue:
+          sql<number>`COALESCE(SUM(${productModel.stock} * ${productModel.price}), 0)`.as(
+            'total_stock_value'
+          ),
+        lowStockCount:
+          sql<number>`COUNT(*) FILTER (WHERE ${productModel.stock} > 0 AND ${productModel.stock} <= ${productModel.minStock} AND ${productModel.minStock} > 0)`.as(
+            'low_stock'
+          ),
+        outOfStockCount:
+          sql<number>`COUNT(*) FILTER (WHERE ${productModel.stock} = 0 OR ${productModel.stock} IS NULL)`.as(
+            'out_of_stock'
+          ),
       })
       .from(productModel)
       .where(eq(productModel.organizationId, organizationId))
@@ -207,7 +236,9 @@ export class DashboardStatsRepository {
           sql`${productModel.minStock} > 0 AND ${productModel.stock} <= ${productModel.minStock}`
         )
       )
-      .orderBy(sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`)
+      .orderBy(
+        sql`${productModel.stock}::float / NULLIF(${productModel.minStock}, 0)`
+      )
       .limit(limit)
   }
 
@@ -226,7 +257,10 @@ export class DashboardStatsRepository {
         productSku: productModel.sku,
       })
       .from(stockMovementModel)
-      .innerJoin(productModel, eq(stockMovementModel.productId, productModel.id))
+      .innerJoin(
+        productModel,
+        eq(stockMovementModel.productId, productModel.id)
+      )
       .where(eq(stockMovementModel.organizationId, organizationId))
       .orderBy(desc(stockMovementModel.movementDate))
       .limit(limit)

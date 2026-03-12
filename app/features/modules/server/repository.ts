@@ -4,9 +4,10 @@ import {
   memberModuleAccessModel,
   organizationModuleModel,
 } from '~/server/db/schemas/modules'
+import { memberModel } from '~/server/db/schemas/auth'
 import { APP_MODULES, type ModuleAccessLevel, type ModuleKey } from '../constants'
 
-class ModulesRepository {
+export class ModulesRepository {
   async getOrgModules(organizationId: string) {
     return db
       .select()
@@ -141,6 +142,40 @@ class ModulesRepository {
     for (const moduleKey of APP_MODULES) {
       const level = access[moduleKey] ?? 'none'
       await this.setMemberModuleAccess(memberId, organizationId, moduleKey, level)
+    }
+  }
+
+  /**
+   * Auto-grants 'user' access to all org members who currently have 'none'.
+   * Members with existing 'user' or 'admin' access are not downgraded.
+   * Called when an org module is activated.
+   */
+  async autoGrantMemberAccess(organizationId: string, moduleKey: ModuleKey) {
+    const members = await db
+      .select({ id: memberModel.id })
+      .from(memberModel)
+      .where(eq(memberModel.organizationId, organizationId))
+
+    for (const member of members) {
+      const currentLevel = await this.getMemberAccessLevel(member.id, moduleKey)
+      if (currentLevel === 'none') {
+        await this.setMemberModuleAccess(member.id, organizationId, moduleKey, 'user')
+      }
+    }
+  }
+
+  /**
+   * Revokes module access (sets to 'none') for all members of an org.
+   * Called when an org module is deactivated.
+   */
+  async revokeAllMembersAccess(organizationId: string, moduleKey: ModuleKey) {
+    const members = await db
+      .select({ id: memberModel.id })
+      .from(memberModel)
+      .where(eq(memberModel.organizationId, organizationId))
+
+    for (const member of members) {
+      await this.setMemberModuleAccess(member.id, organizationId, moduleKey, 'none')
     }
   }
 

@@ -1,3 +1,9 @@
 # Ignore artifacts:
 build
 coverage
+
+drizzle
+
+.agents
+.github
+.interface-design

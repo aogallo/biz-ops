@@ -44,6 +44,9 @@ DO $$ BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'pos_cashier' AND column_name = 'company_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_cashier' AND column_name = 'sucursal_id'
   ) THEN
     ALTER TABLE "pos_cashier" RENAME COLUMN "company_id" TO "sucursal_id";
   END IF;
@@ -53,6 +56,9 @@ DO $$ BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'pos_sale' AND column_name = 'company_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_sale' AND column_name = 'sucursal_id'
   ) THEN
     ALTER TABLE "pos_sale" RENAME COLUMN "company_id" TO "sucursal_id";
   END IF;
@@ -62,6 +68,9 @@ DO $$ BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'pos_session' AND column_name = 'company_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_session' AND column_name = 'sucursal_id'
   ) THEN
     ALTER TABLE "pos_session" RENAME COLUMN "company_id" TO "sucursal_id";
   END IF;
@@ -71,6 +80,9 @@ DO $$ BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'pos_terminal' AND column_name = 'company_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pos_terminal' AND column_name = 'sucursal_id'
   ) THEN
     ALTER TABLE "pos_terminal" RENAME COLUMN "company_id" TO "sucursal_id";
   END IF;

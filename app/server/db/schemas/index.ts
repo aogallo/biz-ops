@@ -83,6 +83,7 @@ import {
 } from './quotations'
 import {
   posTableModel,
+  posTableRelations,
   posTerminalModel,
   posSaleModel,
   posSaleLineModel,

@@ -46,6 +46,7 @@ export const sucursalModel = pgTable(
     isActive: boolean('is_active').notNull().default(true),
     invoicePrefix: text('invoice_prefix').notNull().default('M'),
     nextInvoiceNumber: integer('next_invoice_number').notNull().default(1),
+    kitchenPin: text('kitchen_pin'),
     ...timestamps,
   },
   (table) => [

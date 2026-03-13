@@ -41,6 +41,7 @@ export class SucursalRepository {
         address: sucursalModel.address,
         phone: sucursalModel.phone,
         isActive: sucursalModel.isActive,
+        kitchenPin: sucursalModel.kitchenPin,
         companyName: companyModel.name,
         createdAt: sucursalModel.createdAt,
         updatedAt: sucursalModel.updatedAt,
@@ -91,6 +92,33 @@ export class SucursalRepository {
       .where(eq(sucursalModel.id, id))
       .returning()
     return sucursal ?? null
+  }
+
+  async verifyKitchenPin(sucursalCode: string, pin: string) {
+    const [sucursal] = await db
+      .select({
+        id: sucursalModel.id,
+        organizationId: sucursalModel.organizationId,
+        name: sucursalModel.name,
+        kitchenPin: sucursalModel.kitchenPin,
+      })
+      .from(sucursalModel)
+      .where(
+        and(
+          sql`upper(${sucursalModel.code}) = upper(${sucursalCode})`,
+          eq(sucursalModel.isActive, true)
+        )
+      )
+      .limit(1)
+
+    if (!sucursal || !sucursal.kitchenPin) return null
+    if (sucursal.kitchenPin !== pin) return null
+
+    return {
+      id: sucursal.id,
+      organizationId: sucursal.organizationId,
+      name: sucursal.name,
+    }
   }
 
   async getNextInvoiceNumber(

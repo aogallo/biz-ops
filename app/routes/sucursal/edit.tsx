@@ -58,6 +58,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     address: formData.get('address') || null,
     phone: formData.get('phone') || null,
     isActive: formData.get('isActive') === 'true',
+    kitchenPin: formData.get('kitchenPin') || null,
   })
 
   if (!result.success) {
@@ -207,6 +208,29 @@ export default function EditSucursal({ loaderData }: Route.ComponentProps) {
                 <option value='true'>Activa</option>
                 <option value='false'>Inactiva</option>
               </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor='kitchenPin'
+                className='mb-2 block text-sm font-medium'
+              >
+                PIN de Cocina
+              </label>
+              <input
+                type='password'
+                id='kitchenPin'
+                name='kitchenPin'
+                inputMode='numeric'
+                maxLength={6}
+                defaultValue={sucursal.kitchenPin ?? ''}
+                className={inputClass}
+                placeholder='PIN numérico (opcional)'
+                autoComplete='new-password'
+              />
+              <p className='text-muted-foreground mt-1 text-xs'>
+                PIN para que el personal de cocina acceda al display de cocina.
+              </p>
             </div>
           </CardContent>
 

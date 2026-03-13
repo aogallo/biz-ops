@@ -2,10 +2,12 @@ import {
   and,
   count,
   eq,
+  gte,
   ilike,
   inArray,
   isNotNull,
   isNull,
+  lte,
   or,
   sql,
 } from 'drizzle-orm'
@@ -24,6 +26,8 @@ export interface GetSatFilesOptions {
   companyId?: string
   limit?: number
   offset?: number
+  dateFrom?: string
+  dateTo?: string
 }
 
 export interface CategorizeStats {
@@ -33,13 +37,12 @@ export interface CategorizeStats {
 }
 
 export class SatFileRepository {
-  async getByOrganization(
+  private buildConditions(
     organizationId: string,
-    options: GetSatFilesOptions = {},
+    options: GetSatFilesOptions,
     pendingRows?: boolean
-  ): Promise<SatFile[]> {
-    const { search, companyId, limit = 50, offset = 0 } = options
-
+  ) {
+    const { search, companyId, dateFrom, dateTo } = options
     const conditions = [eq(satFileModel.organizationId, organizationId)]
 
     if (pendingRows === true) {
@@ -48,9 +51,9 @@ export class SatFileRepository {
       conditions.push(isNotNull(satFileModel.accountingAccountId))
     }
 
-    if (companyId) {
-      conditions.push(eq(satFileModel.companyId, companyId))
-    }
+    if (companyId) conditions.push(eq(satFileModel.companyId, companyId))
+    if (dateFrom) conditions.push(gte(satFileModel.date, dateFrom))
+    if (dateTo) conditions.push(lte(satFileModel.date, dateTo))
 
     if (search) {
       conditions.push(
@@ -63,6 +66,21 @@ export class SatFileRepository {
       )
     }
 
+    return conditions
+  }
+
+  async getByOrganization(
+    organizationId: string,
+    options: GetSatFilesOptions = {},
+    pendingRows?: boolean
+  ): Promise<SatFile[]> {
+    const { limit = 50, offset = 0 } = options
+    const conditions = this.buildConditions(
+      organizationId,
+      options,
+      pendingRows
+    )
+
     return await db
       .select()
       .from(satFileModel)
@@ -70,6 +88,23 @@ export class SatFileRepository {
       .limit(limit)
       .offset(offset)
       .orderBy(sql`${satFileModel.date} DESC`)
+  }
+
+  async countByOrganization(
+    organizationId: string,
+    options: GetSatFilesOptions = {},
+    pendingRows?: boolean
+  ): Promise<number> {
+    const conditions = this.buildConditions(
+      organizationId,
+      options,
+      pendingRows
+    )
+    const [result] = await db
+      .select({ count: count() })
+      .from(satFileModel)
+      .where(and(...conditions))
+    return result?.count ?? 0
   }
 
   async getCategorizeStats(organizationId: string): Promise<CategorizeStats> {

@@ -1,6 +1,7 @@
-import { Upload } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Download, Upload } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
+import type { PaginationState } from '@tanstack/react-table'
 import { DataTable } from '~/components/dataTable/DataTable'
 import { Button } from '~/components/ui/button'
 import {
@@ -38,11 +39,17 @@ import { requireAuth } from '~/server/auth/session.server'
 import type { SatFile } from '~/server/db/schemas/sat-file'
 import type { Route } from './+types'
 
+const PAGE_SIZE = 50
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
   const url = new URL(request.url)
   const companyId = url.searchParams.get('companyId') ?? undefined
   const status = url.searchParams.get('status') ?? 'assigned'
+  const search = url.searchParams.get('search') ?? undefined
+  const dateFrom = url.searchParams.get('dateFrom') ?? undefined
+  const dateTo = url.searchParams.get('dateTo') ?? undefined
+  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10))
 
   if (!session.session.activeOrganizationId) {
     return {
@@ -51,19 +58,34 @@ export async function loader({ request }: Route.LoaderArgs) {
       companies: [],
       stats: { total: 0, matched: 0, review: 0 },
       status,
+      total: 0,
+      page: 1,
+      pageSize: PAGE_SIZE,
     }
   }
 
   const organizationId = session.session.activeOrganizationId
-
-  // pending = null accountingAccountId, assigned = not null, all = undefined (no filter)
   const pendingRows =
     status === 'pending' ? true : status === 'assigned' ? false : undefined
 
-  const [satFiles, accounts, companies, stats] = await Promise.all([
+  const queryOptions = {
+    companyId,
+    search,
+    dateFrom,
+    dateTo,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+  }
+
+  const [satFiles, total, accounts, companies, stats] = await Promise.all([
     satFileRepository.getByOrganization(
       organizationId,
-      { companyId },
+      queryOptions,
+      pendingRows
+    ),
+    satFileRepository.countByOrganization(
+      organizationId,
+      queryOptions,
       pendingRows
     ),
     accountsRepository.getAllByOrganization(organizationId),
@@ -71,7 +93,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     satFileRepository.getCategorizeStats(organizationId),
   ])
 
-  return { satFiles, accounts, companies, stats, status }
+  return {
+    satFiles,
+    accounts,
+    companies,
+    stats,
+    status,
+    total,
+    page,
+    pageSize: PAGE_SIZE,
+  }
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -191,10 +222,12 @@ export default function SATProcessorIndex({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { satFiles, accounts, companies, status } = loaderData
+  const { satFiles, accounts, companies, status, total, page, pageSize } =
+    loaderData
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedRow, setSelectedRow] = useState<SatFile | null>(null)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleRowSelectionChange = useCallback((selectedRows: SatFile[]) => {
     setSelectedRow(selectedRows.length > 0 ? selectedRows[0] : null)
@@ -218,47 +251,105 @@ export default function SATProcessorIndex({
     }
   }, [satFiles, selectedRow])
 
-  const handleCompanyChange = (value: string) => {
-    const newParams = new URLSearchParams(searchParams)
-    if (value && value !== 'all') {
-      newParams.set('companyId', value)
-    } else {
-      newParams.delete('companyId')
-    }
-    setSearchParams(newParams)
-  }
+  const updateParam = useCallback(
+    (key: string, value: string | null) => {
+      const p = new URLSearchParams(searchParams)
+      if (value) p.set(key, value)
+      else p.delete(key)
+      p.delete('page') // reset to page 1 on filter change
+      setSearchParams(p)
+    },
+    [searchParams, setSearchParams]
+  )
 
-  const handleStatusChange = (value: string) => {
-    const newParams = new URLSearchParams(searchParams)
-    newParams.set('status', value)
-    setSearchParams(newParams)
-  }
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current)
+      searchTimeout.current = setTimeout(() => {
+        updateParam('search', e.target.value || null)
+      }, 400)
+    },
+    [updateParam]
+  )
 
-  const currentMonth = new Date().toLocaleString('es-GT', {
-    month: 'long',
-    year: 'numeric',
-  })
+  const handlePaginationChange = useCallback(
+    (
+      updater: PaginationState | ((prev: PaginationState) => PaginationState)
+    ) => {
+      const current = { pageIndex: page - 1, pageSize }
+      const next = typeof updater === 'function' ? updater(current) : updater
+      const p = new URLSearchParams(searchParams)
+      p.set('page', String(next.pageIndex + 1))
+      setSearchParams(p)
+    },
+    [page, pageSize, searchParams, setSearchParams]
+  )
+
+  const pagination = useMemo<PaginationState>(
+    () => ({ pageIndex: page - 1, pageSize }),
+    [page, pageSize]
+  )
+
+  const pageCount = Math.ceil(total / pageSize)
+
+  const handleExportCsv = useCallback(() => {
+    const headers = [
+      'Fecha',
+      'Tipo',
+      'Serie',
+      'Número',
+      'NIT Emisor',
+      'Emisor',
+      'Total',
+      'IVA',
+      'Estado',
+    ]
+    const rows = satFiles.map((f) => [
+      f.date ?? '',
+      f.dteType ?? '',
+      f.serie ?? '',
+      f.dteNumber ?? '',
+      f.emitterNit ?? '',
+      f.emitterName ?? '',
+      f.total ?? '',
+      f.iva ?? '',
+      f.accountingAccountId ? 'Asignada' : 'Pendiente',
+    ])
+    const csv = [headers, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `sat-invoices-page-${page}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [satFiles, page])
 
   return (
     <div className='flex flex-1 overflow-hidden'>
       <div className='flex flex-1 flex-col overflow-hidden p-6'>
+        {/* Header */}
         <div className='mb-4 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <h2 className='text-lg font-bold'>Processed Invoices</h2>
-            <span className='bg-muted text-muted-foreground rounded px-2 text-sm capitalize'>
-              {currentMonth}
+            <h2 className='text-lg font-bold'>Facturas SAT</h2>
+            <span className='bg-muted text-muted-foreground rounded px-2 text-sm'>
+              {total} registros
             </span>
           </div>
           <div className='flex items-center gap-2'>
             <Select
               value={searchParams.get('companyId') ?? 'all'}
-              onValueChange={handleCompanyChange}
+              onValueChange={(v) =>
+                updateParam('companyId', v === 'all' ? null : v)
+              }
             >
               <SelectTrigger className='w-48'>
-                <SelectValue placeholder='All Companies' />
+                <SelectValue placeholder='Todas las empresas' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='all'>All Companies</SelectItem>
+                <SelectItem value='all'>Todas las empresas</SelectItem>
                 {companies.map((company) => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.name}
@@ -267,6 +358,11 @@ export default function SATProcessorIndex({
               </SelectContent>
             </Select>
 
+            <Button variant='outline' onClick={handleExportCsv}>
+              <Download className='mr-2 h-4 w-4' />
+              Exportar CSV
+            </Button>
+
             <Dialog
               open={isUploadDialogOpen}
               onOpenChange={setIsUploadDialogOpen}
@@ -274,12 +370,12 @@ export default function SATProcessorIndex({
               <DialogTrigger asChild>
                 <Button>
                   <Upload className='mr-2 h-4 w-4' />
-                  Upload SAT File
+                  Subir archivo SAT
                 </Button>
               </DialogTrigger>
               <DialogContent className='sm:max-w-2xl'>
                 <DialogHeader>
-                  <DialogTitle>Upload SAT Export</DialogTitle>
+                  <DialogTitle>Subir exportación SAT</DialogTitle>
                 </DialogHeader>
                 <UploadDropzone
                   companies={companies}
@@ -288,6 +384,48 @@ export default function SATProcessorIndex({
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+
+        {/* Filters row */}
+        <div className='mb-3 flex flex-wrap items-center gap-2'>
+          <input
+            type='search'
+            placeholder='Buscar por NIT, nombre, serie...'
+            defaultValue={searchParams.get('search') ?? ''}
+            onChange={handleSearchChange}
+            className='border-input bg-background h-9 w-64 rounded-md border px-3 text-sm'
+          />
+          <input
+            type='date'
+            value={searchParams.get('dateFrom') ?? ''}
+            onChange={(e) => updateParam('dateFrom', e.target.value || null)}
+            className='border-input bg-background h-9 rounded-md border px-3 text-sm'
+          />
+          <span className='text-muted-foreground text-sm'>a</span>
+          <input
+            type='date'
+            value={searchParams.get('dateTo') ?? ''}
+            onChange={(e) => updateParam('dateTo', e.target.value || null)}
+            className='border-input bg-background h-9 rounded-md border px-3 text-sm'
+          />
+          {(searchParams.get('dateFrom') ||
+            searchParams.get('dateTo') ||
+            searchParams.get('search')) && (
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => {
+                const p = new URLSearchParams(searchParams)
+                p.delete('dateFrom')
+                p.delete('dateTo')
+                p.delete('search')
+                p.delete('page')
+                setSearchParams(p)
+              }}
+            >
+              Limpiar filtros
+            </Button>
+          )}
         </div>
 
         {actionData && 'success' in actionData && actionData.success && (
@@ -304,7 +442,7 @@ export default function SATProcessorIndex({
 
         <Tabs
           value={status}
-          onValueChange={handleStatusChange}
+          onValueChange={(v) => updateParam('status', v)}
           className='mb-2'
         >
           <TabsList>
@@ -320,8 +458,10 @@ export default function SATProcessorIndex({
           enableRowSelection
           onRowSelectionChange={handleRowSelectionChange}
           onRowClick={handleRowClick}
-          enableSearch
-          searchPlaceholder='Search invoices...'
+          manualPagination
+          pageCount={pageCount}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
         />
       </div>
 

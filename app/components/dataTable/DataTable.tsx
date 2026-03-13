@@ -5,6 +5,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type OnChangeFn,
+  type PaginationState,
   type RowSelectionState,
   type SortingState,
   useReactTable,
@@ -31,6 +33,11 @@ interface DataTableProps<TData, TValue> {
   enableRowSelection?: boolean
   enableSearch?: boolean
   searchPlaceholder?: string
+  // Server-side pagination
+  manualPagination?: boolean
+  pageCount?: number
+  pagination?: PaginationState
+  onPaginationChange?: OnChangeFn<PaginationState>
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +48,10 @@ export function DataTable<TData, TValue>({
   enableRowSelection = false,
   enableSearch = false,
   searchPlaceholder = 'Search...',
+  manualPagination = false,
+  pageCount,
+  pagination: externalPagination,
+  onPaginationChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -69,13 +80,27 @@ export function DataTable<TData, TValue>({
       onRowSelectionChange: setRowSelection,
       onGlobalFilterChange: setGlobalFilter,
       enableRowSelection,
-      state: {
-        sorting,
-        columnVisibility,
-        rowSelection,
-        // Only apply globalFilter after mount to prevent hydration mismatch
-        globalFilter: isMounted ? globalFilter : '',
-      },
+      // Server-side pagination
+      ...(manualPagination && {
+        manualPagination: true,
+        pageCount: pageCount ?? -1,
+        onPaginationChange,
+        state: {
+          sorting,
+          columnVisibility,
+          rowSelection,
+          globalFilter: isMounted ? globalFilter : '',
+          pagination: externalPagination,
+        },
+      }),
+      ...(!manualPagination && {
+        state: {
+          sorting,
+          columnVisibility,
+          rowSelection,
+          globalFilter: isMounted ? globalFilter : '',
+        },
+      }),
     }),
     [
       columns,
@@ -86,6 +111,10 @@ export function DataTable<TData, TValue>({
       globalFilter,
       enableRowSelection,
       isMounted,
+      manualPagination,
+      pageCount,
+      externalPagination,
+      onPaginationChange,
     ]
   )
 

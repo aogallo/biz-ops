@@ -1,5 +1,3 @@
-import { Link } from 'react-router'
-import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/i18n/context'
 
 export function CTASection() {
@@ -14,9 +12,10 @@ export function CTASection() {
         <p className='text-primary-foreground/80 mx-auto mt-4 max-w-2xl text-lg'>
           {t('landing.cta.subtitle')}
         </p>
-        <Button size='lg' variant='secondary' className='mt-8' asChild>
+        {/*<Button size='lg' variant='secondary' className='mt-8' asChild>
           <Link to='/login'>{t('landing.cta.button')}</Link>
         </Button>
+	*/}
       </div>
     </section>
   )

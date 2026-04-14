@@ -5,9 +5,7 @@ import {
   Package,
   Receipt,
 } from 'lucide-react'
-import { Link } from 'react-router'
 import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/i18n/context'
 
 export function HeroSection() {
@@ -28,7 +26,7 @@ export function HeroSection() {
         <p className='text-muted-foreground max-w-lg text-lg'>
           {t('landing.subtitle')}
         </p>
-        <div className='flex flex-wrap gap-3'>
+        {/*        <div className='flex flex-wrap gap-3'>
           <Button size='lg' asChild>
             <Link to='/login'>{t('landing.ctaStart')}</Link>
           </Button>
@@ -36,6 +34,7 @@ export function HeroSection() {
             <a href='#precios'>{t('landing.ctaPlans')}</a>
           </Button>
         </div>
+	*/}
       </div>
 
       {/* Right side - Service icons grid */}

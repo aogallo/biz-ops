@@ -9,6 +9,7 @@ import { organizationModel } from '~/server/db/schemas/auth'
 export const organizationCreateSchema = createInsertSchema(organizationModel, {
   domain: z
     .string()
+    .trim()
     .regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers and hyphens')
     .optional(),
   logo: z.string().optional(),

@@ -6,6 +6,7 @@ import z from 'zod'
 export async function createOrganization(request: Request, input: FormData) {
   const logoFile = input.get('logo') as File | null
   let logoBase64: string | undefined
+
   if (logoFile && logoFile.size > 0) {
     const buffer = await logoFile.arrayBuffer()
     const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
@@ -13,6 +14,7 @@ export async function createOrganization(request: Request, input: FormData) {
   }
 
   const rawValues = Object.fromEntries(input)
+
   const { data, error, success } = organizationCreateSchema.safeParse({
     ...rawValues,
     logo: logoBase64,

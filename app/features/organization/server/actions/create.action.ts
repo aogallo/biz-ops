@@ -1,6 +1,7 @@
 import auth from '~/server/auth-server'
 import { organizationCreateSchema } from '../../schemas'
 import { organizationRepository } from '../repository'
+import z from 'zod'
 
 export async function createOrganization(request: Request, input: FormData) {
   const logoFile = input.get('logo') as File | null
@@ -21,7 +22,7 @@ export async function createOrganization(request: Request, input: FormData) {
     return {
       success: false,
       message: 'There are errors',
-      errors: error.flatten().fieldErrors,
+      errors: z.prettifyError(error),
     }
   }
 

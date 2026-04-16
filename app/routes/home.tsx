@@ -1,20 +1,28 @@
 import { requireAuth } from '~/server/auth/session.server'
+import { getUserOrganizations } from '~/server/permissions'
 import type { Route } from './+types/home'
 import UserInformation from '~/features/home/components/UserInformation'
 import Modules from '~/features/home/components/Modules'
 import QuickActions from '~/features/home/components/QuickActions'
 import Pending from '~/features/home/components/Pending'
 import RecentActivity from '~/features/home/components/RecentActivity'
-import { getUserOrganizations } from '~/server/permissions'
+import { getQuickActions } from '~/features/home/server/actions/get-quick-actions.action'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await requireAuth(request)
-  const organizations = await getUserOrganizations(session.user.id)
+  const userId = session.user.id
+  const organizationId = session.session.activeOrganizationId
+
+  const organizations = await getUserOrganizations(userId)
+
+  const quickActions = organizationId
+    ? await getQuickActions(userId, organizationId)
+    : []
 
   return {
     userName: session.user.name,
     companyName: organizations[0]?.name ?? '',
-    // Static mock data for now — replace with real queries later
+    quickActions,
     overdueInvoices: 3,
     pendingPayables: 2,
     pendingPayablesDueDays: 3,
@@ -48,6 +56,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
   const {
     userName,
     companyName,
+    quickActions,
     overdueInvoices,
     pendingPayables,
     pendingPayablesDueDays,
@@ -65,7 +74,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
 
       {/* Right column */}
       <div className='space-y-6'>
-        <QuickActions />
+        <QuickActions actions={quickActions} />
         <Pending
           overdueInvoices={overdueInvoices}
           pendingPayables={pendingPayables}

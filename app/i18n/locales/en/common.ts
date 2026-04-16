@@ -63,4 +63,5 @@ export const common = {
   'common.signOut': 'Sign out',
   'common.user': 'User',
   'common.noOrganization': 'No active organization selected',
+  'common.notFound': 'Not found',
 } as const

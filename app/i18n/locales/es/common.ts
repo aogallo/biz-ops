@@ -63,4 +63,5 @@ export const common = {
   'common.signOut': 'Cerrar sesión',
   'common.user': 'Usuario',
   'common.noOrganization': 'No se ha seleccionado una organización',
+  'common.notFound': 'No encontrado',
 } as const

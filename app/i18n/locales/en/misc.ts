@@ -31,6 +31,12 @@ export const misc = {
   'appointments.noOrganization': 'No active organization selected',
   'appointments.noService': 'Selected service not found',
   'appointments.failed': 'Failed to create an appointment',
+  'appointments.cancelled': 'Appointment cancelled successfully',
+  'appointments.cancelFailed': 'Failed to cancel appointment',
+  'appointments.cannotCancelCompleted': 'Cannot cancel a completed appointment',
+  'appointments.alreadyCancelled': 'This appointment is already cancelled',
+  'appointments.updated': 'Appointment updated successfully',
+  'appointments.updateFailed': 'Failed to update appointment',
 
   'services.title': 'Services',
   'services.new': 'Add Service',

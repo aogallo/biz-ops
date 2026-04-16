@@ -81,7 +81,6 @@ export async function isOrgAdmin(
 
   if (result.length === 0) return false
 
-  // Check both legacy role and Better Auth compatibility role
   return result[0].role === 'admin' || result[0].role === 'owner'
 }
 
@@ -107,21 +106,11 @@ export async function getUserOrganizations(userId: string) {
     .where(eq(memberModel.userId, userId))
 }
 
-/**
- * Check if user has permission to perform action on resource
- * Super admins bypass all permission checks
- */
-export async function hasPermission(
-  userId: string
-  // resource: string,
-  // action: string
-): Promise<boolean> {
-  // Super admins have all permissions
-  if (await isSuperAdmin(userId)) {
-    return true
-  }
-
-  // TODO: Implement granular permission checking via rolePermission table
-  // For now, return false (will be implemented in next phase)
-  return false
-}
+export {
+  hasPermission,
+  getUserPermissions,
+  requirePermission,
+  hasAnyPermission,
+  hasAllPermissions,
+  getUserPermissionsGrouped,
+} from './auth/permissions.server'

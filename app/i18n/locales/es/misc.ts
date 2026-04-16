@@ -32,6 +32,13 @@ export const misc = {
   'appointments.created.fill': 'Debe de completar todos los campos requeridos',
   'appointments.noService': 'Servicio seleccionado no existe',
   'appointments.failed': 'No se pudo crear la cita',
+  'appointments.cancelled': 'Cita cancelada exitosamente',
+  'appointments.cancelFailed': 'No se pudo cancelar la cita',
+  'appointments.cannotCancelCompleted':
+    'No se puede cancelar una cita completada',
+  'appointments.alreadyCancelled': 'Esta cita ya está cancelada',
+  'appointments.updated': 'Cita actualizada exitosamente',
+  'appointments.updateFailed': 'No se pudo actualizar la cita',
 
   'services.title': 'Servicios',
   'services.new': 'Agregar Servicio',

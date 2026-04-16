@@ -6,23 +6,27 @@ import { Card, CardContent } from '~/components/ui/card'
 interface UserInformationProps {
   userName: string
   companyName: string
+  canViewDailyReport: boolean
 }
 
 export default function UserInformation({
   userName,
   companyName,
+  canViewDailyReport,
 }: UserInformationProps) {
   return (
     <Card>
       <CardContent className='p-8'>
         <h2 className='text-3xl font-bold'>Welcome, {userName} 👋</h2>
         <p className='text-muted-foreground mt-1'>Company: {companyName}</p>
-        <Button asChild className='mt-6'>
-          <Link to='/reports'>
-            <FileText className='mr-2 h-4 w-4' />
-            Daily Report
-          </Link>
-        </Button>
+        {canViewDailyReport && (
+          <Button asChild className='mt-6'>
+            <Link to='/reports'>
+              <FileText className='mr-2 h-4 w-4' />
+              Daily Report
+            </Link>
+          </Button>
+        )}
       </CardContent>
     </Card>
   )

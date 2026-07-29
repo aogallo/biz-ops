@@ -137,6 +137,7 @@ export default [
       index('./routes/appointments/index.tsx'),
       route('/new', './routes/appointments/new.tsx'),
       route('/send-reminders', './routes/appointments/send-reminders.tsx'),
+      route('/:id/edit', './routes/appointments/$id.edit.tsx'),
     ]),
 
     // Services Routes

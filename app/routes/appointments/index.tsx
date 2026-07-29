@@ -1,6 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useFetcher, useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from '~/i18n/context'
 import {
@@ -10,6 +10,7 @@ import {
   CalendarMonthView,
   CalendarWeekView,
 } from '~/features/appointments/components'
+import { cancelAppointmentAction } from '~/features/appointments/server/actions/cancel.action'
 import { appointmentsRepository } from '~/features/appointments/server/repository'
 import type {
   CalendarView,
@@ -120,25 +121,56 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { staff, clients, appointments }
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData()
+  const intent = formData.get('intent')
+
+  if (intent === 'cancel') {
+    return await cancelAppointmentAction(request)
+  }
+
+  return { success: false, message: 'Invalid action' }
+}
+
 export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
   const { appointments } = loaderData
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const cancelFetcher = useFetcher()
+  const isCancelling = cancelFetcher.state !== 'idle'
 
   // Handle success toast from redirect
   useEffect(() => {
     const successParam = searchParams.get('success')
     if (successParam === 'appointment_created') {
       toast.success(t('appointments.created'))
-      // Remove the success param from URL
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('success')
+      setSearchParams(newParams, { replace: true })
+    } else if (successParam === 'appointment_updated') {
+      toast.success(t('appointments.updated'))
       const newParams = new URLSearchParams(searchParams)
       newParams.delete('success')
       setSearchParams(newParams, { replace: true })
     }
   }, [searchParams, setSearchParams])
+
+  // Handle cancel fetcher response
+  useEffect(() => {
+    if (cancelFetcher.state === 'idle' && cancelFetcher.data) {
+      const data = cancelFetcher.data as { success: boolean; message?: string }
+      if (data.success) {
+        toast.success(t('appointments.cancelled'))
+        setDrawerOpen(false)
+      } else {
+        toast.error(data.message || t('appointments.cancelFailed'))
+      }
+    }
+  }, [cancelFetcher.state, cancelFetcher.data, t])
 
   // Get view from URL or default to 'month'
   const viewParam = searchParams.get('view') as CalendarView | null
@@ -213,16 +245,18 @@ export default function AppointmentsPage({ loaderData }: Route.ComponentProps) {
 
   // Handle edit appointment
   const handleEditAppointment = (appointment: Appointment) => {
-    // TODO: Navigate to edit page or open edit modal
-    console.log('Edit appointment:', appointment.id)
-    setDrawerOpen(false)
+    navigate(`/appointments/${appointment.id}/edit`)
   }
 
   // Handle cancel appointment
   const handleCancelAppointment = (appointment: Appointment) => {
-    // TODO: Implement cancel action with confirmation
-    console.log('Cancel appointment:', appointment.id)
-    toast.info(t('appointments.cancelSoon'))
+    if (isCancelling) return
+
+    const formData = new FormData()
+    formData.append('intent', 'cancel')
+    formData.append('appointmentId', appointment.id)
+
+    cancelFetcher.submit(formData, { method: 'post' })
   }
 
   return (

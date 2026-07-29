@@ -1,15 +1,27 @@
-import { FileText, PlusCircle, Receipt, UserPlus } from 'lucide-react'
+import {
+  FileText,
+  PlusCircle,
+  Receipt,
+  ShoppingCart,
+  UserPlus,
+} from 'lucide-react'
 import { Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import type { QuickAction } from '../server/actions/get-quick-actions.action'
 
-const actions = [
-  { icon: Receipt, label: 'Create invoice', href: '/invoices/new' },
-  { icon: FileText, label: 'Record payment', href: '/journal-entries/new' },
-  { icon: UserPlus, label: 'Create client', href: '/business-partners/new' },
-  { icon: PlusCircle, label: 'Create expense', href: '/purchase/orders/new' },
-]
+const iconMap: Record<string, React.ElementType> = {
+  FileText,
+  PlusCircle,
+  Receipt,
+  ShoppingCart,
+  UserPlus,
+}
 
-export default function QuickActions() {
+interface QuickActionsProps {
+  actions: QuickAction[]
+}
+
+export default function QuickActions({ actions }: QuickActionsProps) {
   return (
     <Card>
       <CardHeader className='pb-3'>
@@ -17,10 +29,10 @@ export default function QuickActions() {
       </CardHeader>
       <CardContent className='space-y-1 p-4 pt-0'>
         {actions.map((action) => {
-          const Icon = action.icon
+          const Icon = iconMap[action.icon] || FileText
           return (
             <Link
-              key={action.label}
+              key={action.id}
               to={action.href}
               className='hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2 transition-colors'
             >
@@ -31,6 +43,11 @@ export default function QuickActions() {
             </Link>
           )
         })}
+        {actions.length === 0 && (
+          <p className='text-muted-foreground px-3 py-2 text-sm'>
+            No actions available
+          </p>
+        )}
       </CardContent>
     </Card>
   )

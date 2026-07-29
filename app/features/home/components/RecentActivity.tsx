@@ -39,6 +39,11 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
         </Button>
       </CardHeader>
       <CardContent className='space-y-1 p-4 pt-0'>
+        {activities.length === 0 && (
+          <p className='text-muted-foreground py-2 text-center text-sm'>
+            No recent activity
+          </p>
+        )}
         {activities.map((activity) => {
           const Icon = iconMap[activity.icon]
           const colorClass = iconColors[activity.icon]

@@ -73,7 +73,9 @@ export async function deleteOrganization(request: Request, slug: string) {
     }
   }
 
-  // TODO: Validation 5: billing balance check (not implemented yet)
+  // TODO(billing): Validation 5: billing balance check
+  // Requires billing module implementation. Will check outstanding invoices,
+  // subscriptions, and payment history before allowing org deletion.
 
   try {
     const data = await auth.api.deleteOrganization({

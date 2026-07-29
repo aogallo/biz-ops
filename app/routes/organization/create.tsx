@@ -9,7 +9,7 @@ import type { Route } from './+types/create'
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   await requireAuth(request)
-  const appDomain = context.cloudflare.env.APP_DOMAIN ?? 'bizops.app'
+  const appDomain = context.cloudflare?.env.APP_DOMAIN ?? 'bizops.app'
   return { appDomain }
 }
 
@@ -54,9 +54,9 @@ export default function CreateOrganization({
         <h1 className='text-2xl font-bold'>{t('organization.createNew')}</h1>
 
         <Form method='post' encType='multipart/form-data' className='space-y-6'>
-          {actionData?.message && (
+          {actionData?.errors && (
             <div className='bg-destructive/10 text-destructive rounded-md p-4 text-sm'>
-              {actionData.message}
+              {actionData.errors}
             </div>
           )}
 
